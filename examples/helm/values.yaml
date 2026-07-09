@@ -81,3 +81,14 @@ deployer:
 
 fieldContent:
   deploymentType: "helm"
+
+# Example for deployment of applications per user
+# checkout templates/applicationset-per-user.yaml
+# multi_user:
+#     num_users: 5
+#     users:
+#     -   username: user1
+#     -   username: user2
+#     -   username: user3
+#     -   username: user4
+#     -   username: user5

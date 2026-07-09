@@ -1,0 +1,41 @@
+{{- if .Values.multi_user }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: per-user
+  namespace: openshift-gitops
+spec:
+  generators:
+  - list:
+      elements:
+{{- range .Values.multi_user.users }}
+      - user: {{ .username | quote }}
+{{- end }}
+  template:
+    metadata:
+      name: "{{`{{ user }}`}}-hello-world"
+      namespace: openshift-gitops
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      destination:
+        namespace: "{{`{{ user }}`}}-hello-world"
+        server: 'https://kubernetes.default.svc'
+      project: default
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+          prune: false
+          selfHeal: false
+      source:
+        repoURL: {{ .Values.gitops.repoUrl }}
+        targetRevision: {{ .Values.gitops.revision }}
+        path: {{ .Values.gitops.basePath }}/components/hello-world
+        helm:
+          values: |
+            demo:
+              enabled: true
+              namespace: {{`{{ user }}`}}-hello-world
+{{- end }}
