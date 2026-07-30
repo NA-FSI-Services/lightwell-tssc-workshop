@@ -1,0 +1,53 @@
+{{- if .Values.springBootLwPoc.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.springBootLwPoc.name }}
+  namespace: {{ .Values.springBootLwPoc.namespace }}
+  labels:
+    {{- include "spring-boot-lw-poc.labels" . | nindent 4 }}
+    app: {{ .Values.springBootLwPoc.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.springBootLwPoc.syncWaves.workload | quote }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.springBootLwPoc.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "spring-boot-lw-poc.labels" . | nindent 8 }}
+        app: {{ .Values.springBootLwPoc.name }}
+    spec:
+      containers:
+        - name: spring-boot-lw-poc
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          env:
+            - name: SPRING_APPLICATION_JSON
+              value: '{"lightwell":{"stream":"{{ .Values.lightwellStream }}"}}'
+          readinessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+              memory: {{ .Values.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+              memory: {{ .Values.resources.limits.memory | quote }}
+{{- end }}
