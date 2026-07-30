@@ -1,0 +1,26 @@
+{{- if and .Values.parasolApp.enabled .Values.route.enabled }}
+{{- $host := include "parasol-app.routeHost" . }}
+{{- $target := include "parasol-app.routeTarget" . }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: parasol
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.route | quote }}
+spec:
+  host: {{ $host | quote }}
+  to:
+    kind: Service
+    name: {{ $target }}
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}

@@ -1,0 +1,52 @@
+{{- if and .Values.parasolApp.enabled .Values.labDocs.enabled }}
+{{- $nexusUrl := include "parasol-app.nexusUrl" . }}
+{{- $appUrl := include "parasol-app.appUrl" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: parasol-app-lab-docs
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.config | quote }}
+data:
+  COMMANDS.md: |
+    # Parasol (optional) — Lightwell channel reuse
+
+    **Primary path remains `spring-boot-lw-poc` (#24).** This component is a values-gated
+    multi-tier scaffold for a larger enterprise narrative (OpenShift Dev Day / RAD AI Parasol).
+
+    ## Upstream
+
+    - {{ .Values.upstream.url }}
+
+    ## Maven — same channels as the Spring Boot PoC
+
+    Extract settings from this namespace:
+
+    ```bash
+    oc -n {{ .Values.parasolApp.namespace }} extract configmap/{{ .Values.mavenSettings.configMapName }} \
+      --keys=settings.xml --to=.
+    export LIGHTWELL_NEXUS_URL={{ $nexusUrl }}
+    # export LW_USERNAME=... LW_PASSWORD=...   # never commit
+    mvn -s settings.xml -Plightwell-validated clean verify
+    mvn -s settings.xml -Plightwell-remediated clean verify
+    ```
+
+    Channel keys (must not be renamed to fictional tiers):
+    - {{ .Values.lightwell.validatedRepo }}
+    - {{ .Values.lightwell.remediatedRepo }}
+    - {{ .Values.lightwell.osvRepo }}
+
+    Canonical remotes: packages.redhat.com/lightwell/java/{validated,remediated} and osv/java/remediated.
+
+    ## Enable images
+
+    1. Build Parasol from upstream (or Dev Day assets).
+    2. Set `backend.image` / `frontend.image` in values.
+    3. Enable `components.parasolApp.enabled=true` in root-app (off by default).
+
+    Route: {{ $appUrl }}
+{{- end }}
