@@ -4,7 +4,7 @@ This directory is the **RHDP sync target** for the Lightwell workshop (AgnosticV
 
 ## Status
 
-`charts/root-app` App-of-Apps is scaffolded. Phase 1 component charts (#3–#8, #24) are available; Showroom wiring (#19) remains. Components stay `enabled: false` in root-app values until ready to sync.
+`charts/root-app` App-of-Apps is scaffolded. Phase 1 component charts (#3–#8, #24) and Showroom (#19) are available. Keep non-Showroom components `enabled: false` in root-app values until ready to sync on a sized cluster; Showroom is enabled and builds Modules 1–5 from `site.yml`.
 
 ## Layout
 
@@ -23,7 +23,7 @@ charts/
     ├── rhacs/                # Advanced Cluster Security + roxctl hooks (#6)
     ├── lightwell-repo/       # Nexus LWN validated / remediated / OSV (#7)
     ├── spring-boot-lw-poc/   # Primary Spring Boot / LWN Maven PoC (#24)
-    ├── showroom/             # (pending)
+    ├── showroom/             # RHDP Showroom UI + terminal (Modules 1–5) (#19)
     └── parasol-app/          # Optional multi-tier Parasol scaffold (#8)
 ```
 

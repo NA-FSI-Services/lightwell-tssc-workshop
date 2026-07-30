@@ -1,0 +1,58 @@
+# Showroom — RHDP split-screen lab guide + terminal (issue #19)
+# Content: site.yml → docs/modules/ROOT (Modules 1–5). Images per docs/SHOWROOM-UPDATE-SPEC.md.
+showroom:
+  enabled: true
+  namespace: showroom
+  name: showroom
+
+  syncWaves:
+    namespace: "0"
+    config: "1"
+    workload: "2"
+    route: "3"
+    userinfo: "4"
+
+  content:
+    repoUrl: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
+    repoRef: "main"
+    antoraPlaybook: "site.yml"
+    image: "quay.io/rhpds/showroom-content:v1.3.1"
+    gitClonerImage: "quay.io/rhpds/git-cloner:v1.1.2"
+    antoraImage: "quay.io/rhpds/antora:v1.0.1"
+    nginxImage: "quay.io/rhpds/nginx:1.25"
+
+  # UPDATE-SPEC: zero-touch/nookbag bundles intentionally unsupported for this catalog path
+  nookbag:
+    enabled: false
+    bundleUrl: "https://github.com/rhpds/nookbag/releases/download/nookbag-v0.2.1/nookbag-v0.2.1.zip"
+
+  terminal:
+    enabled: true
+    image: "quay.io/rhpds/openshift-showroom-terminal-ocp:latest"
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+
+  pvc:
+    size: 5Gi
+
+# Injected by root-app / field-content
+deployer:
+  domain: ""
+  apiUrl: ""
+
+# Antora userdata attributes (optional context for lab prose)
+demo:
+  namespace: spring-boot-lw-poc
+  appName: spring-boot-lw-poc
+
+userInfo:
+  enabled: true
+  title: "Lightwell Software Supply Chain Security Workshop"
+  instructions: >-
+    Open Showroom for Modules 1–5 (split-screen guide + terminal).
+    Use the terminal pane for oc / tkn / mvn / syft. Never commit LW_USERNAME / LW_PASSWORD.

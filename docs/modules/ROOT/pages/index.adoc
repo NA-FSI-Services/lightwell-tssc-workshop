@@ -34,8 +34,10 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 
 == Before you start
 
-* Use the Showroom terminal for `oc` / `tkn` / `mvn` commands in later modules.
+* This guide runs in the RHDP **Showroom** split-screen UI (lab nav + embedded terminal at `/terminal/`).
+* Use the Showroom terminal for `oc` / `tkn` / `mvn` / `syft` commands.
 * Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`).
 * Canonical console (membership / browsing): {lightwell-console-url}
+* RHDP claim emails / portal expose `showroom_url` from ConfigMap `demo-userinfo-showroom` (namespace `showroom`).
 
-Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-05-pipeline.adoc[Module 5].
+Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-05-pipeline.adoc[Module 5] using the left-hand nav.
