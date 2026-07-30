@@ -45,21 +45,21 @@ Public [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) current
 
 After an `rhpds/` content mirror exists, update GitOps URLs in the AgnosticV leaves ([DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md)).
 
-## Proposed in-repo layout (after #71)
+## In-repo layout (#71)
 
 ```text
 agnosticv/
 ├── README.md
 ├── SUBMISSION.md                 # This file
-├── lightwell-tssc-workshop/      # folder leaf (preferred)
-│   ├── common.yaml
+├── lightwell-tssc-workshop/      # folder leaf for upstream copy
+│   ├── common.yaml               # shared GitOps + base __meta__
 │   ├── description.adoc
-│   ├── dev.yaml                  # DEV first
-│   └── prod.yaml                 # after #21
-└── published/                    # legacy flat draft — keep until #71 migrates
-    ├── published.lightwell-tssc-workshop.prod.yaml
-    └── description.adoc
+│   ├── dev.yaml                  # babylon-catalog-dev
+│   └── prod.yaml                 # published.lightwell-tssc-workshop.prod
+└── published/README.md           # pointer to lightwell-tssc-workshop/
 ```
+
+**Maintainer path TBD:** confirm exact directory inside [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) before #73 (public repo is CLI-centric today).
 
 ## Pre-flight (local)
 
@@ -68,9 +68,13 @@ agnosticv/
 ./scripts/showroom-check.sh
 ./scripts/helm-validate.sh
 
-# After #71:
-# test -f agnosticv/lightwell-tssc-workshop/common.yaml
-# test -f agnosticv/lightwell-tssc-workshop/dev.yaml
+test -f agnosticv/lightwell-tssc-workshop/common.yaml
+test -f agnosticv/lightwell-tssc-workshop/description.adoc
+test -f agnosticv/lightwell-tssc-workshop/dev.yaml
+test -f agnosticv/lightwell-tssc-workshop/prod.yaml
+grep -q 'babylon-catalog-dev' agnosticv/lightwell-tssc-workshop/dev.yaml
+grep -q 'published.lightwell-tssc-workshop.prod' agnosticv/lightwell-tssc-workshop/prod.yaml
+grep -q 'charts/root-app' agnosticv/lightwell-tssc-workshop/common.yaml
 ```
 
 ## Human steps — DEV PR (#73)

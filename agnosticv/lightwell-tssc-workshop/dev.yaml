@@ -1,0 +1,16 @@
+---
+# DEV stage leaf — order first on babylon-catalog-dev (#73 → #21).
+# Merged after common.yaml. Prefer this leaf before enabling prod.yaml upstream.
+
+purpose: development
+
+# Optional Field Content CI-friendly pauses (remove if platform rejects unknown keys)
+# pause_post_software: false
+
+__meta__:
+  catalog:
+    # DEV CatalogItem namespace (Babylon)
+    namespace: babylon-catalog-dev
+    # DEV display may omit production catalog id; prod.yaml sets published.* identity
+    labels:
+      Stage: dev

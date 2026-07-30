@@ -212,7 +212,7 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 | Step | Issue | Outcome |
 |------|-------|---------|
 | Umbrella | [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) | AgnosticV onboarding tracker |
-| Reshape draft | [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71) | Folder leaf: `common.yaml` + `dev.yaml` + `prod.yaml` + `description.adoc` |
+| Reshape draft | [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71) | Folder leaf under [`agnosticv/lightwell-tssc-workshop/`](./agnosticv/lightwell-tssc-workshop/) |
 | UUID / schema | [#72](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/72) | Real `asset_uuid` + AgV schema validation |
 | DEV PR | [#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) | PR to `redhat-cop/agnosticv` with DEV stage |
 | DEV validate | [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21) | Order on `babylon-catalog-dev`; claim, Showroom, GitOps |

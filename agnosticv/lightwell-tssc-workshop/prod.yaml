@@ -1,0 +1,23 @@
+---
+# PROD stage leaf — enable only after DEV validation (#21 → #22).
+# Merged after common.yaml. Authoritative production catalog identity below.
+
+purpose: prod
+
+# Catalog-facing production identity (do not invent alternates)
+catalog_item:
+  id: published.lightwell-tssc-workshop.prod
+  category: Workshops
+  product: Red_Hat_Advanced_Developer_Suite
+  description: >-
+    Hands-on workshop demonstrating exact-version open source vulnerability
+    remediation, signed libraries, SBOM/VEX management, and GitOps policy gating
+    using Lightwell Network with Trusted Software Supply Chain tooling.
+
+__meta__:
+  catalog:
+    # Production CatalogItem namespace (confirm with RHDP if siblings differ)
+    namespace: babylon-catalog-prod
+    labels:
+      Stage: prod
+      CatalogId: published.lightwell-tssc-workshop.prod

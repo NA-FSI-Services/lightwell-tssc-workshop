@@ -32,14 +32,12 @@ Full ladder: [SUBMISSION.md](./SUBMISSION.md) · umbrella [#20](https://github.c
 agnosticv/
 ├── README.md
 ├── SUBMISSION.md             # Dev → prod checklist + issue ladder
-├── lightwell-tssc-workshop/  # Preferred folder leaf (issue #71)
+├── lightwell-tssc-workshop/  # Folder leaf (issue #71) — copy upstream for #73
 │   ├── common.yaml
 │   ├── description.adoc
-│   ├── dev.yaml
-│   └── prod.yaml
-└── published/                # Legacy flat draft (pre-#71)
-    ├── published.lightwell-tssc-workshop.prod.yaml
-    └── description.adoc
+│   ├── dev.yaml              # babylon-catalog-dev
+│   └── prod.yaml             # published.lightwell-tssc-workshop.prod
+└── published/README.md       # Legacy path pointer
 ```
 
 ## Validated multi-node CNV sizing (issue #10)
