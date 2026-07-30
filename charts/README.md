@@ -4,7 +4,7 @@ This directory is the **RHDP sync target** for the Lightwell workshop (AgnosticV
 
 ## Status
 
-`charts/root-app` App-of-Apps is scaffolded. `charts/components/rhdh` is available (#3); remaining child charts land in Phase 1 issues (#4–#8, #24) and Showroom wiring (#19). Components stay `enabled: false` in root-app values until ready to sync.
+`charts/root-app` App-of-Apps is scaffolded. Component charts `rhdh` (#3) and `rhtas` (#4) are available; remaining child charts land in Phase 1 issues (#5–#8, #24) and Showroom wiring (#19). Components stay `enabled: false` in root-app values until ready to sync.
 
 ## Layout
 
@@ -18,7 +18,7 @@ charts/
 │   └── templates/
 └── components/
     ├── rhdh/                 # Developer Hub + lightwell-java-service placeholder (#3)
-    ├── rhtas/                # (pending)
+    ├── rhtas/                # Trusted Artifact Signer (Fulcio/Rekor/TUF) (#4)
     ├── rhtpa/                # (pending)
     ├── rhacs/                # (pending)
     ├── lightwell-repo/       # (pending)

@@ -32,6 +32,7 @@ argocd:
 components:
 
   # --- Wave 10: TSSC operators / platform ---
+  # Chart: charts/components/rhtas (#4). Enable when cluster is ready to sync.
   rhtas:
     enabled: false
     namespace: trusted-artifact-signer
