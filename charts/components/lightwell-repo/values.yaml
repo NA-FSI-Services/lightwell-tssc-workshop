@@ -5,8 +5,8 @@
 lightwellRepo:
   enabled: true
   namespace: lightwell-repo
-  # proxy = remote-proxy to packages.redhat.com (needs LW_* credentials)
-  # seeded = hosted mirrors + sample OSV for deterministic RHDP labs (#11 expands content)
+  # proxy = Nexus remote/proxy repos → packages.redhat.com (needs LW_* credentials)
+  # seeded = hosted repos + curated Maven/OSV/SBOM uploads (deterministic RHDP labs)
   mode: seeded
   syncWaves:
     namespace: "0"
@@ -14,7 +14,8 @@ lightwellRepo:
     config: "1"
     nexus: "2"
     route: "3"
-    userinfo: "4"
+    seed: "4"
+    userinfo: "5"
 
 # Sonatype Nexus Repository Manager 3 (enterprise artifact-manager stand-in)
 nexus:
@@ -90,26 +91,54 @@ mavenSettings:
 sampleOsv:
   enabled: true
   configMapName: lightwell-sample-osv
-  # Example pin taught in Module 3 / #16
-  packageName: "org.example:vulnerable-lib"
+  # Example pin taught in Module 3 / issue #11 acceptance (spring-core style)
+  packageName: "org.springframework:spring-core"
   baseVersion: "5.3.18"
   remediatedVersion: "5.3.18.rhlw-00003"
   vulnerabilityId: "LW-DEMO-0001"
+  # Path shape inside raw OSV repo (matches packages.redhat.com/lightwell/osv/java/remediated)
+  rawPath: "osv/java/remediated/LW-DEMO-0001.json"
 
-# Repository bootstrap script (REST) — run after Nexus is Ready (Phase 3 Job can automate)
+# Repository bootstrap notes (REST sketch) — Job lightwell-repo-seed automates create + seed
 bootstrap:
   enabled: true
   configMapName: lightwell-repo-bootstrap
+
+# Seed Job — create channel repos; in seeded mode upload Maven stubs + OSV + CycloneDX
+seed:
+  enabled: true
+  jobName: lightwell-repo-seed
+  configMapName: lightwell-repo-seed
+  serviceAccountName: lightwell-repo-seed
+  rbac:
+    create: true
+  # OpenShift CLI image (oc + curl + bash) for admin.password capture + Nexus REST
+  image: quay.io/openshift/origin-cli:4.17.0
+  imagePullPolicy: IfNotPresent
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400
+  createAdminSecretPlaceholder: true
+  adminSecretName: nexus-admin-credentials
+  adminUsername: admin
+  adminPassword: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
 
 # RHDP userinfo ConfigMap
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Artifact Manager (LWN)"
   instructions: >-
-    Use Nexus as the enterprise artifact manager. Maven profiles lightwell-validated
-    and lightwell-remediated are in ConfigMap lightwell-maven-settings. Inject
-    LW_USERNAME / LW_PASSWORD into Secret lightwell-network-credentials for live
-    proxy mode. Seeded mode serves hosted repos + sample OSV with .rhlw-* pins.
+    Nexus presents Lightwell Validated / Remediated / OSV channels. Default mode is
+    seeded (Job lightwell-repo-seed uploads spring-core + commons-lang3 stubs,
+    OSV at osv/java/remediated/, and CycloneDX SBOMs). For live proxy, set
+    lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD into Secret
+    lightwell-network-credentials. Maven: ConfigMap lightwell-maven-settings.
 
 # Injected by root-app / field content workload
 deployer:

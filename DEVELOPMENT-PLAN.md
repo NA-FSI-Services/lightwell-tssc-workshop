@@ -185,7 +185,7 @@ lifespan:
 
 Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11)–[#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13), [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)–[#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26)
 
-1. **Artifact manager channels** matching LWN: `validated`, `remediated`, and Java `osv/remediated` (live proxy or seeded mirrors)
+1. **Artifact manager channels** matching LWN: `validated`, `remediated`, and Java `osv/remediated` — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX)
 2. **Spring Boot PoC** with Maven profiles, dual streams, and `.rhlw-*` pins
 3. **RHDH golden path**: Software Template `lightwell-java-service` generating the same Maven/LWN pattern
 4. **OSV → pin → rebuild** automation-friendly steps (plus optional manifest polling demo)

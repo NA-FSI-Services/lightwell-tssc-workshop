@@ -1,0 +1,100 @@
+{{- if and .Values.lightwellRepo.enabled .Values.seed.enabled }}
+---
+# Creates channel repos and (seeded mode) uploads Validated / Remediated / OSV / SBOM content.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.seed.jobName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seed
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.seed | quote }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.seed.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.seed.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "lightwell-repo.labels" . | nindent 8 }}
+        app.kubernetes.io/component: seed
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.seed.serviceAccountName }}
+      containers:
+        - name: seed
+          image: {{ .Values.seed.image | quote }}
+          imagePullPolicy: {{ .Values.seed.imagePullPolicy | quote }}
+          command: ["/bin/bash", "/seed/seed-repos.sh"]
+          env:
+            - name: NAMESPACE
+              value: {{ .Values.lightwellRepo.namespace | quote }}
+            - name: NEXUS_SVC
+              value: {{ printf "http://%s:%v" .Values.nexus.name .Values.nexus.service.port | quote }}
+            - name: LIGHTWELL_REPO_MODE
+              value: {{ .Values.lightwellRepo.mode | quote }}
+            - name: SEED_DIR
+              value: /seed
+            - name: OSV_ID
+              value: {{ .Values.sampleOsv.vulnerabilityId | quote }}
+            - name: VALIDATED_REPO
+              value: {{ .Values.channels.validated.name | quote }}
+            - name: REMEDIATED_REPO
+              value: {{ .Values.channels.remediated.name | quote }}
+            - name: OSV_REPO
+              value: {{ .Values.channels.osv.name | quote }}
+            - name: VALIDATED_HOSTED
+              value: {{ .Values.channels.validated.hostedName | quote }}
+            - name: REMEDIATED_HOSTED
+              value: {{ .Values.channels.remediated.hostedName | quote }}
+            - name: OSV_HOSTED
+              value: {{ .Values.channels.osv.hostedName | quote }}
+            - name: VALIDATED_REMOTE
+              value: {{ .Values.channels.validated.remoteUrl | quote }}
+            - name: REMEDIATED_REMOTE
+              value: {{ .Values.channels.remediated.remoteUrl | quote }}
+            - name: OSV_REMOTE
+              value: {{ .Values.channels.osv.remoteUrl | quote }}
+            - name: NEXUS_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.seed.adminSecretName }}
+                  key: username
+                  optional: true
+            - name: NEXUS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.seed.adminSecretName }}
+                  key: password
+                  optional: true
+            - name: LW_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.credentials.secretName }}
+                  key: LW_USERNAME
+                  optional: true
+            - name: LW_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.credentials.secretName }}
+                  key: LW_PASSWORD
+                  optional: true
+          volumeMounts:
+            - name: seed
+              mountPath: /seed
+          resources:
+            requests:
+              cpu: {{ .Values.seed.resources.requests.cpu | quote }}
+              memory: {{ .Values.seed.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.seed.resources.limits.cpu | quote }}
+              memory: {{ .Values.seed.resources.limits.memory | quote }}
+      volumes:
+        - name: seed
+          configMap:
+            name: {{ .Values.seed.configMapName }}
+            defaultMode: 0755
+{{- end }}

@@ -19,6 +19,12 @@ data:
     Read affected[].ranges[].events[].fixed → {{ .Values.sampleOsv.remediatedVersion }}
     Canonical OSV remote: {{ .Values.channels.osv.remoteUrl }}
 
-    Upload path when Nexus raw hosted repo exists:
-      {{ include "lightwell-repo.nexusUrl" . }}/repository/{{ .Values.channels.osv.hostedName }}/{{ .Values.sampleOsv.vulnerabilityId }}.json
+    Canonical path shape (seeded into raw repo {{ .Values.channels.osv.name }}):
+      {{ .Values.sampleOsv.rawPath }}
+
+    URL when Nexus is Ready:
+      {{ include "lightwell-repo.nexusUrl" . }}/repository/{{ .Values.channels.osv.name }}/{{ .Values.sampleOsv.rawPath }}
+
+    Read affected[].ranges[].events[].fixed for the remediated pin
+    ({{ .Values.sampleOsv.packageName }} @ {{ .Values.sampleOsv.remediatedVersion }}).
 {{- end }}

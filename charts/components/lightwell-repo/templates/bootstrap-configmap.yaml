@@ -1,8 +1,7 @@
 {{- if and .Values.lightwellRepo.enabled .Values.bootstrap.enabled }}
 {{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
 ---
-# Bootstrap notes + REST sketches to create validated / remediated / OSV repos in Nexus.
-# Phase 3 (#11) can automate this with an ansible-runner / Job using LW_* credentials.
+# Bootstrap notes + REST sketches. Automated by Job lightwell-repo-seed (files/seed/seed-repos.sh).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -20,9 +19,11 @@ data:
     Mode={{ .Values.lightwellRepo.mode }}
     - proxy: Maven/raw *proxy* repos pointing at canonical packages.redhat.com URLs,
       authenticated with Secret {{ .Values.credentials.secretName }} (LW_USERNAME / LW_PASSWORD).
-    - seeded: Maven/raw *hosted* repos populated with a curated Java sample set + OSV JSON (#11).
+    - seeded: Maven/raw *hosted* repos populated by Job lightwell-repo-seed
+      (spring-core + commons-lang3 stubs, OSV at {{ .Values.sampleOsv.rawPath }}, CycloneDX).
 
     Naming must allow remediated versions such as {{ .Values.sampleOsv.remediatedVersion }}.
+    Prefer the seed Job over running this sketch manually.
 
   create-repos.sh: |
     #!/usr/bin/env bash
