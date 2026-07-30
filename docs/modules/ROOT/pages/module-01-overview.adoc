@@ -62,7 +62,7 @@ Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secur
 |{java-osv-url}
 |===
 
-image::module-01-validated-vs-remediated.svg[Validated vs Remediated vs OSV tiers,width=700]
+image::module-01-validated-vs-remediated.png[Validated vs Remediated vs OSV tiers,width=700]
 
 Example remediated coordinate style:
 

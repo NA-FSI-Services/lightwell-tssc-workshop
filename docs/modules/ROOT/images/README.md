@@ -6,4 +6,4 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 
 | Asset | Issue | Type |
 |-------|-------|------|
-| `module-01-validated-vs-remediated.svg` | #47 | Diagram (committed) |
+| `module-01-validated-vs-remediated.png` | #47 | Diagram (committed) |
