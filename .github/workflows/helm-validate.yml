@@ -28,3 +28,6 @@ jobs:
 
       - name: Helm lint and template (charts/)
         run: ./scripts/helm-validate.sh
+
+      - name: Showroom ↔ content contract
+        run: ./scripts/showroom-check.sh

@@ -101,6 +101,16 @@ EOF
 
 ### 5. Verify
 
+Local / CI contract (does not need a cluster):
+
+```bash
+./scripts/showroom-check.sh   # values + helm render + Modules 1–5 sources
+./scripts/asciidoc-check.sh
+npx antora@3.1.10 site-ci.yml # CI also asserts www/modules/module-0{1..5}-*.html
+```
+
+On cluster:
+
 - [ ] Showroom pod running (3/3 containers ready)
 - [ ] Route accessible, lab guide displays
 - [ ] Terminal functional
