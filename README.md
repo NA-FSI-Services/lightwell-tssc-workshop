@@ -1,67 +1,89 @@
-# Field Content
+# Lightwell TSSC Workshop (RHDP)
 
-Self-service platform for developing RHDP Catalog Items using GitOps patterns.
+RHDP catalog content for a hands-on **Lightwell Network + Trusted Software Supply Chain** workshop on [demo.redhat.com](https://demo.redhat.com).
 
-## Overview
+Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven consumption (optionally via an enterprise artifact manager), OSV-driven exact-version pins (`.rhlw-*`), SBOM analysis, and TSSC pipeline controls.
 
-Create demos and labs for Red Hat Demo Platform without deep AgnosticD knowledge:
+## Purpose
 
-1. Clone this template repository
-2. Choose an example (`helm/` or `ansible/`) as your starting point
-3. Customize the deployment for your use case
-4. Push to your Git repository
-5. Order the **Field Content CI** from RHDP with your repository URL
+This repository is the GitOps source for the workshop environment. It is **not** a generic field-content template; it implements the Lightwell workshop stack using the AgnosticD v2 **Field Sourced Content** pattern (`agd-v2.ocp-field-asset-cnv.prod`).
 
-ArgoCD deploys your content, and the platform handles health monitoring and data flow back to AgnosticD.
+Bootstrapped from [rhpds/field-sourced-content-template](https://github.com/rhpds/field-sourced-content-template). Target catalog item: `published.lightwell-tssc-workshop.prod`.
 
-## Getting Started
+## Tracking
 
-### Choose Your Pattern
+| Resource | Link |
+|----------|------|
+| Development plan | [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) |
+| GitHub Project | [Lightwell TSSC Workshop](https://github.com/orgs/NA-FSI-Services/projects/1) |
+| Agent rules | [AGENTS.md](./AGENTS.md) |
 
-| Pattern | Use When |
-|---------|----------|
-| [examples/helm/](examples/helm/) | Deployment can be expressed as Kubernetes manifests with Helm templating |
-| [examples/ansible/](examples/ansible/) | You need wait-for-ready, secret generation, API calls, or conditional logic |
+## How it works
 
-### Quick Start
+1. An associate orders the workshop catalog item on RHDP.
+2. AgnosticV resolves `agd-v2.ocp-field-asset-cnv.prod` and claims a pre-warmed OpenShift (CNV) cluster.
+3. OpenShift GitOps (ArgoCD) syncs this repository (`charts/root-app`).
+4. Component charts deploy TSSC tooling, an LWN-shaped artifact repository (proxy or seeded mirrors), a Spring Boot sample app, and Showroom labs.
+
+```
+This Git repo                         OpenShift (RHDP / CNV)
+┌──────────────────┐                 ┌──────────────────────────────────┐
+│ charts/root-app  │─── ArgoCD ─────▶│ RHDH · RHTAS · RHTPA · RHACS     │
+│ + components/*   │                 │ Artifact mgr (validated/remediated/OSV) │
+│ docs/modules/    │                 │ Spring Boot PoC · Showroom       │
+└──────────────────┘                 └──────────────────────────────────┘
+```
+
+## Workshop narrative (lab modules)
+
+1. AI vulnerability storm and Lightwell Network overview (Validated vs Remediated)
+2. Enterprise integration: Maven settings and artifact-manager proxy
+3. OSV triage and exact-version remediation (`.rhlw-*` pin + source diff)
+4. SBOM generation and analysis with RHTPA (RHDA shift-left callout)
+5. Pipeline signing, RHACS policy enforcement, and GitOps promotion
+
+## Repository layout
+
+```
+lightwell-tssc-workshop/
+├── charts/                 # Target: App-of-Apps + components (in progress)
+│   ├── root-app/
+│   └── components/         # rhdh, rhtas, rhtpa, rhacs, lightwell-repo, spring-boot-lw-poc, …
+├── examples/
+│   ├── helm/               # Template reference (field-sourced pattern)
+│   └── ansible/            # Template reference (ansible-runner Jobs)
+├── roles/
+│   └── ocp4_workload_field_content/  # AgnosticD field-content workload role
+├── docs/                   # Developer guides; lab AsciiDoc → docs/modules/
+├── DEVELOPMENT-PLAN.md
+├── AGENTS.md
+└── README.md
+```
+
+During early development, use `examples/helm` as the structural reference while scaffolding production charts under `charts/`.
+
+## Local development
 
 ```bash
-# Clone this template
-git clone https://github.com/rhpds/field-sourced-content-template.git my-content
-cd my-content
+git clone git@github.com:NA-FSI-Services/lightwell-tssc-workshop.git
+cd lightwell-tssc-workshop
 
-# Choose an example and start customizing
-cd examples/helm      # or examples/ansible
-# Edit values.yaml and templates as documented in each example's README
+# Inspect the field-content Helm example
+cd examples/helm
+helm template .   # once charts/root-app exists, prefer that path
 ```
 
-## How It Works
+Order a Field Content / agd-v2 field-asset CNV catalog item pointing at this repository for cluster-based validation. Full RHDP onboarding steps are in [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md).
 
-```
-Your Git Repo                    OpenShift Cluster
-┌─────────────┐                 ┌─────────────────────────────┐
-│ Helm Chart  │──── ArgoCD ────▶│ Your Workload               │
-│ (templates, │                 │ (operators, apps, showroom) │
-│  values)    │                 └─────────────────────────────┘
-└─────────────┘                           │
-                                          ▼
-                                ConfigMap with demo.redhat.com/userinfo
-                                          │
-                                          ▼
-                                    AgnosticD picks up user info
-```
-
-## RHDP Integration
-
-Label resources for platform integration:
+## RHDP integration labels
 
 ```yaml
 # Health monitoring
 metadata:
   labels:
-    demo.redhat.com/application: "my-demo"
+    demo.redhat.com/application: "lightwell-tssc-workshop"
 
-# Pass data back to AgnosticD (URLs, credentials, etc.)
+# Pass URLs / credentials back to AgnosticD
 metadata:
   labels:
     demo.redhat.com/userinfo: ""
@@ -69,19 +91,13 @@ metadata:
 
 ## Documentation
 
-- [examples/helm/README.md](examples/helm/README.md) - Helm deployment guide
-- [examples/ansible/README.md](examples/ansible/README.md) - Ansible deployment guide
-- [docs/ansible-developer-guide.md](docs/ansible-developer-guide.md) - In-depth Ansible patterns
-- [docs/SHOWROOM-UPDATE-SPEC.md](docs/SHOWROOM-UPDATE-SPEC.md) - Showroom maintenance guide
+- [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) — phases, LWN lab model, issue map  
+- [AGENTS.md](./AGENTS.md) — rules for coding agents  
+- [docs/ansible-developer-guide.md](./docs/ansible-developer-guide.md) — Ansible runner patterns  
+- [docs/SHOWROOM-UPDATE-SPEC.md](./docs/SHOWROOM-UPDATE-SPEC.md) — Showroom maintenance  
+- [examples/helm/README.md](./examples/helm/README.md) / [examples/ansible/README.md](./examples/ansible/README.md) — template examples  
 
-## Repository Structure
+## Channels
 
-```
-field-content/
-├── examples/
-│   ├── helm/        # Helm-based deployment example
-│   └── ansible/     # Ansible-based deployment example
-├── roles/
-│   └── ocp4_workload_field_content/  # AgnosticD workload role
-└── docs/            # Developer guides and diagrams
-```
+- [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW) — RHDP / catalog onboarding  
+- [#forum-services-lightwell](https://redhat.enterprise.slack.com/archives/C0BEQN68BTN) — Lightwell services enablement  
