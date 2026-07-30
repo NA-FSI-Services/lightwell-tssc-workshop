@@ -1,0 +1,26 @@
+{{- if and .Values.rhtas.enabled .Values.userInfo.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-rhtas
+  namespace: {{ .Values.rhtas.namespace }}
+  labels:
+    {{- include "rhtas.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtas.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  operator_name: {{ .Values.operator.packageName | quote }}
+  rhtas_namespace: {{ .Values.rhtas.namespace | quote }}
+  rhtas_name: {{ .Values.rhtas.name | quote }}
+  signing_model: "keyless"
+  components: "fulcio,rekor,tuf,trillian,ctlog"
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+  # After Ready: oc get securesign {{ .Values.rhtas.name }} -n {{ .Values.rhtas.namespace }} -o jsonpath='{.status}'
+  status_hint: "oc get securesign -n {{ .Values.rhtas.namespace }}"
+{{- end }}
