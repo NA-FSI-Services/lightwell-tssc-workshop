@@ -33,12 +33,14 @@ agnosticv/
 ├── README.md
 ├── SUBMISSION.md             # Dev → prod checklist + issue ladder
 ├── lightwell-tssc-workshop/  # Folder leaf (issue #71) — copy upstream for #73
-│   ├── common.yaml
+│   ├── common.yaml           # includes __meta__.asset_uuid (#72)
 │   ├── description.adoc
 │   ├── dev.yaml              # babylon-catalog-dev
 │   └── prod.yaml             # published.lightwell-tssc-workshop.prod
 └── published/README.md       # Legacy path pointer
 ```
+
+Validate locally: `./scripts/agnosticv-check.sh`
 
 ## Validated multi-node CNV sizing (issue #10)
 

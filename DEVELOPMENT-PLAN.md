@@ -213,7 +213,7 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 |------|-------|---------|
 | Umbrella | [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) | AgnosticV onboarding tracker |
 | Reshape draft | [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71) | Folder leaf under [`agnosticv/lightwell-tssc-workshop/`](./agnosticv/lightwell-tssc-workshop/) |
-| UUID / schema | [#72](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/72) | Real `asset_uuid` + AgV schema validation |
+| UUID / schema | [#72](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/72) | `46fb0d02-…c7d5` + [`scripts/agnosticv-check.sh`](./scripts/agnosticv-check.sh) |
 | DEV PR | [#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) | PR to `redhat-cop/agnosticv` with DEV stage |
 | DEV validate | [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21) | Order on `babylon-catalog-dev`; claim, Showroom, GitOps |
 | Prod promote | [#22](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/22) | `prod.yaml` + production CatalogItem (`published.lightwell-tssc-workshop.prod`) |

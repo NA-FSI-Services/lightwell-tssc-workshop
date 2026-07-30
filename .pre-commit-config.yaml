@@ -22,3 +22,9 @@ repos:
         language: script
         files: ^(charts/components/showroom/.*|charts/root-app/values\.yaml|charts/root-app/templates/applications\.yaml|site\.yml|site-ci\.yml|docs/.*|scripts/showroom-check\.sh|docs/SHOWROOM-UPDATE-SPEC\.md)$
         pass_filenames: true
+      - id: agnosticv-check
+        name: agnosticv draft check
+        entry: scripts/agnosticv-check.sh
+        language: script
+        files: ^(agnosticv/.*|scripts/agnosticv-check\.sh)$
+        pass_filenames: true
