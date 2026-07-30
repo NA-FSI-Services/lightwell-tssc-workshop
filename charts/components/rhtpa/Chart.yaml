@@ -1,0 +1,9 @@
+apiVersion: v2
+name: rhtpa
+description: Red Hat Trusted Profile Analyzer (SBOM / VEX ingestion) via TrustedProfileAnalyzer CR
+type: application
+version: 0.1.0
+appVersion: "2.2"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop

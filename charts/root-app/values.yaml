@@ -38,6 +38,7 @@ components:
     namespace: trusted-artifact-signer
     syncWave: "10"
 
+  # Chart: charts/components/rhtpa (#5). Enable when SSO + cluster capacity are ready.
   rhtpa:
     enabled: false
     namespace: trusted-profile-analyzer

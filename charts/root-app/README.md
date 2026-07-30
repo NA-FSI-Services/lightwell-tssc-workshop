@@ -6,7 +6,7 @@ Master Helm chart for the workshop GitOps sync path (`gitops_path: charts/root-a
 
 | Wave | Components | Role |
 |------|------------|------|
-| `10` | `rhtas`, `rhtpa`, `rhacs` | TSSC operators / platform (`rhtas` chart in #4) |
+| `10` | `rhtas`, `rhtpa`, `rhacs` | TSSC operators / platform (`rhtas` #4, `rhtpa` #5) |
 | `20` | `lightwell-repo` | Artifact manager (validated / remediated / OSV) |
 | `30` | `rhdh` | Developer Hub (+ `lightwell-java-service` placeholder; full template in #12) |
 | `40` | `spring-boot-lw-poc`, `parasol-app` | Sample applications |
