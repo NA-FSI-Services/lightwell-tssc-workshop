@@ -1,0 +1,289 @@
+= Module 2: Enterprise integration (Maven + artifact manager)
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Field Lightwell Network delivery almost always puts an *enterprise artifact manager* (Nexus or Artifactory) between developers and `packages.redhat.com`. Maven `settings.xml` profiles select *Validated* for active development and *Remediated* when you need exact-version `.rhlw-*` pins.
+
+In this module you wire that pattern on the workshop cluster: extract `settings.xml`, authenticate with env-backed service-account placeholders (never Git), resolve Validated content, and understand how the same profiles work when remotes point *directly* at Lightwell Network.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Contrast **direct** Lightwell remotes with the **proxied enterprise manager** pattern used in PoV delivery
+* Use `mvn -s settings.xml -Plightwell-validated …` against the workshop Nexus
+* Explain how `LW_USERNAME` / `LW_PASSWORD` (and RHDP secret injection) supply auth without committing secrets
+* Locate the Spring Boot PoC / RHDH template settings that match this lab
+
+== Enterprise consumption patterns
+
+[cols="1,2,2",options="header"]
+|===
+|Pattern |Maven remotes |When you use it
+
+|*Direct*
+|`{java-validated-url}` and `{java-remediated-url}`
+|Laptop PoC or CI with Lightwell membership; auth via registry service account
+
+|*Proxied (enterprise)*
+|Internal Nexus / Artifactory repos that remote or host the same tiers
+|Nearly all customer PoVs; workshop default via `charts/components/lightwell-repo`
+
+|*Seeded (RHDP)*
+|Same Nexus *repository names*; content uploaded by Job `lightwell-repo-seed`
+|Deterministic labs when live LWN membership is unavailable
+|===
+
+Canonical remotes (document even when mirroring):
+
+* Validated: `{java-validated-url}`
+* Remediated: `{java-remediated-url}`
+* OSV (Java): `{java-osv-url}`
+
+[IMPORTANT]
+====
+Tier and profile names stay *Validated* / *Remediated* (Maven profiles `lightwell-validated` / `lightwell-remediated`).
+Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secured`.
+====
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-direct-vs-proxy.svg`
+
+Direct `packages.redhat.com` path vs Maven → Nexus → LWN (or seeded hosted) path.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/51
+// When ready: image::module-02-direct-vs-proxy.svg[Direct LWN versus enterprise Nexus proxy,width=700]
+====
+
+== Auth: service account via env / RHDP secrets
+
+Lightwell Network and (optionally) Nexus expect credentials. Workshop templates read them from the environment—**never** from committed files.
+
+[source,bash,role=execute]
+----
+# Pattern only — do not paste real tokens into chat, Git, or screenshots
+export LW_USERNAME='<registry-service-account-name>'
+export LW_PASSWORD='<token>'
+----
+
+On OpenShift (proxy mode), the chart expects Secret `lightwell-network-credentials` in namespace `lightwell-repo`:
+
+[source,bash]
+----
+oc -n lightwell-repo create secret generic lightwell-network-credentials \
+  --from-literal=LW_USERNAME='<registry-sa|name>' \
+  --from-literal=LW_PASSWORD='<token>' \
+  --dry-run=client -o yaml | oc apply -f -
+----
+
+RHDP catalog delivery should inject these via platform secrets / ExternalSecret—not by editing Git values with real passwords.
+
+Maven `settings.xml` in the Spring Boot PoC and RHDH `lightwell-java-service` skeleton binds server credentials with:
+
+[source,xml]
+----
+<username>${env.LW_USERNAME}</username>
+<password>${env.LW_PASSWORD}</password>
+----
+
+Set the Nexus base used by those files:
+
+[source,bash,role=execute]
+----
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+echo "$LIGHTWELL_NEXUS_URL"
+----
+
+[NOTE]
+====
+Seeded mode may not require `LW_*` for Maven resolution against hosted Nexus repos. Still practice the env-var pattern so field delivery matches production LWN / proxy mode.
+====
+
+== Maven `settings.xml` profiles
+
+ConfigMap `lightwell-maven-settings` (chart `lightwell-repo`) ships the learner profiles:
+
+[cols="1,1,2",options="header"]
+|===
+|Profile |Repository id |Purpose
+
+|`lightwell-validated`
+|`lightwell-java-validated`
+|Active development / upstream-parity
+
+|`lightwell-remediated`
+|`lightwell-java-remediated`
+|Exact-version `.rhlw-*` resolution
+|===
+
+The Spring Boot PoC adds a *POM* profile `lightwell-remediated-pins` that flips dependency versions (for example `commons-lang3` → `3.14.0.rhlw-00001`). Settings profiles select *where* Maven looks; POM profiles select *which version* to build.
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-maven-profiles.svg`
+
+`settings.xml` profiles → Nexus repository IDs → example `mvn -s` commands.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/52
+// When ready: image::module-02-maven-profiles.svg[Maven Validated and Remediated profiles,width=700]
+====
+
+=== Extract settings from the cluster
+
+. Confirm the artifact manager namespace is present:
++
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap lightwell-maven-settings lightwell-channels
+----
+
+. Extract `settings.xml` into your working directory:
++
+[source,bash,role=execute]
+----
+oc -n lightwell-repo extract configmap/lightwell-maven-settings \
+  --keys=settings.xml --to=. --confirm
+head -40 settings.xml
+----
+
+. Confirm channel mode (`seeded` or `proxy`):
++
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap lightwell-channels -o jsonpath='{.data.mode}{"\n"}'
+----
+
+== Exercise 1: Browse Nexus repositories
+
+. Get the Nexus UI route:
++
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}{"\n"}'
+----
+
+. In a browser (instructor / Showroom link), open the Nexus UI and locate repositories:
+* `lightwell-java-validated`
+* `lightwell-java-remediated`
+* `lightwell-osv-java-remediated` (raw / OSV — used in Module 3)
+
+. Optional: confirm the seed Job finished (seeded mode):
++
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get jobs,pods -l app.kubernetes.io/name=lightwell-repo
+----
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-nexus-repos.png`
+
+Nexus repository list showing the three Lightwell repos. Redact credentials and personal account UI.
+Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/53
+// When ready: image::module-02-nexus-repos.png[Workshop Nexus Lightwell repositories,width=700]
+====
+
+== Exercise 2: Validated consumption with Maven
+
+Use the workshop Spring Boot PoC sources when available on the cluster or in your GitOps checkout:
+
+`charts/components/spring-boot-lw-poc/app/`
+
+. Export `LIGHTWELL_NEXUS_URL` (see Auth section). For ConfigMap-extracted settings that already embed the Nexus URL, you can skip the env var.
+
+. From the PoC `app/` directory (or a copy that includes `pom.xml` + `settings.xml`):
++
+[source,bash,role=execute]
+----
+# Prefer the app copy that already has env-aware settings.xml
+cd charts/components/spring-boot-lw-poc/app
+
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+
+mvn -s settings.xml -Plightwell-validated clean verify
+----
+
+. Expected outcomes:
+* Build resolves against Validated (and/or Central fallback for non-LWN deps)
+* `commons-lang3` uses the validated pin `3.14.0` (POM default / `lightwell-validated` profile)
+
+. Prove a seeded Validated coordinate can be fetched via the remediated *or* validated repo as appropriate:
++
+[source,bash,role=execute]
+----
+mvn -s settings.xml dependency:get \
+  -Dartifact=org.springframework:spring-core:5.3.18 \
+  -Plightwell-validated
+----
+
+[TIP]
+====
+If `mvn` is not on the Showroom PATH, use a Maven container or the toolchain documented for your RHDP environment—keep the same `-s settings.xml -Plightwell-validated` flags.
+====
+
+== Exercise 3: Resolve a Remediated `.rhlw-*` coordinate
+
+You are not changing production pins yet (that is Module 3). Confirm the Remediated remote serves the workshop example artifact:
+
+[source,bash,role=execute]
+----
+mvn -s settings.xml dependency:get \
+  -Dartifact=org.springframework:spring-core:5.3.18.rhlw-00003 \
+  -Plightwell-remediated
+----
+
+Optional Spring Boot PoC build with the remediated *dependency* profile:
+
+[source,bash,role=execute]
+----
+mvn -s settings.xml \
+  -Plightwell-remediated,lightwell-remediated-pins \
+  clean verify
+----
+
+That combination selects the Remediated *repository* and the POM pin `3.14.0.rhlw-00001` for `commons-lang3`.
+
+== Direct `packages.redhat.com` pattern (field reference)
+
+When an enterprise manager is not yet available, profiles can point straight at Lightwell Network. Shape (do not commit filled-in passwords):
+
+[source,xml]
+----
+<repository>
+  <id>lightwell-java-validated</id>
+  <url>https://packages.redhat.com/lightwell/java/validated</url>
+</repository>
+<repository>
+  <id>lightwell-java-remediated</id>
+  <url>https://packages.redhat.com/lightwell/java/remediated</url>
+</repository>
+----
+
+Pair those `<id>` values with `<server>` entries that use `${env.LW_USERNAME}` / `${env.LW_PASSWORD}` from a Red Hat terms-based registry service account.
+
+In the field, prefer *proxied* remotes so developers never embed LWN credentials in every laptop `settings.xml`—the manager holds the remote auth once.
+
+Artifactory uses the same remote URLs and `.rhlw-*` naming; this workshop uses Nexus as the RHDP stand-in. See the Lightwell Network “configure Artifactory” documentation for the production mirror of this pattern.
+
+== RHDH golden path (preview)
+
+The Developer Hub Software Template `lightwell-java-service` scaffolds the same `settings.xml` profiles and Tekton params (`maven-profile`, `LW_*`, `LIGHTWELL_NEXUS_URL`). Scaffolding from RHDH is optional in this module; Modules 3–5 reuse that project for OSV pins, SBOM, and pipeline gates.
+
+== Module summary
+
+**What you accomplished**
+
+* Mapped direct LWN remotes vs enterprise Nexus proxy / seeded mirrors
+* Extracted workshop `settings.xml` and identified `lightwell-validated` / `lightwell-remediated` profiles
+* Practiced env-based `LW_*` auth (no secrets in Git)
+* Ran Validated Maven consumption and resolved a sample `.rhlw-*` coordinate
+
+**Key takeaways**
+
+* Learner UX: `mvn -s settings.xml -Plightwell-validated …`
+* Proxied PoV is the default enterprise story; RHDP may seed the same repo names
+* Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
+
+**Next**
+
+Module 3 walks the remediation evaluation loop: OSV `fixed` → `.rhlw-*` pin → source diff → rebuild.
