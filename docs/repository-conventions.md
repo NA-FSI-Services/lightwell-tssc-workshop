@@ -26,6 +26,8 @@ lightwell-tssc-workshop/
 │   └── ansible/                     # Template REFERENCE: ansible-runner Job pattern
 ├── roles/
 │   └── ocp4_workload_field_content/ # AgnosticD field-content workload role (platform)
+├── agnosticv/                       # STAGING only — AgnosticV catalog drafts (#9); not live until #20
+│   └── published/                   # Draft published.lightwell-tssc-workshop.prod.yaml
 ├── docs/
 │   ├── modules/                     # Showroom AsciiDoc labs (to be authored)
 │   ├── repository-conventions.md    # This file
@@ -35,6 +37,7 @@ lightwell-tssc-workshop/
 ├── AGENTS.md
 └── README.md
 ```
+
 
 ## Helm App-of-Apps (primary path)
 

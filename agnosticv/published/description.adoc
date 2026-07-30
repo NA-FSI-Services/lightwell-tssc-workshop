@@ -1,0 +1,23 @@
+= Lightwell Software Supply Chain Security Workshop
+
+Hands-on workshop demonstrating **exact-version open source vulnerability remediation**, signed libraries, SBOM/VEX management, and GitOps policy gating using **Red Hat Lightwell Network** with Trusted Software Supply Chain tooling.
+
+== What you will learn
+
+* Lightwell Network **Validated** vs **Remediated** repository tiers (and Java **OSV** for remediated)
+* Enterprise Maven consumption (direct or via an artifact-manager proxy)
+* Exact-version pins using the `.rhlw-0000X` suffix, driven by OSV triage
+* CycloneDX SBOM generation and analysis in Red Hat Trusted Profile Analyzer (RHTPA)
+* Keyless signing (RHTAS), RHACS pipeline policy checks, and GitOps promotion with OpenShift GitOps
+
+== Environment
+
+* OpenShift Virtualization (CNV) pool via `agd-v2.ocp-field-asset-cnv.prod`
+* GitOps sync of the workshop App-of-Apps (`charts/root-app`)
+* Showroom lab guide modules (when enabled)
+
+== Notes
+
+* Catalog item ID: `published.lightwell-tssc-workshop.prod`
+* Primary sample application: Spring Boot / Java 17 / Maven Lightwell PoC
+* Do not invent alternate channel names; use Validated / Remediated / OSV only

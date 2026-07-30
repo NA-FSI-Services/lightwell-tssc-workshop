@@ -1,0 +1,118 @@
+---
+# DRAFT — staging only (issue #9)
+# Target path in redhat-gpe/agnosticv: published/published.lightwell-tssc-workshop.prod.yaml
+# Do NOT open a PR to redhat-gpe/agnosticv without human confirmation (AGENTS.md / issue #20).
+#
+# Catalog item ID (authoritative — do not invent alternates):
+#   published.lightwell-tssc-workshop.prod
+#
+# Environment type:
+#   agd-v2.ocp-field-asset-cnv.prod
+#
+# Pool (document for RHDP / platform):
+#   agd-v2/ocp-virt-labs-pool
+#
+# Proposed multi-node CNV sizing (validate in #10):
+#   Control plane: 1× 16 vCPU / 32 GB RAM
+#   Workers:       2× 16 vCPU / 64 GB RAM
+
+# ---------------------------------------------------------------------------
+# Catalog-facing shape (matches DEVELOPMENT-PLAN / issue #9 target draft)
+# ---------------------------------------------------------------------------
+name: Lightwell Software Supply Chain Security Workshop
+
+catalog_item:
+  id: published.lightwell-tssc-workshop.prod
+  category: Workshops
+  # Product label used in RHDP catalog taxonomy (align with RHADS / TSSC family)
+  product: Red_Hat_Advanced_Developer_Suite
+  description: >-
+    Hands-on workshop demonstrating exact-version open source vulnerability
+    remediation, signed libraries, SBOM/VEX management, and GitOps policy gating
+    using Lightwell Network with Trusted Software Supply Chain tooling.
+
+environment_type: agd-v2.ocp-field-asset-cnv.prod
+cloud_provider: cnv-dedicated-shared
+ocp_version: "4.20"
+
+# Pool documentation (exact AgnosticV key names may follow platform includes)
+pool: agd-v2/ocp-virt-labs-pool
+
+# ---------------------------------------------------------------------------
+# user_data — Field Content CI / agd-v2 field-asset pattern
+# Until rhpds mirror exists, point at NA-FSI-Services (see DEVELOPMENT-PLAN.md).
+# ---------------------------------------------------------------------------
+user_data:
+  # After mirror: https://github.com/rhpds/lightwell-tssc-workshop.git
+  gitops_repo: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
+  gitops_path: "charts/root-app"
+  gitops_revision: "main"
+
+lifespan:
+  default: 48h
+  maximum: 180d
+  idle_stop: 6h
+
+# ---------------------------------------------------------------------------
+# AgnosticD / ocp4_workload_field_content variables
+# (equivalent mapping used by the Field Sourced Content workload role)
+# ---------------------------------------------------------------------------
+ocp4_workload_field_content_gitops_repo_url: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
+ocp4_workload_field_content_gitops_repo_path: "charts/root-app"
+ocp4_workload_field_content_gitops_repo_revision: "main"
+# Optional extra Helm values merged into the root-app Application (usually empty;
+# deployer.domain / deployer.apiUrl are injected by the platform at order time)
+ocp4_workload_field_content_helm_values: {}
+
+# ---------------------------------------------------------------------------
+# Babylon / AgnosticV __meta__ draft
+# asset_uuid: replace with platform-assigned UUID when onboarding to RHDP catalog
+# Includes such as terms-of-service / icons are added when merging into
+# redhat-gpe/agnosticv (follow sibling Workshop items).
+# ---------------------------------------------------------------------------
+__meta__:
+  # PLACEHOLDER — obtain a real UUID during catalog onboarding; do not reuse in prod without assignment
+  asset_uuid: "00000000-0000-4000-8000-000000000009"
+
+  catalog:
+    category: Workshops
+    display_name: Lightwell Software Supply Chain Security Workshop
+    # Namespace is stage-dependent in real AgnosticV (dev / test / prod catalog)
+    namespace: babylon-catalog-dev
+    description:
+      format: asciidoc
+      content: |
+        = Lightwell Software Supply Chain Security Workshop
+
+        Hands-on workshop demonstrating exact-version open source vulnerability
+        remediation, signed libraries, SBOM/VEX management, and GitOps policy
+        gating using Red Hat Lightwell Network with Trusted Software Supply Chain
+        tooling.
+
+        See also: description.adoc beside this draft file.
+    labels:
+      Provider: RHDP
+      Product: Lightwell
+      Pattern: FieldSourcedContent
+
+  lifespan:
+    default: 48h
+    maximum: 180d
+    idle: 6h
+
+  deployer:
+    # Provision estimate — refine after E2E timings on CNV (target ~10–15 min claim + sync)
+    actions:
+      provision:
+        time_estimate: 20m
+      destroy:
+        time_estimate: 15m
+
+# ---------------------------------------------------------------------------
+# Sizing notes for platform / pool (not all keys are valid on every include set)
+# Prefer documenting intent here; apply via pool / cluster profile in #10.
+# ---------------------------------------------------------------------------
+# openshift_master_count: 1
+# openshift_master_instance_type: ...  # 16 vCPU / 32 GB
+# worker_instance_count: 2
+# worker_instance_type: ...            # 16 vCPU / 64 GB

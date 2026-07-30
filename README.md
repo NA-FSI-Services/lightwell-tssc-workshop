@@ -50,6 +50,7 @@ lightwell-tssc-workshop/
 ├── charts/                 # PRODUCTION GitOps (gitops_path → charts/root-app)
 │   ├── root-app/           # App-of-Apps (ArgoCD Applications)
 │   └── components/         # rhdh, rhtas, rhtpa, rhacs, lightwell-repo, spring-boot-lw-poc, …
+├── agnosticv/              # STAGING AgnosticV drafts (catalog ID published.lightwell-tssc-workshop.prod)
 ├── examples/
 │   ├── helm/               # REFERENCE only: App-of-Apps pattern
 │   └── ansible/            # REFERENCE only: ansible-runner Jobs
