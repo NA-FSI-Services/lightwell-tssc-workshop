@@ -40,7 +40,7 @@ This Git repo                         OpenShift (RHDP / CNV)
 1. AI vulnerability storm and Lightwell Network overview (Validated vs Remediated)
 2. Enterprise integration: Maven settings and artifact-manager proxy
 3. OSV triage and exact-version remediation (`.rhlw-*` pin + source diff) — helpers in [`tools/osv-eval/`](./tools/osv-eval/)
-4. SBOM generation and analysis with RHTPA (RHDA shift-left callout)
+4. SBOM generation and analysis with RHTPA ([RHDA shift-left](./docs/rhda-rhtpa-shift-left.md) on laptop; Showroom uses TPA UI/`syft`)
 5. Pipeline signing, RHACS policy enforcement, and GitOps promotion
 
 ## Repository layout

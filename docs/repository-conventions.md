@@ -31,7 +31,8 @@ lightwell-tssc-workshop/
 ├── tools/
 │   └── osv-eval/                    # Module 3 OSV → .rhlw-* pin → source-diff helpers (#25)
 ├── docs/
-│   ├── modules/                     # Showroom AsciiDoc labs (to be authored)
+│   ├── modules/                     # Showroom AsciiDoc labs (+ rhda-shift-left.adoc partial)
+│   ├── rhda-rhtpa-shift-left.md     # Module 4 RHDA vs RHTPA (laptop vs Showroom)
 │   ├── repository-conventions.md    # This file
 │   ├── ansible-developer-guide.md
 │   └── SHOWROOM-UPDATE-SPEC.md

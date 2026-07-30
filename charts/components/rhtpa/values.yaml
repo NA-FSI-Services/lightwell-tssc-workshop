@@ -114,9 +114,9 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Trusted Profile Analyzer"
   instructions: >-
-    RHTPA is the SBOM / VEX system of record. Upload CycloneDX SBOMs from the
-    workshop sample app (syft) via the TPA UI or API. Advisory importers cover
-    CVE/OSV feeds; RHDA can consume TPA APIs for shift-left analysis (see #26).
+    RHTPA is the SBOM / VEX system of record. Upload CycloneDX SBOMs (syft) via
+    the TPA UI or API. RHDA is the optional IDE shift-left client on a laptop —
+    not installed in Showroom (see docs/rhda-rhtpa-shift-left.md).
 
 # Injected by root-app / field content workload
 deployer:
