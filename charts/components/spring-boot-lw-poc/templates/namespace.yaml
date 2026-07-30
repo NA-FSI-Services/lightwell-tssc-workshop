@@ -1,0 +1,11 @@
+{{- if .Values.springBootLwPoc.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.springBootLwPoc.namespace }}
+  labels:
+    {{- include "spring-boot-lw-poc.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.springBootLwPoc.syncWaves.namespace | quote }}
+{{- end }}

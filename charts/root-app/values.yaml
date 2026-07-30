@@ -67,6 +67,7 @@ components:
     syncWave: "30"
 
   # --- Wave 40: Sample applications ---
+  # Chart: charts/components/spring-boot-lw-poc (#24). Primary LWN Maven PoC.
   springBootLwPoc:
     enabled: false
     namespace: spring-boot-lw-poc

@@ -1,0 +1,20 @@
+{{- if .Values.springBootLwPoc.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.springBootLwPoc.name }}
+  namespace: {{ .Values.springBootLwPoc.namespace }}
+  labels:
+    {{- include "spring-boot-lw-poc.labels" . | nindent 4 }}
+    app: {{ .Values.springBootLwPoc.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.springBootLwPoc.syncWaves.workload | quote }}
+spec:
+  selector:
+    app: {{ .Values.springBootLwPoc.name }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+{{- end }}

@@ -1,0 +1,26 @@
+{{- if and .Values.springBootLwPoc.enabled .Values.route.enabled }}
+{{- $host := include "spring-boot-lw-poc.routeHost" . }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Values.springBootLwPoc.name }}
+  namespace: {{ .Values.springBootLwPoc.namespace }}
+  labels:
+    {{- include "spring-boot-lw-poc.labels" . | nindent 4 }}
+    app: {{ .Values.springBootLwPoc.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.springBootLwPoc.syncWaves.route | quote }}
+spec:
+  host: {{ $host | quote }}
+  to:
+    kind: Service
+    name: {{ .Values.springBootLwPoc.name }}
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}

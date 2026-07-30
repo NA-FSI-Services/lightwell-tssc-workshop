@@ -1,0 +1,58 @@
+# Primary Spring Boot LWN PoC — Lightwell TSSC workshop
+# App sources live in ./app (Maven + settings.xml). Root injects springBootLwPoc.* / deployer.*.
+
+springBootLwPoc:
+  enabled: true
+  namespace: spring-boot-lw-poc
+  name: spring-boot-lw-poc
+  syncWaves:
+    namespace: "0"
+    config: "1"
+    workload: "2"
+    route: "3"
+    userinfo: "4"
+
+# Container image — build from ./app/Dockerfile and push, then set image.repository/tag
+image:
+  repository: image-registry.openshift-image-registry.svc:5000/spring-boot-lw-poc/spring-boot-lw-poc
+  tag: latest
+  pullPolicy: IfNotPresent
+  # When true, chart renders an OpenShift BuildConfig from the in-repo Dockerfile context note
+  buildConfig:
+    enabled: false
+
+replicas: 1
+
+# validated | remediated — exposed on /api/greeting
+lightwellStream: validated
+
+service:
+  port: 8080
+
+route:
+  enabled: true
+  host: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Lab docs ConfigMap (commands for mvn / syft / OpenAPI)
+labDocs:
+  enabled: true
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Spring Boot LWN PoC"
+  instructions: >-
+    Primary learner app. Build with mvn -s settings.xml -Plightwell-validated clean verify
+    from charts/components/spring-boot-lw-poc/app. Open the Route for /api/greeting and
+    /swagger-ui.html. Use -Plightwell-remediated,lightwell-remediated-pins for .rhlw-* pins.
+
+deployer:
+  domain: ""
+  apiUrl: ""
