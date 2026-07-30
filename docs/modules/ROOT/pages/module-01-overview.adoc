@@ -28,6 +28,15 @@ Modern applications pull hundreds of open source components. When a critical CVE
 
 AI accelerates both discovery of issues and the need for a repeatable remediation loop (OSV → pin → rebuild), which you practice in Module 3.
 
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-01-osv-pin-rebuild-loop.svg`
+
+Flow: Inspect OSV → read `fixed` (`.rhlw-*`) → diff sources → update `pom.xml` → rebuild.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/48
+// When ready: image::module-01-osv-pin-rebuild-loop.svg[Remediation evaluation loop,width=700]
+====
+
 == Lightwell Network tiers (authoritative)
 
 [IMPORTANT]
@@ -53,6 +62,15 @@ Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secur
 |{java-osv-url}
 |===
 
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-01-validated-vs-remediated.svg`
+
+Side-by-side **Validated** vs **Remediated** (plus Java **OSV**) with example pin `5.3.18.rhlw-00003`.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/47
+// When ready: image::module-01-validated-vs-remediated.svg[Validated vs Remediated vs OSV tiers,width=700]
+====
+
 Example remediated coordinate style:
 
 [source,text]
@@ -65,6 +83,15 @@ Artifacts are expected to ship with supply-chain metadata:
 * *SBOM* — Java CycloneDX beside the JAR (workshop uses `syft` → RHTPA in Module 4)
 * *SLSA Level 3* — build provenance / signed binaries (Sigstore family; RHTAS in Module 5)
 * *OSV* — fixed-version events for remediated Java (Module 3 toolkit under `tools/osv-eval/`)
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-01-artifact-metadata.svg`
+
+JAR with callouts for SBOM (CycloneDX), SLSA L3, and OSV `fixed` metadata.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/50
+// When ready: image::module-01-artifact-metadata.svg[SBOM, SLSA L3, and OSV with a remediated artifact,width=700]
+====
 
 Member UI (browse / subscribe conceptually): {lightwell-console-url}
 
@@ -158,6 +185,15 @@ On a machine with Red Hat membership (instructor demo), open {lightwell-console-
 * Browsing Validated vs Remediated content
 * Locating OSV / remediation metadata for a Java package
 * Understanding that RHDP labs may use *seeded mirrors* that still honor the same names and `.rhlw-*` semantics
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-01-lightwell-console.png`
+
+Orientation screenshot of the Lightwell console (Validated / Remediated browsing). Redact account PII.
+Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49
+// When ready: image::module-01-lightwell-console.png[Lightwell console orientation,width=700]
+====
 
 Learners without membership still complete RHDP labs using the seeded Nexus / ConfigMaps in this catalog item.
 
