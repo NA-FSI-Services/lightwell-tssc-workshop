@@ -85,7 +85,9 @@ Optional automation narrative (issue #25 / plan note). **Generic ticketing hook 
 ansible-playbook tools/osv-eval/playbooks/poll-osv-manifest.yml
 ```
 
-On checksum change the tools print: open a ticket / trigger a rebuild pipeline — map that to your org’s tooling outside this repo. Full Showroom appendix content is tracked in [#27](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27).
+On checksum change the tools print: open a ticket / trigger a rebuild pipeline — map that to your org’s tooling outside this repo.
+
+Showroom appendix: [`docs/modules/ROOT/pages/appendix-osv-manifest-polling.adoc`](../../docs/modules/ROOT/pages/appendix-osv-manifest-polling.adoc) ([#27](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27)).
 
 ## Related
 
