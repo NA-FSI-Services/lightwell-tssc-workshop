@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Workshop stub POM — Remediated tier with exact-version .rhlw-0000X suffix. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework</groupId>
+  <artifactId>spring-core</artifactId>
+  <version>5.3.18.rhlw-00003</version>
+  <packaging>jar</packaging>
+  <name>spring-core (Lightwell workshop remediated stub)</name>
+  <description>Deterministic RHDP seed artifact demonstrating .rhlw-00003 exact-version remediation.</description>
+  <properties>
+    <lightwell.tier>remediated</lightwell.tier>
+    <lightwell.baseVersion>5.3.18</lightwell.baseVersion>
+    <lightwell.remediatedVersion>5.3.18.rhlw-00003</lightwell.remediatedVersion>
+  </properties>
+</project>

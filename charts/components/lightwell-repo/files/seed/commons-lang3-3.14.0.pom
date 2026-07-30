@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Workshop stub POM — Validated tier for Spring Boot PoC commons-lang3 pin. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.commons</groupId>
+  <artifactId>commons-lang3</artifactId>
+  <version>3.14.0</version>
+  <packaging>jar</packaging>
+  <name>commons-lang3 (Lightwell workshop validated stub)</name>
+  <description>Deterministic RHDP seed for lightwell-validated Maven resolution (Spring Boot PoC).</description>
+  <properties>
+    <lightwell.tier>validated</lightwell.tier>
+  </properties>
+</project>

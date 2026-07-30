@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Workshop stub POM — Remediated .rhlw-00001 pin used by spring-boot-lw-poc profile. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.commons</groupId>
+  <artifactId>commons-lang3</artifactId>
+  <version>3.14.0.rhlw-00001</version>
+  <packaging>jar</packaging>
+  <name>commons-lang3 (Lightwell workshop remediated stub)</name>
+  <description>Deterministic RHDP seed for lightwell-remediated-pins (3.14.0.rhlw-00001).</description>
+  <properties>
+    <lightwell.tier>remediated</lightwell.tier>
+    <lightwell.baseVersion>3.14.0</lightwell.baseVersion>
+    <lightwell.remediatedVersion>3.14.0.rhlw-00001</lightwell.remediatedVersion>
+  </properties>
+</project>

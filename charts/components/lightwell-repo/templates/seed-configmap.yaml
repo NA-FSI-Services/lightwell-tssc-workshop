@@ -1,0 +1,50 @@
+{{- if and .Values.lightwellRepo.enabled .Values.seed.enabled }}
+---
+# Seed payloads for deterministic RHDP labs (Maven stubs, OSV path shape, CycloneDX).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.seed.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  seed-repos.sh: |
+{{ .Files.Get "files/seed/seed-repos.sh" | indent 4 }}
+  spring-core-5.3.18.pom: |
+{{ .Files.Get "files/seed/spring-core-5.3.18.pom" | indent 4 }}
+  spring-core-5.3.18.rhlw-00003.pom: |
+{{ .Files.Get "files/seed/spring-core-5.3.18.rhlw-00003.pom" | indent 4 }}
+  commons-lang3-3.14.0.pom: |
+{{ .Files.Get "files/seed/commons-lang3-3.14.0.pom" | indent 4 }}
+  commons-lang3-3.14.0.rhlw-00001.pom: |
+{{ .Files.Get "files/seed/commons-lang3-3.14.0.rhlw-00001.pom" | indent 4 }}
+  spring-core-5.3.18.cdx.json: |
+{{ .Files.Get "files/seed/spring-core-5.3.18.cdx.json" | indent 4 }}
+  spring-core-5.3.18.rhlw-00003.cdx.json: |
+{{ .Files.Get "files/seed/spring-core-5.3.18.rhlw-00003.cdx.json" | indent 4 }}
+  {{ .Values.sampleOsv.vulnerabilityId }}.json: |
+{{ .Files.Get "files/seed/LW-DEMO-0001.json" | indent 4 }}
+  workshop-stub.jar.b64: |
+{{ .Files.Get "files/seed/workshop-stub.jar.b64" | indent 4 }}
+  README: |
+    Seeded-mirror mode (lightwellRepo.mode=seeded) uploads these files into Nexus hosted repos.
+
+    Maven (validated):
+      org.springframework:spring-core:5.3.18
+      org.apache.commons:commons-lang3:3.14.0
+    Maven (remediated, .rhlw-0000X):
+      org.springframework:spring-core:5.3.18.rhlw-00003
+      org.apache.commons:commons-lang3:3.14.0.rhlw-00001
+
+    OSV path shape (raw repo):
+      osv/java/remediated/{{ .Values.sampleOsv.vulnerabilityId }}.json
+
+    CycloneDX (raw repo):
+      sbom/java/validated/.../5.3.18.cdx.json
+      sbom/java/remediated/.../5.3.18.rhlw-00003.cdx.json
+
+    Live proxy mode uses packages.redhat.com remotes with LW_USERNAME / LW_PASSWORD instead.
+{{- end }}
