@@ -26,6 +26,6 @@ data:
     RHDA (IDE) is the shift-left client; RHTPA is the SBOM system of record.
     Showroom uses TPA UI + syft only — no IDE in-cluster. Instructors may demo
     RHDA on a laptop (Backend URL → public rhda.rhcloud.com or workshop Exhort route).
-    See docs/rhda-rhtpa-shift-left.md and docs/modules/rhda-shift-left.adoc.
+    See docs/rhda-rhtpa-shift-left.md and Showroom page rhda-shift-left.adoc.
   rhda_doc: "docs/rhda-rhtpa-shift-left.md"
 {{- end }}

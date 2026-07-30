@@ -65,6 +65,10 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 - Prefer deterministic seeded artifacts when live LWN membership is unavailable in RHDP.
 - Prefer copy-pasteable `oc` / `tkn` / `mvn` / `syft` paths that match deployed chart names and namespaces.
 - Update Showroom image/chart pins per [docs/SHOWROOM-UPDATE-SPEC.md](./docs/SHOWROOM-UPDATE-SPEC.md) when touching Showroom.
+- **Lab visuals (images)** — When authoring or revising AsciiDoc labs, evaluate where a figure would clarify a concept (architecture, UI orientation, before/after, tier comparison). For each useful figure that is not already in-repo:
+  1. Open a GitHub issue (`phase-4` + `content`) that explains **how to obtain the asset**: either concrete **screenshot steps** (product URL, click path, what to crop/redact) **or** an **image-generation prompt** for an agent/designer (style, labels, must-include LWN tier names / `.rhlw-*`, must-avoid fictional channel names).
+  2. In the AsciiDoc, add an **image placeholder** note that names the intended file under `docs/modules/ROOT/images/` and links to that issue (do not invent binary assets or commit customer screenshots with PII).
+  3. When the asset is ready, replace the placeholder with a real `image::…` macro and close the issue.
 
 ## Git and issue hygiene
 

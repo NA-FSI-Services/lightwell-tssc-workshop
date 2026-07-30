@@ -10,3 +10,9 @@ repos:
         language: script
         files: ^charts/.*\.(ya?ml|tpl)$
         pass_filenames: true
+      - id: asciidoc-check
+        name: asciidoc structural check
+        entry: scripts/asciidoc-check.sh
+        language: script
+        files: ^(docs/.*|site\.yml|site-ci\.yml|scripts/asciidoc-check\.sh)$
+        pass_filenames: true

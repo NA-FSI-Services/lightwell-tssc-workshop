@@ -1,12 +1,7 @@
-////
-Module 4 subsection — RHDA shift-left vs RHTPA (issue #26).
-Include from the Module 4 AsciiDoc when authored (#17), e.g.:
-  include::rhda-shift-left.adoc[]
-////
+= Optional: Red Hat Dependency Analytics (shift-left)
+:toc:
 
-== Optional: Red Hat Dependency Analytics (shift-left)
-
-xref:https://marketplace.visualstudio.com/items?itemName=redhat.fabric8-analytics[Red Hat Dependency Analytics (RHDA)] is an IDE extension that analyzes manifests such as `pom.xml` using Trusted Profile Analyzer intelligence.
+https://marketplace.visualstudio.com/items?itemName=redhat.fabric8-analytics[Red Hat Dependency Analytics (RHDA)] is an IDE extension that analyzes manifests such as `pom.xml` using Trusted Profile Analyzer intelligence.
 
 In this workshop:
 
@@ -29,16 +24,15 @@ In this workshop:
 |RHDA wavy underlines on `pom.xml`
 |No
 |Yes
-
 |===
 
-=== Instructor laptop (optional demo)
+== Instructor laptop (optional demo)
 
 . Install the RHDA extension (VS Code or JetBrains).
 . Ensure `mvn` is on your `PATH`.
 . Set *Red Hat Dependency Analytics → Backend URL*:
-** Public default: `https://rhda.rhcloud.com`, or
-** Workshop Exhort/RHDA route when published by your RHTPA deployment.
+* Public default: `https://rhda.rhcloud.com`, or
+* Workshop Exhort/RHDA route when published by your RHTPA deployment.
 . Open the sample `pom.xml` and run Dependency Analytics; compare with the RHTPA UI.
 
-Full notes: link:../rhda-rhtpa-shift-left.md[docs/rhda-rhtpa-shift-left.md] in the GitOps repository.
+Full notes for content authors: `docs/rhda-rhtpa-shift-left.md` in the GitOps repository.

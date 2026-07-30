@@ -57,7 +57,8 @@ lightwell-tssc-workshop/
 ├── roles/
 │   └── ocp4_workload_field_content/  # AgnosticD field-content workload role
 ├── tools/osv-eval/         # Module 3 OSV pin + source-diff helpers
-├── docs/                   # Conventions, guides; lab AsciiDoc → docs/modules/
+├── docs/                   # Antora labs (modules/ROOT) + conventions
+├── site.yml                # Showroom Antora playbook
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md
 └── README.md
@@ -78,7 +79,7 @@ git clone git@github.com:NA-FSI-Services/lightwell-tssc-workshop.git
 cd lightwell-tssc-workshop
 
 # One-time: install git pre-commit hooks (requires helm + pre-commit)
-brew install helm pre-commit   # or equivalent
+brew install helm pre-commit   # or equivalent; Node 20+ for local Antora CI parity
 pre-commit install
 
 # Production App-of-Apps (preferred)
@@ -90,9 +91,14 @@ helm template lightwell . --set deployer.domain=apps.cluster.example.com
 cd ../../examples/helm && helm template .
 ```
 
-### Pre-commit (helm lint)
+### Pre-commit
 
-This repo uses [pre-commit](https://pre-commit.com) to run `helm lint` on charts under `charts/` before each commit (see [`.pre-commit-config.yaml`](./.pre-commit-config.yaml) and [`scripts/helm-lint.sh`](./scripts/helm-lint.sh)).
+This repo uses [pre-commit](https://pre-commit.com) (see [`.pre-commit-config.yaml`](./.pre-commit-config.yaml)):
+
+| Hook | When | Script |
+|------|------|--------|
+| `helm lint` | Changes under `charts/` | [`scripts/helm-lint.sh`](./scripts/helm-lint.sh) |
+| AsciiDoc structural check | Changes under `docs/`, `site.yml`, `site-ci.yml` | [`scripts/asciidoc-check.sh`](./scripts/asciidoc-check.sh) |
 
 ```bash
 # After clone (once)
@@ -101,20 +107,28 @@ pre-commit install
 # Run all hooks against the tree
 pre-commit run --all-files
 
-# Lint charts only (same script the hook uses)
+# Same scripts the hooks use
 ./scripts/helm-lint.sh
+./scripts/asciidoc-check.sh
 ```
 
-Commits that change files under `charts/` will fail if `helm lint` fails. Ensure `helm` is on your `PATH`.
+Ensure `helm` is on your `PATH` for chart commits.
 
 ### CI (PRs to main)
 
-Pull requests targeting `main` run [`.github/workflows/helm-validate.yml`](./.github/workflows/helm-validate.yml), which executes `helm lint` and `helm template` for every chart under `charts/` via [`scripts/helm-validate.sh`](./scripts/helm-validate.sh).
+| Workflow | What it runs |
+|----------|----------------|
+| [helm-validate.yml](./.github/workflows/helm-validate.yml) | `helm lint` + `helm template` for `charts/` ([`scripts/helm-validate.sh`](./scripts/helm-validate.sh)) |
+| [antora-validate.yml](./.github/workflows/antora-validate.yml) | `asciidoc-check.sh` + lightweight Antora generate (`site-ci.yml`) when docs/playbooks change |
 
 ```bash
 # Same checks as CI
 ./scripts/helm-validate.sh
+./scripts/asciidoc-check.sh
+npx --yes antora@3.1.10 site-ci.yml   # optional local Antora generate
 ```
+
+Showroom continues to use [`site.yml`](./site.yml) (RHDP theme + extensions). CI uses [`site-ci.yml`](./site-ci.yml) without those extensions for a fast generate.
 
 Order a Field Content / agd-v2 field-asset CNV catalog item pointing at this repository for cluster-based validation. Full RHDP onboarding steps are in [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md).
 

@@ -60,6 +60,6 @@ Optional: a scaffold may later ship `.vscode/extensions.json` *recommending* RHD
 ## Related
 
 - Chart: [`charts/components/rhtpa`](../charts/components/rhtpa/)
-- Showroom subsection (AsciiDoc): [`docs/modules/rhda-shift-left.adoc`](./modules/rhda-shift-left.adoc) — include from Module 4 ([#17](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/17))
+- Showroom page (AsciiDoc): [`docs/modules/ROOT/pages/rhda-shift-left.adoc`](./modules/ROOT/pages/rhda-shift-left.adoc) — linked from Module 4 when authored ([#17](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/17))
 - Pipeline SBOM gate: [#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13)
 - [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) — Module 4
