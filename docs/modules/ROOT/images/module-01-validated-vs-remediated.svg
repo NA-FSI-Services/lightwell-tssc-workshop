@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 420" role="img"
+     aria-labelledby="title desc">
+  <title id="title">Lightwell Network tiers: Validated, Remediated, and OSV (Java)</title>
+  <desc id="desc">
+    Three columns comparing Validated upstream-parity rebuilds, Remediated exact-version
+    backports with .rhlw- suffix, and Java OSV fixed events pointing at remediated versions.
+  </desc>
+
+  <defs>
+    <style type="text/css"><![CDATA[
+      .bg { fill: #f5f5f5; }
+      .card { fill: #ffffff; stroke: #d2d2d2; stroke-width: 1.5; }
+      .hdr-val { fill: #0066cc; }
+      .hdr-rem { fill: #c9190b; }
+      .hdr-osv { fill: #3d3d3d; }
+      .hdr-text { fill: #ffffff; font-family: "Red Hat Text", "Helvetica Neue", Arial, sans-serif;
+                  font-size: 18px; font-weight: 700; text-anchor: middle; }
+      .body { fill: #151515; font-family: "Red Hat Text", "Helvetica Neue", Arial, sans-serif;
+              font-size: 13px; }
+      .muted { fill: #6a6e73; font-family: "Red Hat Text", "Helvetica Neue", Arial, sans-serif;
+               font-size: 11px; }
+      .mono { fill: #151515; font-family: "Red Hat Mono", "Consolas", "Courier New", monospace;
+              font-size: 12px; font-weight: 600; }
+      .pill { fill: #f0f0f0; stroke: #b8bbbe; stroke-width: 1; }
+      .arrow { fill: none; stroke: #6a6e73; stroke-width: 1.75; marker-end: url(#arrowhead); }
+      .footer { fill: #6a6e73; font-family: "Red Hat Text", "Helvetica Neue", Arial, sans-serif;
+                font-size: 10px; }
+      .title { fill: #151515; font-family: "Red Hat Text", "Helvetica Neue", Arial, sans-serif;
+               font-size: 16px; font-weight: 700; }
+    ]]></style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#6a6e73"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="840" height="420" rx="4"/>
+
+  <text class="title" x="28" y="34">Lightwell Network tiers (Java)</text>
+  <text class="muted" x="28" y="54">Validated for active development · Remediated for exact-version security pins · OSV for machine-readable fixed events</text>
+
+  <!-- Validated column -->
+  <g transform="translate(28,78)">
+    <rect class="card" width="248" height="260" rx="6"/>
+    <rect class="hdr-val" width="248" height="40" rx="6"/>
+    <rect class="hdr-val" y="20" width="248" height="20"/>
+    <text class="hdr-text" x="124" y="27">Validated</text>
+
+    <text class="body" x="18" y="72">Upstream-parity rebuilds</text>
+    <text class="muted" x="18" y="92">Current libraries; typically</text>
+    <text class="muted" x="18" y="108">no application code changes</text>
+
+    <rect class="pill" x="18" y="128" width="212" height="56" rx="4"/>
+    <text class="muted" x="30" y="150">Developers</text>
+    <path class="arrow" d="M70 158 H160"/>
+    <text class="muted" x="170" y="150">Maven</text>
+    <text class="mono" x="30" y="172" font-size="11">&/java/validated</text>
+
+    <text class="muted" x="18" y="214">Use when building new features</text>
+    <text class="muted" x="18" y="230">against current open source lines.</text>
+  </g>
+
+  <!-- Remediated column -->
+  <g transform="translate(296,78)">
+    <rect class="card" width="248" height="260" rx="6"/>
+    <rect class="hdr-rem" width="248" height="40" rx="6"/>
+    <rect class="hdr-rem" y="20" width="248" height="20"/>
+    <text class="hdr-text" x="124" y="27">Remediated</text>
+
+    <text class="body" x="18" y="72">Exact-version backports</text>
+    <text class="muted" x="18" y="92">Same upstream version line;</text>
+    <text class="muted" x="18" y="108">security fix in a rebuild</text>
+
+    <rect class="pill" x="18" y="128" width="212" height="56" rx="4"/>
+    <text class="muted" x="30" y="148">Example pin</text>
+    <text class="mono" x="30" y="168">5.3.18.rhlw-00003</text>
+
+    <text class="muted" x="18" y="214">Use for production pins that</text>
+    <text class="muted" x="18" y="230">cannot take a major upgrade.</text>
+  </g>
+
+  <!-- OSV column -->
+  <g transform="translate(564,78)">
+    <rect class="card" width="248" height="260" rx="6"/>
+    <rect class="hdr-osv" width="248" height="40" rx="6"/>
+    <rect class="hdr-osv" y="20" width="248" height="20"/>
+    <text class="hdr-text" x="124" y="27">OSV (Java)</text>
+
+    <text class="body" x="18" y="72">Fixed-vuln records</text>
+    <text class="muted" x="18" y="92">Machine-readable events for</text>
+    <text class="muted" x="18" y="108">the remediated stream</text>
+
+    <rect class="pill" x="18" y="128" width="212" height="72" rx="4"/>
+    <text class="mono" x="30" y="150" font-size="11">{ "fixed": [</text>
+    <text class="mono" x="42" y="168" font-size="11">"5.3.18.rhlw-00003"</text>
+    <text class="mono" x="30" y="186" font-size="11">] }</text>
+
+    <text class="muted" x="18" y="224">Points triage at the exact</text>
+    <text class="muted" x="18" y="240">`.rhlw-*` coordinate to pin.</text>
+  </g>
+
+  <!-- Footer URLs -->
+  <text class="footer" x="28" y="368">Canonical remotes</text>
+  <text class="footer" x="28" y="386">https://packages.redhat.com/lightwell/java/validated</text>
+  <text class="footer" x="28" y="402">https://packages.redhat.com/lightwell/java/remediated</text>
+  <text class="footer" x="420" y="386">https://packages.redhat.com/lightwell/osv/java/remediated</text>
+  <text class="footer" x="420" y="402">console: https://console.redhat.com/lightwell</text>
+</svg>
