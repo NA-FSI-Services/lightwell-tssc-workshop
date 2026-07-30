@@ -1,19 +1,10 @@
 name: Antora validate
 
 on:
+  # No path filters on pull_request: ruleset main-protect requires check
+  # "structure and generate". Skipped workflows never report that check → BLOCKED.
   pull_request:
     branches: [main]
-    paths:
-      - "docs/**"
-      - "site.yml"
-      - "site-ci.yml"
-      - "scripts/asciidoc-check.sh"
-      - "scripts/showroom-check.sh"
-      - "charts/components/showroom/**"
-      - "charts/root-app/values.yaml"
-      - "charts/root-app/templates/applications.yaml"
-      - "docs/SHOWROOM-UPDATE-SPEC.md"
-      - ".github/workflows/antora-validate.yml"
   push:
     branches: [main]
     paths:
@@ -26,6 +17,7 @@ on:
       - "charts/root-app/values.yaml"
       - "charts/root-app/templates/applications.yaml"
       - "docs/SHOWROOM-UPDATE-SPEC.md"
+      - "agnosticv/**"
       - ".github/workflows/antora-validate.yml"
 
 concurrency:
