@@ -41,3 +41,5 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 * RHDP claim emails / portal expose `showroom_url` from ConfigMap `demo-userinfo-showroom` (namespace `showroom`).
 
 Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-05-pipeline.adoc[Module 5] using the left-hand nav.
+
+Optional appendices (not required for the core path): xref:rhda-shift-left.adoc[RHDA shift-left] and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].

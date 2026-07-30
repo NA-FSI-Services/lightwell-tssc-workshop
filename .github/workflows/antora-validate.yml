@@ -73,6 +73,7 @@ jobs:
             www/modules/module-04-sbom.html
             www/modules/module-05-pipeline.html
             www/modules/rhda-shift-left.html
+            www/modules/appendix-osv-manifest-polling.html
           )
           missing=0
           for f in "${required[@]}"; do

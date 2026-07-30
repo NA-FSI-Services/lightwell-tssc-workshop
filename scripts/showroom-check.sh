@@ -29,6 +29,7 @@ REQUIRED_MODULES=(
   module-05-pipeline.adoc
   index.adoc
   rhda-shift-left.adoc
+  appendix-osv-manifest-polling.adoc
 )
 
 failed=0

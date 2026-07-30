@@ -210,7 +210,9 @@ In field PoVs you pin *the coordinate named in OSV* (here, `spring-core` on apps
 
 == Instructor note: OSV manifest polling
 
-Optional automation narrative (not required for learners): watch `PULP_MANIFEST` on `{java-osv-url}` and, on change, open a ticket or trigger a rebuild pipeline. See `tools/osv-eval/scripts/poll-pulp-manifest.sh` and appendix issue https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27[#27]. Keep ITSM product names generic—no customer systems.
+Optional automation narrative (not required for learners): watch `PULP_MANIFEST` on `{java-osv-url}` and, on change, open a ticket or trigger a rebuild pipeline.
+
+Full optional appendix: xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling (advanced)] (`tools/osv-eval/scripts/poll-pulp-manifest.sh`). Keep ITSM product names generic—no customer systems.
 
 == Module summary
 

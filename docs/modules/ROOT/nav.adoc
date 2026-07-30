@@ -9,3 +9,4 @@
 
 .Appendix
 * xref:rhda-shift-left.adoc[RHDA shift-left (laptop)]
+* xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling (advanced)]

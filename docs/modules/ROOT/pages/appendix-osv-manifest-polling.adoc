@@ -1,0 +1,128 @@
+= Optional appendix: OSV `PULP_MANIFEST` polling (advanced)
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+[IMPORTANT]
+====
+*Optional / advanced — instructor or automation-focused content.*  
+Core learners complete xref:module-03-osv.adoc[Module 3] with the seeded sample OSV and do *not* need this appendix. Use it to teach the *field PoV automation implication*: new remediated OSV files can trigger tickets or rebuild pipelines without binding the workshop to any customer ITSM product.
+====
+
+== Why poll the OSV manifest?
+
+Lightwell Network publishes machine-readable OSV records for the Java *Remediated* stream at `{java-osv-url}`. Beside individual OSV JSON files, the repository exposes a Pulp-style **`PULP_MANIFEST`** listing those files.
+
+When the manifest checksum changes, something new (or updated) landed in the OSV path—often a new `fixed` → `.rhlw-*` pin you can feed into Module 3’s evaluation loop.
+
+Generic automation story (map locally; do *not* invent workshop-specific channel names):
+
+[arabic]
+. Poll `{java-osv-url}/PULP_MANIFEST` on a schedule
+. Compare SHA-256 (or equivalent) to the last known value
+. On change → *create a ticket* and/or *open a merge request* / *trigger a rebuild pipeline*
+. A human or bot runs Module 3 steps: read `fixed`, source-diff, pin, rebuild
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/appendix-osv-pulp-manifest-poll.svg`
+
+Poll `PULP_MANIFEST` → checksum change → ticket / MR / pipeline → OSV pin loop.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/68
+// When ready: image::appendix-osv-pulp-manifest-poll.svg[OSV PULP_MANIFEST polling automation,width=700]
+====
+
+== Canonical endpoints
+
+[cols="1,2",options="header"]
+|===
+|Item |Value
+
+|OSV base (Java remediated)
+|`{java-osv-url}`
+
+|Manifest
+|`{java-osv-url}/PULP_MANIFEST`
+
+|Example OSV object path
+|`osv/java/remediated/LW-DEMO-0001.json` (seeded workshop sample)
+
+|Auth
+|`LW_USERNAME` / `LW_PASSWORD` when the remote requires a registry service account — *never commit*
+|===
+
+RHDP labs may use *seeded* OSV JSON in Nexus / ConfigMap `lightwell-sample-osv` instead of live `packages.redhat.com`. Polling live manifests needs network + membership; the scripts still document the production shape.
+
+== Shell helper (single shot)
+
+From a GitOps / content checkout with network access:
+
+[source,bash,role=execute]
+----
+chmod +x tools/osv-eval/scripts/*.sh
+
+# Optional when the remote requires auth (never commit these):
+# export LW_USERNAME=... LW_PASSWORD=...
+
+# Override base only if pointing at a mirror:
+# export OSV_BASE=https://packages.redhat.com/lightwell/osv/java/remediated
+
+./tools/osv-eval/scripts/poll-pulp-manifest.sh
+----
+
+Behavior:
+
+* First run — stores checksum under `~/.cache/lightwell-osv-eval/` and prints an initialization message
+* Later run with unchanged manifest — `No change`
+* Later run with changed manifest — prints a *generic* hook message: open a ticket / trigger a rebuild pipeline
+
+Optional continuous poll (instructor workstation):
+
+[source,bash]
+----
+INTERVAL_SEC=300 ./tools/osv-eval/scripts/poll-pulp-manifest.sh
+----
+
+Optional generic webhook (JSON `text` field only — no product-specific schema required):
+
+[source,bash]
+----
+WEBHOOK_URL='https://example.invalid/hooks/osv' \
+  ./tools/osv-eval/scripts/poll-pulp-manifest.sh
+----
+
+== Ansible-style poll (automation narrative)
+
+Same checksum compare using `ansible.builtin.uri` (AAP-friendly pattern, still *generic*):
+
+[source,bash]
+----
+ansible-playbook tools/osv-eval/playbooks/poll-osv-manifest.yml \
+  -e osv_base=https://packages.redhat.com/lightwell/osv/java/remediated \
+  -e lw_username="{{ lookup('env','LW_USERNAME') }}" \
+  -e lw_password="{{ lookup('env','LW_PASSWORD') }}"
+----
+
+On checksum change the playbook prints a debug message to open a ticket / trigger a rebuild pipeline. Customize the hook *outside* this repository (your org’s ticketing or CI)—do not hard-code customer tool names into the catalog.
+
+== What to do after a change is detected
+
+Treat the poll as a *signal*, then reuse Module 3:
+
+. Fetch or locate the new/updated OSV JSON (path under `{java-osv-url}` or your enterprise mirror)
+. Run `./tools/osv-eval/scripts/osv-pin.sh <osv.json>` → confirm `fixed_version` contains `.rhlw-`
+. Diff sources (`diff-sources.sh --fixture` offline, or `--fetch` when jars exist)
+. Open a merge request that updates the application pin; rebuild with Remediated Maven profiles
+. Let Module 5 pipeline gates enforce the remediated pin before GitOps promotion
+
+== Explicit non-goals
+
+* Binding this workshop to a named ITSM, chat, or CMDB product
+* Replacing Module 3’s seeded OSV exercise for RHDP learners
+* Polling fictional channel names — only Validated / Remediated / Java OSV remotes apply
+
+== Related
+
+* Toolkit README: `tools/osv-eval/README.md`
+* xref:module-03-osv.adoc[Module 3 — OSV triage and exact-version remediation]
+* Canonical OSV remote: `{java-osv-url}`
