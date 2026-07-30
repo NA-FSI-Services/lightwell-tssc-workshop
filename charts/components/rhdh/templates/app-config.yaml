@@ -1,0 +1,39 @@
+{{- if .Values.rhdh.enabled }}
+{{- $baseUrl := include "rhdh.baseUrl" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-rhdh
+  namespace: {{ .Values.rhdh.namespace }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhdh.syncWaves.config | quote }}
+data:
+  app-config-rhdh.yaml: |
+    app:
+      title: {{ .Values.appConfig.title | quote }}
+      baseUrl: {{ $baseUrl | quote }}
+    backend:
+      baseUrl: {{ $baseUrl | quote }}
+      cors:
+        origin: {{ $baseUrl | quote }}
+    organization:
+      name: Lightwell TSSC Workshop
+    catalog:
+      locations:
+{{- if .Values.softwareTemplates.enabled }}
+{{- range .Values.appConfig.catalog.fileLocations }}
+        - type: file
+          target: {{ . | quote }}
+          rules:
+            - allow: [Template]
+{{- end }}
+{{- end }}
+        # Phase 3 (#12): point at a git URL for the full lightwell-java-service scaffolder
+        # - type: url
+        #   target: https://raw.githubusercontent.com/NA-FSI-Services/lightwell-tssc-workshop/main/charts/components/rhdh/files/catalog/lightwell-java-service.yaml
+        #   rules:
+        #     - allow: [Template]
+{{- end }}

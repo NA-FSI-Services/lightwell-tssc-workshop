@@ -4,7 +4,7 @@ This directory is the **RHDP sync target** for the Lightwell workshop (AgnosticV
 
 ## Status
 
-`charts/root-app` App-of-Apps is scaffolded. Child component charts under `charts/components/` land in Phase 1 issues (#3–#8, #24) and Showroom wiring (#19). Components stay `enabled: false` in root-app values until their charts exist.
+`charts/root-app` App-of-Apps is scaffolded. `charts/components/rhdh` is available (#3); remaining child charts land in Phase 1 issues (#4–#8, #24) and Showroom wiring (#19). Components stay `enabled: false` in root-app values until ready to sync.
 
 ## Layout
 
@@ -16,16 +16,17 @@ charts/
 │   ├── values.yaml
 │   ├── README.md             # Sync waves + local helm validation
 │   └── templates/
-└── components/               # Child charts (to be added)
-    ├── rhdh/
-    ├── rhtas/
-    ├── rhtpa/
-    ├── rhacs/
-    ├── lightwell-repo/
-    ├── spring-boot-lw-poc/
-    ├── showroom/
-    └── parasol-app/          # optional
+└── components/
+    ├── rhdh/                 # Developer Hub + lightwell-java-service placeholder (#3)
+    ├── rhtas/                # (pending)
+    ├── rhtpa/                # (pending)
+    ├── rhacs/                # (pending)
+    ├── lightwell-repo/       # (pending)
+    ├── spring-boot-lw-poc/   # (pending)
+    ├── showroom/             # (pending)
+    └── parasol-app/          # optional (pending)
 ```
+
 
 ## Sync waves (root-app)
 

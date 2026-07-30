@@ -56,6 +56,7 @@ components:
     chartPath: lightwell-repo
 
   # --- Wave 30: Developer Hub ---
+  # Chart: charts/components/rhdh (#3). Enable when cluster is ready to sync.
   rhdh:
     enabled: false
     namespace: rhdh

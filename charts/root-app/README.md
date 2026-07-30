@@ -8,7 +8,7 @@ Master Helm chart for the workshop GitOps sync path (`gitops_path: charts/root-a
 |------|------------|------|
 | `10` | `rhtas`, `rhtpa`, `rhacs` | TSSC operators / platform |
 | `20` | `lightwell-repo` | Artifact manager (validated / remediated / OSV) |
-| `30` | `rhdh` | Developer Hub (+ templates in later issues) |
+| `30` | `rhdh` | Developer Hub (+ `lightwell-java-service` placeholder; full template in #12) |
 | `40` | `spring-boot-lw-poc`, `parasol-app` | Sample applications |
 | `50` | `showroom` | Lab guide (last) |
 

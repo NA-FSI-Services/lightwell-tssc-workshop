@@ -1,0 +1,18 @@
+{{- if and .Values.rhdh.enabled .Values.dynamicPlugins.enabled }}
+---
+# Minimal dynamic plugins config (RHADS enables ArgoCD/Tekton plugins later).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.dynamicPlugins.configMapName }}
+  namespace: {{ .Values.rhdh.namespace }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhdh.syncWaves.config | quote }}
+data:
+  dynamic-plugins.yaml: |
+    includes:
+      - dynamic-plugins.default.yaml
+    plugins: []
+{{- end }}
