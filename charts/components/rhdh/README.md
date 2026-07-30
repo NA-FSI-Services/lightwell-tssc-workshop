@@ -1,6 +1,6 @@
 # charts/components/rhdh — Red Hat Developer Hub
 
-Deploys Developer Hub for the Lightwell TSSC workshop via the **RHDH Operator** (OLM Subscription) and a `Backstage` custom resource. Includes a **placeholder** Software Template `lightwell-java-service` (Maven + LWN profiles land in [#12](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/12)).
+Deploys Developer Hub for the Lightwell TSSC workshop via the **RHDH Operator** (OLM Subscription) and a `Backstage` custom resource. Ships the **lightwell-java-service** Software Template (Maven + LWN Validated/Remediated profiles, `LW_*` auth placeholders, `.rhlw-*` pins, RHTAS keyless Tekton pipeline).
 
 ## Sync waves (inside this chart)
 
@@ -18,14 +18,36 @@ Root App-of-Apps places this chart at sync wave **`30`** (after operators / ligh
 
 - **Operator** in `rhdh-operator` (AllNamespaces OperatorGroup + `redhat-operators` Subscription `rhdh`, channel `fast`)
 - **Instance** in `rhdh`: `Backstage` CR `developer-hub`, local PostgreSQL, OpenShift Route
-- **Catalog**: ConfigMap-mounted `files/catalog/lightwell-java-service.yaml` (Template entity placeholder)
+- **Catalog**: ConfigMap-mounted Template `lightwell-java-service`
+- **Skeleton** (fetched at scaffold time from Git): `files/skeletons/lightwell-java-service/`
 - **Userinfo** labeled for RHDP (`demo.redhat.com/application`, `demo.redhat.com/userinfo`)
+
+## Software Template — lightwell-java-service
+
+| Concern | Implementation |
+|---------|----------------|
+| Maven profiles | `settings.xml` → `lightwell-validated` + `lightwell-remediated` |
+| Auth | `${env.LW_USERNAME}` / `${env.LW_PASSWORD}` (never commit secrets) |
+| Dual streams + pin | `pom.xml` profiles; `commons-lang3` `3.14.0.rhlw-00001` |
+| RHTAS keyless | `.tekton/pipeline.yaml` → `cosign sign` (Fulcio/Rekor params) |
+| Modules 2–5 | Skeleton `docs/MODULES.md` + template output text |
+
+Scaffolder steps: `fetch:template` (skeleton on `main`) → `publish:github` → `catalog:register`.
+
+**Requires** RHDH GitHub integration (or equivalent) for `publish:github`. Configure a GitHub App / PAT in Developer Hub before learners run Create.
+
+Skeleton URL (after merge to `main`):
+
+```text
+https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/main/charts/components/rhdh/files/skeletons/lightwell-java-service
+```
 
 ## Reuse sources
 
-- RHADS Demo catalog patterns (`enterprise.redhat-ads-demo.prod` / `pert.redhat-rhads.prod`)
+- RHADS Demo catalog / Software Template patterns (`enterprise.redhat-ads-demo.prod` / `pert.redhat-rhads.prod`)
 - [Installing RHDH on OpenShift with the Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.10/html-single/installing_red_hat_developer_hub_on_openshift_container_platform/index)
 - Field-sourced template OLM Subscription pattern (`examples/helm/components/operator`)
+- In-repo PoC: [`charts/components/spring-boot-lw-poc`](../spring-boot-lw-poc/)
 
 ## Values of interest
 
@@ -36,10 +58,10 @@ Root App-of-Apps places this chart at sync wave **`30`** (after operators / ligh
 | `rhdh.apiVersion` | `rhdh.redhat.com/v1alpha3` | Override if channel CRD differs |
 | `operator.enabled` | `true` | Set `false` if Operator already installed |
 | `operator.channel` | `fast` | Or `fast-1.10` for z-stream only |
-| `softwareTemplates.enabled` | `true` | Placeholder Template catalog mount |
+| `softwareTemplates.enabled` | `true` | Mount Template catalog entity |
 | `deployer.domain` | `""` | Injected by root-app; used for `baseUrl` / userinfo |
 
-Canonical LWN remotes (documented on the Template placeholder):
+Canonical LWN remotes:
 
 - `https://packages.redhat.com/lightwell/java/validated`
 - `https://packages.redhat.com/lightwell/java/remediated`
@@ -52,7 +74,6 @@ helm lint charts/components/rhdh
 helm template rhdh charts/components/rhdh \
   --set deployer.domain=apps.cluster.example.com
 
-# Or full tree
 ./scripts/helm-validate.sh
 ```
 
@@ -68,6 +89,6 @@ Keep `components.rhdh.enabled: false` in committed root values until a cluster i
 
 ## Related
 
-- Issue [#3](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/3)
-- Follow-up template implementation: [#12](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/12)
+- Issue [#3](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/3) — chart scaffold
+- Issue [#12](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/12) — this template
 - [charts/root-app/README.md](../../root-app/README.md)

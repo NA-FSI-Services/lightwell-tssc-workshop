@@ -1,20 +1,20 @@
-# Placeholder Software Template — lightwell-java-service
-# Full Maven + LWN validated/remediated scaffolder: issue #12
+# Software Template — lightwell-java-service (Phase 3 / issue #12)
+# Skeleton: charts/components/rhdh/files/skeletons/lightwell-java-service
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: lightwell-java-service
   title: Lightwell Java Service
   description: >-
-    Placeholder golden path for a Spring Boot / Java 17 / Maven service that
-    consumes Lightwell Network Validated and Remediated Maven repositories.
-    Scaffolding steps (settings.xml profiles, .rhlw-* pins, pipeline hooks)
-    are implemented in Phase 3 (#12).
+    Spring Boot / Java 17 / Maven microservice golden path with Lightwell Network
+    Validated and Remediated Maven profiles, env-based LW_* auth, .rhlw-* pins,
+    and a Tekton pipeline that keyless-signs with RHTAS (cosign).
   tags:
     - lightwell
     - java
     - maven
     - spring-boot
+    - rhtas
     - recommended
   annotations:
     backstage.io/techdocs-ref: dir:.
@@ -25,56 +25,139 @@ spec:
     - title: Service information
       required:
         - name
+        - repoOwner
+        - repoName
       properties:
         name:
           title: Name
           type: string
-          description: Service name (placeholder — scaffolder actions land in #12)
+          description: Maven artifactId and Kubernetes-safe service name
+          pattern: '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'
           ui:autofocus: true
         description:
           title: Description
           type: string
-          description: Short description of the service
           default: Spring Boot service using Lightwell Network Maven streams
         owner:
           title: Owner
           type: string
-          description: Owner (user or group)
           default: group:default/lightwell-workshop
-    - title: Lightwell Network stream (preview)
+        system:
+          title: System
+          type: string
+          default: lightwell-tssc-workshop
+        groupId:
+          title: Maven groupId
+          type: string
+          default: com.redhat.lightwell.workshop
+        javaPackage:
+          title: Java package
+          type: string
+          default: com.redhat.lightwell.workshop
+          description: Used in package declarations (match javaPath below)
+        javaPath:
+          title: Java source path
+          type: string
+          default: com/redhat/lightwell/workshop
+          description: Directory path under src/main/java (slashes, not dots)
+    - title: Lightwell Network
       properties:
         lwnProfile:
-          title: Default Maven profile
+          title: Default settings.xml active profile
           type: string
-          description: >-
-            Validated for active development; Remediated for exact-version
-            .rhlw-* production pins. Wired in Phase 3.
           default: lightwell-validated
           enum:
             - lightwell-validated
             - lightwell-remediated
           enumNames:
             - Validated (upstream-parity rebuilds)
-            - Remediated (exact-version .rhlw-* backports)
+            - Remediated (use with lightwell-remediated-pins for .rhlw-*)
+    - title: Publication (GitHub)
+      required:
+        - repoOwner
+        - repoName
+      properties:
+        repoOwner:
+          title: GitHub organization or user
+          type: string
+          description: Destination org/user for publish:github
+        repoName:
+          title: Repository name
+          type: string
+          description: New repository name (usually same as service name)
+        defaultBranch:
+          title: Default branch
+          type: string
+          default: main
   steps:
-    - id: placeholder-notice
-      name: Placeholder notice
-      action: debug:log
+    - id: fetch-base
+      name: Fetch Lightwell Java skeleton
+      action: fetch:template
       input:
-        message: >-
-          lightwell-java-service is a Phase 1 placeholder. Implement Maven
-          skeleton, settings.xml profiles (validated / remediated), and
-          optional .rhlw-* pins in issue #12.
-  output:
-    text:
-      - title: Next steps
-        content: |
-          This template is a **placeholder**. Phase 3 issue #12 will generate:
+        # Hosted in this workshop repo (available on main after merge)
+        url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/main/charts/components/rhdh/files/skeletons/lightwell-java-service
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          system: ${{ parameters.system }}
+          groupId: ${{ parameters.groupId }}
+          javaPackage: ${{ parameters.javaPackage }}
+          javaPath: ${{ parameters.javaPath }}
+          lwnProfile: ${{ parameters.lwnProfile }}
+          repoOwner: ${{ parameters.repoOwner }}
+          repoName: ${{ parameters.repoName }}
 
-          - Spring Boot / Java 17 / Maven project
-          - `settings.xml` profiles for Lightwell **Validated** and **Remediated**
-          - Documented pins using `.rhlw-0000X` remediated versions
-          - Canonical remotes:
-            - https://packages.redhat.com/lightwell/java/validated
-            - https://packages.redhat.com/lightwell/java/remediated
-            - https://packages.redhat.com/lightwell/osv/java/remediated
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: ${{ parameters.description }}
+        repoUrl: github.com?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}
+        defaultBranch: ${{ parameters.defaultBranch }}
+        repoVisibility: private
+
+    - id: register
+      name: Register in Software Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+    text:
+      - title: Modules 2–5 next steps
+        content: |
+          Scaffolded **${{ parameters.name }}** with Lightwell Maven dual streams.
+
+          **Module 2 — Maven / artifact manager**
+          ```bash
+          export LIGHTWELL_NEXUS_URL='https://nexus-lightwell-repo.apps.<domain>'
+          export LW_USERNAME='...'   # never commit
+          export LW_PASSWORD='...'
+          mvn -s settings.xml -Plightwell-validated clean verify
+          ```
+
+          **Module 3 — Exact-version remediation**
+          ```bash
+          mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
+          ```
+          Pin example in `pom.xml`: `commons-lang3` `3.14.0.rhlw-00001`.
+
+          **Module 4 — SBOM / RHTPA**
+          Generate CycloneDX (e.g. `syft`) and import into Trusted Profile Analyzer.
+
+          **Module 5 — Sign / policy / GitOps**
+          Apply `.tekton/pipeline.yaml` for **RHTAS keyless** `cosign sign`, then optional RHACS `acs-image-check`.
+
+          Canonical remotes:
+          - https://packages.redhat.com/lightwell/java/validated
+          - https://packages.redhat.com/lightwell/java/remediated
+          - https://packages.redhat.com/lightwell/osv/java/remediated

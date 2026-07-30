@@ -31,7 +31,7 @@ data:
             - allow: [Template]
 {{- end }}
 {{- end }}
-        # Phase 3 (#12): point at a git URL for the full lightwell-java-service scaffolder
+        # Optional: also load Template from git (file mount above is the workshop default)
         # - type: url
         #   target: https://raw.githubusercontent.com/NA-FSI-Services/lightwell-tssc-workshop/main/charts/components/rhdh/files/catalog/lightwell-java-service.yaml
         #   rules:

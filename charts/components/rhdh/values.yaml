@@ -41,8 +41,7 @@ appConfig:
   title: "Lightwell TSSC Workshop — Developer Hub"
   # When empty, baseUrl is derived as https://developer-hub-<namespace>.apps.<deployer.domain>
   baseUrl: ""
-  # Catalog location for the lightwell-java-service placeholder Template
-  # Prefer mounted file path (deterministic); git URL is documented for Phase 3 (#12)
+  # Catalog location for the lightwell-java-service Software Template
   catalog:
     fileLocations:
       - /opt/app-root/src/catalog/lightwell-java-service.yaml
@@ -52,21 +51,24 @@ dynamicPlugins:
   enabled: true
   configMapName: dynamic-plugins-rhdh
 
-# Software Template placeholder (full Maven + LWN scaffolder in #12)
+# Software Template lightwell-java-service (skeleton under files/skeletons/)
 softwareTemplates:
   enabled: true
   configMapName: rhdh-software-templates
   # Mounted under extraFiles.mountPath
   mountPath: /opt/app-root/src
+  # Scaffolder fetch:template URL (must be reachable from RHDH; tracks main after merge)
+  skeletonUrl: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/main/charts/components/rhdh/files/skeletons/lightwell-java-service
 
 # RHDP userinfo ConfigMap
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Developer Hub"
   instructions: >-
-    Open Developer Hub from the URL in this ConfigMap (rhdh_url). Use the
-    lightwell-java-service Software Template placeholder from the Create page
-    (full Maven + LWN profiles land in Phase 3).
+    Open Developer Hub (rhdh_url). Create → lightwell-java-service to scaffold a
+    Spring Boot / Maven service with Lightwell Validated/Remediated profiles,
+    LW_USERNAME/LW_PASSWORD placeholders, .rhlw-* pins, and RHTAS keyless Tekton
+    signing. Requires GitHub integration for publish:github.
 
 # Injected by root-app / field content workload
 deployer:

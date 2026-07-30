@@ -1,0 +1,33 @@
+# Example PipelineRun — copy params for your namespace / image registry.
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: ${{ values.name }}-build-sign-
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+spec:
+  pipelineRef:
+    name: ${{ values.name }}-build-sign
+  params:
+    - name: repo-url
+      value: https://github.com/${{ values.repoOwner }}/${{ values.repoName }}.git
+    - name: revision
+      value: main
+    - name: image-url
+      value: image-registry.openshift-image-registry.svc:5000/${{ values.name }}/${{ values.name }}:latest
+    - name: maven-profile
+      value: ${{ values.lwnProfile }}
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 1Gi
+    - name: maven-settings
+      emptyDir: {}
+  taskRunTemplate:
+    serviceAccountName: pipeline
+    # Provide LW_USERNAME / LW_PASSWORD / LIGHTWELL_NEXUS_URL via a Secret
+    # referenced from the maven Task (do not commit credentials).
