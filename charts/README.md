@@ -4,7 +4,7 @@ This directory is the **RHDP sync target** for the Lightwell workshop (AgnosticV
 
 ## Status
 
-`charts/root-app` App-of-Apps is scaffolded. Component charts `rhdh` (#3), `rhtas` (#4), `rhtpa` (#5), and `rhacs` (#6) are available; remaining child charts land in Phase 1 issues (#7–#8, #24) and Showroom wiring (#19). Components stay `enabled: false` in root-app values until ready to sync.
+`charts/root-app` App-of-Apps is scaffolded. Component charts through `lightwell-repo` (#3–#7) are available; remaining child charts land in Phase 1 issues (#8, #24) and Showroom wiring (#19). Components stay `enabled: false` in root-app values until ready to sync.
 
 ## Layout
 
@@ -21,7 +21,7 @@ charts/
     ├── rhtas/                # Trusted Artifact Signer (Fulcio/Rekor/TUF) (#4)
     ├── rhtpa/                # Trusted Profile Analyzer (SBOM/VEX) (#5)
     ├── rhacs/                # Advanced Cluster Security + roxctl hooks (#6)
-    ├── lightwell-repo/       # (pending)
+    ├── lightwell-repo/       # Nexus LWN validated / remediated / OSV (#7)
     ├── spring-boot-lw-poc/   # (pending)
     ├── showroom/             # (pending)
     └── parasol-app/          # optional (pending)

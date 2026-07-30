@@ -1,0 +1,117 @@
+# Lightwell Network enterprise artifact manager — Lightwell TSSC workshop
+# Presents Validated / Remediated / OSV tiers (field PoV pattern).
+# Root App-of-Apps injects lightwellRepo.* and deployer.* (see charts/root-app).
+
+lightwellRepo:
+  enabled: true
+  namespace: lightwell-repo
+  # proxy = remote-proxy to packages.redhat.com (needs LW_* credentials)
+  # seeded = hosted mirrors + sample OSV for deterministic RHDP labs (#11 expands content)
+  mode: seeded
+  syncWaves:
+    namespace: "0"
+    secrets: "1"
+    config: "1"
+    nexus: "2"
+    route: "3"
+    userinfo: "4"
+
+# Sonatype Nexus Repository Manager 3 (enterprise artifact-manager stand-in)
+nexus:
+  enabled: true
+  name: nexus
+  image: docker.io/sonatype/nexus3:3.70.1
+  replicas: 1
+  # Nexus admin password is generated on first boot into a Secret; do not commit it.
+  # Document LW_USERNAME / LW_PASSWORD separately for LWN remote auth.
+  service:
+    port: 8081
+  route:
+    enabled: true
+    # When empty: nexus-<namespace>.<deployer.domain>
+    host: ""
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  # JVM heap hint via INSTALL4J_ADD_VM_PARAMS (Nexus container convention)
+  javaOpts: "-Xms1200m -Xmx1200m -XX:MaxDirectMemorySize=2g"
+
+# Authoritative LWN remotes (document even when seeding locally)
+channels:
+  validated:
+    name: lightwell-java-validated
+    type: maven
+    description: "Lightwell Network Java Validated — upstream-parity rebuilds"
+    remoteUrl: "https://packages.redhat.com/lightwell/java/validated"
+    # Hosted repo key used in seeded mode
+    hostedName: lightwell-java-validated-hosted
+  remediated:
+    name: lightwell-java-remediated
+    type: maven
+    description: "Lightwell Network Java Remediated — exact-version .rhlw-0000X backports"
+    remoteUrl: "https://packages.redhat.com/lightwell/java/remediated"
+    hostedName: lightwell-java-remediated-hosted
+  osv:
+    name: lightwell-osv-java-remediated
+    type: raw
+    description: "Lightwell Network Java OSV (remediated) — machine-readable fixed-vuln records"
+    remoteUrl: "https://packages.redhat.com/lightwell/osv/java/remediated"
+    hostedName: lightwell-osv-java-remediated-hosted
+  # Optional enterprise virtual aggregator (Maven points here in proxied PoV delivery)
+  virtualLibsRelease:
+    enabled: true
+    name: libs-release
+    description: "Enterprise libs-release virtual repo aggregating Lightwell Maven tiers"
+
+# LWN registry service account — NEVER commit real values.
+# Inject via RHDP / ExternalSecret: LW_USERNAME, LW_PASSWORD
+credentials:
+  secretName: lightwell-network-credentials
+  createPlaceholder: true
+  # Empty placeholders only
+  username: ""
+  password: ""
+
+# Maven learner UX — settings.xml profiles for validated + remediated
+mavenSettings:
+  enabled: true
+  configMapName: lightwell-maven-settings
+  # When empty, derived from Nexus Route host
+  nexusUrl: ""
+
+# Sample OSV JSON demonstrating .rhlw-0000X fixed version (seeded / lab beat)
+sampleOsv:
+  enabled: true
+  configMapName: lightwell-sample-osv
+  # Example pin taught in Module 3 / #16
+  packageName: "org.example:vulnerable-lib"
+  baseVersion: "5.3.18"
+  remediatedVersion: "5.3.18.rhlw-00003"
+  vulnerabilityId: "LW-DEMO-0001"
+
+# Repository bootstrap script (REST) — run after Nexus is Ready (Phase 3 Job can automate)
+bootstrap:
+  enabled: true
+  configMapName: lightwell-repo-bootstrap
+
+# RHDP userinfo ConfigMap
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Artifact Manager (LWN)"
+  instructions: >-
+    Use Nexus as the enterprise artifact manager. Maven profiles lightwell-validated
+    and lightwell-remediated are in ConfigMap lightwell-maven-settings. Inject
+    LW_USERNAME / LW_PASSWORD into Secret lightwell-network-credentials for live
+    proxy mode. Seeded mode serves hosted repos + sample OSV with .rhlw-* pins.
+
+# Injected by root-app / field content workload
+deployer:
+  domain: ""
+  apiUrl: ""

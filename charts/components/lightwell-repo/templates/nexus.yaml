@@ -1,0 +1,111 @@
+{{- if and .Values.lightwellRepo.enabled .Values.nexus.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.nexus.name }}-data
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app: {{ .Values.nexus.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.nexus | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.nexus.persistence.size | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.nexus.name }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app: {{ .Values.nexus.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.nexus | quote }}
+spec:
+  ports:
+    - name: http
+      port: {{ .Values.nexus.service.port }}
+      targetPort: {{ .Values.nexus.service.port }}
+      protocol: TCP
+  selector:
+    app: {{ .Values.nexus.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.nexus.name }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app: {{ .Values.nexus.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.nexus | quote }}
+spec:
+  replicas: {{ .Values.nexus.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Values.nexus.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "lightwell-repo.labels" . | nindent 8 }}
+        app: {{ .Values.nexus.name }}
+    spec:
+      securityContext:
+        fsGroup: 200
+      containers:
+        - name: nexus
+          image: {{ .Values.nexus.image | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: {{ .Values.nexus.service.port }}
+          env:
+            - name: INSTALL4J_ADD_VM_PARAMS
+              value: {{ .Values.nexus.javaOpts | quote }}
+            - name: NEXUS_CONTEXT
+              value: ""
+            - name: LIGHTWELL_REPO_MODE
+              value: {{ .Values.lightwellRepo.mode | quote }}
+          readinessProbe:
+            httpGet:
+              path: /service/rest/v1/status
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /service/rest/v1/status
+              port: http
+            initialDelaySeconds: 300
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: {{ .Values.nexus.resources.requests.cpu | quote }}
+              memory: {{ .Values.nexus.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.nexus.resources.limits.cpu | quote }}
+              memory: {{ .Values.nexus.resources.limits.memory | quote }}
+          volumeMounts:
+            - name: nexus-data
+              mountPath: /nexus-data
+      volumes:
+        - name: nexus-data
+          {{- if .Values.nexus.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.nexus.name }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }}

@@ -1,0 +1,31 @@
+{{- if and .Values.lightwellRepo.enabled .Values.userInfo.enabled }}
+{{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-lightwell-repo
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  lightwell_repo_mode: {{ .Values.lightwellRepo.mode | quote }}
+  nexus_url: {{ $nexusUrl | quote }}
+  channel_validated: {{ .Values.channels.validated.name | quote }}
+  channel_remediated: {{ .Values.channels.remediated.name | quote }}
+  channel_osv: {{ .Values.channels.osv.name | quote }}
+  canonical_validated: {{ .Values.channels.validated.remoteUrl | quote }}
+  canonical_remediated: {{ .Values.channels.remediated.remoteUrl | quote }}
+  canonical_osv: {{ .Values.channels.osv.remoteUrl | quote }}
+  version_suffix_example: {{ .Values.sampleOsv.remediatedVersion | quote }}
+  credentials_secret: {{ .Values.credentials.secretName | quote }}
+  maven_settings_configmap: {{ .Values.mavenSettings.configMapName | quote }}
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}
