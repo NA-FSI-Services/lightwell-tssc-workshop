@@ -52,7 +52,7 @@ fi
 ruby - "${ROOT}" <<'RUBY'
 require "yaml"
 require "pathname"
-require "fileutils"
+require "date"
 
 root = Pathname.new(ARGV[0])
 leaf = root / "agnosticv" / "lightwell-tssc-workshop"
