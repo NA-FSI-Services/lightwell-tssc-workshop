@@ -65,10 +65,13 @@ Optional `parasol-app` is fine on this sizing when the primary Spring Boot PoC i
 ```
 agnosticv/
 ├── README.md                 # This file
+├── SUBMISSION.md             # Issue #20 checklist (human-gated upstream PR)
 └── published/
     ├── published.lightwell-tssc-workshop.prod.yaml   # Catalog + deployer draft
     └── description.adoc                              # Catalog description (AsciiDoc)
 ```
+
+**Phase 5:** follow [SUBMISSION.md](./SUBMISSION.md) to open the `redhat-gpe/agnosticv` PR after human confirmation.
 
 ## Field Content variables
 

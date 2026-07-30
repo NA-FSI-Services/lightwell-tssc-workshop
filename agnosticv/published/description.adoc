@@ -8,16 +8,29 @@ Hands-on workshop demonstrating **exact-version open source vulnerability remedi
 * Enterprise Maven consumption (direct or via an artifact-manager proxy)
 * Exact-version pins using the `.rhlw-0000X` suffix, driven by OSV triage
 * CycloneDX SBOM generation and analysis in Red Hat Trusted Profile Analyzer (RHTPA)
+* Optional laptop shift-left with Red Hat Dependency Analytics (RHDA) against RHTPA
 * Keyless signing (RHTAS), RHACS pipeline policy checks, and GitOps promotion with OpenShift GitOps
+
+== Lab modules (Showroom)
+
+. AI vulnerability storm and Lightwell Network overview
+. Enterprise Maven + artifact manager integration
+. OSV triage and exact-version remediation
+. SBOM generation and RHTPA analysis (RHDA callout)
+. Pipeline signing, policy gates, and GitOps promotion
+
+Optional appendices: RHDA laptop shift-left; OSV `PULP_MANIFEST` polling automation pattern.
 
 == Environment
 
-* OpenShift Virtualization (CNV) pool via `agd-v2.ocp-field-asset-cnv.prod`
-* GitOps sync of the workshop App-of-Apps (`charts/root-app`)
-* Showroom lab guide modules (when enabled)
+* OpenShift Virtualization (CNV) via `agd-v2.ocp-field-asset-cnv.prod`
+* Pool (documented): `agd-v2/ocp-virt-labs-pool`
+* GitOps App-of-Apps: `charts/root-app` (operators → artifact manager → apps → Showroom)
+* Showroom split-screen lab guide + embedded terminal (`showroom_url` in RHDP userinfo)
 
 == Notes
 
-* Catalog item ID: `published.lightwell-tssc-workshop.prod`
+* Catalog item ID: `published.lightwell-tssc-workshop.prod` (do not invent alternates)
 * Primary sample application: Spring Boot / Java 17 / Maven Lightwell PoC
-* Do not invent alternate channel names; use Validated / Remediated / OSV only
+* Use only **Validated** / **Remediated** / Java **OSV** tier names; remediated pins use `.rhlw-0000X`
+* Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`)

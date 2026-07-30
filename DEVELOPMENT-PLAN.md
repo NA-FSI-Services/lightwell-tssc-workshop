@@ -209,10 +209,14 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 
 Issues: [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20)–[#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23)
 
-1. PR to `redhat-gpe/agnosticv`
-2. DEV staging (`babylon-catalog-dev`) — verify 10–15 min claim, email endpoints, ArgoCD sync, Showroom
-3. Production tag `published.lightwell-tssc-workshop.prod`
-4. Field enablement: Sales Hub Lightwell page + [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW) / [#forum-services-lightwell](https://redhat.enterprise.slack.com/archives/C0BEQN68BTN)
+1. **PR to `redhat-gpe/agnosticv`** ([#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20)) — source draft + checklist:
+   - [`agnosticv/published/published.lightwell-tssc-workshop.prod.yaml`](./agnosticv/published/published.lightwell-tssc-workshop.prod.yaml)
+   - [`agnosticv/published/description.adoc`](./agnosticv/published/description.adoc)
+   - [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md) (human confirmation required before opening the upstream PR — [AGENTS.md](./AGENTS.md))
+   - GitOps: `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` → `charts/root-app` @ `main`
+2. DEV staging (`babylon-catalog-dev`) — verify 10–15 min claim, email endpoints, ArgoCD sync, Showroom ([#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21))
+3. Production tag `published.lightwell-tssc-workshop.prod` ([#22](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/22))
+4. Field enablement: Sales Hub Lightwell page + [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW) / [#forum-services-lightwell](https://redhat.enterprise.slack.com/archives/C0BEQN68BTN) ([#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23))
 
 ## Works cited
 

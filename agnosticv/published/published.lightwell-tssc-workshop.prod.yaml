@@ -1,7 +1,10 @@
 ---
-# DRAFT — staging only (issue #9)
-# Target path in redhat-gpe/agnosticv: published/published.lightwell-tssc-workshop.prod.yaml
-# Do NOT open a PR to redhat-gpe/agnosticv without human confirmation (AGENTS.md / issue #20).
+# Submission-ready draft for issue #20 (prepared from #9 staging).
+# Target path in redhat-gpe/agnosticv:
+#   published/published.lightwell-tssc-workshop.prod.yaml
+#
+# Do NOT open a PR to redhat-gpe/agnosticv without human confirmation
+# (AGENTS.md). See agnosticv/SUBMISSION.md for the copy/PR checklist.
 #
 # Catalog item ID (authoritative — do not invent alternates):
 #   published.lightwell-tssc-workshop.prod
@@ -11,6 +14,12 @@
 #
 # Pool (document for RHDP / platform):
 #   agd-v2/ocp-virt-labs-pool
+#
+# GitOps (validated against this repo):
+#   gitops_repo:     https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git
+#   gitops_path:     charts/root-app
+#   gitops_revision: main
+#   Showroom:        components.showroom.enabled=true (wave 50; Modules 1–5 via site.yml)
 #
 # Validated multi-node CNV sizing (issue #10 — see agnosticv/README.md):
 #   Control plane: 1× 16 vCPU / 32 GB RAM  (RHADS-SSC recommended CP+)
@@ -83,6 +92,8 @@ __meta__:
     namespace: babylon-catalog-dev
     description:
       format: asciidoc
+      # Prefer description.adoc when the platform include supports an external file;
+      # inline content kept in sync for single-file AgnosticV drops.
       content: |
         = Lightwell Software Supply Chain Security Workshop
 
@@ -91,6 +102,10 @@ __meta__:
         gating using Red Hat Lightwell Network with Trusted Software Supply Chain
         tooling.
 
+        Lab modules (Showroom): (1) Lightwell overview (2) Maven + artifact manager
+        (3) OSV triage + `.rhlw-*` pins (4) SBOM + RHTPA (5) Sign, policy, GitOps.
+
+        Catalog ID: `published.lightwell-tssc-workshop.prod`.
         See also: description.adoc beside this draft file.
     labels:
       Provider: RHDP
