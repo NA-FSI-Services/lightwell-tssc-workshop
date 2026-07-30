@@ -31,7 +31,7 @@
 
 ## Validation
 
-- [ ] `helm template` / `helm lint` succeeds for touched charts (if applicable)
+- [ ] `helm template` / `helm lint` succeeds for touched charts (CI: **Helm validate** workflow; locally `./scripts/helm-validate.sh`)
 - [ ] Sync waves / dependency order documented or unchanged intentionally
 - [ ] Showroom module renders / steps are copy-pasteable (if lab content)
 - [ ] RHDP labels considered (`demo.redhat.com/application`, `demo.redhat.com/userinfo`) when adding user-facing resources

@@ -48,7 +48,7 @@ This Git repo                         OpenShift (RHDP / CNV)
 ```
 lightwell-tssc-workshop/
 ├── charts/                 # PRODUCTION GitOps (gitops_path → charts/root-app)
-│   ├── root-app/           # App-of-Apps (scaffolding in progress)
+│   ├── root-app/           # App-of-Apps (ArgoCD Applications)
 │   └── components/         # rhdh, rhtas, rhtpa, rhacs, lightwell-repo, spring-boot-lw-poc, …
 ├── examples/
 │   ├── helm/               # REFERENCE only: App-of-Apps pattern
@@ -75,9 +75,43 @@ Development happens in `NA-FSI-Services/lightwell-tssc-workshop`. After charts d
 git clone git@github.com:NA-FSI-Services/lightwell-tssc-workshop.git
 cd lightwell-tssc-workshop
 
-# Inspect the field-content Helm example
-cd examples/helm
-helm template .   # once charts/root-app exists, prefer that path
+# One-time: install git pre-commit hooks (requires helm + pre-commit)
+brew install helm pre-commit   # or equivalent
+pre-commit install
+
+# Production App-of-Apps (preferred)
+cd charts/root-app
+helm lint .
+helm template lightwell . --set deployer.domain=apps.cluster.example.com
+
+# Structural reference only
+cd ../../examples/helm && helm template .
+```
+
+### Pre-commit (helm lint)
+
+This repo uses [pre-commit](https://pre-commit.com) to run `helm lint` on charts under `charts/` before each commit (see [`.pre-commit-config.yaml`](./.pre-commit-config.yaml) and [`scripts/helm-lint.sh`](./scripts/helm-lint.sh)).
+
+```bash
+# After clone (once)
+pre-commit install
+
+# Run all hooks against the tree
+pre-commit run --all-files
+
+# Lint charts only (same script the hook uses)
+./scripts/helm-lint.sh
+```
+
+Commits that change files under `charts/` will fail if `helm lint` fails. Ensure `helm` is on your `PATH`.
+
+### CI (PRs to main)
+
+Pull requests targeting `main` run [`.github/workflows/helm-validate.yml`](./.github/workflows/helm-validate.yml), which executes `helm lint` and `helm template` for every chart under `charts/` via [`scripts/helm-validate.sh`](./scripts/helm-validate.sh).
+
+```bash
+# Same checks as CI
+./scripts/helm-validate.sh
 ```
 
 Order a Field Content / agd-v2 field-asset CNV catalog item pointing at this repository for cluster-based validation. Full RHDP onboarding steps are in [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md).
