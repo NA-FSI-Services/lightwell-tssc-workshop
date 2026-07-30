@@ -1,0 +1,15 @@
+name: modules
+title: Lightwell TSSC Workshop
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
+
+asciidoc:
+  attributes:
+    experimental: true
+    page-pagination: true
+    # RHDP Showroom injects guid / cluster attributes at render time
+    lightwell-console-url: https://console.redhat.com/lightwell
+    java-validated-url: https://packages.redhat.com/lightwell/java/validated
+    java-remediated-url: https://packages.redhat.com/lightwell/java/remediated
+    java-osv-url: https://packages.redhat.com/lightwell/osv/java/remediated

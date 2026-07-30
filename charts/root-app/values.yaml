@@ -89,7 +89,7 @@ components:
     name: showroom
     syncWave: "50"
     content:
-      # Point at this repo's AsciiDoc modules when Showroom wiring lands (#19)
+      # Antora: site.yml → docs/ (Module 1+ under docs/modules/ROOT); full UI wiring #19
       repoUrl: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
       repoRef: "main"
       antoraPlaybook: "site.yml"

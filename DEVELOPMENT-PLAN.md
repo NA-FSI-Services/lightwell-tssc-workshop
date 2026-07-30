@@ -195,7 +195,7 @@ Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/
 
 Issues: [#14](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/14)–[#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19), [#27](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27)
 
-AsciiDoc under `docs/modules/`, rendered in Showroom:
+AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), rendered in Showroom:
 
 | Module | Title | PoV alignment |
 |--------|-------|---------------|

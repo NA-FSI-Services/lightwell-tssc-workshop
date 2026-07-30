@@ -1,0 +1,28 @@
+---
+# Antora playbook for RHDP Showroom (charts/root-app → antoraPlaybook: site.yml)
+site:
+  title: Lightwell Software Supply Chain Security Workshop
+  url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop
+  start_page: modules::index.adoc
+
+content:
+  sources:
+    - url: .
+      start_path: docs
+
+ui:
+  bundle:
+    url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/latest/ui-bundle.zip
+    snapshot: true
+
+antora:
+  extensions:
+    - require: '@sntke/antora-mermaid-extension'
+      mermaid_library_url: https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs
+      script_stem: header-scripts
+      mermaid_initialize_options:
+        start_on_load: true
+    - require: '@andrew-jones/antora-tabs-extension'
+
+output:
+  dir: ./www

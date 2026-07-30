@@ -1,0 +1,41 @@
+= Lightwell Software Supply Chain Security Workshop
+:toc:
+
+Welcome. This RHDP workshop teaches the same Lightwell Network integration patterns used in field proof-of-value delivery—paired with Red Hat Trusted Software Supply Chain controls on OpenShift.
+
+== What you will learn
+
+. *Validated* vs *Remediated* repository tiers (exact-version `.rhlw-*` pins)
+. Enterprise Maven consumption via an artifact manager proxy
+. OSV-driven triage and source comparison
+. SBOM analysis with Trusted Profile Analyzer (optional RHDA on a laptop)
+. Pipeline signing (RHTAS), policy gates (RHACS), and GitOps promotion
+
+== Lab modules
+
+|===
+|Module |Focus
+
+|xref:module-01-overview.adoc[1 — Overview]
+|AI-accelerated vulnerability discovery; Lightwell tiers; SLSA / SBOM / OSV
+
+|2 — Maven integration
+|`settings.xml` profiles; Nexus / LWN remotes _(coming next)_
+
+|3 — Exact-version remediation
+|OSV → `.rhlw-*` pin → source diff → rebuild _(coming next)_
+
+|4 — SBOM + RHTPA
+|CycloneDX ingest; RHDA shift-left callout _(coming next)_
+
+|5 — Pipeline + GitOps
+|Keyless signing, policy, promotion _(coming next)_
+|===
+
+== Before you start
+
+* Use the Showroom terminal for `oc` / `tkn` / `mvn` commands in later modules.
+* Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`).
+* Canonical console (membership / browsing): {lightwell-console-url}
+
+Start with xref:module-01-overview.adoc[Module 1].

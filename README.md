@@ -57,7 +57,8 @@ lightwell-tssc-workshop/
 ├── roles/
 │   └── ocp4_workload_field_content/  # AgnosticD field-content workload role
 ├── tools/osv-eval/         # Module 3 OSV pin + source-diff helpers
-├── docs/                   # Conventions, guides; lab AsciiDoc → docs/modules/
+├── docs/                   # Antora labs (modules/ROOT) + conventions
+├── site.yml                # Showroom Antora playbook
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md
 └── README.md

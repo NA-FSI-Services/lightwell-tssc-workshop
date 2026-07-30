@@ -30,12 +30,14 @@ lightwell-tssc-workshop/
 │   └── published/                   # Draft published.lightwell-tssc-workshop.prod.yaml
 ├── tools/
 │   └── osv-eval/                    # Module 3 OSV → .rhlw-* pin → source-diff helpers (#25)
-├── docs/
-│   ├── modules/                     # Showroom AsciiDoc labs (+ rhda-shift-left.adoc partial)
+├── docs/                            # Antora component (start_path for site.yml)
+│   ├── antora.yml
+│   ├── modules/ROOT/                # Showroom lab pages (Module 1+)
 │   ├── rhda-rhtpa-shift-left.md     # Module 4 RHDA vs RHTPA (laptop vs Showroom)
-│   ├── repository-conventions.md    # This file
+│   ├── repository-conventions.md
 │   ├── ansible-developer-guide.md
 │   └── SHOWROOM-UPDATE-SPEC.md
+├── site.yml                         # Antora playbook (Showroom antoraPlaybook)
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md
 └── README.md
