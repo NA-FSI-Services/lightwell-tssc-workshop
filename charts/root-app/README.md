@@ -25,9 +25,9 @@ Ordering is set via `argocd.argoproj.io/sync-wave` on each Application and docum
 | `components.rhdh` | `charts/components/rhdh` | disabled |
 | `components.springBootLwPoc` | `charts/components/spring-boot-lw-poc` | disabled |
 | `components.parasolApp` | `charts/components/parasol-app` | disabled (optional) |
-| `components.showroom` | `charts/components/showroom` | disabled |
+| `components.showroom` | `charts/components/showroom` | **enabled** (wave 50; Modules 1–5 via `site.yml`) |
 
-Child charts are Phase 1 / Phase 4 issues. Keep `enabled: false` until the corresponding chart exists and is ready to sync.
+Keep other components `enabled: false` until the corresponding chart is ready to sync on a sized cluster.
 
 ## Local validation
 

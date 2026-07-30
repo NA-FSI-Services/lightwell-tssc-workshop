@@ -82,20 +82,21 @@ components:
     syncWave: "40"
     chartPath: parasol-app
 
-  # --- Wave 50: Showroom lab guide ---
+  # --- Wave 50: Showroom lab guide (Modules 1–5 via site.yml) ---
   showroom:
-    enabled: false
+    enabled: true
     namespace: showroom
     name: showroom
     syncWave: "50"
     content:
-      # Antora: site.yml → docs/ (Module 1+ under docs/modules/ROOT); full UI wiring #19
+      # Antora: site.yml → docs/modules/ROOT (Modules 1–5); chart charts/components/showroom (#19)
       repoUrl: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
       repoRef: "main"
       antoraPlaybook: "site.yml"
       image: "quay.io/rhpds/showroom-content:v1.3.1"
     nookbag:
-      enabled: true
+      # docs/SHOWROOM-UPDATE-SPEC.md — nookbag / zero-touch unsupported for this catalog path
+      enabled: false
       bundleUrl: "https://github.com/rhpds/nookbag/releases/download/nookbag-v0.2.1/nookbag-v0.2.1.zip"
     terminal:
       enabled: true

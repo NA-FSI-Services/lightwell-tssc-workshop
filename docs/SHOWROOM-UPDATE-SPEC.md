@@ -35,6 +35,14 @@ Check upstream at: `~/devel/git/agDv2/showroom/roles/ocp4_workload_showroom/defa
 | `examples/helm/values.yaml` | Image versions in `showroom.*` section |
 | `examples/helm/templates/showroom.yaml` | Pod spec, init containers (if structure changes) |
 
+### Production chart (workshop)
+
+| File | What to Update |
+|------|----------------|
+| `charts/components/showroom/values.yaml` | Content / terminal / nginx image pins (`showroom.content.image`, `showroom.terminal.image`, …) |
+| `charts/root-app/values.yaml` | `components.showroom.content.image` / `terminal.image` (passed into the Application) |
+| `charts/components/showroom/templates/showroom.yaml` | Pod spec if upstream single-pod layout changes |
+
 ## Update Procedure
 
 ### 1. Check Upstream Defaults
