@@ -19,3 +19,7 @@ __pycache__/
 
 # Ansible
 *.retry
+
+# Antora local generate (site-ci.yml / site.yml)
+www/
+.cache/

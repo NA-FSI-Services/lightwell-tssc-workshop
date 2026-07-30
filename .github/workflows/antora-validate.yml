@@ -1,0 +1,51 @@
+name: Antora validate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "site.yml"
+      - "site-ci.yml"
+      - "scripts/asciidoc-check.sh"
+      - ".github/workflows/antora-validate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "site.yml"
+      - "site-ci.yml"
+      - "scripts/asciidoc-check.sh"
+      - ".github/workflows/antora-validate.yml"
+
+concurrency:
+  group: antora-validate-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  antora:
+    name: structure and generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Structural AsciiDoc / Antora checks
+        run: ./scripts/asciidoc-check.sh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate site (lightweight playbook)
+        run: npx --yes antora@3.1.10 site-ci.yml
+
+      - name: Verify start page was generated
+        run: |
+          test -f www/modules/index.html
+          echo "Antora output:"
+          find www -name '*.html' | head -40
