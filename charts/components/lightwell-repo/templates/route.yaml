@@ -1,0 +1,26 @@
+{{- if and .Values.lightwellRepo.enabled .Values.nexus.enabled .Values.nexus.route.enabled }}
+{{- $host := include "lightwell-repo.nexusHost" . }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Values.nexus.name }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app: {{ .Values.nexus.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.route | quote }}
+spec:
+  host: {{ $host | quote }}
+  to:
+    kind: Service
+    name: {{ .Values.nexus.name }}
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}

@@ -1,0 +1,51 @@
+{{- if .Values.lightwellRepo.enabled }}
+---
+# Authoritative channel map — Validated / Remediated / OSV (not fictional tier names).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lightwell-channels
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  mode: {{ .Values.lightwellRepo.mode | quote }}
+  version_suffix_note: "Remediated artifacts use .rhlw-0000X (e.g. 5.3.18.rhlw-00003). Artifact manager must allow this suffix."
+  channels.yaml: |
+    # Lightwell Network repository model (field PoV / DEVELOPMENT-PLAN.md)
+    mode: {{ .Values.lightwellRepo.mode }}
+    channels:
+      validated:
+        repoKey: {{ .Values.channels.validated.name }}
+        hostedKey: {{ .Values.channels.validated.hostedName }}
+        type: {{ .Values.channels.validated.type }}
+        description: {{ .Values.channels.validated.description | quote }}
+        canonicalRemote: {{ .Values.channels.validated.remoteUrl | quote }}
+      remediated:
+        repoKey: {{ .Values.channels.remediated.name }}
+        hostedKey: {{ .Values.channels.remediated.hostedName }}
+        type: {{ .Values.channels.remediated.type }}
+        description: {{ .Values.channels.remediated.description | quote }}
+        canonicalRemote: {{ .Values.channels.remediated.remoteUrl | quote }}
+        versionSuffix: ".rhlw-0000X"
+      osv:
+        repoKey: {{ .Values.channels.osv.name }}
+        hostedKey: {{ .Values.channels.osv.hostedName }}
+        type: {{ .Values.channels.osv.type }}
+        description: {{ .Values.channels.osv.description | quote }}
+        canonicalRemote: {{ .Values.channels.osv.remoteUrl | quote }}
+{{- if .Values.channels.virtualLibsRelease.enabled }}
+      virtual:
+        repoKey: {{ .Values.channels.virtualLibsRelease.name }}
+        description: {{ .Values.channels.virtualLibsRelease.description | quote }}
+        members:
+          - {{ .Values.channels.validated.name }}
+          - {{ .Values.channels.remediated.name }}
+{{- end }}
+    credentialsSecret: {{ .Values.credentials.secretName }}
+    env:
+      LW_USERNAME: from-secret
+      LW_PASSWORD: from-secret
+{{- end }}

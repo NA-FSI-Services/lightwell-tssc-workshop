@@ -1,0 +1,11 @@
+{{- if .Values.lightwellRepo.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.namespace | quote }}
+{{- end }}

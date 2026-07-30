@@ -1,0 +1,24 @@
+{{- if and .Values.lightwellRepo.enabled .Values.sampleOsv.enabled }}
+---
+# Sample OSV JSON for seeded / offline labs (exact-version .rhlw-* narrative).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.sampleOsv.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  {{ .Values.sampleOsv.vulnerabilityId }}.json: |
+{{ .Files.Get "files/sample-osv/LW-DEMO-0001.json" | indent 4 }}
+  README: |
+    Seeded OSV sample for Lightwell remediated Java stream.
+
+    Read affected[].ranges[].events[].fixed → {{ .Values.sampleOsv.remediatedVersion }}
+    Canonical OSV remote: {{ .Values.channels.osv.remoteUrl }}
+
+    Upload path when Nexus raw hosted repo exists:
+      {{ include "lightwell-repo.nexusUrl" . }}/repository/{{ .Values.channels.osv.hostedName }}/{{ .Values.sampleOsv.vulnerabilityId }}.json
+{{- end }}

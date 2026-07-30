@@ -51,6 +51,7 @@ components:
     syncWave: "10"
 
   # --- Wave 20: Artifact manager (validated / remediated / OSV) ---
+  # Chart: charts/components/lightwell-repo (#7). Enable when ready to sync.
   lightwellRepo:
     enabled: false
     namespace: lightwell-repo

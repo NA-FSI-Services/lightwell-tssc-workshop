@@ -1,0 +1,9 @@
+apiVersion: v2
+name: lightwell-repo
+description: Enterprise artifact manager pattern for Lightwell Network validated / remediated / OSV tiers
+type: application
+version: 0.1.0
+appVersion: "3.70"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop
