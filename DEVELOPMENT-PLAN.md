@@ -160,8 +160,9 @@ Until the mirror exists, AgnosticV drafts and Field Content CI orders may point 
 
 Issues: [#9](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/9)–[#10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/10)
 
-- Draft `published/published.lightwell-tssc-workshop.prod.yaml` for `redhat-gpe/agnosticv`
+- Draft `published/published.lightwell-tssc-workshop.prod.yaml` for `redhat-gpe/agnosticv` — **in-repo staging:** [`agnosticv/published/`](./agnosticv/published/) (issue #9); submit upstream in #20
 - Target pool: `agd-v2/ocp-virt-labs-pool`
+
 - Proposed sizing:
   - Control plane: 1× 16 vCPU / 32 GB RAM
   - Workers: 2× 16 vCPU / 64 GB RAM
