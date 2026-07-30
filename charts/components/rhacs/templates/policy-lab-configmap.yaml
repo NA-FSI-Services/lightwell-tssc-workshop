@@ -1,0 +1,114 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled }}
+{{- $endpoint := include "rhacs.centralEndpoint" . }}
+{{- $centralUrl := include "rhacs.centralUrl" . }}
+---
+# Lab narrative — fail on non-remediated pins, succeed after .rhlw-*, SBOM in RHTPA.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhacs-lightwell-policy-lab
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pipeline-hooks
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+data:
+  README: |
+    # Lightwell RHACS / pipeline policy lab (issue #13)
+
+    ## Components
+    - Task `{{ .Values.pipelineHooks.depGate.taskName }}` — Maven .rhlw-* pin gate (OSV-friendly)
+    - Task `{{ .Values.pipelineHooks.taskName }}` — `roxctl image check` (RHACS / Clair-class)
+    - Task `{{ .Values.pipelineHooks.sbom.taskName }}` — syft CycloneDX → RHTPA
+    - Pipeline `{{ .Values.pipelineHooks.pipeline.name }}` — wires the three gates
+
+    ## Failure path (non-remediated pins)
+    1. Use a repo whose `pom.xml` has `commons-lang3` `{{ .Values.pipelineHooks.depGate.vulnerableVersion }}`
+       without enabling `lightwell-remediated-pins` / `{{ .Values.pipelineHooks.depGate.remediatedVersion }}`.
+    2. Create PipelineRun with `dep-gate-mode=require-remediated`.
+    3. Expect Task `lightwell-dep-gate` to **fail** with remediation instructions.
+    4. (Optional) Build an image from unpatched deps; with Central policy imported,
+       `roxctl image check` fails on Fixable Critical CVEs when Scanner finds them.
+
+    ## Success path (remediated .rhlw-*)
+    1. Update `pom.xml` / activate `-Plightwell-remediated,lightwell-remediated-pins`
+       so `commons-lang3` is `{{ .Values.pipelineHooks.depGate.remediatedVersion }}`.
+    2. Re-run PipelineRun — dep-gate **passes**.
+    3. Populate Secret `{{ .Values.pipelineHooks.secretName }}` and re-run — ACS image check runs.
+    4. syft writes CycloneDX; set `rhtpa-url` (and optional token Secret) so SBOM lands in RHTPA,
+       or upload the SBOM workspace file via the RHTPA UI (Module 4).
+
+    ## Central policy (OSV-friendly)
+    Import `central-policy-fixable-critical.json` from ConfigMap
+    `rhacs-lightwell-central-policy` (same namespace) via Central UI → Policy Management,
+    or `roxctl` declarative/API import. Enforce at **BUILD** with FAIL_BUILD_ENFORCEMENT.
+
+  fail_pipelinerun.yaml: |
+    apiVersion: tekton.dev/v1
+    kind: PipelineRun
+    metadata:
+      generateName: lightwell-policy-fail-
+      namespace: {{ .Values.rhacs.namespace }}
+    spec:
+      pipelineRef:
+        name: {{ .Values.pipelineHooks.pipeline.name }}
+      params:
+        - name: repo-url
+          value: https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git
+        - name: revision
+          value: main
+        - name: image
+          value: {{ .Values.pipelineHooks.exampleImage | quote }}
+        - name: dep-gate-mode
+          value: require-remediated
+        - name: pom-path
+          value: {{ .Values.pipelineHooks.pipeline.defaultPomPath | quote }}
+        - name: rhtpa-url
+          value: ""
+      workspaces:
+        - name: source
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 1Gi
+        - name: sbom
+          emptyDir: {}
+    # Default pom-path points at spring-boot-lw-poc app (properties pin 3.14.0 → fail).
+    # Success: fork/edit that pom properties to {{ .Values.pipelineHooks.depGate.remediatedVersion }}
+    # or point repo-url at a scaffolded lightwell-java-service after updating properties.
+
+  success_notes: |
+    After setting default <commons.lang3.version> to {{ .Values.pipelineHooks.depGate.remediatedVersion }}:
+      oc -n {{ .Values.rhacs.namespace }} create -f <pipelinerun-success.yaml>
+    Verify:
+      - dep-gate result gate-status=passed
+      - acs-image-check result check-status=passed (with CI secrets + Central policy)
+      - syft-sbom-rhtpa result upload-status=uploaded|manual-required
+      - SBOM visible in RHTPA UI
+
+  central_url: {{ $centralUrl | quote }}
+  central_endpoint: {{ $endpoint | quote }}
+  vulnerable_version: {{ .Values.pipelineHooks.depGate.vulnerableVersion | quote }}
+  remediated_version: {{ .Values.pipelineHooks.depGate.remediatedVersion | quote }}
+{{- if .Values.pipelineHooks.centralPolicy.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhacs-lightwell-central-policy
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+data:
+  central-policy-fixable-critical.json: |
+{{ .Files.Get "files/central-policy-fixable-critical.json" | indent 4 }}
+  IMPORT: |
+    Central UI → Platform Configuration / Policy Management → Import JSON
+    Or use roxctl / Central API with a CI token. Enable enforcement for BUILD.
+{{- end }}
+{{- end }}

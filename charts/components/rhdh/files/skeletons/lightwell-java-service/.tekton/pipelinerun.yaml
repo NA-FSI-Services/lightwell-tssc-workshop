@@ -27,7 +27,10 @@ spec:
               storage: 1Gi
     - name: maven-settings
       emptyDir: {}
+    - name: sbom
+      emptyDir: {}
   taskRunTemplate:
     serviceAccountName: pipeline
     # Provide LW_USERNAME / LW_PASSWORD / LIGHTWELL_NEXUS_URL via a Secret
     # referenced from the maven Task (do not commit credentials).
+    # RHACS CI: Secret rhacs-ci-secrets in stackrox (rox-api-endpoint / rox-api-token).

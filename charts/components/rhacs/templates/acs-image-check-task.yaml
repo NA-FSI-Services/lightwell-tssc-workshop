@@ -1,7 +1,7 @@
 {{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled }}
 ---
 # Tekton Task — policy gate via `roxctl image check` (RHACS demo / TSSC pattern).
-# Wire into Pipelines in Phase 3 (#13) for non-remediated pin enforcement.
+# Used by Pipeline lightwell-build-policy-gate (#13) with dep-gate + SBOM tasks.
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -16,8 +16,8 @@ metadata:
     task.results.type: roxctl-image-check
 spec:
   description: >-
-    Policy-check a container image with RHACS using `roxctl image check`.
-    Companion build-time gate for Lightwell TSSC pipelines.
+    Policy-check a container image with RHACS using `roxctl image check`
+    (Clair/OSV-class vulnerability + policy evaluation at build time).
   params:
     - name: rox-secret-name
       type: string
@@ -31,6 +31,13 @@ spec:
       type: string
       default: {{ .Values.pipelineHooks.insecureSkipTlsVerify | quote }}
       description: When "true", skip TLS verification of the Central endpoint.
+    - name: fail-on-skipped
+      type: string
+      default: {{ .Values.pipelineHooks.failOnSkipped | quote }}
+      description: When "true", missing CI secrets fail the Task instead of soft-skip.
+  results:
+    - name: check-status
+      description: passed | failed | skipped
   volumes:
     - name: rox-secret
       secret:
@@ -53,6 +60,8 @@ spec:
           value: $(params.insecure-skip-tls-verify)
         - name: PARAM_IMAGE
           value: $(params.image)
+        - name: PARAM_FAIL_ON_SKIPPED
+          value: $(params.fail-on-skipped)
         - name: GRPC_ENFORCE_ALPN_ENABLED
           value: "false"
       script: |
@@ -60,20 +69,27 @@ spec:
         set +x
         microdnf -y install curl tar gzip jq >/dev/null 2>&1 || true
 
+        skip_exit() {
+          local reason="$1"
+          echo "SKIP: ${reason}"
+          echo "{\"summary\":{},\"skipped\":true,\"reason\":\"${reason}\"}" > /steps-shared-folder/acs-image-check.json
+          echo -n "skipped" > "$(results.check-status.path)"
+          if [ "${PARAM_FAIL_ON_SKIPPED}" = "true" ]; then
+            exit 1
+          fi
+          exit 0
+        }
+
         if test -f /rox-secret/rox-api-endpoint && test -s /rox-secret/rox-api-endpoint; then
           export ROX_CENTRAL_ENDPOINT=$(</rox-secret/rox-api-endpoint)
         else
-          echo "rox-api-endpoint is not set; populate Secret {{ .Values.pipelineHooks.secretName }} after Central is Ready."
-          echo '{"summary":{},"skipped":true,"reason":"missing rox-api-endpoint"}' > /steps-shared-folder/acs-image-check.json
-          exit 0
+          skip_exit "missing rox-api-endpoint — populate Secret {{ .Values.pipelineHooks.secretName }}"
         fi
 
         if test -f /rox-secret/rox-api-token && test -s /rox-secret/rox-api-token; then
           export ROX_API_TOKEN=$(</rox-secret/rox-api-token)
         else
-          echo "rox-api-token is not set; create a CI API token in Central and patch the Secret."
-          echo '{"summary":{},"skipped":true,"reason":"missing rox-api-token"}' > /steps-shared-folder/acs-image-check.json
-          exit 0
+          skip_exit "missing rox-api-token — create a CI API token in Central"
         fi
 
         echo "Using RHACS Central endpoint ${ROX_CENTRAL_ENDPOINT}"
@@ -88,6 +104,7 @@ spec:
         chmod +x ./roxctl
 
         echo "roxctl image check --image=${PARAM_IMAGE}"
+        echo "(Evaluates Central build-lifecycle policies — enable Fixable Critical+ CVEs for OSV-friendly fails)"
         set +e
         ./roxctl image check \
           $( [ "${PARAM_INSECURE_SKIP_TLS_VERIFY}" = "true" ] && echo -n "--insecure-skip-tls-verify" ) \
@@ -98,5 +115,11 @@ spec:
         status=$?
         set -e
         cat /steps-shared-folder/acs-image-check.json
+        if [ "${status}" -eq 0 ]; then
+          echo -n "passed" > "$(results.check-status.path)"
+        else
+          echo -n "failed" > "$(results.check-status.path)"
+        fi
         exit "${status}"
 {{- end }}
+

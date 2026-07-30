@@ -189,7 +189,7 @@ Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/
 2. **Spring Boot PoC** with Maven profiles, dual streams, and `.rhlw-*` pins
 3. **RHDH golden path**: Software Template `lightwell-java-service` ([`charts/components/rhdh`](./charts/components/rhdh/)) — Maven Validated/Remediated `settings.xml`, `LW_*` placeholders, `.rhlw-*` pins, RHTAS keyless Tekton scaffold (Modules 2–5)
 4. **OSV → pin → rebuild** automation-friendly steps (plus optional manifest polling demo)
-5. **RHACS gates** / pipeline checks that prefer remediated pins; SBOM attestations land in RHTPA
+5. **RHACS gates** / pipeline checks that prefer remediated pins ([`charts/components/rhacs`](./charts/components/rhacs/) — `lightwell-dep-gate` + `roxctl image check` + `syft-sbom-rhtpa`); SBOM attestations land in RHTPA
 
 ### Phase 4 — Lab content and Showroom
 

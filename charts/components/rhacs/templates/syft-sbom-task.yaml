@@ -1,0 +1,124 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.sbom.enabled }}
+---
+# Generate CycloneDX SBOM (syft) and optionally POST to RHTPA for attestation visibility.
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ .Values.pipelineHooks.sbom.taskName }}
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pipeline-hooks
+    lightwell.redhat.com/gate: sbom-rhtpa
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+spec:
+  description: >-
+    Produce a CycloneDX SBOM with syft and upload to RHTPA when endpoint/token
+    are provided (Module 4 / 5 — SBOM attestations in Trusted Profile Analyzer).
+  params:
+    - name: image
+      type: string
+      default: ""
+      description: Container image to scan (preferred). If empty, scans workspace directory.
+    - name: source-path
+      type: string
+      default: .
+    - name: rhtpa-url
+      type: string
+      default: {{ .Values.pipelineHooks.sbom.rhtpaUrl | quote }}
+      description: RHTPA base URL (https://...). Empty skips upload but still writes SBOM.
+    - name: rhtpa-secret-name
+      type: string
+      default: {{ .Values.pipelineHooks.sbom.rhtpaSecretName | quote }}
+      description: Optional Secret with key token for RHTPA API auth
+    - name: fail-on-upload-error
+      type: string
+      default: "false"
+  workspaces:
+    - name: source
+      optional: true
+    - name: sbom
+      description: Output workspace for CycloneDX JSON
+  results:
+    - name: sbom-path
+    - name: upload-status
+  volumes:
+    - name: rhtpa-secret
+      secret:
+        secretName: $(params.rhtpa-secret-name)
+        optional: true
+  steps:
+    - name: syft-cyclonedx
+      image: {{ .Values.pipelineHooks.sbom.syftImage | quote }}
+      workingDir: /workspace
+      volumeMounts:
+        - name: rhtpa-secret
+          mountPath: /rhtpa-secret
+      env:
+        - name: PARAM_IMAGE
+          value: $(params.image)
+        - name: PARAM_SOURCE
+          value: $(params.source-path)
+        - name: PARAM_RHTPA_URL
+          value: $(params.rhtpa-url)
+        - name: FAIL_ON_UPLOAD
+          value: $(params.fail-on-upload-error)
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        OUT="$(workspaces.sbom.path)/sbom.cyclonedx.json"
+        if [ -n "${PARAM_IMAGE}" ]; then
+          echo "syft packages ${PARAM_IMAGE} -o cyclonedx-json"
+          syft packages "${PARAM_IMAGE}" -o cyclonedx-json > "${OUT}"
+        else
+          SRC="$(workspaces.source.path)/${PARAM_SOURCE}"
+          echo "syft packages dir:${SRC} -o cyclonedx-json"
+          syft packages "dir:${SRC}" -o cyclonedx-json > "${OUT}"
+        fi
+        echo -n "${OUT}" > "$(results.sbom-path.path)"
+        ls -la "${OUT}"
+
+        if [ -z "${PARAM_RHTPA_URL}" ]; then
+          echo "RHTPA URL empty — SBOM written for manual UI/API upload"
+          echo -n "skipped-no-url" > "$(results.upload-status.path)"
+          exit 0
+        fi
+
+        TOKEN=""
+        if [ -s /rhtpa-secret/token ]; then
+          TOKEN="$(cat /rhtpa-secret/token)"
+        fi
+
+        # Trustify / RHTPA bombastic-style ingest paths vary by version; try common upload API.
+        # Learners can also upload ${OUT} via the RHTPA UI (Module 4).
+        UPLOAD_URL="${PARAM_RHTPA_URL%/}/api/v2/sbom"
+        echo "Attempting SBOM upload to ${UPLOAD_URL}"
+        set +e
+        if [ -n "${TOKEN}" ]; then
+          curl -sS -f -X POST \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data-binary @"${OUT}" \
+            "${UPLOAD_URL}"
+          status=$?
+        else
+          curl -sS -f -X POST \
+            -H "Content-Type: application/json" \
+            --data-binary @"${OUT}" \
+            "${UPLOAD_URL}"
+          status=$?
+        fi
+        set -e
+        if [ "${status}" -eq 0 ]; then
+          echo -n "uploaded" > "$(results.upload-status.path)"
+          echo "SBOM attestation submitted to RHTPA"
+          exit 0
+        fi
+        echo "WARN: automated upload failed (HTTP/curl ${status}). SBOM is in the sbom workspace — upload via RHTPA UI."
+        echo -n "manual-required" > "$(results.upload-status.path)"
+        if [ "${FAIL_ON_UPLOAD}" = "true" ]; then
+          exit 1
+        fi
+        exit 0
+{{- end }}
