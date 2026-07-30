@@ -1,0 +1,124 @@
+# Red Hat Trusted Profile Analyzer — Lightwell TSSC workshop
+# Patterns adapted from RHADS / Trusted Software Factory TPA installs.
+# Root App-of-Apps injects rhtpa.* and deployer.* (see charts/root-app).
+
+rhtpa:
+  # Chart-level gate (root-app Application only exists when components.rhtpa.enabled)
+  enabled: true
+  namespace: trusted-profile-analyzer
+  # TrustedProfileAnalyzer CR name
+  name: trustedprofileanalyzer
+  apiVersion: rhtpa.io/v1
+  syncWaves:
+    namespace: "0"
+    operator: "1"
+    database: "2"
+    secrets: "2"
+    instance: "3"
+    userinfo: "4"
+
+# OLM install — RHTPA Operator is namespace-scoped (RHADS pattern)
+operator:
+  enabled: true
+  name: rhtpa-operator
+  packageName: rhtpa-operator
+  # Install into the instance namespace (not openshift-operators)
+  namespace: "" # empty → use rhtpa.namespace
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+  createOperatorGroup: true
+
+# Workshop PostgreSQL (graph DB). Override credentials via values / RHDP secrets.
+postgresql:
+  enabled: true
+  name: tpa-pgsql
+  secretName: tpa-pgsql-user
+  image: registry.redhat.io/rhel9/postgresql-16:latest
+  database: tpa
+  username: tpa
+  # Workshop-only default — replace in RHDP / real clusters
+  password: "workshop-tpa-pgsql-changeme"
+  port: "5432"
+  pvcSize: 10Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+# OIDC — Keycloak / RHBK required for UI and CLI auth (document; enable when SSO exists)
+oidc:
+  # When empty, derived as https://sso.<deployer.domain>/realms/<realm>
+  issuerURL: ""
+  realm: tpa
+  frontendClientId: frontend
+  cliClientId: cli
+  # Workshop-only default — inject via RHDP secret in real orders
+  cliClientSecret: "workshop-tpa-cli-changeme"
+  cliSecretName: tpa-realm-cli-clients
+
+# TrustedProfileAnalyzer instance
+trustedProfileAnalyzer:
+  storage:
+    # filesystem = PVC-backed PoC storage (RHADS enablement pattern). Prefer S3/ODF in prod.
+    type: filesystem
+    size: 32Gi
+  replicas: 1
+  createDatabase: true
+  migrateDatabase: true
+  createImporters: true
+  # Importers — CycloneDX SBOM + VEX/advisory related sources
+  importers:
+    cve:
+      enabled: true
+      description: "CVE list v5 (advisory ingestion)"
+      period: 1d
+      source: "https://github.com/CVEProject/cvelistV5"
+    osvGithub:
+      enabled: true
+      description: "GitHub Advisory Database (OSV / advisory ingestion)"
+      path: advisories
+      period: 1d
+      source: "https://github.com/github/advisory-database"
+    redhatCsaf:
+      # Heavy feed — off by default for workshop footprint
+      enabled: false
+      description: "All Red Hat CSAF / VEX-related advisories"
+      fetchRetries: 50
+      period: 1d
+      source: redhat.com
+    redhatSboms:
+      # Heavy feed — off by default; learners upload CycloneDX via UI/API
+      enabled: false
+      description: "All Red Hat SBOMs"
+      fetchRetries: 50
+      period: 1d
+      source: "https://access.redhat.com/security/data/sbom/beta/"
+  server:
+    resources:
+      requests:
+        cpu: "1"
+        memory: 8Gi
+
+# Documents CycloneDX SBOM + VEX ingestion for labs (ConfigMap)
+ingestionInfo:
+  enabled: true
+  supportedCycloneDxVersion: "1.4"
+
+# RHDP userinfo ConfigMap
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Trusted Profile Analyzer"
+  instructions: >-
+    RHTPA is the SBOM / VEX system of record. Upload CycloneDX SBOMs from the
+    workshop sample app (syft) via the TPA UI or API. Advisory importers cover
+    CVE/OSV feeds; RHDA can consume TPA APIs for shift-left analysis (see #26).
+
+# Injected by root-app / field content workload
+deployer:
+  domain: ""
+  apiUrl: ""

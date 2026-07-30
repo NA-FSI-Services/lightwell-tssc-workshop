@@ -1,0 +1,121 @@
+{{- if and .Values.rhtpa.enabled .Values.postgresql.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.postgresql.secretName }}
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app: {{ .Values.postgresql.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.database | quote }}
+type: Opaque
+stringData:
+  dbname: {{ .Values.postgresql.database | quote }}
+  host: {{ include "rhtpa.pgsqlHost" . | quote }}
+  password: {{ .Values.postgresql.password | quote }}
+  port: {{ .Values.postgresql.port | quote }}
+  user: {{ .Values.postgresql.username | quote }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.postgresql.name }}-data
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app: {{ .Values.postgresql.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.database | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.postgresql.pvcSize | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.postgresql.name }}
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app: {{ .Values.postgresql.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.database | quote }}
+spec:
+  ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    app: {{ .Values.postgresql.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.postgresql.name }}
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app: {{ .Values.postgresql.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.database | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.postgresql.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "rhtpa.labels" . | nindent 8 }}
+        app: {{ .Values.postgresql.name }}
+    spec:
+      volumes:
+        - name: pgsql-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.postgresql.name }}-data
+      containers:
+        - name: pgsql
+          image: {{ .Values.postgresql.image | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.secretName }}
+                  key: user
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.secretName }}
+                  key: password
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.secretName }}
+                  key: dbname
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: {{ .Values.postgresql.resources.requests.cpu | quote }}
+              memory: {{ .Values.postgresql.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.postgresql.resources.limits.cpu | quote }}
+              memory: {{ .Values.postgresql.resources.limits.memory | quote }}
+          volumeMounts:
+            - name: pgsql-storage
+              mountPath: /var/lib/pgsql/data
+{{- end }}
