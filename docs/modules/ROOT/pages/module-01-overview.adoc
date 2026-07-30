@@ -62,14 +62,7 @@ Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secur
 |{java-osv-url}
 |===
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-01-validated-vs-remediated.svg`
-
-Side-by-side **Validated** vs **Remediated** (plus Java **OSV**) with example pin `5.3.18.rhlw-00003`.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/47
-// When ready: image::module-01-validated-vs-remediated.svg[Validated vs Remediated vs OSV tiers,width=700]
-====
+image::module-01-validated-vs-remediated.png[Validated vs Remediated vs OSV tiers,width=700]
 
 Example remediated coordinate style:
 

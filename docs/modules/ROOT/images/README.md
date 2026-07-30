@@ -1,3 +1,9 @@
 # Lab figures (Showroom)
-# Place committed assets here; AsciiDoc uses image::filename[...]
-# Until ready, Module pages keep NOTE placeholders linking to content-image issues.
+
+Place committed assets here; AsciiDoc uses `image::filename[...]`.
+
+Until ready, Module pages keep NOTE placeholders linking to content-image issues.
+
+| Asset | Issue | Type |
+|-------|-------|------|
+| `module-01-validated-vs-remediated.png` | #47 | Diagram (committed) |
