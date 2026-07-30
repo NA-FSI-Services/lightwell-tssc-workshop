@@ -160,7 +160,7 @@ Until the mirror exists, AgnosticV drafts and Field Content CI orders may point 
 
 Issues: [#9](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/9)–[#10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/10)
 
-- Draft `published/published.lightwell-tssc-workshop.prod.yaml` for `redhat-gpe/agnosticv` — **in-repo staging:** [`agnosticv/published/`](./agnosticv/published/) (issue #9); submit upstream in #20
+- Draft AgnosticV leaves for [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) — **in-repo staging:** [`agnosticv/`](./agnosticv/) (issue #9; reshape #71); submit **dev-first** then prod (#20 ladder)
 - Target pool: `agd-v2/ocp-virt-labs-pool`
 
 - **Validated sizing** (issue #10 — see [`agnosticv/README.md`](./agnosticv/README.md)):
@@ -207,16 +207,19 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 
 ### Phase 5 — Testing, QA, and production launch
 
-Issues: [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20)–[#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23)
+**AgnosticV target:** [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) (Babylon-documented). **Strategy:** dev-first → prod. Checklist: [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md).
 
-1. **PR to `redhat-gpe/agnosticv`** ([#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20)) — source draft + checklist:
-   - [`agnosticv/published/published.lightwell-tssc-workshop.prod.yaml`](./agnosticv/published/published.lightwell-tssc-workshop.prod.yaml)
-   - [`agnosticv/published/description.adoc`](./agnosticv/published/description.adoc)
-   - [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md) (human confirmation required before opening the upstream PR — [AGENTS.md](./AGENTS.md))
-   - GitOps: `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` → `charts/root-app` @ `main`
-2. DEV staging (`babylon-catalog-dev`) — verify 10–15 min claim, email endpoints, ArgoCD sync, Showroom ([#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21))
-3. Production tag `published.lightwell-tssc-workshop.prod` ([#22](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/22))
-4. Field enablement: Sales Hub Lightwell page + [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW) / [#forum-services-lightwell](https://redhat.enterprise.slack.com/archives/C0BEQN68BTN) ([#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23))
+| Step | Issue | Outcome |
+|------|-------|---------|
+| Umbrella | [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) | AgnosticV onboarding tracker |
+| Reshape draft | [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71) | Folder leaf: `common.yaml` + `dev.yaml` + `prod.yaml` + `description.adoc` |
+| UUID / schema | [#72](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/72) | Real `asset_uuid` + AgV schema validation |
+| DEV PR | [#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) | PR to `redhat-cop/agnosticv` with DEV stage |
+| DEV validate | [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21) | Order on `babylon-catalog-dev`; claim, Showroom, GitOps |
+| Prod promote | [#22](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/22) | `prod.yaml` + production CatalogItem (`published.lightwell-tssc-workshop.prod`) |
+| Enablement | [#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23) | Sales Hub + forum announcements |
+
+GitOps (all stages): `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` → `charts/root-app` @ `main`. Human confirmation required before upstream AgV PRs ([AGENTS.md](./AGENTS.md)).
 
 ## Works cited
 

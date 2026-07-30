@@ -1,62 +1,97 @@
-# AgnosticV submission checklist (issue #20)
+# AgnosticV submission checklist (Phase 5)
 
-Prepare and submit `published.lightwell-tssc-workshop.prod` to [`redhat-gpe/agnosticv`](https://github.com/redhat-gpe/agnosticv).
+**Upstream target (confirmed):** [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv)  
+**Strategy:** **dev-first**, then **prod**.
 
-**Agents must not open that PR without explicit human confirmation** ([AGENTS.md](../AGENTS.md)).
+**Agents must not open upstream PRs without explicit human confirmation** ([AGENTS.md](../AGENTS.md)).
 
-## Source of truth (this repo)
+## Issue ladder
 
-| Artifact | Path |
-|----------|------|
-| Catalog YAML draft | [`published/published.lightwell-tssc-workshop.prod.yaml`](./published/published.lightwell-tssc-workshop.prod.yaml) |
-| Catalog description | [`published/description.adoc`](./published/description.adoc) |
-| Sizing / pool notes | [`README.md`](./README.md) |
+| Step | Issue | Outcome |
+|------|-------|---------|
+| 1 | [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71) | Reshape in-repo draft → folder layout (`common.yaml` + `dev.yaml` + `prod.yaml` + `description.adoc`) |
+| 2 | [#72](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/72) | Real `asset_uuid` + schema validation |
+| 3 | [#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) | Open **DEV** PR to `redhat-cop/agnosticv` |
+| 4 | [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21) | Order / validate on `babylon-catalog-dev` |
+| 5 | [#22](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/22) | Merge **prod** leaf; production CatalogItem orderable |
+| 6 | [#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23) | Field enablement announcement |
 
-## Validated GitOps fields (must match)
+Umbrella: [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20).
+
+## Babylon flow (why this order)
+
+1. AgnosticV Operator watches the AgnosticV git repo ([babylon `agnosticv-operator`](https://github.com/redhat-cop/babylon/tree/main/agnosticv-operator)).
+2. A `dev.yaml` leaf with `__meta__.catalog.namespace` → DEV catalog creates a DEV `CatalogItem`.
+3. Order from DEV → ResourceClaim → Field Content GitOps sync → Showroom (#21).
+4. After smoke success, add/promote `prod.yaml` for production (#22).
+
+Optional: PR **preload** on the AgnosticV repo can expose a CatalogItem before merge for early #21 testing.
+
+## Target repo note
+
+Public [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) currently publishes the AgnosticV **CLI** and fixtures. Before the first PR (#73), confirm with maintainers the **exact directory** for workshop leaves inside that repository (contribution path may be guided by Babylon/RHDP even when this org/repo is the documented target).
+
+## Validated GitOps fields (must match in `common.yaml` / leaves)
 
 | Field | Value |
 |-------|-------|
-| Catalog item ID | `published.lightwell-tssc-workshop.prod` |
+| Production catalog identity | `published.lightwell-tssc-workshop.prod` (do not invent alternates) |
 | `gitops_repo` / `ocp4_workload_field_content_gitops_repo_url` | `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` |
 | `gitops_path` / `…_gitops_repo_path` | `charts/root-app` |
 | `gitops_revision` / `…_gitops_repo_revision` | `main` |
 | Environment type | `agd-v2.ocp-field-asset-cnv.prod` |
 | Pool (documented) | `agd-v2/ocp-virt-labs-pool` |
+| DEV catalog namespace | `babylon-catalog-dev` (or confirmed sibling) |
 
-After an `rhpds/` mirror exists, update both draft YAML and the upstream AgnosticV file to the `rhpds` Git URL ([DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md)).
+After an `rhpds/` content mirror exists, update GitOps URLs in the AgnosticV leaves ([DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md)).
+
+## Proposed in-repo layout (after #71)
+
+```text
+agnosticv/
+├── README.md
+├── SUBMISSION.md                 # This file
+├── lightwell-tssc-workshop/      # folder leaf (preferred)
+│   ├── common.yaml
+│   ├── description.adoc
+│   ├── dev.yaml                  # DEV first
+│   └── prod.yaml                 # after #21
+└── published/                    # legacy flat draft — keep until #71 migrates
+    ├── published.lightwell-tssc-workshop.prod.yaml
+    └── description.adoc
+```
 
 ## Pre-flight (local)
 
 ```bash
-# Draft present and IDs stable
-test -f agnosticv/published/published.lightwell-tssc-workshop.prod.yaml
-grep -q 'published.lightwell-tssc-workshop.prod' \
-  agnosticv/published/published.lightwell-tssc-workshop.prod.yaml
-
-# GitOps path still App-of-Apps
-test -f charts/root-app/Chart.yaml
-grep -q 'enabled: true' charts/root-app/values.yaml   # showroom at minimum
-
-# Content + Showroom contract
 ./scripts/asciidoc-check.sh
 ./scripts/showroom-check.sh
 ./scripts/helm-validate.sh
+
+# After #71:
+# test -f agnosticv/lightwell-tssc-workshop/common.yaml
+# test -f agnosticv/lightwell-tssc-workshop/dev.yaml
 ```
 
-## Human steps to open the upstream PR
+## Human steps — DEV PR (#73)
 
-1. Confirm catalog onboarding: real `__meta__.asset_uuid` (replace placeholder `00000000-0000-4000-8000-000000000009`), catalog namespace (`babylon-catalog-dev` for stage), icons / terms includes per sibling Workshop items.
-2. Clone or fork `redhat-gpe/agnosticv` with write access.
-3. Copy:
-   - `agnosticv/published/published.lightwell-tssc-workshop.prod.yaml` → `published/published.lightwell-tssc-workshop.prod.yaml`
-   - Align `description.adoc` with whatever pattern sibling items use (inline `__meta__.catalog.description` vs adjacent file).
-4. Diff against a recent Field Sourced Content / Workshop item for required includes (`__meta__` keys, labels, lifespan).
-5. Open PR to `redhat-gpe/agnosticv` with title/body referencing catalog ID + GitOps repo/path/revision.
-6. Link that PR URL from issue [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) and [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) Phase 5.
-7. Continue [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21) staging on `babylon-catalog-dev` after merge.
+1. Complete #71 / #72 (or document maintainer waiver for UUID).
+2. Confirm leaf path inside `redhat-cop/agnosticv` with maintainers.
+3. Clone/fork `redhat-cop/agnosticv`; copy folder leaf (`common.yaml`, `description.adoc`, `dev.yaml`).
+4. Open PR (dev-first; omit or clearly gate `prod.yaml` until #22).
+5. Link PR URL on #73, #20, and DEVELOPMENT-PLAN.md.
+6. Proceed to #21 (merge or preload).
+
+## Human steps — prod (#22)
+
+1. #21 smoke test passed.
+2. PR to add/enable `prod.yaml` (and prod catalog namespace / stage labels).
+3. Verify production CatalogItem orderable; record smoke test.
+4. Hand off to #23 field enablement.
 
 ## Explicit non-goals for agents
 
 * Inventing a new catalog ID or environment type
 * Changing pool selection without human approval
-* Pushing to `redhat-gpe/agnosticv` or requesting `rhpds/` transfer without confirmation
+* Pushing to `redhat-cop/agnosticv` without human confirmation
+* Leading with production-only leaf before DEV validation

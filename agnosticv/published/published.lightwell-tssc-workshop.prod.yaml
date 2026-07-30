@@ -1,10 +1,10 @@
 ---
-# Submission-ready draft for issue #20 (prepared from #9 staging).
-# Target path in redhat-gpe/agnosticv:
-#   published/published.lightwell-tssc-workshop.prod.yaml
+# Legacy flattened draft (issue #9 / prep #20). Prefer folder leaf after #71:
+#   agnosticv/lightwell-tssc-workshop/{common,dev,prod}.yaml
 #
-# Do NOT open a PR to redhat-gpe/agnosticv without human confirmation
-# (AGENTS.md). See agnosticv/SUBMISSION.md for the copy/PR checklist.
+# Upstream target: https://github.com/redhat-cop/agnosticv (dev-first → prod).
+# Do NOT open an upstream PR without human confirmation (AGENTS.md).
+# See agnosticv/SUBMISSION.md for the issue ladder and checklist.
 #
 # Catalog item ID (authoritative — do not invent alternates):
 #   published.lightwell-tssc-workshop.prod
@@ -79,7 +79,7 @@ ocp4_workload_field_content_helm_values: {}
 # Babylon / AgnosticV __meta__ draft
 # asset_uuid: replace with platform-assigned UUID when onboarding to RHDP catalog
 # Includes such as terms-of-service / icons are added when merging into
-# redhat-gpe/agnosticv (follow sibling Workshop items).
+# redhat-cop/agnosticv (follow sibling Workshop items / maintainer path).
 # ---------------------------------------------------------------------------
 __meta__:
   # PLACEHOLDER — obtain a real UUID during catalog onboarding; do not reuse in prod without assignment

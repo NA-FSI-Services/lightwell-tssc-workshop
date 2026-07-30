@@ -75,7 +75,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 - Align commits and PRs with a project issue when one exists; reference `Fixes #N` or `Refs #N`.
 - Prefer small PRs per component chart or lab module over monolith merges.
 - Do not force-push shared branches, amend published history, or skip hooks unless a human explicitly requests it.
-- Do not push or open PRs to `redhat-gpe/agnosticv` or request `rhpds/` org transfer without human confirmation.
+- Do not push or open PRs to [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) (Phase 5 AgnosticV target) or request `rhpds/` org transfer without human confirmation. Prefer **dev-first** (`dev.yaml` → `babylon-catalog-dev`) then **prod** (`prod.yaml`); see [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md).
 
 ## Validation expectations
 
