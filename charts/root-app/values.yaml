@@ -74,8 +74,9 @@ components:
     syncWave: "40"
     chartPath: spring-boot-lw-poc
 
+  # Chart: charts/components/parasol-app (#8). Optional; keep off for critical path.
   parasolApp:
-    # Optional secondary enterprise workload
+    # Optional secondary enterprise workload (after spring-boot-lw-poc)
     enabled: false
     namespace: parasol
     syncWave: "40"

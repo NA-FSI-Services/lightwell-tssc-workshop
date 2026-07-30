@@ -1,0 +1,94 @@
+# Optional Parasol multi-tier workload — Lightwell TSSC workshop
+# Secondary to spring-boot-lw-poc (#24). Keep disabled unless an instructor enables it.
+# Root App-of-Apps injects parasolApp.* and deployer.*.
+
+parasolApp:
+  enabled: true
+  namespace: parasol
+  syncWaves:
+    namespace: "0"
+    config: "1"
+    workload: "2"
+    route: "3"
+    userinfo: "4"
+
+# Upstream reuse (Dev Day / RAD AI roadshow) — chart deploys configurable images, not a full fork
+upstream:
+  name: parasol-insurance
+  url: "https://github.com/rh-rad-ai-roadshow/parasol-insurance"
+  notes: >-
+    Optional larger enterprise narrative after the Spring Boot LWN PoC works.
+    Point image.* at built Parasol images or cluster builds from the upstream repo.
+
+# Same LWN channel names as spring-boot-lw-poc / lightwell-repo
+lightwell:
+  nexusUrl: "" # empty → https://nexus-lightwell-repo.<deployer.domain>
+  validatedRepo: lightwell-java-validated
+  remediatedRepo: lightwell-java-remediated
+  osvRepo: lightwell-osv-java-remediated
+  # validated | remediated — label for lab docs / env
+  stream: validated
+
+backend:
+  enabled: true
+  name: parasol-backend
+  replicas: 1
+  # Replace with a built Parasol/Quarkus image when enabling this component
+  image:
+    repository: registry.access.redhat.com/ubi9/openjdk-17-runtime
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 8080
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+frontend:
+  # Multi-tier: optional UI tier (values-gated)
+  enabled: true
+  name: parasol-frontend
+  replicas: 1
+  image:
+    repository: registry.redhat.io/ubi9/nginx-124
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 8080
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+route:
+  enabled: true
+  # When empty: parasol-<namespace>.<deployer.domain>
+  host: ""
+  # frontend | backend — which Service the Route targets
+  target: frontend
+
+mavenSettings:
+  enabled: true
+  configMapName: parasol-lightwell-maven-settings
+
+labDocs:
+  enabled: true
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Parasol (optional)"
+  instructions: >-
+    Optional secondary enterprise workload. Primary LWN labs use spring-boot-lw-poc.
+    Parasol Maven builds should use the same lightwell-validated / lightwell-remediated
+    profiles (ConfigMap parasol-lightwell-maven-settings) against lightwell-repo Nexus.
+
+deployer:
+  domain: ""
+  apiUrl: ""

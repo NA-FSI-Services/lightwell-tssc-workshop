@@ -1,0 +1,74 @@
+{{- if and .Values.parasolApp.enabled .Values.backend.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.name }}
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+    app: {{ .Values.backend.name }}
+    tier: backend
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.workload | quote }}
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.backend.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "parasol-app.labels" . | nindent 8 }}
+        app: {{ .Values.backend.name }}
+        tier: backend
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.service.port }}
+          env:
+            - name: LIGHTWELL_STREAM
+              value: {{ .Values.lightwell.stream | quote }}
+            - name: LIGHTWELL_NEXUS_URL
+              value: {{ include "parasol-app.nexusUrl" . | quote }}
+            - name: PARASOL_UPSTREAM
+              value: {{ .Values.upstream.url | quote }}
+          # Placeholder runtime until a real Parasol image is configured
+          command: ["bash", "-c"]
+          args:
+            - |
+              echo "parasol-backend placeholder — set backend.image to a built Parasol image from {{ .Values.upstream.url }}"
+              echo "LWN stream=${LIGHTWELL_STREAM} nexus=${LIGHTWELL_NEXUS_URL}"
+              # Keep container alive for GitOps smoke; replace image for real workload
+              sleep infinity
+          resources:
+            requests:
+              cpu: {{ .Values.backend.resources.requests.cpu | quote }}
+              memory: {{ .Values.backend.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.backend.resources.limits.cpu | quote }}
+              memory: {{ .Values.backend.resources.limits.memory | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.backend.name }}
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+    app: {{ .Values.backend.name }}
+    tier: backend
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.workload | quote }}
+spec:
+  selector:
+    app: {{ .Values.backend.name }}
+  ports:
+    - name: http
+      port: {{ .Values.backend.service.port }}
+      targetPort: http
+{{- end }}

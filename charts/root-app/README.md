@@ -9,7 +9,7 @@ Master Helm chart for the workshop GitOps sync path (`gitops_path: charts/root-a
 | `10` | `rhtas`, `rhtpa`, `rhacs` | TSSC operators / platform (`rhtas` #4, `rhtpa` #5, `rhacs` #6) |
 | `20` | `lightwell-repo` | Artifact manager (validated / remediated / OSV) (#7) |
 | `30` | `rhdh` | Developer Hub (+ `lightwell-java-service` placeholder; full template in #12) |
-| `40` | `spring-boot-lw-poc`, `parasol-app` | Sample applications (`spring-boot-lw-poc` #24; Parasol optional #8) |
+| `40` | `spring-boot-lw-poc`, `parasol-app` | Sample apps (`spring-boot-lw-poc` #24 primary; `parasol-app` #8 optional) |
 | `50` | `showroom` | Lab guide (last) |
 
 Ordering is set via `argocd.argoproj.io/sync-wave` on each Application and documented in [values.yaml](values.yaml). Prefer operators → config → apps → showroom when adding components.
