@@ -44,6 +44,7 @@ components:
     namespace: trusted-profile-analyzer
     syncWave: "10"
 
+  # Chart: charts/components/rhacs (#6). Enable when cluster capacity is ready.
   rhacs:
     enabled: false
     namespace: stackrox

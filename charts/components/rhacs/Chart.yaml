@@ -1,0 +1,9 @@
+apiVersion: v2
+name: rhacs
+description: Red Hat Advanced Cluster Security (Central + roxctl image-check pipeline hooks)
+type: application
+version: 0.1.0
+appVersion: "4.7"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop
