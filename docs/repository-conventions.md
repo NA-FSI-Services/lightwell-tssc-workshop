@@ -28,6 +28,8 @@ lightwell-tssc-workshop/
 │   └── ocp4_workload_field_content/ # AgnosticD field-content workload role (platform)
 ├── agnosticv/                       # STAGING only — AgnosticV catalog drafts (#9); not live until #20
 │   └── published/                   # Draft published.lightwell-tssc-workshop.prod.yaml
+├── tools/
+│   └── osv-eval/                    # Module 3 OSV → .rhlw-* pin → source-diff helpers (#25)
 ├── docs/
 │   ├── modules/                     # Showroom AsciiDoc labs (to be authored)
 │   ├── repository-conventions.md    # This file

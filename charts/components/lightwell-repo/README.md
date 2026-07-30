@@ -128,4 +128,4 @@ Keep `components.lightwellRepo.enabled: false` until ready to sync.
 
 - Issue [#7](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/7) — chart scaffold
 - Issue [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11) — seed / proxy content
-- OSV toolkit: [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)
+- OSV toolkit (pin parse + source diff): [`tools/osv-eval/`](../../../tools/osv-eval/) / [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)

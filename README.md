@@ -39,7 +39,7 @@ This Git repo                         OpenShift (RHDP / CNV)
 
 1. AI vulnerability storm and Lightwell Network overview (Validated vs Remediated)
 2. Enterprise integration: Maven settings and artifact-manager proxy
-3. OSV triage and exact-version remediation (`.rhlw-*` pin + source diff)
+3. OSV triage and exact-version remediation (`.rhlw-*` pin + source diff) — helpers in [`tools/osv-eval/`](./tools/osv-eval/)
 4. SBOM generation and analysis with RHTPA (RHDA shift-left callout)
 5. Pipeline signing, RHACS policy enforcement, and GitOps promotion
 
@@ -56,6 +56,7 @@ lightwell-tssc-workshop/
 │   └── ansible/            # REFERENCE only: ansible-runner Jobs
 ├── roles/
 │   └── ocp4_workload_field_content/  # AgnosticD field-content workload role
+├── tools/osv-eval/         # Module 3 OSV pin + source-diff helpers
 ├── docs/                   # Conventions, guides; lab AsciiDoc → docs/modules/
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md
