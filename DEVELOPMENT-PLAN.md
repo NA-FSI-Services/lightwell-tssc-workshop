@@ -163,9 +163,11 @@ Issues: [#9](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/9
 - Draft `published/published.lightwell-tssc-workshop.prod.yaml` for `redhat-gpe/agnosticv` — **in-repo staging:** [`agnosticv/published/`](./agnosticv/published/) (issue #9); submit upstream in #20
 - Target pool: `agd-v2/ocp-virt-labs-pool`
 
-- Proposed sizing:
-  - Control plane: 1× 16 vCPU / 32 GB RAM
-  - Workers: 2× 16 vCPU / 64 GB RAM
+- **Validated sizing** (issue #10 — see [`agnosticv/README.md`](./agnosticv/README.md)):
+  - Control plane: 1× 16 vCPU / 32 GB RAM (meets RHADS-SSC recommended CP)
+  - Workers: 2× 16 vCPU / 64 GB RAM each (above RHADS-SSC recommended 8/24 for Tekton + RHACS headroom)
+  - Shape: multi-node only (not SNO); ~32 vCPU / ~128 GiB worker capacity
+  - Memory pressure: concurrent Tekton PipelineRuns + RHACS Scanner/`roxctl` are the primary risk — limit pipeline concurrency on a shared claim
 - Draft `user_data` (update repo URL when mirrored to `rhpds`):
 
 ```yaml
