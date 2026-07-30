@@ -21,7 +21,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 | Examples | Treat `examples/helm` and `examples/ansible` as reference only; production content lives in `charts/` |
 | Labs | AsciiDoc in `docs/modules/`; Showroom-compatible; one module per lab story beat |
 | AgnosticV | Document drafts in-repo; do not invent catalog IDs—use `published.lightwell-tssc-workshop.prod` |
-| OCP target | OpenShift 4.20-class CNV pool; multi-node sizing assumed for RHDH + RHTAS + RHTPA + RHACS + Pipelines |
+| OCP target | OpenShift 4.20-class CNV pool; multi-node sizing validated in `agnosticv/README.md` (1×16/32 CP + 2×16/64 workers) for RHDH + RHTAS + RHTPA + RHACS + Pipelines |
 | Primary app | Spring Boot / Java 17 / Maven PoC with dual LWN streams; Parasol optional |
 | Python | Validated-only secondary path; do not block the catalog on remediated PyPI |
 

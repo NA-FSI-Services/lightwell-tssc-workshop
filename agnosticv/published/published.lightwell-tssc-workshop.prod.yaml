@@ -12,9 +12,11 @@
 # Pool (document for RHDP / platform):
 #   agd-v2/ocp-virt-labs-pool
 #
-# Proposed multi-node CNV sizing (validate in #10):
-#   Control plane: 1× 16 vCPU / 32 GB RAM
-#   Workers:       2× 16 vCPU / 64 GB RAM
+# Validated multi-node CNV sizing (issue #10 — see agnosticv/README.md):
+#   Control plane: 1× 16 vCPU / 32 GB RAM  (RHADS-SSC recommended CP+)
+#   Workers:       2× 16 vCPU / 64 GB RAM  (above RHADS-SSC 8/24 for Pipelines/RHACS)
+#   Pool:          agd-v2/ocp-virt-labs-pool (field-asset virt labs; not ocp-cluster-cnv-pools)
+#   Risks:         concurrent Tekton + RHACS Scanner memory pressure — limit PipelineRun concurrency
 
 # ---------------------------------------------------------------------------
 # Catalog-facing shape (matches DEVELOPMENT-PLAN / issue #9 target draft)
@@ -110,9 +112,11 @@ __meta__:
 
 # ---------------------------------------------------------------------------
 # Sizing notes for platform / pool (not all keys are valid on every include set)
-# Prefer documenting intent here; apply via pool / cluster profile in #10.
+# Validated in #10 — keep multi-node; see agnosticv/README.md for RHADS crosswalk
+# and Tekton/RHACS memory-pressure guidance.
 # ---------------------------------------------------------------------------
 # openshift_master_count: 1
 # openshift_master_instance_type: ...  # 16 vCPU / 32 GB
 # worker_instance_count: 2
 # worker_instance_type: ...            # 16 vCPU / 64 GB
+# Do not use SNO / single-worker for full TSSC stack on this catalog item.
