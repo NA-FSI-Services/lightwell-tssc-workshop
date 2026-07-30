@@ -26,8 +26,9 @@ lightwell-tssc-workshop/
 │   └── ansible/                     # Template REFERENCE: ansible-runner Job pattern
 ├── roles/
 │   └── ocp4_workload_field_content/ # AgnosticD field-content workload role (platform)
-├── agnosticv/                       # STAGING only — AgnosticV catalog drafts (#9); not live until #20
-│   └── published/                   # Draft published.lightwell-tssc-workshop.prod.yaml
+├── agnosticv/                       # STAGING only — AgnosticV catalog drafts (Phase 5)
+│   ├── lightwell-tssc-workshop/     # Folder leaf: common + description + dev + prod (#71)
+│   └── published/README.md          # Legacy path pointer
 ├── tools/
 │   └── osv-eval/                    # Module 3 OSV → .rhlw-* pin → source-diff helpers (#25)
 ├── docs/                            # Antora component (start_path for site.yml)

@@ -1,0 +1,70 @@
+---
+# Shared AgnosticV vars for Lightwell TSSC workshop (issue #71).
+# Merged before stage leaves: common.yaml → {dev,prod}.yaml
+#
+# Upstream target: https://github.com/redhat-cop/agnosticv (path TBD with maintainers)
+# Do NOT open an upstream PR without human confirmation (AGENTS.md / SUBMISSION.md).
+#
+# GitOps (validated):
+#   https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git
+#   path: charts/root-app  revision: main
+#
+# asset_uuid: PLACEHOLDER — replace via issue #72 before upstream merge.
+
+name: Lightwell Software Supply Chain Security Workshop
+
+environment_type: agd-v2.ocp-field-asset-cnv.prod
+cloud_provider: cnv-dedicated-shared
+ocp_version: "4.20"
+
+# Documented pool (exact AgnosticV key names may follow platform includes)
+pool: agd-v2/ocp-virt-labs-pool
+
+# Field Content CI / agd-v2 field-asset pattern
+# After rhpds mirror: https://github.com/rhpds/lightwell-tssc-workshop.git
+user_data:
+  gitops_repo: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
+  gitops_path: "charts/root-app"
+  gitops_revision: "main"
+
+# AgnosticD / ocp4_workload_field_content (Field Sourced Content role)
+ocp4_workload_field_content_gitops_repo_url: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
+ocp4_workload_field_content_gitops_repo_path: "charts/root-app"
+ocp4_workload_field_content_gitops_repo_revision: "main"
+# deployer.domain / deployer.apiUrl injected by platform at order time
+ocp4_workload_field_content_helm_values: {}
+
+lifespan:
+  default: 48h
+  maximum: 180d
+  idle_stop: 6h
+
+__meta__:
+  # PLACEHOLDER — track real UUID in #72; do not ship to production without assignment
+  asset_uuid: "00000000-0000-4000-8000-000000000009"
+
+  catalog:
+    category: Workshops
+    display_name: Lightwell Software Supply Chain Security Workshop
+    # Stage leaves override namespace (dev → babylon-catalog-dev, prod → prod NS)
+    labels:
+      Provider: RHDP
+      Product: Lightwell
+      Pattern: FieldSourcedContent
+
+  lifespan:
+    default: 48h
+    maximum: 180d
+    idle: 6h
+
+  deployer:
+    # Refine after E2E timings on CNV (target ~10–15 min claim + sync)
+    actions:
+      provision:
+        time_estimate: 20m
+      destroy:
+        time_estimate: 15m
+
+# Sizing notes (issue #10) — multi-node only; not all keys valid on every include set:
+# Control plane 1× 16 vCPU / 32 GB; workers 2× 16 vCPU / 64 GB.
+# Do not use SNO / single-worker for the full TSSC stack.
