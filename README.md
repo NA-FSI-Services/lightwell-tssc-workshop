@@ -15,6 +15,7 @@ Bootstrapped from [rhpds/field-sourced-content-template](https://github.com/rhpd
 | Resource | Link |
 |----------|------|
 | Development plan | [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) |
+| Repository conventions | [docs/repository-conventions.md](./docs/repository-conventions.md) |
 | GitHub Project | [Lightwell TSSC Workshop](https://github.com/orgs/NA-FSI-Services/projects/1) |
 | Agent rules | [AGENTS.md](./AGENTS.md) |
 
@@ -46,21 +47,27 @@ This Git repo                         OpenShift (RHDP / CNV)
 
 ```
 lightwell-tssc-workshop/
-├── charts/                 # Target: App-of-Apps + components (in progress)
-│   ├── root-app/
+├── charts/                 # PRODUCTION GitOps (gitops_path → charts/root-app)
+│   ├── root-app/           # App-of-Apps (scaffolding in progress)
 │   └── components/         # rhdh, rhtas, rhtpa, rhacs, lightwell-repo, spring-boot-lw-poc, …
 ├── examples/
-│   ├── helm/               # Template reference (field-sourced pattern)
-│   └── ansible/            # Template reference (ansible-runner Jobs)
+│   ├── helm/               # REFERENCE only: App-of-Apps pattern
+│   └── ansible/            # REFERENCE only: ansible-runner Jobs
 ├── roles/
 │   └── ocp4_workload_field_content/  # AgnosticD field-content workload role
-├── docs/                   # Developer guides; lab AsciiDoc → docs/modules/
+├── docs/                   # Conventions, guides; lab AsciiDoc → docs/modules/
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md
 └── README.md
 ```
 
+**Helm App-of-Apps** is the primary path (`charts/`). **Ansible runner** is optional for logic Helm cannot express; follow `examples/ansible/` inside a component chart. Full rules: [docs/repository-conventions.md](./docs/repository-conventions.md).
+
 During early development, use `examples/helm` as the structural reference while scaffolding production charts under `charts/`.
+
+## Production mirror (rhpds)
+
+Development happens in `NA-FSI-Services/lightwell-tssc-workshop`. After charts deploy cleanly and pass RHDP E2E validation, request a transfer or mirror to [`github.com/rhpds/lightwell-tssc-workshop`](https://github.com/rhpds/lightwell-tssc-workshop) via [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW), then point AgnosticV `gitops_repo` at the `rhpds` URL.
 
 ## Local development
 
@@ -92,6 +99,7 @@ metadata:
 ## Documentation
 
 - [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) — phases, LWN lab model, issue map  
+- [docs/repository-conventions.md](./docs/repository-conventions.md) — Helm vs Ansible paths, bootstrap provenance  
 - [AGENTS.md](./AGENTS.md) — rules for coding agents  
 - [docs/ansible-developer-guide.md](./docs/ansible-developer-guide.md) — Ansible runner patterns  
 - [docs/SHOWROOM-UPDATE-SPEC.md](./docs/SHOWROOM-UPDATE-SPEC.md) — Showroom maintenance  

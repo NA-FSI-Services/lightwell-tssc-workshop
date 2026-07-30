@@ -1,33 +1,18 @@
-# Field Content - Session Summary
+# Bootstrap status
 
-## Current Status
+## Done
 
-✅ **All core components complete and tested on OpenShift 4.20 SNO**
+- Repository based on [rhpds/field-sourced-content-template](https://github.com/rhpds/field-sourced-content-template)
+- Purpose docs: [README.md](./README.md), [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md), [AGENTS.md](./AGENTS.md)
+- Directory conventions: [docs/repository-conventions.md](./docs/repository-conventions.md)
+- Production chart target documented: [charts/README.md](./charts/README.md)
+- GitHub Project + phase issues: [Lightwell TSSC Workshop](https://github.com/orgs/NA-FSI-Services/projects/1)
 
-| Component | Status |
-|-----------|--------|
-| `ocp4_workload_field_content` role | ✅ Working |
-| Helm example | ✅ Tested |
-| Ansible example | ✅ Tested |
+## Next (Phase 1)
 
-## Architecture Change (2025-01-19)
+1. Scaffold `charts/root-app` App-of-Apps ([#2](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/2))
+2. Component charts: rhdh, rhtas, rhtpa, rhacs, lightwell-repo, spring-boot-lw-poc ([#3](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/3)–[#8](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/8), [#24](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/24))
 
-Changed from separate deployment types (helm/ansible/kustomize) to **hybrid model**:
-- All deployments now use Helm as the source type
-- Developers can include ansible-runner Jobs within their Helm chart
-- ArgoCD sync waves control execution order
-- Removed `ocp4_workload_field_content_deployment_type` variable
+## rhpds transfer (later)
 
-## Next Steps
-
-1. Integration validation with RHDP infrastructure
-2. Developer onboarding guides
-3. Cluster addon creation guide (AsciiDoc)
-
-## Key Fixes Applied
-
-- Ansible example: Dedicated namespace, single-container architecture, `tokenFile` auth, pinned collections
-- Variable recursion fix: Use underscore-prefixed internal variables
-
----
-*Repository: https://github.com/rhpds/field-sourced-content-template*
+After E2E success on RHDP, request mirror/transfer to `github.com/rhpds/lightwell-tssc-workshop` via [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW). Details in [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md).
