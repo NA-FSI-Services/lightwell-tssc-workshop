@@ -1,0 +1,144 @@
+# Tekton Pipeline — build, ACS check hook, keyless sign (RHTAS / cosign)
+# Modules 4–5: SBOM/sign/policy/GitOps. Adjust image params per cluster.
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: ${{ values.name }}-build-sign
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+    lightwell.redhat.com/rhtas-keyless: "true"
+spec:
+  params:
+    - name: repo-url
+      type: string
+    - name: revision
+      type: string
+      default: main
+    - name: image-url
+      type: string
+      description: Destination image (e.g. image-registry.../${{ values.name }}:latest)
+    - name: maven-profile
+      type: string
+      default: lightwell-validated
+      description: lightwell-validated or lightwell-remediated (add lightwell-remediated-pins for .rhlw-*)
+    - name: cosign-fulcio-url
+      type: string
+      default: ""
+      description: Fulcio URL from RHTAS (empty → use cluster cosign defaults / TUF)
+    - name: cosign-rekor-url
+      type: string
+      default: ""
+  workspaces:
+    - name: source
+    - name: maven-settings
+      optional: true
+  tasks:
+    - name: clone
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+
+    - name: maven-package
+      runAfter: [clone]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: maven
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: source
+          workspace: source
+        - name: maven-settings
+          workspace: maven-settings
+      params:
+        - name: GOALS
+          value:
+            - -s
+            - settings.xml
+            - -P$(params.maven-profile)
+            - -DskipTests
+            - package
+      # Pipeline / TaskRun should inject LW_USERNAME, LW_PASSWORD, LIGHTWELL_NEXUS_URL
+
+    - name: buildah
+      runAfter: [maven-package]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: IMAGE
+          value: $(params.image-url)
+        - name: DOCKERFILE
+          value: ./Dockerfile
+
+    # Optional RHACS gate (Module 5 / issue #13): add a taskRef to Task acs-image-check
+    # from charts/components/rhacs after Central CI secrets exist.
+
+    - name: cosign-sign-keyless
+      runAfter: [buildah]
+      taskSpec:
+        params:
+          - name: image
+            type: string
+          - name: fulcio-url
+            type: string
+          - name: rekor-url
+            type: string
+        steps:
+          - name: sign
+            image: registry.redhat.io/rhtas/cosign-rhel9:latest
+            env:
+              - name: IMAGE
+                value: $(params.image)
+              - name: FULCIO_URL
+                value: $(params.fulcio-url)
+              - name: REKOR_URL
+                value: $(params.rekor-url)
+            script: |
+              #!/usr/bin/env bash
+              set -euo pipefail
+              # Keyless signing via RHTAS (Fulcio + Rekor). Uses the pipeline SA OIDC identity.
+              # Module 5 — do not use long-lived private keys in the workshop.
+              EXTRA=()
+              if [[ -n "${FULCIO_URL}" ]]; then
+                EXTRA+=(--fulcio-url="${FULCIO_URL}")
+              fi
+              if [[ -n "${REKOR_URL}" ]]; then
+                EXTRA+=(--rekor-url="${REKOR_URL}")
+              fi
+              cosign sign --yes "${EXTRA[@]}" "${IMAGE}"
+              echo "Signed ${IMAGE} (keyless / RHTAS)"
+      params:
+        - name: image
+          value: $(params.image-url)
+        - name: fulcio-url
+          value: $(params.cosign-fulcio-url)
+        - name: rekor-url
+          value: $(params.cosign-rekor-url)

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.5</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>${{ values.groupId }}</groupId>
+  <artifactId>${{ values.name }}</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>${{ values.name }}</name>
+  <description>${{ values.description }}</description>
+
+  <properties>
+    <java.version>17</java.version>
+    <!--
+      Dual Lightwell Network streams (field PoV / Modules 2–3):
+      - lightwell-validated: upstream-parity versions from Validated tier
+      - lightwell-remediated-pins: exact-version .rhlw-0000X from Remediated tier
+      Resolve .rhlw-* from Nexus / packages.redhat.com — not Maven Central.
+    -->
+    <commons.lang3.version>3.14.0</commons.lang3.version>
+    <springdoc.version>2.6.0</springdoc.version>
+    <lightwell.stream>validated</lightwell.stream>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${springdoc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons.lang3.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>lightwell-validated</id>
+      <properties>
+        <commons.lang3.version>3.14.0</commons.lang3.version>
+        <lightwell.stream>validated</lightwell.stream>
+      </properties>
+    </profile>
+    <profile>
+      <id>lightwell-remediated-pins</id>
+      <properties>
+        <!-- Example exact-version pin (seeded Nexus / LWN Remediated) -->
+        <commons.lang3.version>3.14.0.rhlw-00001</commons.lang3.version>
+        <lightwell.stream>remediated</lightwell.stream>
+      </properties>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -187,7 +187,7 @@ Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/
 
 1. **Artifact manager channels** matching LWN: `validated`, `remediated`, and Java `osv/remediated` — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX)
 2. **Spring Boot PoC** with Maven profiles, dual streams, and `.rhlw-*` pins
-3. **RHDH golden path**: Software Template `lightwell-java-service` generating the same Maven/LWN pattern
+3. **RHDH golden path**: Software Template `lightwell-java-service` ([`charts/components/rhdh`](./charts/components/rhdh/)) — Maven Validated/Remediated `settings.xml`, `LW_*` placeholders, `.rhlw-*` pins, RHTAS keyless Tekton scaffold (Modules 2–5)
 4. **OSV → pin → rebuild** automation-friendly steps (plus optional manifest polling demo)
 5. **RHACS gates** / pipeline checks that prefer remediated pins; SBOM attestations land in RHTPA
 

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+  <!--
+    Lightwell Network Maven profiles (Module 2).
+      mvn -s settings.xml -Plightwell-validated clean verify
+      mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
+
+    Auth: export LW_USERNAME / LW_PASSWORD (never commit secrets).
+    Nexus base: export LIGHTWELL_NEXUS_URL=https://nexus-lightwell-repo.apps.<domain>
+    Or point urls at https://packages.redhat.com/lightwell/java/{validated|remediated}
+  -->
+  <servers>
+    <server>
+      <id>lightwell-java-validated</id>
+      <username>${env.LW_USERNAME}</username>
+      <password>${env.LW_PASSWORD}</password>
+    </server>
+    <server>
+      <id>lightwell-java-remediated</id>
+      <username>${env.LW_USERNAME}</username>
+      <password>${env.LW_PASSWORD}</password>
+    </server>
+  </servers>
+
+  <profiles>
+    <profile>
+      <id>lightwell-validated</id>
+      <repositories>
+        <repository>
+          <id>lightwell-java-validated</id>
+          <name>Lightwell Java Validated</name>
+          <url>${env.LIGHTWELL_NEXUS_URL}/repository/lightwell-java-validated/</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <repository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+    <profile>
+      <id>lightwell-remediated</id>
+      <repositories>
+        <repository>
+          <id>lightwell-java-remediated</id>
+          <name>Lightwell Java Remediated (.rhlw-0000X)</name>
+          <url>${env.LIGHTWELL_NEXUS_URL}/repository/lightwell-java-remediated/</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <repository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>${{ values.lwnProfile }}</activeProfile>
+  </activeProfiles>
+</settings>
