@@ -21,7 +21,7 @@ Root App-of-Apps places this chart at sync wave **`10`** (with other TSSC operat
 | **CycloneDX SBOM** | Learner/`syft` upload via TPA UI or REST API (`supported_cyclonedx_version` in values / ingestion ConfigMap) |
 | **VEX / advisories** | Importers: `cve` (CVE list v5), `osv-github` (OSV); optional `redhat-csaf` |
 | **Red Hat SBOM mirror** | Optional `redhat-sboms` importer (disabled by default — heavy) |
-| **RHDA shift-left** | Client of TPA APIs — documented later (#26) |
+| **RHDA shift-left** | IDE client of TPA intelligence — see [docs/rhda-rhtpa-shift-left.md](../../../docs/rhda-rhtpa-shift-left.md) (Showroom = TPA UI/`syft` only; no IDE in-cluster) |
 
 Storage defaults to **filesystem** (PVC) for PoC / RHDP workshops. Prefer S3 / OpenShift Data Foundation for production-like sizing.
 
@@ -68,6 +68,7 @@ Keep `components.rhtpa.enabled: false` in committed root values until SSO + clus
 
 ## Related
 
-- Issue [#5](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/5)
-- Follow-ups: Module 4 SBOM lab [#17](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/17), RHDA docs [#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26)
+- Issue [#5](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/5) — chart scaffold
+- RHDA shift-left docs: [#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26) → [docs/rhda-rhtpa-shift-left.md](../../../docs/rhda-rhtpa-shift-left.md)
+- Module 4 SBOM lab: [#17](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/17)
 - [charts/root-app/README.md](../../root-app/README.md)

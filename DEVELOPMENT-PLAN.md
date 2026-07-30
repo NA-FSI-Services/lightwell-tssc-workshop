@@ -202,7 +202,7 @@ AsciiDoc under `docs/modules/`, rendered in Showroom:
 | 1 | AI Vulnerability Storm and Lightwell Network Overview | Validated vs Remediated; console; SLSA/SBOM/OSV |
 | 2 | Enterprise Integration: Maven and Artifact Manager Proxy | `settings.xml`, service account auth, validated consumption |
 | 3 | OSV Triage and Exact-Version Remediation | OSV file → `.rhlw-*` pin → source diff → rebuild |
-| 4 | SBOM Generation and Analysis with RHTPA (and RHDA) | `syft` CycloneDX → RHTPA; IDE shift-left mention |
+| 4 | SBOM Generation and Analysis with RHTPA (and RHDA) | `syft` CycloneDX → RHTPA; RHDA shift-left on laptop only — [docs/rhda-rhtpa-shift-left.md](./docs/rhda-rhtpa-shift-left.md) |
 | 5 | Pipeline Signing, Policy Enforcement, and GitOps Promotion | Tekton + RHTAS + RHACS + ArgoCD |
 
 ### Phase 5 — Testing, QA, and production launch

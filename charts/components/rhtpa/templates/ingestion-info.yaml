@@ -23,6 +23,9 @@ data:
     Enabled by default: cve (CVE list v5), osv-github (OSV advisories).
     Disabled by default (heavy): redhat-csaf, redhat-sboms — enable via values when needed.
   rhda_note: >-
-    Red Hat Dependency Analytics (RHDA) can point at this TPA instance for shift-left
-    analysis against ingested SBOMs and advisories (documented in issue #26).
+    RHDA (IDE) is the shift-left client; RHTPA is the SBOM system of record.
+    Showroom uses TPA UI + syft only — no IDE in-cluster. Instructors may demo
+    RHDA on a laptop (Backend URL → public rhda.rhcloud.com or workshop Exhort route).
+    See docs/rhda-rhtpa-shift-left.md and docs/modules/rhda-shift-left.adoc.
+  rhda_doc: "docs/rhda-rhtpa-shift-left.md"
 {{- end }}
