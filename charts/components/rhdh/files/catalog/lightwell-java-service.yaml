@@ -1,0 +1,80 @@
+# Placeholder Software Template — lightwell-java-service
+# Full Maven + LWN validated/remediated scaffolder: issue #12
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: lightwell-java-service
+  title: Lightwell Java Service
+  description: >-
+    Placeholder golden path for a Spring Boot / Java 17 / Maven service that
+    consumes Lightwell Network Validated and Remediated Maven repositories.
+    Scaffolding steps (settings.xml profiles, .rhlw-* pins, pipeline hooks)
+    are implemented in Phase 3 (#12).
+  tags:
+    - lightwell
+    - java
+    - maven
+    - spring-boot
+    - recommended
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+spec:
+  owner: group:default/lightwell-workshop
+  type: service
+  parameters:
+    - title: Service information
+      required:
+        - name
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Service name (placeholder — scaffolder actions land in #12)
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          description: Short description of the service
+          default: Spring Boot service using Lightwell Network Maven streams
+        owner:
+          title: Owner
+          type: string
+          description: Owner (user or group)
+          default: group:default/lightwell-workshop
+    - title: Lightwell Network stream (preview)
+      properties:
+        lwnProfile:
+          title: Default Maven profile
+          type: string
+          description: >-
+            Validated for active development; Remediated for exact-version
+            .rhlw-* production pins. Wired in Phase 3.
+          default: lightwell-validated
+          enum:
+            - lightwell-validated
+            - lightwell-remediated
+          enumNames:
+            - Validated (upstream-parity rebuilds)
+            - Remediated (exact-version .rhlw-* backports)
+  steps:
+    - id: placeholder-notice
+      name: Placeholder notice
+      action: debug:log
+      input:
+        message: >-
+          lightwell-java-service is a Phase 1 placeholder. Implement Maven
+          skeleton, settings.xml profiles (validated / remediated), and
+          optional .rhlw-* pins in issue #12.
+  output:
+    text:
+      - title: Next steps
+        content: |
+          This template is a **placeholder**. Phase 3 issue #12 will generate:
+
+          - Spring Boot / Java 17 / Maven project
+          - `settings.xml` profiles for Lightwell **Validated** and **Remediated**
+          - Documented pins using `.rhlw-0000X` remediated versions
+          - Canonical remotes:
+            - https://packages.redhat.com/lightwell/java/validated
+            - https://packages.redhat.com/lightwell/java/remediated
+            - https://packages.redhat.com/lightwell/osv/java/remediated

@@ -1,0 +1,74 @@
+# Red Hat Developer Hub — Lightwell TSSC workshop
+# Patterns adapted from RHADS / RHDH Operator install docs.
+# Root App-of-Apps injects rhdh.* and deployer.* (see charts/root-app).
+
+rhdh:
+  # Chart-level gate (root-app Application only exists when components.rhdh.enabled)
+  enabled: true
+  # Instance namespace (Backstage CR + app ConfigMaps)
+  namespace: rhdh
+  # Backstage CR name
+  name: developer-hub
+  # CRD apiVersion — pin if a cluster channel differs
+  apiVersion: rhdh.redhat.com/v1alpha3
+  replicas: 1
+  route:
+    enabled: true
+  database:
+    enableLocalDb: true
+  # Sync waves inside this chart (operator → config → instance)
+  syncWaves:
+    namespace: "0"
+    operator: "1"
+    config: "2"
+    instance: "3"
+    userinfo: "4"
+
+# OLM install of the RHDH Operator (recommended dedicated namespace)
+operator:
+  enabled: true
+  name: rhdh
+  namespace: rhdh-operator
+  channel: fast
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+  # Empty targetNamespaces ⇒ AllNamespaces (OperatorHub default for RHDH)
+  createOperatorGroup: true
+
+# app-config.yaml content (ConfigMap → Backstage CR)
+appConfig:
+  title: "Lightwell TSSC Workshop — Developer Hub"
+  # When empty, baseUrl is derived as https://developer-hub-<namespace>.apps.<deployer.domain>
+  baseUrl: ""
+  # Catalog location for the lightwell-java-service placeholder Template
+  # Prefer mounted file path (deterministic); git URL is documented for Phase 3 (#12)
+  catalog:
+    fileLocations:
+      - /opt/app-root/src/catalog/lightwell-java-service.yaml
+
+# dynamic-plugins.yaml — minimal includes; RHADS-style plugins land in later issues
+dynamicPlugins:
+  enabled: true
+  configMapName: dynamic-plugins-rhdh
+
+# Software Template placeholder (full Maven + LWN scaffolder in #12)
+softwareTemplates:
+  enabled: true
+  configMapName: rhdh-software-templates
+  # Mounted under extraFiles.mountPath
+  mountPath: /opt/app-root/src
+
+# RHDP userinfo ConfigMap
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Developer Hub"
+  instructions: >-
+    Open Developer Hub from the URL in this ConfigMap (rhdh_url). Use the
+    lightwell-java-service Software Template placeholder from the Create page
+    (full Maven + LWN profiles land in Phase 3).
+
+# Injected by root-app / field content workload
+deployer:
+  domain: ""
+  apiUrl: ""

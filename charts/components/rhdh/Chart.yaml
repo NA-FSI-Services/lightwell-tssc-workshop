@@ -1,0 +1,9 @@
+apiVersion: v2
+name: rhdh
+description: Red Hat Developer Hub (operator + Backstage CR) with Lightwell Software Template placeholder
+type: application
+version: 0.1.0
+appVersion: "1.10"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop
