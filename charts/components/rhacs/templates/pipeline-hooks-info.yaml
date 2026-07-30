@@ -1,0 +1,41 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled }}
+{{- $endpoint := include "rhacs.centralEndpoint" . }}
+{{- $centralUrl := include "rhacs.centralUrl" . }}
+---
+# How to wire `roxctl image check` into workshop Pipelines (Phase 3 #13 expands policies).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhacs-pipeline-hooks-info
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+data:
+  central_url: {{ $centralUrl | quote }}
+  central_endpoint: {{ $endpoint | quote }}
+  task_name: {{ .Values.pipelineHooks.taskName | quote }}
+  task_namespace: {{ .Values.rhacs.namespace | quote }}
+  secret_name: {{ .Values.pipelineHooks.secretName | quote }}
+  example_pipeline_task: |
+    - name: acs-policy-check
+      taskRef:
+        name: {{ .Values.pipelineHooks.taskName }}
+      params:
+        - name: image
+          value: $(params.image)
+        - name: rox-secret-name
+          value: {{ .Values.pipelineHooks.secretName }}
+        - name: insecure-skip-tls-verify
+          value: {{ .Values.pipelineHooks.insecureSkipTlsVerify | quote }}
+  cli_example: |
+    roxctl image check \
+      --insecure-skip-tls-verify \
+      -e {{ $endpoint }} \
+      --image {{ .Values.pipelineHooks.exampleImage }}
+  policy_note: >-
+    Build-lifecycle policies in Central are evaluated by `roxctl image check`.
+    Phase 3 (#13) adds gates that prefer Lightwell remediated (.rhlw-*) pins over
+    non-remediated production dependencies.
+{{- end }}

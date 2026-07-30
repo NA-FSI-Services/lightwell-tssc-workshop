@@ -1,0 +1,22 @@
+{{- if and .Values.rhacs.enabled .Values.operator.enabled }}
+{{- $existingSub := lookup "operators.coreos.com/v1alpha1" "Subscription" .Values.operator.namespace .Values.operator.name }}
+{{- if not $existingSub.metadata }}
+---
+# RHACS Operator via OLM — recommended rhacs-operator namespace.
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ .Values.operator.name }}
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.operator | quote }}
+spec:
+  channel: {{ .Values.operator.channel }}
+  installPlanApproval: {{ .Values.operator.installPlanApproval }}
+  name: {{ .Values.operator.packageName }}
+  source: {{ .Values.operator.source }}
+  sourceNamespace: {{ .Values.operator.sourceNamespace }}
+{{- end }}
+{{- end }}

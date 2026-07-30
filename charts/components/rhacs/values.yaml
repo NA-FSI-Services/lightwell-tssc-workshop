@@ -1,0 +1,84 @@
+# Red Hat Advanced Cluster Security — Lightwell TSSC workshop
+# Patterns adapted from RHACS demo / StackRox Operator install docs.
+# Root App-of-Apps injects rhacs.* and deployer.* (see charts/root-app).
+
+rhacs:
+  enabled: true
+  # Central / SecuredCluster namespace (RHACS recommends stackrox)
+  namespace: stackrox
+  apiVersion: platform.stackrox.io/v1alpha1
+  syncWaves:
+    namespace: "0"
+    operator: "1"
+    central: "2"
+    securedCluster: "3"
+    pipeline: "4"
+    userinfo: "5"
+
+# OLM install — RHACS Operator in dedicated rhacs-operator namespace
+operator:
+  enabled: true
+  name: rhacs-operator
+  packageName: rhacs-operator
+  namespace: rhacs-operator
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+  createOperatorGroup: true
+
+# Central CR (management plane + Scanner)
+central:
+  enabled: true
+  name: stackrox-central-services
+  exposure:
+    route: true
+  # Workshop-sized PVC defaults (raise for long-lived / large CVE DBs)
+  persistence:
+    pvcSize: 50Gi
+  db:
+    pvcSize: 50Gi
+  scanner:
+    # Scanner V4 preferred on recent RHACS; analyzer scaling kept modest for CNV
+    replicas: 2
+    autoScaling: Disabled
+  egress:
+    # Online pulls vulnerability feeds; Offline for air-gapped (not default here)
+    connectivityPolicy: Online
+
+# Same-cluster SecuredCluster (Sensor / Collector / Admission)
+securedCluster:
+  enabled: true
+  name: stackrox-secured-cluster-services
+  clusterName: lightwell-tssc-workshop
+  admissionControl:
+    listenOnCreates: true
+    listenOnUpdates: true
+    listenOnEvents: true
+
+# Pipeline policy hooks — Tekton Task for `roxctl image check`
+pipelineHooks:
+  enabled: true
+  taskName: acs-image-check
+  # Secret keys expected by the Task (create after Central is Ready — do not commit tokens)
+  #   rox-api-endpoint: central-stackrox.apps.<domain>:443
+  #   rox-api-token: <CI API token from Central>
+  secretName: rhacs-ci-secrets
+  createSecretPlaceholder: true
+  insecureSkipTlsVerify: "true"
+  # Documented image used in lab examples (Phase 3 #13 expands policy for non-remediated pins)
+  exampleImage: "quay.io/redhatdemo/lightwell-placeholder:latest"
+
+# RHDP userinfo ConfigMap
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Advanced Cluster Security"
+  instructions: >-
+    Open RHACS Central from the Route in the stackrox namespace. Create a CI API
+    token and populate Secret rhacs-ci-secrets, then use Tekton Task
+    acs-image-check (`roxctl image check`) in supply-chain pipelines.
+
+# Injected by root-app / field content workload
+deployer:
+  domain: ""
+  apiUrl: ""
