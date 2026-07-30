@@ -1,43 +1,34 @@
-# Field Content - Self-Service CI Development Platform
+# Lightwell TSSC Workshop — project notes
 
-## Purpose
+Workshop GitOps content for RHDP (`agd-v2.ocp-field-asset-cnv.prod`), bootstrapped from the field-sourced-content template.
 
-Enable Red Hat employees to develop Catalog Items (CIs) for RHDP using GitOps patterns without deep AgnosticD knowledge.
+## Canonical docs
 
-## How It Works
+| Doc | Purpose |
+|-----|---------|
+| [README.md](./README.md) | Repository purpose and quick orientation |
+| [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) | Phases, LWN lab model, GitHub Project / issues |
+| [AGENTS.md](./AGENTS.md) | Rules for coding agents |
+| [docs/repository-conventions.md](./docs/repository-conventions.md) | Helm App-of-Apps vs Ansible paths; rhpds transfer |
 
-1. Developer creates a Helm chart in their own Git repository
-2. Developer provides the repo URL to the "field assets" CI in RHDP
-3. The `ocp4_workload_field_content` role creates an ArgoCD Application pointing to their repo
-4. ArgoCD deploys the content, using sync waves for ordering
-5. ConfigMaps with `demo.redhat.com/userinfo` label pass data back to AgnosticD
+## Platform integration (from template)
 
-## Hybrid Deployment Model
+| Path | Purpose |
+|------|---------|
+| `roles/ocp4_workload_field_content/` | AgnosticD field-content workload role |
+| `examples/helm/` | App-of-Apps reference (not long-term production sync path) |
+| `examples/ansible/` | ansible-runner Job reference |
 
-All deployments are Helm charts. Developers can include:
-- **Helm templates**: Standard K8s manifests
-- **Ansible Jobs**: ansible-runner Jobs for complex orchestration
+Production charts: `charts/root-app` + `charts/components/*`.
 
-Use ArgoCD sync waves to control execution order.
+## Variable naming
 
-## Key Directories
+AgnosticD workload variables keep the `ocp4_workload_` prefix when touching the field-content role:
 
-| Directory | Purpose |
-|-----------|---------|
-| `roles/ocp4_workload_field_content/` | Main workload role |
-| `examples/` | Working examples (helm, ansible) |
-| `docs/` | Developer guides and architecture diagrams |
-
-## Variable Naming
-
-All AgnosticD workload variables use `ocp4_workload_` prefix:
 - ✅ `ocp4_workload_field_content_gitops_repo_url`
 - ❌ `field_content_gitops_repo_url`
 
-## RHDP Integration
+## RHDP labels
 
-- **Health monitoring**: Label resources with `demo.redhat.com/application`
-- **Data flow**: Create ConfigMaps with `demo.redhat.com/userinfo` label
-
----
-*Last Updated: 2025-01-19*
+- Health: `demo.redhat.com/application: "lightwell-tssc-workshop"`
+- Userinfo ConfigMaps: `demo.redhat.com/userinfo: ""`

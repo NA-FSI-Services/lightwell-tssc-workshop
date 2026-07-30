@@ -141,10 +141,20 @@ Issues are labeled `phase-1` … `phase-5` and tracked on the [GitHub Project](h
 
 Issues: [#1](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/1)–[#8](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/8), [#24](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/24)
 
-- Adopt field-sourced content template layout
+- Adopt field-sourced content template layout ([docs/repository-conventions.md](./docs/repository-conventions.md))
 - Scaffold `charts/root-app` App-of-Apps
 - Component charts: `rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc` (primary), optional `parasol-app`
-- After E2E success, request mirror/transfer to `github.com/rhpds/lightwell-tssc-workshop` via [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW)
+- After E2E success, request mirror/transfer to `github.com/rhpds/lightwell-tssc-workshop` (see [Production mirror plan](#production-mirror-plan-rhpds) below)
+
+### Production mirror plan (rhpds)
+
+| Stage | Repository | Notes |
+|-------|------------|-------|
+| Now | `github.com/NA-FSI-Services/lightwell-tssc-workshop` | Prototyping and Phase 1–4 development |
+| After E2E on RHDP | Request transfer/mirror via [#forum-demo-redhat-com](https://redhat.enterprise.slack.com/archives/C04N203SNUW) | Content team / RHDP maintainers |
+| Published catalog | `github.com/rhpds/lightwell-tssc-workshop` | Update AgnosticV `user_data.gitops_repo` to the `rhpds` URL |
+
+Until the mirror exists, AgnosticV drafts and Field Content CI orders may point at the `NA-FSI-Services` URL with `gitops_path: charts/root-app`.
 
 ### Phase 2 — AgnosticV and infrastructure sizing
 

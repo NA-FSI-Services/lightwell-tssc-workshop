@@ -17,7 +17,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 
 | Concern | Rule |
 |---------|------|
-| Layout | App-of-Apps under `charts/root-app`; components under `charts/components/<name>` |
+| Layout | App-of-Apps under `charts/root-app`; components under `charts/components/<name>` — see [docs/repository-conventions.md](./docs/repository-conventions.md) |
 | Examples | Treat `examples/helm` and `examples/ansible` as reference only; production content lives in `charts/` |
 | Labs | AsciiDoc in `docs/modules/`; Showroom-compatible; one module per lab story beat |
 | AgnosticV | Document drafts in-repo; do not invent catalog IDs—use `published.lightwell-tssc-workshop.prod` |
