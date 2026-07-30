@@ -31,3 +31,6 @@ jobs:
 
       - name: Showroom ↔ content contract
         run: ./scripts/showroom-check.sh
+
+      - name: AgnosticV draft check
+        run: ./scripts/agnosticv-check.sh

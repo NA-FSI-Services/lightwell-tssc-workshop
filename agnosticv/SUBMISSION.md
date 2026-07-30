@@ -10,7 +10,7 @@
 | Step | Issue | Outcome |
 |------|-------|---------|
 | 1 | [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71) | Reshape in-repo draft → folder layout (`common.yaml` + `dev.yaml` + `prod.yaml` + `description.adoc`) |
-| 2 | [#72](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/72) | Real `asset_uuid` + schema validation |
+| 2 | [#72](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/72) | Real `asset_uuid` + `scripts/agnosticv-check.sh` |
 | 3 | [#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) | Open **DEV** PR to `redhat-cop/agnosticv` |
 | 4 | [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21) | Order / validate on `babylon-catalog-dev` |
 | 5 | [#22](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/22) | Merge **prod** leaf; production CatalogItem orderable |
@@ -42,8 +42,21 @@ Public [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) current
 | Environment type | `agd-v2.ocp-field-asset-cnv.prod` |
 | Pool (documented) | `agd-v2/ocp-virt-labs-pool` |
 | DEV catalog namespace | `babylon-catalog-dev` (or confirmed sibling) |
+| `__meta__.asset_uuid` | `46fb0d02-b90a-4a12-82b3-1a88f1e8c7d5` (see below) |
 
 After an `rhpds/` content mirror exists, update GitOps URLs in the AgnosticV leaves ([DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md)).
+
+## `asset_uuid` (#72)
+
+| | |
+|--|--|
+| Value | `46fb0d02-b90a-4a12-82b3-1a88f1e8c7d5` |
+| Location | `agnosticv/lightwell-tssc-workshop/common.yaml` → `__meta__.asset_uuid` |
+| Source | Generated **2026-07-30** with `uuidgen | tr '[:upper:]' '[:lower:]'` per RHDP AgnosticV schema-checker guidance (RFC 4122 lowercase; must stay unique across the upstream AgV repo) |
+| CatalogItem label | `gpte.redhat.com/asset-uuid` |
+| Validation | `./scripts/agnosticv-check.sh` (structure, UUID, category, GitOps invariants, DEV/PROD merge). Full `agnosticv --merge` + `.schemas/babylon.yaml` when those are available locally. |
+
+Do **not** reuse the retired placeholder `00000000-0000-4000-8000-000000000009`.
 
 ## In-repo layout (#71)
 
@@ -75,11 +88,12 @@ test -f agnosticv/lightwell-tssc-workshop/prod.yaml
 grep -q 'babylon-catalog-dev' agnosticv/lightwell-tssc-workshop/dev.yaml
 grep -q 'published.lightwell-tssc-workshop.prod' agnosticv/lightwell-tssc-workshop/prod.yaml
 grep -q 'charts/root-app' agnosticv/lightwell-tssc-workshop/common.yaml
+./scripts/agnosticv-check.sh
 ```
 
 ## Human steps — DEV PR (#73)
 
-1. Complete #71 / #72 (or document maintainer waiver for UUID).
+1. Complete #71 / #72 (UUID + `agnosticv-check` green).
 2. Confirm leaf path inside `redhat-cop/agnosticv` with maintainers.
 3. Clone/fork `redhat-cop/agnosticv`; copy folder leaf (`common.yaml`, `description.adoc`, `dev.yaml`).
 4. Open PR (dev-first; omit or clearly gate `prod.yaml` until #22).
