@@ -1,0 +1,331 @@
+= Module 5: Pipeline signing, policy, and GitOps promotion
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Modules 2–4 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, RHACS image policy, *keyless* signing with Red Hat Trusted Artifact Signer (RHTAS), and GitOps promotion with Argo CD.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Run the workshop policy Pipeline and explain the fail-then-pass `.rhlw-*` narrative
+* Relate RHACS `roxctl image check` to BUILD policy enforcement
+* Sign and verify an image with cosign keyless (Fulcio / Rekor / TUF)
+* Confirm Argo CD syncs the App-of-Apps / sample app after a successful path
+
+== Prerequisites
+
+* xref:module-03-osv.adoc[Module 3] — remediated pin story
+* xref:module-04-sbom.adoc[Module 4] — SBOM → RHTPA
+* Charts synced (or available): `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
+
+== Architecture of the lab Pipeline
+
+Two related Pipeline definitions exist:
+
+[cols="1,2,2",options="header"]
+|===
+|Artifact |Namespace |Focus
+
+|`lightwell-build-policy-gate`
+|`stackrox` (RHACS chart)
+|clone → `lightwell-dep-gate` → `acs-image-check` → `syft-sbom-rhtpa`
+
+|`*-build-sign` (RHDH scaffold)
+|Learner project NS
+|Maven → dep-gate → buildah → ACS → SBOM → `cosign sign` (RHTAS keyless)
+|===
+
+This module uses the *policy gate* Pipeline for the deterministic fail/pass lab, then covers RHTAS signing and Argo CD promotion.
+
+Lab instructions also live in ConfigMap `rhacs-lightwell-policy-lab`:
+
+[source,bash,role=execute]
+----
+oc -n stackrox get configmap rhacs-lightwell-policy-lab -o yaml
+oc -n stackrox get configmap rhacs-lightwell-policy-lab \
+  -o jsonpath='{.data.vulnerable_version}{" -> "}{.data.remediated_version}{"\n"}'
+----
+
+Expected pin pair: `3.14.0` → `3.14.0.rhlw-00001` for `commons-lang3`.
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-05-fail-then-pass.svg`
+
+Non-remediated FAIL vs `.rhlw-*` PASS through ACS → SBOM → cosign.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/63
+// When ready: image::module-05-fail-then-pass.svg[Pipeline fail then pass on .rhlw pin,width=700]
+====
+
+== Exercise 1: Failure path (non-remediated pin)
+
+Default `spring-boot-lw-poc` properties pin `commons-lang3` at `3.14.0` (*no* `.rhlw-*`). With `dep-gate-mode=require-remediated`, Task `lightwell-dep-gate` must fail.
+
+. Confirm Tasks and Pipeline exist:
++
+[source,bash,role=execute]
+----
+oc -n stackrox get tasks lightwell-dep-gate acs-image-check syft-sbom-rhtpa
+oc -n stackrox get pipeline lightwell-build-policy-gate
+----
+
+. Extract the sample fail PipelineRun from the lab ConfigMap and create it:
++
+[source,bash,role=execute]
+----
+oc -n stackrox get configmap rhacs-lightwell-policy-lab \
+  -o jsonpath='{.data.fail_pipelinerun\.yaml}' > /tmp/lightwell-policy-fail.yaml
+
+# Review: pom-path points at charts/.../spring-boot-lw-poc/app/pom.xml
+grep -E 'pom-path|dep-gate|repo-url' /tmp/lightwell-policy-fail.yaml
+
+oc -n stackrox create -f /tmp/lightwell-policy-fail.yaml
+----
+
+. Watch until `lightwell-dep-gate` fails:
++
+[source,bash,role=execute]
+----
+tkn -n stackrox pipelinerun list
+# Or:
+oc -n stackrox get pipelineruns --sort-by=.metadata.creationTimestamp | tail -5
+
+PR=$(oc -n stackrox get pipelinerun -o name --sort-by=.metadata.creationTimestamp | tail -1)
+tkn -n stackrox pipelinerun logs "$(basename "$PR")" -f
+----
+
+. Expected log themes:
+* `FAIL: non-remediated default pin for commons-lang3`
+* Required version mentions `3.14.0.rhlw-00001`
+* Result `gate-status=failed`
+
+[TIP]
+====
+If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-dep-gate`.
+====
+
+== Exercise 2: Success path (remediated `.rhlw-*` pin)
+
+. In a working copy of the PoC POM, set the *default* properties pin (the gate reads `<properties>`, not only the profile block):
++
+[source,xml]
+----
+<properties>
+  <commons.lang3.version>3.14.0.rhlw-00001</commons.lang3.version>
+</properties>
+----
++
+In a live RHDP session, push that change to a fork / learner repo and point `repo-url` + `revision` at it. For instructor dry-runs against this monorepo after a local edit is committed, re-run the PipelineRun with the same `pom-path`.
+
+. Create a success PipelineRun (copy the fail template; keep `dep-gate-mode=require-remediated`):
++
+[source,bash,role=execute]
+----
+# After the remediated pin is on the revision you will clone:
+oc -n stackrox create -f - <<EOF
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: lightwell-policy-pass-
+  namespace: stackrox
+spec:
+  pipelineRef:
+    name: lightwell-build-policy-gate
+  params:
+    - name: repo-url
+      value: https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git
+    - name: revision
+      value: main
+    - name: image
+      value: quay.io/centos/centos:stream9
+    - name: dep-gate-mode
+      value: require-remediated
+    - name: pom-path
+      value: charts/components/spring-boot-lw-poc/app/pom.xml
+    - name: rhtpa-url
+      value: ""
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+    - name: sbom
+      emptyDir: {}
+EOF
+----
++
+[IMPORTANT]
+====
+The committed monorepo default pin may still be `3.14.0` until you promote a remediated change. For the pass path, either temporarily patch the POM on a branch learners use, or run the gate Task alone against a workspace that already has the remediated property (instructor technique). Do *not* leave production Git on `main` half-edited without a PR.
+====
+
+. Verify results:
++
+[source,bash,role=execute]
+----
+PR=$(oc -n stackrox get pipelinerun -l !tekton.dev/pipeline=  -o name --sort-by=.metadata.creationTimestamp 2>/dev/null | tail -1)
+# Simpler: pick the latest pass run by name prefix
+oc -n stackrox get pipelinerun | egrep 'lightwell-policy|NAME'
+
+# Inspect Task results when complete:
+oc -n stackrox get taskrun -l tekton.dev/pipelineTask=lightwell-dep-gate \
+  -o jsonpath='{range .items[-1:]}{.metadata.name}{" gate-status="}{.status.results[?(@.name=="gate-status")].value}{"\n"}{end}'
+----
+
+. Expected: `gate-status=passed`, then `acs-image-check` and `syft-sbom-rhtpa` continue.
+
+=== RHACS image check
+
+Populate CI secrets when you want a real `roxctl` evaluation (never commit the token):
+
+[source,bash]
+----
+oc -n stackrox create secret generic rhacs-ci-secrets \
+  --from-literal=rox-api-endpoint='central-stackrox.apps.<domain>:443' \
+  --from-literal=rox-api-token='<TOKEN>' \
+  --dry-run=client -o yaml | oc apply -f -
+----
+
+Import the Fixable Critical BUILD policy from ConfigMap `rhacs-lightwell-central-policy` (Central UI → Policy Management) when teaching scanner-backed fails/passes on real images.
+
+Without secrets, `acs-image-check` may *skip* (workshop default `fail-on-skipped=false`)—still note the Task in the pipeline graph.
+
+=== SBOM handoff
+
+With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtpa` uploads CycloneDX. Otherwise upload the workspace SBOM via the RHTPA UI (Module 4).
+
+== Exercise 3: Keyless sign and verify (RHTAS)
+
+RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived private keys in the workshop.
+
+. Inspect the Securesign instance:
++
+[source,bash,role=execute]
+----
+oc -n trusted-artifact-signer get securesign
+oc -n trusted-artifact-signer get routes
+----
+
+. From an RHDH-scaffolded `lightwell-java-service` (or apply `.tekton/pipeline.yaml` from the skeleton), run the `*-build-sign` Pipeline with:
+* `maven-profile` = `lightwell-remediated,lightwell-remediated-pins` (or a POM whose default properties already use `.rhlw-*`)
+* `cosign-fulcio-url` / `cosign-rekor-url` from the RHTAS Routes when not using cluster TUF defaults
+
+. After a successful `cosign-sign-keyless` task, verify the signature (from a workstation or debug pod with cosign + TUF root):
++
+[source,bash,role=execute]
+----
+# Pattern — substitute image and Fulcio/Rekor/TUF endpoints from your cluster
+# cosign verify \
+#   --fulcio-url="https://fulcio.<domain>" \
+#   --rekor-url="https://rekor.<domain>" \
+#   "${IMAGE_URL}"
+----
+
+. Confirm the log line `Signed … (keyless / RHTAS)` on the PipelineRun.
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-05-rhtas-cosign.svg`
+
+Tekton SA → cosign sign → Fulcio + Rekor → cosign verify.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/64
+// When ready: image::module-05-rhtas-cosign.svg[RHTAS keyless cosign sign and verify,width=700]
+====
+
+[TIP]
+====
+Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF components for RHDP email/Showroom links.
+====
+
+== Exercise 4: GitOps promotion (Argo CD)
+
+Promotion in this workshop means: *desired state in Git* → Argo CD sync → OpenShift resources Healthy. You do not `oc apply` long-lived app config by hand.
+
+. List Applications managed by the root App-of-Apps:
++
+[source,bash,role=execute]
+----
+oc -n openshift-gitops get applications.argoproj.io
+# Names vary by release; look for root-app children such as *-spring-boot-lw-poc, *-rhacs, *-rhtas
+----
+
+. Check sync/health for the sample app Application:
++
+[source,bash,role=execute]
+----
+oc -n openshift-gitops get applications.argoproj.io \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status \
+  | egrep -i 'spring-boot|NAME|lightwell|root' || true
+----
+
+. In the Argo CD UI, open the root application and confirm child apps (including `spring-boot-lw-poc` when enabled) are *Synced* / *Healthy*.
+
+. Promotion beat (field narrative):
+* Merge / push image tag or chart values change to Git (for example bump the PoC image digest after a signed build)
+* Argo CD detects the commit (or you click *Refresh* / *Sync*)
+* Deployment rolls out the signed image; earlier gates ensure only remediated pins reached the registry
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-05-argocd-promote.png`
+
+Argo CD App-of-Apps / spring-boot-lw-poc Healthy+Synced (or illustrative SVG).
+Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/65
+// When ready: image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
+====
+
+[source,bash,role=execute]
+----
+# Optional: trigger a sync on a known Application name
+# oc -n openshift-gitops patch application <app-name> --type merge \
+#   -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD"}}}'
+----
+
+== End-to-end checklist
+
+[cols="1,2",options="header"]
+|===
+|Step |Pass criteria
+
+|Dep gate fail
+|Default `3.14.0` → `gate-status=failed`
+
+|Dep gate pass
+|Default / properties `3.14.0.rhlw-00001` → `gate-status=passed`
+
+|RHACS
+|`acs-image-check` passed or intentionally skipped with documented secrets gap
+
+|SBOM
+|CycloneDX written; uploaded or manual RHTPA UI
+
+|Sign / verify
+|Keyless `cosign sign` succeeds; `cosign verify` against RHTAS trust
+
+|GitOps
+|Argo CD Application Synced + Healthy for promoted app
+|===
+
+== Module summary
+
+**What you accomplished**
+
+* Demonstrated fail-then-pass policy on Lightwell remediated pins
+* Ran RHACS / SBOM pipeline tasks after the dep gate
+* Oriented keyless signing with RHTAS and verification with cosign
+* Confirmed GitOps promotion via Argo CD App-of-Apps
+
+**Key takeaways**
+
+* Pipelines enforce the Module 3 pin story before images ship
+* Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog
+* Git remains the source of truth; Argo CD promotes what gates already approved
+
+**Workshop complete**
+
+You can revisit xref:module-01-overview.adoc[Module 1] for the narrative frame, or the xref:rhda-shift-left.adoc[RHDA appendix] for laptop shift-left against RHTPA.
