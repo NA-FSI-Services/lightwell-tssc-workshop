@@ -25,8 +25,8 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 |xref:module-03-osv.adoc[3 — Exact-version remediation]
 |OSV → `.rhlw-*` pin → source diff → rebuild
 
-|4 — SBOM + RHTPA
-|CycloneDX ingest; RHDA shift-left callout _(coming next)_
+|xref:module-04-sbom.adoc[4 — SBOM + RHTPA]
+|CycloneDX via `syft`; RHTPA ingest; RHDA shift-left callout
 
 |5 — Pipeline + GitOps
 |Keyless signing, policy, promotion _(coming next)_
@@ -38,4 +38,4 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 * Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`).
 * Canonical console (membership / browsing): {lightwell-console-url}
 
-Start with xref:module-01-overview.adoc[Module 1], then Modules xref:module-02-maven.adoc[2] and xref:module-03-osv.adoc[3].
+Start with xref:module-01-overview.adoc[Module 1], then continue through Modules xref:module-02-maven.adoc[2]–xref:module-04-sbom.adoc[4].

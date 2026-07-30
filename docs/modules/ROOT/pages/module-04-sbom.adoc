@@ -1,0 +1,231 @@
+= Module 4: SBOM generation and analysis with RHTPA (RHDA)
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)*, and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence—without installing an IDE in Showroom.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Produce a CycloneDX JSON SBOM from the Spring Boot PoC (JAR or `target/` tree) with `syft`
+* Locate RHTPA upload/browse guidance from ConfigMap `rhtpa-ingestion-info`
+* Upload or query the SBOM in the RHTPA UI (and know the optional API path)
+* Explain RHDA vs RHTPA roles and when instructors demo RHDA on a laptop
+
+== Prerequisites
+
+* xref:module-02-maven.adoc[Module 2] — Maven `settings.xml` / Nexus
+* xref:module-03-osv.adoc[Module 3] — remediated pins context (optional but recommended)
+* Chart `rhtpa` Healthy/Synced when you need a live UI (namespace `trusted-profile-analyzer`)
+
+== Roles: RHTPA vs RHDA
+
+[cols="1,2,2",options="header"]
+|===
+|Component |Role in this workshop |Where it runs
+
+|*RHTPA*
+|SBOM and advisory *system of record*; CycloneDX ingest; VEX/advisory importers
+|Cluster (`charts/components/rhtpa`)
+
+|*syft*
+|Generate CycloneDX from image or directory/JAR
+|Showroom terminal, pipeline Task `syft-sbom-rhtpa`, or laptop
+
+|*RHDA*
+|IDE client (wavy underlines on `pom.xml`) consuming TPA / Exhort intelligence
+|Instructor or demo *laptop* only — not in Showroom
+|===
+
+Full author notes: `docs/rhda-rhtpa-shift-left.md`. Showroom appendix: xref:rhda-shift-left.adoc[RHDA shift-left].
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-syft-rhtpa-flow.svg`
+
+JAR → syft → CycloneDX → RHTPA upload/browse.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/59
+// When ready: image::module-04-syft-rhtpa-flow.svg[syft CycloneDX to RHTPA flow,width=700]
+====
+
+== Exercise 1: Read RHTPA ingestion hints
+
+. Confirm the ingestion ConfigMap (present when `rhtpa` is synced):
++
+[source,bash,role=execute]
+----
+oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info -o yaml
+----
+
+. Extract the server URL and supported CycloneDX version:
++
+[source,bash,role=execute]
+----
+oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
+  -o jsonpath='{.data.server_url}{"\n"}{.data.supported_cyclonedx_version}{"\n"}{.data.upload_hint}{"\n"}'
+----
+
+. Optional: list TPA-related Routes:
++
+[source,bash,role=execute]
+----
+oc -n trusted-profile-analyzer get routes
+----
+
+If the namespace is not ready yet, continue with SBOM *generation* locally; upload when the UI Route is Healthy.
+
+== Exercise 2: Generate CycloneDX with `syft`
+
+Build the PoC, then scan the artifact or `target/` directory.
+
+. From the Spring Boot PoC app directory:
++
+[source,bash,role=execute]
+----
+cd charts/components/spring-boot-lw-poc/app
+
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+
+mvn -s settings.xml -Plightwell-validated package -DskipTests
+ls -la target/*.jar
+----
+
+. Generate CycloneDX JSON with `syft` (preferred — matches pipeline Task `syft-sbom-rhtpa`):
++
+[source,bash,role=execute]
+----
+# If syft is on PATH:
+syft packages "dir:target" -o cyclonedx-json > sbom.cyclonedx.json
+
+# Or scan the executable/boot JAR explicitly:
+# syft packages "file:target/spring-boot-lw-poc-0.1.0-SNAPSHOT.jar" -o cyclonedx-json > sbom.cyclonedx.json
+
+ls -la sbom.cyclonedx.json
+head -c 400 sbom.cyclonedx.json; echo
+----
+
+. If `syft` is not installed in Showroom, run the published image (same family as the Tekton Task):
++
+[source,bash,role=execute]
+----
+podman run --rm -v "$PWD:/work:z" -w /work \
+  ghcr.io/anchore/syft:v1.18.1 \
+  packages "dir:target" -o cyclonedx-json > sbom.cyclonedx.json
+----
++
+(`docker` works the same way if that is your runtime.)
+
+. Sanity-check the document:
++
+[source,bash,role=execute]
+----
+jq '{bomFormat, specVersion, components:(.components|length)}' sbom.cyclonedx.json
+----
++
+Expect `bomFormat` of `CycloneDX` and a non-zero `components` count.
+
+[TIP]
+====
+Seeded Lightwell artifact SBOMs also exist under the Nexus raw repo path `sbom/java/...` (chart `lightwell-repo`). Those demonstrate *component* metadata; this exercise focuses on the *application* SBOM from your build.
+====
+
+== Exercise 3: Ingest and browse in RHTPA
+
+. Open the TPA UI using `server_url` from Exercise 1 (or the `server-*` Route host).
+
+. Sign in with workshop SSO credentials provided by RHDP / Showroom userinfo.
+
+. Upload `sbom.cyclonedx.json` through the UI (SBOMs / upload — labels vary slightly by TPA version).
+
+. Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 3 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-rhtpa-sbom-ui.png`
+
+RHTPA UI after SBOM upload or package browse. Redact account PII.
+Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/60
+// When ready: image::module-04-rhtpa-sbom-ui.png[RHTPA SBOM browse UI,width=700]
+====
+
+=== Optional: API upload path
+
+Pipeline Task `syft-sbom-rhtpa` (namespace `stackrox` / RHACS chart hooks) attempts:
+
+[source,text]
+----
+POST {RHTPA_BASE}/api/v2/sbom
+Content-Type: application/json
+Authorization: Bearer <token from Secret rhtpa-upload-token when present>
+----
+
+If automated upload fails, the Task still writes the SBOM workspace file for *manual* UI upload—the same file you produced in Exercise 2.
+
+[source,bash]
+----
+# Pattern only — use a token from RHDP/OIDC cli client; never commit it
+# curl -fsS -X POST \
+#   -H "Authorization: Bearer $RHTPA_TOKEN" \
+#   -H "Content-Type: application/json" \
+#   --data-binary @sbom.cyclonedx.json \
+#   "${RHTPA_URL%/}/api/v2/sbom"
+----
+
+== Exercise 4: RHDA callout (laptop — not required in Showroom)
+
+Showroom does *not* install VS Code or IntelliJ. Treat RHDA as the shift-left story for field delivery:
+
+[cols="1,1,1",options="header"]
+|===
+|Action |Showroom / cluster |Laptop IDE + RHDA
+
+|Browse SBOMs in RHTPA UI
+|Yes
+|Yes (same Route)
+
+|Generate SBOM with `syft`
+|Yes
+|Yes
+
+|RHDA wavy underlines on `pom.xml`
+|No
+|Yes
+|===
+
+Instructor laptop (optional demo):
+
+. Install https://marketplace.visualstudio.com/items?itemName=redhat.fabric8-analytics[Red Hat Dependency Analytics] (VS Code or JetBrains).
+. Ensure `mvn` is on `PATH`.
+. Set *Backend URL* to `https://rhda.rhcloud.com` (public) or the workshop Exhort/RHDA route when published.
+. Open `charts/components/spring-boot-lw-poc/app/pom.xml` and run Dependency Analytics; compare with the RHTPA UI from Exercise 3.
+
+Details: xref:rhda-shift-left.adoc[RHDA shift-left appendix].
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-rhtpa-vs-rhda.svg`
+
+Cluster RHTPA (system of record) vs laptop RHDA (IDE client).
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/61
+// When ready: image::module-04-rhtpa-vs-rhda.svg[RHTPA versus RHDA roles,width=700]
+====
+
+== Module summary
+
+**What you accomplished**
+
+* Generated a CycloneDX SBOM from the Spring Boot PoC with `syft`
+* Located RHTPA ingestion metadata and uploaded/browsed the SBOM in TPA
+* Distinguished RHTPA (cluster system of record) from RHDA (laptop shift-left)
+
+**Key takeaways**
+
+* Prefer CycloneDX JSON from `syft` for this workshop
+* Pipeline Task `syft-sbom-rhtpa` automates the same generate → (optional) upload path in Module 5
+* RHDA is optional on a laptop; learners do not need an IDE inside Showroom
+
+**Next**
+
+Module 5 wires Tekton signing (RHTAS), RHACS policy gates, and GitOps promotion around the remediated pin and SBOM story.
