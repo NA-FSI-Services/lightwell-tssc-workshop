@@ -1,0 +1,231 @@
+= Module 3: OSV triage and exact-version remediation
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+When a CVE lands against a library you cannot casually upgrade, Lightwell Network publishes a *Remediated* artifact on the same upstream version line with a sequential `.rhlw-0000X` suffix. *OSV* records for the Java remediated stream tell you which pin to use.
+
+In this module you run the field PoV evaluation loop: inspect OSV → read `fixed` → compare upstream vs remediated sources → update the Spring Boot PoC pin → rebuild with Remediated Maven profiles.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Locate a Java remediated OSV record and extract the `fixed` version (`.rhlw-*`)
+* Use `tools/osv-eval/` helpers (`osv-pin.sh`, `diff-sources.sh`) in Showroom or a GitOps checkout
+* Explain that a remediated source diff is a *scoped backport*, not a major upgrade
+* Pin a dependency in `pom.xml` and rebuild with `mvn -s settings.xml -Plightwell-remediated,…`
+
+== Prerequisites
+
+Complete xref:module-02-maven.adoc[Module 2] so Nexus remotes and `settings.xml` profiles are familiar.
+
+You need either:
+
+* This workshop Git checkout (path `tools/osv-eval/` and `charts/components/spring-boot-lw-poc/app/`), **or**
+* In-cluster ConfigMap `lightwell-sample-osv` plus a working copy of the Spring Boot PoC sources
+
+== Remediation evaluation loop
+
+[arabic]
+. Inspect an OSV file from the Java remediated OSV repo (or the workshop sample)
+. Read `affected[].ranges[].events[].fixed` → target `.rhlw-*` version
+. Compare sources for the base vs remediated artifacts (`diff -r`)
+. Update `pom.xml` to the remediated pin and rebuild
+
+Canonical OSV remote: `{java-osv-url}`  
+Seeded path shape: `osv/java/remediated/LW-DEMO-0001.json`
+
+[IMPORTANT]
+====
+Use the exact suffix style `.rhlw-0000X` (example: `5.3.18.rhlw-00003`).
+Do *not* invent `-lw01` style names or alternate channel labels.
+====
+
+== Exercise 1: Inspect sample OSV and identify `fixed`
+
+. Prefer the in-cluster sample (seeded with `lightwell-repo`):
++
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap lightwell-sample-osv \
+  -o jsonpath='{.data.LW-DEMO-0001\.json}' | jq .
+----
+
+. Or from the GitOps / content checkout:
++
+[source,bash,role=execute]
+----
+jq . tools/osv-eval/samples/LW-DEMO-0001.json
+jq '.affected[0].ranges[0].events' tools/osv-eval/samples/LW-DEMO-0001.json
+----
+
+. Confirm you see a Maven ECOSYSTEM event with:
++
+[source,json]
+----
+{ "fixed": "5.3.18.rhlw-00003" }
+----
+
+. Parse GAV + pin with the toolkit helper:
++
+[source,bash,role=execute]
+----
+chmod +x tools/osv-eval/scripts/*.sh
+./tools/osv-eval/scripts/osv-pin.sh tools/osv-eval/samples/LW-DEMO-0001.json
+----
++
+Expected keys include `package=org.springframework:spring-core`, `base_version=5.3.18`, and `fixed_version=5.3.18.rhlw-00003`.
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-osv-fixed-pin.svg`
+
+OSV `fixed` event → Maven GAV pin `5.3.18.rhlw-00003`.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/55
+// When ready: image::module-03-osv-fixed-pin.svg[OSV fixed event to .rhlw pin,width=700]
+====
+
+. Optional: prove the remediated coordinate resolves from Nexus (Module 2 remotes):
++
+[source,bash,role=execute]
+----
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+cd charts/components/spring-boot-lw-poc/app
+mvn -s settings.xml dependency:get \
+  -Dartifact=org.springframework:spring-core:5.3.18.rhlw-00003 \
+  -Plightwell-remediated
+----
+
+== Exercise 2: Source diff (upstream vs remediated)
+
+The goal is to *see* that remediation is a small, security-scoped change on the same version line—not a jump to a new major release.
+
+=== Offline / RHDP default (fixtures)
+
+Workshop fixtures under `tools/osv-eval/fixtures/` stand in for `-sources.jar` trees when live jars are unavailable:
+
+[source,bash,role=execute]
+----
+./tools/osv-eval/scripts/diff-sources.sh --fixture
+----
+
+You should see a `diff -ruN` highlighting a length-check backport in `VulnerableUtil.java` (demo stub, not production Spring Framework sources).
+
+Manual equivalent:
+
+[source,bash,role=execute]
+----
+diff -ruN \
+  tools/osv-eval/fixtures/upstream \
+  tools/osv-eval/fixtures/remediated
+----
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-source-diff.svg`
+
+Upstream vs remediated source trees with a scoped backport highlight.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
+// When ready: image::module-03-source-diff.svg[Upstream versus remediated source diff,width=700]
+====
+
+=== Optional: fetch real `-sources.jar` (instructor / network)
+
+When Nexus is seeded with sources (or live LWN membership is available):
+
+[source,bash,role=execute]
+----
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+# Proxy / live LWN only — never commit these values:
+# export LW_USERNAME=... LW_PASSWORD=...
+
+./tools/osv-eval/scripts/diff-sources.sh --fetch \
+  --osv tools/osv-eval/samples/LW-DEMO-0001.json
+----
+
+Seeded workshop JARs may be manifest-only stubs; if fetch cannot unpack meaningful sources, rely on `--fixture` for the teaching beat.
+
+== Exercise 3: Update `pom.xml` and rebuild
+
+The sample OSV advertises a pin for `spring-core:5.3.18.rhlw-00003`. The primary learner app (`spring-boot-lw-poc`) demonstrates the *same exact-version pattern* with `commons-lang3` so the Spring Boot 3.x classpath stays coherent (Boot brings Spring Framework 6.x; you do not force `spring-core` 5.3.x into that app).
+
+. Open the PoC POM:
++
+[source,bash,role=execute]
+----
+cd charts/components/spring-boot-lw-poc/app
+grep -n 'commons.lang3\|lightwell-remediated' pom.xml
+----
+
+. Confirm the remediated *dependency* profile already documents the workshop pin:
++
+[source,xml]
+----
+<profile>
+  <id>lightwell-remediated-pins</id>
+  <properties>
+    <commons.lang3.version>3.14.0.rhlw-00001</commons.lang3.version>
+  </properties>
+</profile>
+----
+
+. Optional edit (instructor variation): temporarily change the property to another seeded remediated coordinate, save, then restore—so learners practice *editing* the pin, not only flipping profiles.
+
+. Rebuild with Remediated *repository* + remediated *pins*:
++
+[source,bash,role=execute]
+----
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+
+mvn -s settings.xml \
+  -Plightwell-remediated,lightwell-remediated-pins \
+  clean verify
+----
+
+. Verify the resolved version:
++
+[source,bash,role=execute]
+----
+mvn -s settings.xml \
+  -Plightwell-remediated,lightwell-remediated-pins \
+  dependency:tree | egrep 'commons-lang3|BUILD'
+----
++
+You should see `commons-lang3:jar:3.14.0.rhlw-00001` (or your edited pin) and `BUILD SUCCESS`.
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-pom-rebuild.svg`
+
+POM `.rhlw-*` property → `mvn -s … -Plightwell-remediated,lightwell-remediated-pins` → BUILD SUCCESS.
+Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57
+// When ready: image::module-03-pom-rebuild.svg[Pin pom.xml and rebuild with Remediated profiles,width=700]
+====
+
+[TIP]
+====
+In field PoVs you pin *the coordinate named in OSV* (here, `spring-core` on apps still on that line). This workshop separates *discovery* (OSV for `spring-core`) from *app rebuild* (`commons-lang3` on the Boot PoC) so the lab stays deterministic on Spring Boot 3.
+====
+
+== Instructor note: OSV manifest polling
+
+Optional automation narrative (not required for learners): watch `PULP_MANIFEST` on `{java-osv-url}` and, on change, open a ticket or trigger a rebuild pipeline. See `tools/osv-eval/scripts/poll-pulp-manifest.sh` and appendix issue https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27[#27]. Keep ITSM product names generic—no customer systems.
+
+== Module summary
+
+**What you accomplished**
+
+* Extracted `fixed` → `5.3.18.rhlw-00003` from sample OSV `LW-DEMO-0001`
+* Compared upstream vs remediated sources (fixture `diff -r`, optional jar fetch)
+* Applied an exact-version `.rhlw-*` pin in the Spring Boot PoC and rebuilt successfully
+
+**Key takeaways**
+
+* OSV is how you discover *which* remediated version to pin
+* Source diff proves the change is a scoped backport on the same version line
+* Rebuild with `mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins …`
+
+**Next**
+
+Module 4 generates a CycloneDX SBOM (`syft`) and analyzes it in Trusted Profile Analyzer (optional RHDA on a laptop).

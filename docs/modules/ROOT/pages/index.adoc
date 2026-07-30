@@ -22,8 +22,8 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 |xref:module-02-maven.adoc[2 — Maven integration]
 |`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth
 
-|3 — Exact-version remediation
-|OSV → `.rhlw-*` pin → source diff → rebuild _(coming next)_
+|xref:module-03-osv.adoc[3 — Exact-version remediation]
+|OSV → `.rhlw-*` pin → source diff → rebuild
 
 |4 — SBOM + RHTPA
 |CycloneDX ingest; RHDA shift-left callout _(coming next)_
@@ -38,4 +38,4 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 * Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`).
 * Canonical console (membership / browsing): {lightwell-console-url}
 
-Start with xref:module-01-overview.adoc[Module 1], then xref:module-02-maven.adoc[Module 2].
+Start with xref:module-01-overview.adoc[Module 1], then Modules xref:module-02-maven.adoc[2] and xref:module-03-osv.adoc[3].
