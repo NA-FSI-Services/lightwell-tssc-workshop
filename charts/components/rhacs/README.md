@@ -1,6 +1,6 @@
 # charts/components/rhacs — Red Hat Advanced Cluster Security
 
-Deploys RHACS **Central** (and optional same-cluster **SecuredCluster**) via the RHACS Operator, plus a Tekton Task that runs **`roxctl image check`** for pipeline policy gates.
+Deploys RHACS **Central** (and optional same-cluster **SecuredCluster**) via the RHACS Operator, plus Tekton **policy gates** for Lightwell non-remediated vs `.rhlw-*` pins, `roxctl image check`, and CycloneDX SBOM handoff to RHTPA.
 
 ## Sync waves (inside this chart)
 
@@ -10,30 +10,49 @@ Deploys RHACS **Central** (and optional same-cluster **SecuredCluster**) via the
 | `1` | OperatorGroup + Subscription |
 | `2` | `Central` CR |
 | `3` | `SecuredCluster` CR |
-| `4` | Tekton Task + CI secret placeholder + hooks info |
+| `4` | Tekton Tasks / Pipeline + CI secret + lab ConfigMaps |
 | `5` | RHDP userinfo ConfigMap |
 
 Root App-of-Apps places this chart at sync wave **`10`**.
 
-## Pipeline policy hooks (`roxctl image check`)
+## Pipeline policy gates (issue #13)
 
 | Artifact | Purpose |
 |----------|---------|
-| Tekton Task `acs-image-check` | Downloads `roxctl` from Central and runs `image check` (JSON) |
-| Secret `rhacs-ci-secrets` | Placeholder for `rox-api-endpoint` / `rox-api-token` (inject token after Central is Ready) |
-| ConfigMap `rhacs-pipeline-hooks-info` | Example Pipeline task snippet + CLI sample |
+| Task `lightwell-dep-gate` | Fail when default Maven pin lacks `.rhlw-*` (OSV-friendly / deterministic) |
+| Task `acs-image-check` | `roxctl image check` against Central BUILD policies (Clair/OSV-class) |
+| Task `syft-sbom-rhtpa` | syft CycloneDX SBOM + optional upload to RHTPA |
+| Pipeline `lightwell-build-policy-gate` | clone → dep-gate → ACS check → SBOM |
+| ConfigMap `rhacs-lightwell-policy-lab` | Fail / success lab narrative |
+| ConfigMap `rhacs-lightwell-central-policy` | Importable Fixable Critical BUILD policy JSON |
 
-After Central is Ready:
+### Failure path (non-remediated)
 
 ```bash
-# Create CI API token in Central UI, then:
+# spring-boot-lw-poc default properties pin is 3.14.0 (no .rhlw-*)
+oc -n stackrox create -f - <<'EOF'
+# see ConfigMap rhacs-lightwell-policy-lab key fail_pipelinerun.yaml
+EOF
+# Expect Task lightwell-dep-gate to fail
+```
+
+### Success path (`.rhlw-*`)
+
+1. Set default `<commons.lang3.version>3.14.0.rhlw-00001</commons.lang3.version>` in the app `pom.xml` properties.
+2. Re-run the Pipeline — dep-gate passes.
+3. Populate CI secrets; import Central Fixable Critical policy for real `roxctl` fails/passes on scanned images.
+4. Confirm SBOM in RHTPA UI (or `upload-status=uploaded` when `rhtpa-url` + token are set).
+
+### CI secrets
+
+```bash
 oc -n stackrox create secret generic rhacs-ci-secrets \
   --from-literal=rox-api-endpoint='central-stackrox.apps.<domain>:443' \
   --from-literal=rox-api-token='<TOKEN>' \
   --dry-run=client -o yaml | oc apply -f -
 ```
 
-Phase 3 [#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13) expands Central policies / pipeline wiring for non-remediated Lightwell pins.
+Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 
 ## Reuse sources
 
@@ -45,11 +64,11 @@ Phase 3 [#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/
 
 | Key | Default | Notes |
 |-----|---------|-------|
-| `rhacs.namespace` | `stackrox` | Central + SecuredCluster |
-| `operator.namespace` | `rhacs-operator` | Recommended Operator NS |
-| `central.persistence.pvcSize` | `50Gi` | Workshop-sized |
-| `securedCluster.enabled` | `true` | Same-cluster Sensor / Admission |
-| `pipelineHooks.enabled` | `true` | Tekton Task + secret placeholder |
+| `rhacs.namespace` | `stackrox` | Central + SecuredCluster + gate Tasks |
+| `pipelineHooks.depGate.remediatedVersion` | `3.14.0.rhlw-00001` | Success pin |
+| `pipelineHooks.pipeline.defaultPomPath` | `charts/.../spring-boot-lw-poc/app/pom.xml` | Monorepo lab path |
+| `pipelineHooks.sbom.rhtpaUrl` | `""` | Set when RHTPA Route known |
+| `pipelineHooks.failOnSkipped` | `"false"` | Set `"true"` to fail ACS task without secrets |
 | `deployer.domain` | `""` | Injected by root-app |
 
 ## Local validation
@@ -74,6 +93,6 @@ Keep `components.rhacs.enabled: false` in committed root values until cluster ca
 
 ## Related
 
-- Issue [#6](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/6)
-- Follow-up policy gates: [#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13)
+- Issue [#6](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/6) — chart scaffold
+- Issue [#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13) — policy gates
 - [charts/root-app/README.md](../../root-app/README.md)

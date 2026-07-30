@@ -32,6 +32,8 @@ spec:
     - name: source
     - name: maven-settings
       optional: true
+    - name: sbom
+      optional: true
   tasks:
     - name: clone
       taskRef:
@@ -79,7 +81,7 @@ spec:
       # Pipeline / TaskRun should inject LW_USERNAME, LW_PASSWORD, LIGHTWELL_NEXUS_URL
 
     - name: buildah
-      runAfter: [maven-package]
+      runAfter: [lightwell-dep-gate]
       taskRef:
         resolver: cluster
         params:
@@ -98,11 +100,63 @@ spec:
         - name: DOCKERFILE
           value: ./Dockerfile
 
-    # Optional RHACS gate (Module 5 / issue #13): add a taskRef to Task acs-image-check
-    # from charts/components/rhacs after Central CI secrets exist.
+    - name: lightwell-dep-gate
+      runAfter: [maven-package]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: lightwell-dep-gate
+          - name: namespace
+            value: stackrox
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: mode
+          value: require-remediated
+        - name: pom-path
+          value: pom.xml
+
+    - name: acs-image-check
+      runAfter: [buildah]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: acs-image-check
+          - name: namespace
+            value: stackrox
+      params:
+        - name: image
+          value: $(params.image-url)
+
+    - name: syft-sbom-rhtpa
+      runAfter: [acs-image-check]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: syft-sbom-rhtpa
+          - name: namespace
+            value: stackrox
+      workspaces:
+        - name: source
+          workspace: source
+        - name: sbom
+          workspace: sbom
+      params:
+        - name: image
+          value: $(params.image-url)
 
     - name: cosign-sign-keyless
-      runAfter: [buildah]
+      runAfter: [syft-sbom-rhtpa]
       taskSpec:
         params:
           - name: image

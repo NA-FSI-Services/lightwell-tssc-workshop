@@ -56,7 +56,7 @@ securedCluster:
     listenOnUpdates: true
     listenOnEvents: true
 
-# Pipeline policy hooks — Tekton Task for `roxctl image check`
+# Pipeline policy hooks — dep gate + roxctl image check + SBOM → RHTPA (#13)
 pipelineHooks:
   enabled: true
   taskName: acs-image-check
@@ -66,17 +66,38 @@ pipelineHooks:
   secretName: rhacs-ci-secrets
   createSecretPlaceholder: true
   insecureSkipTlsVerify: "true"
-  # Documented image used in lab examples (Phase 3 #13 expands policy for non-remediated pins)
+  # When true, acs-image-check fails if CI secrets are missing (strict workshop runs)
+  failOnSkipped: "false"
   exampleImage: "quay.io/redhatdemo/lightwell-placeholder:latest"
+  depGate:
+    enabled: true
+    taskName: lightwell-dep-gate
+    defaultMode: require-remediated
+    watchedArtifact: commons-lang3
+    vulnerableVersion: "3.14.0"
+    remediatedVersion: "3.14.0.rhlw-00001"
+  sbom:
+    enabled: true
+    taskName: syft-sbom-rhtpa
+    syftImage: "ghcr.io/anchore/syft:v1.18.1"
+    # Set to https://<rhtpa-route> when RHTPA is synced; empty = write SBOM for UI upload
+    rhtpaUrl: ""
+    rhtpaSecretName: rhtpa-upload-token
+  pipeline:
+    enabled: true
+    name: lightwell-build-policy-gate
+    defaultPomPath: charts/components/spring-boot-lw-poc/app/pom.xml
+  centralPolicy:
+    enabled: true
 
 # RHDP userinfo ConfigMap
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Advanced Cluster Security"
   instructions: >-
-    Open RHACS Central from the Route in the stackrox namespace. Create a CI API
-    token and populate Secret rhacs-ci-secrets, then use Tekton Task
-    acs-image-check (`roxctl image check`) in supply-chain pipelines.
+    Open RHACS Central (stackrox). Import the Fixable Critical BUILD policy, create a
+    CI token into Secret rhacs-ci-secrets, then run Pipeline lightwell-build-policy-gate:
+    fail on non-remediated Maven pins, pass after .rhlw-* update, then SBOM → RHTPA.
 
 # Injected by root-app / field content workload
 deployer:

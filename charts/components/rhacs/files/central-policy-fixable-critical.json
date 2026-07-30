@@ -1,0 +1,26 @@
+{
+  "name": "Lightwell workshop — Fixable Critical CVEs (build)",
+  "description": "OSV/Clair-class narrative: fail builds when Scanner finds fixable Critical vulnerabilities. Pair with lightwell-dep-gate for .rhlw-* Maven pins when images are stubs.",
+  "rationale": "Prefer Lightwell remediated exact-version pins (.rhlw-0000X) and rebuilt images over shipping known-fixable Critical CVEs.",
+  "remediation": "Update pom.xml to remediated .rhlw-* versions (lightwell-remediated-pins), rebuild from Lightwell Remediated, re-run Pipeline lightwell-build-policy-gate.",
+  "disabled": false,
+  "categories": ["Vulnerability Management"],
+  "lifecycleStages": ["BUILD"],
+  "severity": "CRITICAL_SEVERITY",
+  "enforcementActions": ["FAIL_BUILD_ENFORCEMENT"],
+  "policySections": [
+    {
+      "sectionName": "Fixable Critical",
+      "policyGroups": [
+        {
+          "fieldName": "Fixed By",
+          "values": [{ "value": ".*" }]
+        },
+        {
+          "fieldName": "Severity",
+          "values": [{ "value": "CRITICAL_SEVERITY" }]
+        }
+      ]
+    }
+  ]
+}
