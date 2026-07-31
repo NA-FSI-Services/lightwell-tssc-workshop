@@ -47,14 +47,7 @@ Tier and profile names stay *Validated* / *Remediated* (Maven profiles `lightwel
 Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secured`.
 ====
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-direct-vs-proxy.svg`
-
-Direct `packages.redhat.com` path vs Maven → Nexus → LWN (or seeded hosted) path.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/51
-// When ready: image::module-02-direct-vs-proxy.svg[Direct LWN versus enterprise Nexus proxy,width=700]
-====
+image::module-02-direct-vs-proxy.png[Direct LWN versus enterprise Nexus proxy,width=700]
 
 == Auth: service account via env / RHDP secrets
 
