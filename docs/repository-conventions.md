@@ -37,7 +37,8 @@ lightwell-tssc-workshop/
 │   ├── rhda-rhtpa-shift-left.md     # Module 4 RHDA vs RHTPA (laptop vs Showroom)
 │   ├── repository-conventions.md
 │   ├── ansible-developer-guide.md
-│   └── SHOWROOM-UPDATE-SPEC.md
+│   ├── SHOWROOM-UPDATE-SPEC.md
+│   └── DEV-CLUSTER-BOOTSTRAP.md     # Phase 5 bypass: OCP+AWS + manual GitOps QA
 ├── site.yml                         # Antora playbook (Showroom antoraPlaybook)
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md

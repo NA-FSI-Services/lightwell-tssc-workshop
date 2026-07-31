@@ -209,6 +209,8 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 
 **AgnosticV target:** [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) (Babylon-documented). **Strategy:** dev-first → prod. Checklist: [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md).
 
+**While AgnosticV access is blocked:** use a demo.redhat.com OpenShift-on-AWS claim (cluster-admin + AWS console), install GitOps, and sync `charts/root-app` manually — see [`docs/DEV-CLUSTER-BOOTSTRAP.md`](./docs/DEV-CLUSTER-BOOTSTRAP.md). That path is for instruction/GitOps QA only; it does not replace catalog onboarding.
+
 | Step | Issue | Outcome |
 |------|-------|---------|
 | Umbrella | [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) | AgnosticV onboarding tracker |
