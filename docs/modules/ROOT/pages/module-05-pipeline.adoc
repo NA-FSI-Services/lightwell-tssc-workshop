@@ -5,12 +5,14 @@
 
 Modules 2–4 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, RHACS image policy, *keyless* signing with Red Hat Trusted Artifact Signer (RHTAS), and GitOps promotion with Argo CD.
 
+Lightwell and ACS are complementary: Lightwell remediates application dependencies; ACS (and this workshop’s dep-gate / image-check Tasks) *enforce* that builds and images meet policy before promotion. OSV and VEX metadata help CI scanners recognize remediated pins so gates and third-party scanners stay aligned.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
 * Run the workshop policy Pipeline and explain the fail-then-pass `.rhlw-*` narrative
-* Relate RHACS `roxctl image check` to BUILD policy enforcement
+* Relate RHACS `roxctl image check` to BUILD policy enforcement (ACS + Lightwell coexistence)
 * Sign and verify an image with cosign keyless (Fulcio / Rekor / TUF)
 * Confirm Argo CD syncs the App-of-Apps / sample app after a successful path
 
@@ -301,10 +303,10 @@ image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 
 **Key takeaways**
 
-* Pipelines enforce the Module 3 pin story before images ship
-* Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog
+* Pipelines enforce the Module 3 pin story before images ship; ACS policy and Lightwell remediations work together
+* Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog; Lightwell artifacts themselves also use RHTAS-class signing / SLSA L3
 * Git remains the source of truth; Argo CD promotes what gates already approved
 
 **Workshop complete**
 
-You can revisit xref:module-01-overview.adoc[Module 1] for the narrative frame, or the xref:rhda-shift-left.adoc[RHDA appendix] for laptop shift-left against RHTPA.
+You can revisit xref:module-01-overview.adoc[Module 1] for the narrative frame, xref:appendix-lightwell-concepts.adoc[Lightwell concepts] for FAQ-style refreshers, or the xref:rhda-shift-left.adoc[RHDA appendix] for laptop shift-left against RHTPA.

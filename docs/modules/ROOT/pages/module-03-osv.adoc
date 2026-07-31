@@ -3,7 +3,7 @@
 :toc:
 :toclevels: 2
 
-When a CVE lands against a library you cannot casually upgrade, Lightwell Network publishes a *Remediated* artifact on the same upstream version line with a sequential `.rhlw-0000X` suffix. *OSV* records for the Java remediated stream tell you which pin to use.
+When a CVE lands against a library you cannot casually upgrade, Lightwell Network publishes a *Remediated* artifact on the same upstream version line with a sequential `.rhlw-0000X` suffix. *OSV* records for the Java remediated stream tell you which pin to use. Subscribers discover new remediated packages by polling the Lightwell OSV feed (additional push notifications are a future platform topic—not required for this lab).
 
 In this module you run the field PoV evaluation loop: inspect OSV → read `fixed` → compare upstream vs remediated sources → update the Spring Boot PoC pin → rebuild with Remediated Maven profiles.
 
@@ -12,6 +12,7 @@ In this module you run the field PoV evaluation loop: inspect OSV → read `fixe
 By the end of this module, you will be able to:
 
 * Locate a Java remediated OSV record and extract the `fixed` version (`.rhlw-*`)
+* Recognize production OSV id shape (`RHLW-YYYY-NNNN`) vs workshop demo ids (`LW-DEMO-*`)
 * Use `tools/osv-eval/` helpers (`osv-pin.sh`, `diff-sources.sh`) in Showroom or a GitOps checkout
 * Explain that a remediated source diff is a *scoped backport*, not a major upgrade
 * Pin a dependency in `pom.xml` and rebuild with `mvn -s settings.xml -Plightwell-remediated,…`
@@ -39,9 +40,23 @@ Seeded path shape: `osv/java/remediated/LW-DEMO-0001.json`
 [IMPORTANT]
 ====
 Use the exact suffix style `.rhlw-0000X` (example: `5.3.18.rhlw-00003`).
-Do *not* invent `-lw01` style names or alternate channel labels.
+Do *not* invent `-lw01` style names or alternate channel labels. This workshop standardizes on `.rhlw-*` only.
 ====
 
+=== OSV record conventions (field brief)
+
+Production Lightwell OSV records follow the OSV specification. Useful conventions for triage:
+
+* *Primary id* — Lightwell scheme `RHLW-YYYY-NNNN` (this workshop sample uses `LW-DEMO-0001` for deterministic labs)
+* *aliases* — known CVE ids (for example `CVE-…`); novel findings start with a Lightwell id until a CVE is assigned
+* *affected* — packages by PURL; `ECOSYSTEM` ranges with `"introduced": "0"` and `"fixed": "X.Y.Z.rhlw-#####"`
+* *references* — upstream fix commits as `"type": "FIX"`; advisories / web links as needed
+* *severity* — CVSS v3.1 strings when published
+* *credits* — Red Hat Lightwell as remediation developer; *AI detection models are not named* in OSV (anonymous discovery source by design)
+
+After High/Critical findings, Network members may see content under a limited disclosure (embargo) window before public upstream contribution. Upstream contribution after that window is intentional; if upstream rejects or delays a merge, the backport remains available in *Remediated*. If upstream ships a different fix, Lightwell aligns remediations where practical and places official upstream releases into *Validated*.
+
+Technology-relevant *source archives* for remediated packages are available in the same repositories as the binaries—Exercise 2 uses that fact.
 == Exercise 1: Inspect sample OSV and identify `fixed`
 
 . Prefer the in-cluster sample (seeded with `lightwell-repo`):
@@ -203,9 +218,10 @@ Full optional appendix: xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFES
 
 **Key takeaways**
 
-* OSV is how you discover *which* remediated version to pin
-* Source diff proves the change is a scoped backport on the same version line
+* OSV is how you discover *which* remediated version to pin (`fixed` → `.rhlw-*`; production ids `RHLW-YYYY-NNNN`)
+* Source diff proves the change is a scoped backport on the same version line; sources ship with binaries
 * Rebuild with `mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins …`
+* Poll the OSV feed for new remediations; optional `PULP_MANIFEST` appendix for automation
 
 **Next**
 

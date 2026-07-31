@@ -3,7 +3,9 @@
 :toc:
 :toclevels: 2
 
-Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)*, and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence—without installing an IDE in Showroom.
+Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. Every Lightwell-distributed package is built with SLSA Level 3 integrity and signed; Maven packages include CycloneDX SBOMs and VEX advisories (Python wheels use SPDX). In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)*, and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence—without installing an IDE in Showroom.
+
+Customers submit *dependency manifests* (for example `pom.xml`) and SBOMs for program workflows—not proprietary application source code. Application source stays in the customer environment.
 
 == Learning objectives
 
@@ -12,6 +14,7 @@ By the end of this module, you will be able to:
 * Produce a CycloneDX JSON SBOM from the Spring Boot PoC (JAR or `target/` tree) with `syft`
 * Locate RHTPA upload/browse guidance from ConfigMap `rhtpa-ingestion-info`
 * Upload or query the SBOM in the RHTPA UI (and know the optional API path)
+* Explain how *VEX* / OSV feeds help CI scanners recognize Lightwell-patched CVEs
 * Explain RHDA vs RHTPA roles and when instructors demo RHDA on a laptop
 
 == Prerequisites
@@ -38,6 +41,8 @@ By the end of this module, you will be able to:
 |IDE client (wavy underlines on `pom.xml`) consuming TPA / Exhort intelligence
 |Instructor or demo *laptop* only — not in Showroom
 |===
+
+OSV feeds and *VEX* metadata published with Lightwell content let code-scanning tools in CI/CD recognize that a CVE has been remediated via a `.rhlw-*` pin—so pipelines do not keep flagging the issue as unpatched after you adopt Remediated.
 
 Full author notes: `docs/rhda-rhtpa-shift-left.md`. Showroom appendix: xref:rhda-shift-left.adoc[RHDA shift-left].
 
@@ -208,9 +213,10 @@ image::module-04-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
 
 **Key takeaways**
 
-* Prefer CycloneDX JSON from `syft` for this workshop
+* Prefer CycloneDX JSON from `syft` for this workshop (Maven Lightwell packages also ship CycloneDX + VEX; Python uses SPDX)
+* OSV/VEX help scanners treat Lightwell remediations as fixed—not still-open CVEs
 * Pipeline Task `syft-sbom-rhtpa` automates the same generate → (optional) upload path in Module 5
-* RHDA is optional on a laptop; learners do not need an IDE inside Showroom
+* RHDA is optional on a laptop; learners do not need an IDE inside Showroom; do not upload proprietary app source to Red Hat for LWN
 
 **Next**
 

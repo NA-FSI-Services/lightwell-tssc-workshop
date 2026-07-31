@@ -28,6 +28,7 @@ REQUIRED_MODULES=(
   module-04-sbom.adoc
   module-05-pipeline.adoc
   index.adoc
+  appendix-lightwell-concepts.adoc
   rhda-shift-left.adoc
   appendix-osv-manifest-polling.adoc
 )
