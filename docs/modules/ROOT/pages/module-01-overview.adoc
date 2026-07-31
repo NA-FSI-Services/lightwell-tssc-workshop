@@ -101,7 +101,7 @@ How to tell which tier you are looking at:
 |Lightwell *Remediated* (exact-version `.rhlw-*`)
 |===
 
-image::module-01-control-decision.png[Choosing the right control: product support, Hardened Images, Validated, Remediated,width=700]
+image::module-01-control-decision.png["Choosing the right control: product support, Hardened Images, Validated, Remediated",width=700]
 
 Lightwell is *complementary* to RHEL, OpenShift, Ansible, and Advanced Cluster Security (ACS): those products secure OS/platform configurations; Lightwell covers third-party application dependencies outside those boundaries. An existing Red Hat product subscription is not a prerequisite for understanding the LWN patterns in this workshop.
 
