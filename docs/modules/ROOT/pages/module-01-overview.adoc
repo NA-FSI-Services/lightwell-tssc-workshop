@@ -3,11 +3,11 @@
 :toc:
 :toclevels: 2
 
-Attackers and researchers alike now use AI to discover and weaponize vulnerabilities faster than traditional patch cycles. Development teams feel that pressure as dependency CVEs land against libraries they cannot casually upgrade in production.
+Attackers and researchers alike now use AI to discover and weaponize vulnerabilities faster than traditional patch cycles. Scanners and SBOMs *identify* issues, but application teams often cannot take the recommended upgrade path because of compatibility, certification, release freezes, or production risk.
 
-*Lightwell Network* gives you two complementary Maven (and related) streams so you can keep shipping without inventing fictional “untrusted vs secured” channels: *Validated* for active development, and *Remediated* for exact-version security backports (`.rhlw-*`).
+*Lightwell Network* closes that *remediation gap*: signed, backported fixes for eligible third-party application dependencies (libraries, frameworks, build tools, and transitive deps)—without requiring disruptive upgrades, app refactoring, or recertification. This workshop uses two complementary Maven streams—*Validated* for active development and *Remediated* for exact-version security backports (`.rhlw-*`)—and does *not* invent fictional channel names.
 
-In this module you map those tiers, the supply-chain metadata that travels with artifacts (SLSA L3, SBOM, OSV), and where the Lightwell console fits—before you wire Maven and pipelines in later labs.
+In this module you map those tiers, eligibility and coexistence with the Red Hat stack, the supply-chain metadata that travels with artifacts (SLSA L3, SBOM, VEX, OSV), and where the Lightwell console fits—before you wire Maven and pipelines in later labs.
 
 == Learning objectives
 
@@ -15,7 +15,8 @@ By the end of this module, you will be able to:
 
 * Explain **Validated** vs **Remediated** Lightwell Network tiers and when to use each
 * Recognize remediated version suffixes such as `5.3.18.rhlw-00003` (not custom `-lw01` names)
-* Describe how *SBOM*, *SLSA Level 3* provenance, and *OSV* records support triage
+* Describe how *SBOM*, *VEX*, *SLSA Level 3* provenance, and *OSV* records support triage
+* Place Lightwell next to RHEL / OpenShift / ACS (complementary, not a substitute)
 * Locate the conceptual Lightwell console and the canonical package remotes used in this workshop
 
 == Background: the vulnerability storm
@@ -24,11 +25,21 @@ Modern applications pull hundreds of open source components. When a critical CVE
 
 * *Major upgrades* can break APIs and delay releases
 * *Doing nothing* leaves production exposed
-* *Lightwell Remediated* keeps the *same upstream version line* and publishes a rebuilt artifact with a sequential `.rhlw-0000X` suffix that carries the security fix
+* *Lightwell Remediated* keeps the *same upstream version line* and publishes a rebuilt artifact with a sequential `.rhlw-0000X` suffix that carries the security fix (and no unrelated feature changes)
 
 AI accelerates both discovery of issues and the need for a repeatable remediation loop (OSV → pin → rebuild), which you practice in Module 3.
 
 image::module-01-osv-pin-rebuild-loop.png[Remediation evaluation loop,width=700]
+
+=== Scope (what this workshop covers)
+
+At launch, Lightwell covers *Java (Maven)* and *Python (PyPI)*. This RHDP catalog focuses on the *Java / Maven* golden path. Python is a validated-oriented secondary story and is *not* required to complete Modules 2–5. Do not promise unannounced ecosystems (npm, .NET, Go, and so on) in field conversations until they are officially available.
+
+Lightwell remediates *application-layer* libraries. Patched content can run on Red Hat and non–Red Hat stacks (for example OpenJDK on another Linux distribution)—it is not limited to RHEL-only runtimes.
+
+=== Package eligibility (field brief)
+
+Eligible packages generally must be source-available under a recognized open source license, buildable via Red Hat secure pipelines, actively maintained or widely depended on, and free of known malicious provenance. Obsolete language runtimes (for example EOL OpenJDK lines) are *not* the Lightwell remediation target—point those conversations at appropriate lifecycle / EOL offerings separately from this lab path.
 
 == Lightwell Network tiers (authoritative)
 
@@ -43,15 +54,15 @@ Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secur
 |Tier |Purpose |Canonical Java remote
 
 |*Validated*
-|Upstream-parity rebuilds of current libraries; typically no app code changes
+|Upstream-released versions validated for known CVEs; binaries are *bit-for-bit identical* to upstream, delivered from a trusted Red Hat source
 |{java-validated-url}
 
 |*Remediated*
-|Exact-version backports for pinned production dependencies
+|Red Hat–patched builds of a pinned upstream baseline with *security-only* CVE remediations; version qualifier `.rhlw-#####` (workshop examples use `.rhlw-0000X`)
 |{java-remediated-url}
 
 |*OSV (Java)*
-|Machine-readable fixed-vuln records for the remediated stream (`fixed` → `.rhlw-*`)
+|Machine-readable fixed-vuln records for the remediated stream (`fixed` → `.rhlw-*`); also how you map CVEs to remediated pins
 |{java-osv-url}
 |===
 
@@ -64,13 +75,51 @@ Example remediated coordinate style:
 org.springframework:spring-core:5.3.18.rhlw-00003
 ----
 
+When additional CVEs are fixed on the *same* baseline, the qualifier increments and remains *cumulative* (for example `…rhlw-00001` then `…rhlw-00002` includes prior fixes). A remediated library moves into *Validated* only after the upstream community accepts, merges, and releases the fix; otherwise it stays in Remediated.
+
+How to tell which tier you are looking at:
+
+* *Validated* package browse — Lightwell console ({lightwell-console-url})
+* *Remediated* CVE ↔ version mapping — published *OSV* metadata beside the artifacts (Module 3)
+
+=== Choosing the right control (decision aid)
+
+[cols="1,2",options="header"]
+|===
+|Situation |Prefer
+
+|Issue inside a *Red Hat product* support boundary (RHEL, OpenShift, …)
+|Standard Red Hat product support / lifecycle
+
+|Container *image foundation* / base-image scanner noise
+|Red Hat Hardened Images (separate from LWN application deps)
+
+|Need *trusted* application dependencies at upstream parity
+|Lightwell *Validated*
+
+|Vulnerable application dependency you *cannot* upgrade
+|Lightwell *Remediated* (exact-version `.rhlw-*`)
+|===
+
+image::module-01-control-decision.png[Choosing the right control: product support, Hardened Images, Validated, Remediated,width=700]
+
+Lightwell is *complementary* to RHEL, OpenShift, Ansible, and Advanced Cluster Security (ACS): those products secure OS/platform configurations; Lightwell covers third-party application dependencies outside those boundaries. An existing Red Hat product subscription is not a prerequisite for understanding the LWN patterns in this workshop.
+
+[NOTE]
+====
+IBM Library Support for Open Source (LSOS) extends EOL lifecycle for selected Java frameworks. Lightwell instead backports across a broad dependency catalog with registry signing, SBOM/VEX, and SLSA L3 attestations. Teams may use both: LSOS for an EOL framework line, Lightwell for the transitive graph around it. This workshop does *not* exercise LSOS.
+====
+
 Artifacts are expected to ship with supply-chain metadata:
 
-* *SBOM* — Java CycloneDX beside the JAR (workshop uses `syft` → RHTPA in Module 4)
-* *SLSA Level 3* — build provenance / signed binaries (Sigstore family; RHTAS in Module 5)
+* *SBOM* — CycloneDX for Maven packages; SPDX for Python wheels (this workshop generates app SBOMs with `syft` → RHTPA in Module 4)
+* *VEX* — exploitability / remediation status scanners can consume so Lightwell-patched CVEs are not treated as unpatched
+* *SLSA Level 3* — build integrity; artifacts cryptographically signed (Sigstore family; RHTAS in Module 5)
 * *OSV* — fixed-version events for remediated Java (Module 3 toolkit under `tools/osv-eval/`)
 
-image::module-01-artifact-metadata.png["SBOM, SLSA L3, and OSV with a remediated artifact",width=700]
+Lightwell application libraries are *not* delivered through Red Hat Satellite content views—build tools and repository managers consume `packages.redhat.com` (or an enterprise proxy/mirror).
+
+image::module-01-artifact-metadata.png["SBOM, VEX, SLSA L3, and OSV with a remediated artifact",width=700]
 
 Member UI (browse / subscribe conceptually): {lightwell-console-url}
 
@@ -180,17 +229,20 @@ Learners without membership still complete RHDP labs using the seeded Nexus / Co
 
 **What you accomplished**
 
-* Framed the AI-accelerated vulnerability pressure on pinned dependencies
-* Distinguished *Validated* vs *Remediated* (and Java *OSV*) using authoritative names and URLs
+* Framed the remediation gap (scanners find issues; upgrades are often blocked)
+* Distinguished *Validated* (bit-for-bit upstream) vs *Remediated* (security-only `.rhlw-*`) and Java *OSV*
+* Placed Lightwell next to platform products, Hardened Images, and (conceptually) LSOS
 * Inspected workshop channel metadata and a sample OSV `fixed` → `.rhlw-*` event
 * Connected the overview to Modules 2–5 (Maven, OSV loop, RHTPA/RHDA, TSSC pipelines)
 
 **Key takeaways**
 
-* Remediated versions use `.rhlw-0000X` (example: `5.3.18.rhlw-00003`)
-* SBOMs, SLSA L3 provenance, and OSV records travel with the Lightwell story
-* Do not invent alternate channel names
+* Remediated versions use `.rhlw-0000X` (example: `5.3.18.rhlw-00003`); qualifiers are cumulative
+* SBOMs, VEX, SLSA L3 provenance, and OSV records travel with the Lightwell story
+* Do not invent alternate channel names; do not deliver LWN via Satellite
 
 **Next**
 
 Module 2 wires enterprise Maven `settings.xml` profiles to the artifact manager so builds resolve Validated and Remediated streams.
+
+Optional reference: xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)].

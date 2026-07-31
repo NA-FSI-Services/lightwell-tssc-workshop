@@ -5,10 +5,10 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 
 == What you will learn
 
-. *Validated* vs *Remediated* repository tiers (exact-version `.rhlw-*` pins)
-. Enterprise Maven consumption via an artifact manager proxy
-. OSV-driven triage and source comparison
-. SBOM analysis with Trusted Profile Analyzer (optional RHDA on a laptop)
+. *Validated* vs *Remediated* repository tiers (exact-version `.rhlw-*` pins; bit-for-bit Validated vs security-only Remediated)
+. Enterprise Maven consumption via an artifact manager proxy (not Satellite)
+. OSV-driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)
+. SBOM / VEX analysis with Trusted Profile Analyzer (optional RHDA on a laptop)
 . Pipeline signing (RHTAS), policy gates (RHACS), and GitOps promotion
 
 == Lab modules
@@ -17,20 +17,22 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 |Module |Focus
 
 |xref:module-01-overview.adoc[1 — Overview]
-|AI-accelerated vulnerability discovery; Lightwell tiers; SLSA / SBOM / OSV
+|Remediation gap; Validated vs Remediated; coexistence; SLSA / SBOM / VEX / OSV
 
 |xref:module-02-maven.adoc[2 — Maven integration]
-|`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth
+|`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth; mirror / air-gap note
 
 |xref:module-03-osv.adoc[3 — Exact-version remediation]
 |OSV → `.rhlw-*` pin → source diff → rebuild
 
 |xref:module-04-sbom.adoc[4 — SBOM + RHTPA]
-|CycloneDX via `syft`; RHTPA ingest; RHDA shift-left callout
+|CycloneDX via `syft`; RHTPA ingest; VEX / scanner narrative; RHDA callout
 
 |xref:module-05-pipeline.adoc[5 — Pipeline + GitOps]
 |Keyless signing (RHTAS), RHACS gates, Argo CD promotion
 |===
+
+No additional hands-on modules are required for the FAQ concept coverage—enrichments live in Modules 1–5 plus the concepts appendix.
 
 == Before you start
 
@@ -42,4 +44,4 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 
 Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-05-pipeline.adoc[Module 5] using the left-hand nav.
 
-Optional appendices (not required for the core path): xref:rhda-shift-left.adoc[RHDA shift-left] and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].
+Optional appendices (not required for the core path): xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].

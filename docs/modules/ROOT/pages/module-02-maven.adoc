@@ -3,7 +3,7 @@
 :toc:
 :toclevels: 2
 
-Field Lightwell Network delivery almost always puts an *enterprise artifact manager* (Nexus or Artifactory) between developers and `packages.redhat.com`. Maven `settings.xml` profiles select *Validated* for active development and *Remediated* when you need exact-version `.rhlw-*` pins.
+Field Lightwell Network delivery almost always puts an *enterprise artifact manager* (Nexus or Artifactory) between developers and `packages.redhat.com`. Customers integrate by pointing existing build tools and repository proxies at Red Hat secured registries; dependency manifests (for example `pom.xml`) plus Maven profiles route requests to *Validated* or *Remediated* repositories.
 
 In this module you wire that pattern on the workshop cluster: extract `settings.xml`, authenticate with env-backed service-account placeholders (never Git), resolve Validated content, and understand how the same profiles work when remotes point *directly* at Lightwell Network.
 
@@ -34,6 +34,10 @@ By the end of this module, you will be able to:
 |Same Nexus *repository names*; content uploaded by Job `lightwell-repo-seed`
 |Deterministic labs when live LWN membership is unavailable
 |===
+
+Disconnected / air-gapped environments use the same *proxy or mirror* techniques customers already use for Red Hat content—sync into a local registry manager, then point Maven at that manager. Lightwell content is *not* synced through Red Hat Satellite content views or errata; delivery is via the artifact repository infrastructure (`packages.redhat.com` / Pulp) that build tools and managers consume.
+
+Technology-relevant *source archives* ship in the same repositories as the binaries (standard Maven layout). Red Hat runs upstream test suites and regression checks before publish; *your* unit, integration, and performance testing in the application context remains your responsibility—patches are intended to be surgical security-only fixes.
 
 Canonical remotes (document even when mirroring):
 
@@ -267,8 +271,9 @@ The Developer Hub Software Template `lightwell-java-service` scaffolds the same 
 **Key takeaways**
 
 * Learner UX: `mvn -s settings.xml -Plightwell-validated …`
-* Proxied PoV is the default enterprise story; RHDP may seed the same repo names
+* Proxied PoV is the default enterprise story; RHDP may seed the same repo names; air-gap uses mirror/proxy, not Satellite
 * Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
+* Source jars accompany binaries; application-context testing stays with the consumer
 
 **Next**
 
