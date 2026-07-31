@@ -11,3 +11,4 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 | `module-01-artifact-metadata.png` | #50 | Diagram (committed) |
 | `module-02-direct-vs-proxy.png` | #51 | Diagram (committed) |
 | `module-02-maven-profiles.png` | #52 | Diagram (committed) |
+| `module-03-osv-fixed-pin.png` | #55 | Diagram (committed) |

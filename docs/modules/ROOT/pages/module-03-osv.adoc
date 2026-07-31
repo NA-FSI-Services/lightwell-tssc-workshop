@@ -77,14 +77,7 @@ chmod +x tools/osv-eval/scripts/*.sh
 +
 Expected keys include `package=org.springframework:spring-core`, `base_version=5.3.18`, and `fixed_version=5.3.18.rhlw-00003`.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-osv-fixed-pin.svg`
-
-OSV `fixed` event → Maven GAV pin `5.3.18.rhlw-00003`.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/55
-// When ready: image::module-03-osv-fixed-pin.svg[OSV fixed event to .rhlw pin,width=700]
-====
+image::module-03-osv-fixed-pin.png[OSV fixed event to .rhlw pin,width=700]
 
 . Optional: prove the remediated coordinate resolves from Nexus (Module 2 remotes):
 +
