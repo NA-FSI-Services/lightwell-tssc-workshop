@@ -23,14 +23,7 @@ Generic automation story (map locally; do *not* invent workshop-specific channel
 . On change → *create a ticket* and/or *open a merge request* / *trigger a rebuild pipeline*
 . A human or bot runs Module 3 steps: read `fixed`, source-diff, pin, rebuild
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/appendix-osv-pulp-manifest-poll.svg`
-
-Poll `PULP_MANIFEST` → checksum change → ticket / MR / pipeline → OSV pin loop.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/68
-// When ready: image::appendix-osv-pulp-manifest-poll.svg[OSV PULP_MANIFEST polling automation,width=700]
-====
+image::appendix-osv-pulp-manifest-poll.png["OSV PULP_MANIFEST polling automation",width=700]
 
 == Canonical endpoints
 
