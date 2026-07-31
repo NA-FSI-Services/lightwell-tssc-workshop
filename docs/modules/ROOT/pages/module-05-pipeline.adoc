@@ -256,14 +256,7 @@ oc -n openshift-gitops get applications.argoproj.io \
 * Argo CD detects the commit (or you click *Refresh* / *Sync*)
 * Deployment rolls out the signed image; earlier gates ensure only remediated pins reached the registry
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-05-argocd-promote.png`
-
-Argo CD App-of-Apps / spring-boot-lw-poc Healthy+Synced (or illustrative SVG).
-Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/65
-// When ready: image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
-====
+image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 
 [source,bash,role=execute]
 ----
