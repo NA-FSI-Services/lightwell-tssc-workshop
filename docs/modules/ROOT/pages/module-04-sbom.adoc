@@ -196,14 +196,7 @@ Instructor laptop (optional demo):
 
 Details: xref:rhda-shift-left.adoc[RHDA shift-left appendix].
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-rhtpa-vs-rhda.svg`
-
-Cluster RHTPA (system of record) vs laptop RHDA (IDE client).
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/61
-// When ready: image::module-04-rhtpa-vs-rhda.svg[RHTPA versus RHDA roles,width=700]
-====
+image::module-04-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
 
 == Module summary
 
