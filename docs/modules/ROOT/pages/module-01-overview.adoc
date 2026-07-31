@@ -28,14 +28,7 @@ Modern applications pull hundreds of open source components. When a critical CVE
 
 AI accelerates both discovery of issues and the need for a repeatable remediation loop (OSV → pin → rebuild), which you practice in Module 3.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-01-osv-pin-rebuild-loop.svg`
-
-Flow: Inspect OSV → read `fixed` (`.rhlw-*`) → diff sources → update `pom.xml` → rebuild.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/48
-// When ready: image::module-01-osv-pin-rebuild-loop.svg[Remediation evaluation loop,width=700]
-====
+image::module-01-osv-pin-rebuild-loop.png[Remediation evaluation loop,width=700]
 
 == Lightwell Network tiers (authoritative)
 
