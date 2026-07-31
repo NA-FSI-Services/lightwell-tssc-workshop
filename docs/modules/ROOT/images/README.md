@@ -16,3 +16,4 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 | `module-03-pom-rebuild.png` | #57 | Diagram (committed) |
 | `module-04-syft-rhtpa-flow.png` | #59 | Diagram (committed) |
 | `module-04-rhtpa-vs-rhda.png` | #61 | Diagram (committed) |
+| `module-05-fail-then-pass.png` | #63 | Diagram (committed) |
