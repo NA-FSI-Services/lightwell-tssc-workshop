@@ -41,14 +41,7 @@ By the end of this module, you will be able to:
 
 Full author notes: `docs/rhda-rhtpa-shift-left.md`. Showroom appendix: xref:rhda-shift-left.adoc[RHDA shift-left].
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-syft-rhtpa-flow.svg`
-
-JAR → syft → CycloneDX → RHTPA upload/browse.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/59
-// When ready: image::module-04-syft-rhtpa-flow.svg[syft CycloneDX to RHTPA flow,width=700]
-====
+image::module-04-syft-rhtpa-flow.png[syft CycloneDX to RHTPA flow,width=700]
 
 == Exercise 1: Read RHTPA ingestion hints
 
