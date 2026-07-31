@@ -112,14 +112,7 @@ ConfigMap `lightwell-maven-settings` (chart `lightwell-repo`) ships the learner 
 
 The Spring Boot PoC adds a *POM* profile `lightwell-remediated-pins` that flips dependency versions (for example `commons-lang3` → `3.14.0.rhlw-00001`). Settings profiles select *where* Maven looks; POM profiles select *which version* to build.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-maven-profiles.svg`
-
-`settings.xml` profiles → Nexus repository IDs → example `mvn -s` commands.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/52
-// When ready: image::module-02-maven-profiles.svg[Maven Validated and Remediated profiles,width=700]
-====
+image::module-02-maven-profiles.png[Maven Validated and Remediated profiles,width=700]
 
 === Extract settings from the cluster
 
