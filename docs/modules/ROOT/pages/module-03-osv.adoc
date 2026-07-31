@@ -114,14 +114,7 @@ diff -ruN \
   tools/osv-eval/fixtures/remediated
 ----
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-source-diff.svg`
-
-Upstream vs remediated source trees with a scoped backport highlight.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
-// When ready: image::module-03-source-diff.svg[Upstream versus remediated source diff,width=700]
-====
+image::module-03-source-diff.png[Upstream versus remediated source diff,width=700]
 
 === Optional: fetch real `-sources.jar` (instructor / network)
 
