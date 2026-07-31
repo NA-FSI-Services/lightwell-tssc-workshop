@@ -221,14 +221,7 @@ oc -n trusted-artifact-signer get routes
 
 . Confirm the log line `Signed … (keyless / RHTAS)` on the PipelineRun.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-05-rhtas-cosign.svg`
-
-Tekton SA → cosign sign → Fulcio + Rekor → cosign verify.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/64
-// When ready: image::module-05-rhtas-cosign.svg[RHTAS keyless cosign sign and verify,width=700]
-====
+image::module-05-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700]
 
 [TIP]
 ====
