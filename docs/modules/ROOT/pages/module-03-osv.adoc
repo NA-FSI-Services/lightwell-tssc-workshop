@@ -180,14 +180,7 @@ mvn -s settings.xml \
 +
 You should see `commons-lang3:jar:3.14.0.rhlw-00001` (or your edited pin) and `BUILD SUCCESS`.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-pom-rebuild.svg`
-
-POM `.rhlw-*` property → `mvn -s … -Plightwell-remediated,lightwell-remediated-pins` → BUILD SUCCESS.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57
-// When ready: image::module-03-pom-rebuild.svg[Pin pom.xml and rebuild with Remediated profiles,width=700]
-====
+image::module-03-pom-rebuild.png[Pin pom.xml and rebuild with Remediated profiles,width=700]
 
 [TIP]
 ====

@@ -13,3 +13,4 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 | `module-02-maven-profiles.png` | #52 | Diagram (committed) |
 | `module-03-osv-fixed-pin.png` | #55 | Diagram (committed) |
 | `module-03-source-diff.png` | #56 | Diagram (committed) |
+| `module-03-pom-rebuild.png` | #57 | Diagram (committed) |
