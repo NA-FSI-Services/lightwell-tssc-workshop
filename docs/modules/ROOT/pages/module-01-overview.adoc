@@ -70,7 +70,7 @@ Artifacts are expected to ship with supply-chain metadata:
 * *SLSA Level 3* — build provenance / signed binaries (Sigstore family; RHTAS in Module 5)
 * *OSV* — fixed-version events for remediated Java (Module 3 toolkit under `tools/osv-eval/`)
 
-image::module-01-artifact-metadata.png[SBOM, SLSA L3, and OSV with a remediated artifact,width=700]
+image::module-01-artifact-metadata.png["SBOM, SLSA L3, and OSV with a remediated artifact",width=700]
 
 Member UI (browse / subscribe conceptually): {lightwell-console-url}
 
