@@ -50,14 +50,7 @@ oc -n stackrox get configmap rhacs-lightwell-policy-lab \
 
 Expected pin pair: `3.14.0` → `3.14.0.rhlw-00001` for `commons-lang3`.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-05-fail-then-pass.svg`
-
-Non-remediated FAIL vs `.rhlw-*` PASS through ACS → SBOM → cosign.
-Asset instructions (generation prompt): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/63
-// When ready: image::module-05-fail-then-pass.svg[Pipeline fail then pass on .rhlw pin,width=700]
-====
+image::module-05-fail-then-pass.png[Pipeline fail then pass on .rhlw pin,width=700]
 
 == Exercise 1: Failure path (non-remediated pin)
 
