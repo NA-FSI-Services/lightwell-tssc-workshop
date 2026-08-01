@@ -107,8 +107,9 @@ Defaults in [`charts/root-app/values.yaml`](../charts/root-app/values.yaml) keep
 | 1 | 50 | `showroom` | Modules prose + terminal |
 | 2 | 20 | `lightwellRepo` | Modules 1–3 |
 | 3 | 40 | `springBootLwPoc` | Maven PoC / pins |
-| 4 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 |
-| 5 | 30 | `rhdh` | Software Template |
+| 4 | 5 | `keycloak` | SSO for RHTPA (`sso.<domain>/realms/tpa`) |
+| 5 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (enable `keycloak` before `rhtpa`) |
+| 6 | 30 | `rhdh` | Software Template |
 | — | 40 | `parasolApp` | Keep **off** |
 
 Override via PR to `main`, or temporary Helm values on the Argo Application. Prefer `ANTORA_PLAYBOOK=site-ci.yml` when the stock Antora image lacks Mermaid/tabs — see [`SHOWROOM-UPDATE-SPEC.md`](./SHOWROOM-UPDATE-SPEC.md).
@@ -151,7 +152,8 @@ Still manual on a bare claim (not in GitOps charts yet):
 - Scale workers toward AgnosticV sizing
 - Install **OpenShift Pipelines** from OperatorHub when not present
 - Grant ArgoCD application-controller **cluster-admin** (or equivalent) so App-of-Apps can create namespaces/SAs
-- **SSO / Keycloak** for RHTPA (`https://sso.<domain>/realms/tpa`) — RHDP Field Content usually supplies this; TPA server CrashLoops without it
+- Enable `components.keycloak` (wave 5) before `rhtpa` — workshop IdP at `https://sso.<domain>/realms/tpa`
+- After Keycloak is Ready, restart TPA `server` Deployment if it CrashLooped before the IdP existed
 - `spring-boot-lw-poc` runtime image is not published to the internal registry; labs use chart Maven source — scale Deployment to `0` if ImagePullBackOff distracts
 
 ## Gaps vs real RHDP Field Content
@@ -161,7 +163,7 @@ Still manual on a bare claim (not in GitOps charts yet):
 | Auto GitOps App + `deployer.*` | `dev-cluster` Helm + scripts |
 | Babylon userinfo email | Console + Showroom Route |
 | CNV pool sizing in AgnosticV | Manual AWS scale on the claim |
-| SSO / Keycloak for RHTPA | Not deployed by charts; TPA needs IdP |
+| SSO / Keycloak for RHTPA | `charts/components/keycloak` (enable wave 5) |
 | Published catalog item | Still requires AgnosticV |
 
 ## Out of scope

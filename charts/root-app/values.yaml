@@ -1,7 +1,8 @@
 # Lightwell TSSC Workshop — App of Apps
 # AgnosticV gitops_path: charts/root-app
 #
-# Sync wave ordering (operators → config → apps → showroom):
+# Sync wave ordering (IdP → operators → config → apps → showroom):
+#    5  — Workshop Keycloak (SSO for RHTPA): keycloak
 #   10  — TSSC operators / platform: rhtas, rhtpa, rhacs
 #   20  — Artifact manager / LWN pattern: lightwell-repo
 #   30  — Developer Hub: rhdh
@@ -30,6 +31,13 @@ argocd:
 # Components — enable/disable and configure each child chart
 # ============================================================
 components:
+
+  # --- Wave 5: Workshop IdP (required before RHTPA) ---
+  # Chart: charts/components/keycloak. Route host sso.<deployer.domain>/realms/tpa.
+  keycloak:
+    enabled: false
+    namespace: sso
+    syncWave: "5"
 
   # --- Wave 10: TSSC operators / platform ---
   # Chart: charts/components/rhtas (#4). Enable when cluster is ready to sync.

@@ -1,0 +1,76 @@
+{{- if .Values.keycloak.enabled }}
+---
+# Realm import for RHTPA — clients frontend (public) + cli (confidential).
+# Wildcard redirect/webOrigins are workshop-only; tighten for shared environments.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.keycloak.name }}-realm-import
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.syncWaves.config | quote }}
+data:
+  tpa-realm.json: |
+    {
+      "realm": {{ .Values.oidc.realm | quote }},
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": false,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": false,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": false,
+      "clients": [
+        {
+          "clientId": {{ .Values.oidc.frontendClientId | quote }},
+          "name": "TPA frontend",
+          "enabled": true,
+          "publicClient": true,
+          "protocol": "openid-connect",
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": false,
+          "redirectUris": ["*"],
+          "webOrigins": ["*"],
+          "attributes": {
+            "pkce.code.challenge.method": "S256"
+          }
+        },
+        {
+          "clientId": {{ .Values.oidc.cliClientId | quote }},
+          "name": "TPA CLI",
+          "enabled": true,
+          "publicClient": false,
+          "secret": {{ .Values.oidc.cliClientSecret | quote }},
+          "protocol": "openid-connect",
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "redirectUris": ["*"],
+          "webOrigins": ["*"]
+        }
+      ],
+      "users": [
+        {
+          "username": {{ .Values.oidc.workshopUser.username | quote }},
+          "enabled": true,
+          "email": {{ .Values.oidc.workshopUser.email | quote }},
+          "emailVerified": true,
+          "firstName": "TPA",
+          "lastName": "Workshop",
+          "credentials": [
+            {
+              "type": "password",
+              "value": {{ .Values.oidc.workshopUser.password | quote }},
+              "temporary": false
+            }
+          ]
+        }
+      ]
+    }
+{{- end }}
