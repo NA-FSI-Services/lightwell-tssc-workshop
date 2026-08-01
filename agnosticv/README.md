@@ -63,6 +63,7 @@ RHDP injects `deployer.domain` and `deployer.apiUrl` into Helm values for `chart
 
 ## Related
 
+- [RHDP demo / lab onboarding form](https://red.ht/demo-onboarding) — intake answers in [SUBMISSION.md](./SUBMISSION.md#rhdp-demo--lab-onboarding-form)
 - [#9](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/9) — initial AgnosticV draft
 - [#10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/10) — CNV sizing
 - [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) — umbrella · [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71)–[#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) · [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21)–[#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23)
