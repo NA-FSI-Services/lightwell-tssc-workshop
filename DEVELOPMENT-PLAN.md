@@ -209,7 +209,7 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 
 **AgnosticV target:** [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) (Babylon-documented). **Strategy:** dev-first → prod. Checklist: [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md).
 
-**While AgnosticV access is blocked:** use a demo.redhat.com OpenShift-on-AWS claim (cluster-admin + AWS console), install GitOps, and sync `charts/root-app` manually — see [`docs/DEV-CLUSTER-BOOTSTRAP.md`](./docs/DEV-CLUSTER-BOOTSTRAP.md). That path is for instruction/GitOps QA only; it does not replace catalog onboarding.
+**While AgnosticV access is blocked:** order a demo.redhat.com OpenShift claim, fill `dev-cluster/claim.env` from the email, and run [`scripts/dev-cluster-bootstrap.sh`](./scripts/dev-cluster-bootstrap.sh) — see [`docs/DEV-CLUSTER-BOOTSTRAP.md`](./docs/DEV-CLUSTER-BOOTSTRAP.md). That path is for instruction/GitOps QA only; it does not replace catalog onboarding. Do not commit ephemeral claim hostnames or credentials.
 
 | Step | Issue | Outcome |
 |------|-------|---------|

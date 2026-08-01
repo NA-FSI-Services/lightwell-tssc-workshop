@@ -1,0 +1,38 @@
+{{- if .Values.application.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Values.argocd.applicationName }}
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    app.kubernetes.io/name: lightwell-dev-bootstrap
+    app.kubernetes.io/component: root-app
+    demo.redhat.com/application: "lightwell-tssc-workshop"
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl | quote }}
+    targetRevision: {{ .Values.gitops.revision | quote }}
+    path: {{ .Values.gitops.path | quote }}
+    helm:
+      valuesObject:
+        deployer:
+          domain: {{ required "deployer.domain is required" .Values.deployer.domain | quote }}
+          apiUrl: {{ required "deployer.apiUrl is required" .Values.deployer.apiUrl | quote }}
+        components:
+          showroom:
+            enabled: {{ .Values.showroom.enabled }}
+            content:
+              antoraPlaybook: {{ .Values.showroom.antoraPlaybook | quote }}
+              repoRef: {{ .Values.showroom.repoRef | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.argocd.namespace }}
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+{{- end }}

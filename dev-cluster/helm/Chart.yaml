@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lightwell-dev-bootstrap
+description: Ephemeral RHDP OpenShift claim bootstrap — GitOps operator (optional) + Argo Application for charts/root-app
+type: application
+version: 0.1.0
+appVersion: "1.0"

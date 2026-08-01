@@ -38,7 +38,11 @@ lightwell-tssc-workshop/
 │   ├── repository-conventions.md
 │   ├── ansible-developer-guide.md
 │   ├── SHOWROOM-UPDATE-SPEC.md
-│   └── DEV-CLUSTER-BOOTSTRAP.md     # Phase 5 bypass: OCP+AWS + manual GitOps QA
+│   └── DEV-CLUSTER-BOOTSTRAP.md     # Phase 5 bypass: claim.env + Helm bootstrap
+├── dev-cluster/                     # Ephemeral RHDP OpenShift QA bootstrap (not catalog GitOps path)
+│   ├── claim.env.example
+│   ├── README.md
+│   └── helm/                        # GitOps Subscription + Argo Application for root-app
 ├── site.yml                         # Antora playbook (Showroom antoraPlaybook)
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md

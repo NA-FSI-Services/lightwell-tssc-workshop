@@ -1,30 +1,78 @@
 # Dev cluster bootstrap (Phase 5 AgnosticV bypass)
 
-**Purpose:** Deploy and test this workshop’s GitOps content and Showroom labs on a **generic OpenShift claim** from [demo.redhat.com](https://demo.redhat.com) while AgnosticV access for `published.lightwell-tssc-workshop.prod` is blocked.
+**Purpose:** Provision this workshop’s GitOps stack and Showroom labs onto **any ephemeral OpenShift claim** from [demo.redhat.com](https://demo.redhat.com) while AgnosticV access for `published.lightwell-tssc-workshop.prod` is blocked.
 
-**This does not replace** catalog onboarding. When AgV unlocks, follow [`agnosticv/SUBMISSION.md`](../agnosticv/SUBMISSION.md) (dev-first → prod). Use this runbook only for **instruction and chart QA**.
+**This does not replace** catalog onboarding. When AgV unlocks, follow [`agnosticv/SUBMISSION.md`](../agnosticv/SUBMISSION.md). Use this path only for **instruction and chart QA**.
 
-**Preferred claim shape:** OpenShift on AWS with **cluster-admin** and **AWS console** access so you can scale workers. Prefer this over greenfield Terraform.
+**Do not commit** per-claim hostnames, passwords, API tokens, or CA material. Claims are short-lived; standardize on the **field schema** below and a local `claim.env`.
 
 ```mermaid
 flowchart TD
-  order[Order OCP on AWS from demo.redhat.com]
-  scale[Scale workers via AWS console]
-  gitops[Install OpenShift GitOps operator]
-  root[Create Argo Application for charts/root-app]
-  waves[Enable components by sync wave]
+  order[Order OCP claim on demo.redhat.com]
+  fill[Fill claim.env from RHDP email]
+  login[scripts/dev-cluster-login.sh]
+  boot[scripts/dev-cluster-bootstrap.sh]
+  waves[Enable root-app components by sync wave]
   labs[Walk Showroom Modules 1-5]
-  order --> scale --> gitops --> root --> waves --> labs
+  order --> fill --> login --> boot --> waves --> labs
+```
+
+## Reusable layout
+
+| Path | Role |
+|------|------|
+| [`dev-cluster/claim.env.example`](../dev-cluster/claim.env.example) | Canonical env vars derived from a typical RHDP “Open” OpenShift email |
+| `dev-cluster/claim.env` | **Local only** (gitignored) — copy of example filled for the current claim |
+| `dev-cluster/*.ca.crt` | **Local only** — API CA from the email |
+| [`dev-cluster/helm/`](../dev-cluster/helm/) | Helm chart: OpenShift GitOps Subscription (optional) + Argo `Application` for `charts/root-app` |
+| [`scripts/dev-cluster-login.sh`](../scripts/dev-cluster-login.sh) | `oc login` from `claim.env` |
+| [`scripts/dev-cluster-bootstrap.sh`](../scripts/dev-cluster-bootstrap.sh) | Render/apply Helm bootstrap against the logged-in cluster |
+
+Provisioning on the claim uses **Helm** (preferred; matches App-of-Apps). The same `claim.env` can drive Ansible/`oc` later if needed. Do **not** use Terraform to create AWS/OCP for this workshop — RHDP already provides the cluster; we only configure workloads.
+
+## Standardized claim fields (from RHDP email)
+
+Map the email / portal block into `claim.env` using these names:
+
+| RHDP email content | Env var | Notes |
+|--------------------|---------|--------|
+| OpenShift API URL (`https://api.…:6443`) | `API_URL` | Required |
+| Apps / ingress domain (`apps.…`) | `DEPLOYER_DOMAIN` | No `https://`; used as `deployer.domain` |
+| OpenShift console URL | `CONSOLE_URL` | Documentation / smoke only |
+| Cluster-admin API token | `OC_TOKEN` | Prefer SA token over embedding kubeadmin password in scripts |
+| API CA certificate PEM | `OC_CA_FILE` | Path to local `.ca.crt` file |
+| Bastion hostname | `BASTION_HOST` | Optional SSH jump |
+| Bastion user | `BASTION_USER` | Often `lab-user` |
+| kubeadmin user | `KUBEADMIN_USER` | Console only; keep password out of env if possible |
+| AWS console URL | `AWS_CONSOLE_URL` | Optional; for worker scale |
+| GitOps content repo | `GIT_REPO` | Default: this workshop’s GitHub URL |
+| Git revision | `GIT_REVISION` | Default: `main` |
+| Antora playbook | `ANTORA_PLAYBOOK` | Default: `site-ci.yml` for stock Showroom Antora images |
+
+**Never commit** filled `claim.env`, CA files, or passwords. When the claim expires, delete the local files and start again from `claim.env.example`.
+
+### Quick start
+
+```bash
+cp dev-cluster/claim.env.example dev-cluster/claim.env
+# Edit claim.env — paste API_URL, DEPLOYER_DOMAIN, OC_TOKEN, OC_CA_FILE, …
+# Save the email CA PEM to e.g. dev-cluster/cluster.ca.crt and set OC_CA_FILE
+
+./scripts/dev-cluster-login.sh
+./scripts/dev-cluster-bootstrap.sh
+
+# Showroom after sync:
+#   https://showroom.${DEPLOYER_DOMAIN}/
 ```
 
 ## Why this works
 
 | Concern | Approach |
 |---------|----------|
-| Delivery model | Already GitOps App-of-Apps: [`charts/root-app`](../charts/root-app/) |
-| Domain / API injection | Field Content normally sets `deployer.domain` / `deployer.apiUrl`; you set them on the Argo Application |
-| Capacity | Scale via AWS toward sizing in [`agnosticv/README.md`](../agnosticv/README.md) |
-| Catalog identity | Still blocked — treat the claim as a **dev QA cluster**, not the published catalog item |
+| Delivery model | GitOps App-of-Apps: [`charts/root-app`](../charts/root-app/) |
+| Domain / API injection | Bootstrap Helm sets `deployer.domain` / `deployer.apiUrl` (Field Content stand-in) |
+| Ephemeral claims | Env + script; no cluster-specific docs in Git |
+| Catalog identity | Dev QA only until AgnosticV unlocks |
 
 ## Target sizing
 
@@ -33,170 +81,79 @@ flowchart TD
 | Control plane | 1 | 16 | 32 GB |
 | Workers | 2 | 16 | 64 GB each |
 
-Equivalent: ~**32 vCPU / ~128 GiB** aggregate **worker** capacity. Do **not** run the full Modules 1–5 stack on SNO or a tiny sandbox.
+~**32 vCPU / ~128 GiB** aggregate **worker** capacity before enabling RHACS / RHTPA / RHDH / heavy Tekton. Scale via the claim’s AWS console when provided. Avoid SNO for full Modules 1–5.
 
 ## Prerequisites when ordering
 
-Order a catalog item that provides:
+- OpenShift **cluster-admin** (or equivalent for operators + Argo Applications)
+- Prefer claims that include **AWS console** access for node scale
+- Lifespan **48h+** for multi-day QA when possible
+- OperatorHub + working cluster **pull secret**
 
-- OpenShift **cluster-admin** (install operators + create Argo Applications)
-- **AWS console** (or EC2 / ASG / MachineSet access) to add or resize workers
-- Lifespan suitable for multi-day QA (**48h+** preferred)
-- OperatorHub + a working cluster **pull secret** for Red Hat operators
+## Manual steps the scripts do not replace
 
-Record after the claim is ready:
+### Scale workers
 
-```text
-API URL:     https://api.<cluster>:6443
-Apps domain: apps.<cluster>.<base>
-Console:     https://console-openshift-console.apps.<...>
-AWS console: <from RHDP userinfo / email>
-oc login:    <token or kubeadmin>
-```
+1. Open `AWS_CONSOLE_URL` from the claim (if present).
+2. Resize / add workers toward the sizing table.
+3. Confirm: `oc get nodes -o wide`
 
-## Step 1 — Scale workers
+### Progressive component enable
 
-Before enabling RHACS, RHTPA, RHDH, or heavy Tekton:
-
-1. Open the AWS console from the claim.
-2. Resize or add worker nodes / MachineSets toward the table above.
-3. Confirm nodes Ready:
-
-```bash
-oc get nodes -o wide
-oc adm top nodes   # optional; needs metrics
-```
-
-## Step 2 — Install OpenShift GitOps
-
-1. In the OpenShift console: **OperatorHub** → **OpenShift GitOps** → Install (default `openshift-gitops`).
-2. Wait until the `openshift-gitops` namespace pods are Ready and the Argo CD route exists:
-
-```bash
-oc -n openshift-gitops get pods,route
-```
-
-3. Optional: install **OpenShift Pipelines** early if you will exercise Module 5 Tekton before enabling the RHACS chart’s Tasks.
-
-## Step 3 — Create the root App-of-Apps
-
-Substitute `DEPLOYER_DOMAIN` and `API_URL` from your claim.
-
-```bash
-export DEPLOYER_DOMAIN='apps.cluster-XXXX.XXXX.example.opentlc.com'   # no https://
-export API_URL='https://api.cluster-XXXX.XXXX.example.opentlc.com:6443'
-export GIT_REPO='https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git'
-export GIT_REVISION='main'
-```
-
-```bash
-oc apply -f - <<EOF
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: lightwell-tssc-root
-  namespace: openshift-gitops
-spec:
-  project: default
-  source:
-    repoURL: ${GIT_REPO}
-    targetRevision: ${GIT_REVISION}
-    path: charts/root-app
-    helm:
-      valuesObject:
-        deployer:
-          domain: ${DEPLOYER_DOMAIN}
-          apiUrl: ${API_URL}
-        # Override Showroom playbook if stock Antora image lacks Mermaid/tabs
-        components:
-          showroom:
-            enabled: true
-            content:
-              antoraPlaybook: site-ci.yml
-              repoRef: main
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: openshift-gitops
-  syncPolicy:
-    automated:
-      prune: false
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-EOF
-```
-
-Sync / health:
-
-```bash
-oc -n openshift-gitops get applications.argoproj.io lightwell-tssc-root
-# Or open the Argo CD UI Route in openshift-gitops
-```
-
-### Helm alternative (no Argo yet)
-
-If GitOps is delayed, you can still deploy **Showroom alone** (as on the sandbox):
-
-```bash
-helm upgrade --install showroom charts/components/showroom \
-  --set deployer.domain="${DEPLOYER_DOMAIN}" \
-  --set deployer.apiUrl="${API_URL}" \
-  --set showroom.content.antoraPlaybook=site-ci.yml \
-  --set showroom.content.repoRef=main
-```
-
-Prefer the Argo root Application for anything beyond Showroom.
-
-## Step 4 — Progressive component enable
-
-Defaults in [`charts/root-app/values.yaml`](../charts/root-app/values.yaml) keep most components `enabled: false` (Showroom is `true`). Enable in **sync-wave order**; do not turn everything on at once.
+Defaults in [`charts/root-app/values.yaml`](../charts/root-app/values.yaml) keep most components `enabled: false` (Showroom is `true`). Enable by sync wave:
 
 | Order | Wave | Component | Lab focus |
 |------:|------|-----------|-----------|
 | 1 | 50 | `showroom` | Modules prose + terminal |
-| 2 | 20 | `lightwellRepo` | Modules 1–3 (seeded Nexus / channels) |
+| 2 | 20 | `lightwellRepo` | Modules 1–3 |
 | 3 | 40 | `springBootLwPoc` | Maven PoC / pins |
-| 4 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (after capacity) |
-| 5 | 30 | `rhdh` | Software Template golden path |
-| — | 40 | `parasolApp` | Keep **off** for critical path |
+| 4 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 |
+| 5 | 30 | `rhdh` | Software Template |
+| — | 40 | `parasolApp` | Keep **off** |
 
-**How to enable:** PR to `main` flipping `components.<name>.enabled: true`, **or** temporary Helm `valuesObject` overrides on the Argo Application (fine for a short-lived QA claim).
+Override via PR to `main`, or temporary Helm values on the Argo Application. Prefer `ANTORA_PLAYBOOK=site-ci.yml` when the stock Antora image lacks Mermaid/tabs — see [`SHOWROOM-UPDATE-SPEC.md`](./SHOWROOM-UPDATE-SPEC.md).
 
-**Showroom note:** Prefer `site-ci.yml` on clusters whose Antora image lacks `@sntke/antora-mermaid-extension` / tabs packages. Production RHDP Field Content may use `site.yml` when the image supports it — see [`docs/SHOWROOM-UPDATE-SPEC.md`](./SHOWROOM-UPDATE-SPEC.md).
-
-## Step 5 — Smoke checklist
+### Smoke checklist
 
 - [ ] `lightwell-tssc-root` Application **Synced** / **Healthy**
-- [ ] Showroom Route serves Modules + [FAQ concepts appendix](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/blob/main/docs/modules/ROOT/pages/appendix-lightwell-concepts.adoc)
+- [ ] `https://showroom.${DEPLOYER_DOMAIN}/` serves Modules + FAQ appendix
 - [ ] `oc -n lightwell-repo get configmap lightwell-channels` (after wave 20)
-- [ ] Module 2: `mvn -s settings.xml -Plightwell-validated …` against workshop Nexus
-- [ ] Module 3: OSV sample / `.rhlw-*` pin path
-- [ ] Module 4: RHTPA Route + `syft` CycloneDX (after `rhtpa` Healthy)
-- [ ] Module 5: dep-gate fail/pass + RHTAS only after `rhacs` / `rhtas` Healthy
+- [ ] Module 2 Maven Validated / Remediated against workshop Nexus
+- [ ] Module 3 OSV → `.rhlw-*` path
+- [ ] Modules 4–5 only after `rhtpa` / `rhacs` / `rhtas` Healthy
 
-Showroom URL pattern:
+### Showroom-only fallback
 
-```text
-https://showroom.${DEPLOYER_DOMAIN}/
+If OpenShift GitOps is not ready yet:
+
+```bash
+set -a && source dev-cluster/claim.env && set +a
+helm upgrade --install showroom charts/components/showroom \
+  --set deployer.domain="${DEPLOYER_DOMAIN}" \
+  --set deployer.apiUrl="${API_URL}" \
+  --set showroom.content.antoraPlaybook="${ANTORA_PLAYBOOK:-site-ci.yml}" \
+  --set showroom.content.repoRef="${GIT_REVISION:-main}"
 ```
 
 ## Gaps vs real RHDP Field Content
 
 | RHDP Field Content | This bypass |
 |--------------------|-------------|
-| Auto GitOps App + `deployer.*` injection | You create the Application and set values |
-| Babylon / catalog userinfo email | Use Showroom Route + OpenShift / AWS consoles |
-| CNV pool sizing baked into AgnosticV | You scale via AWS |
-| Catalog item `published.lightwell-tssc-workshop.prod` | Still requires AgnosticV ([`SUBMISSION.md`](../agnosticv/SUBMISSION.md)) |
+| Auto GitOps App + `deployer.*` | `dev-cluster` Helm + scripts |
+| Babylon userinfo email | Console + Showroom Route |
+| CNV pool sizing in AgnosticV | Manual AWS scale on the claim |
+| Published catalog item | Still requires AgnosticV |
 
 ## Out of scope
 
-- Terraform / greenfield AWS→OCP provisioning for this workshop
-- Opening PRs to [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) without human confirmation ([`AGENTS.md`](../AGENTS.md))
-- Changing catalog IDs or claiming production catalog readiness
+- Publishing ephemeral claim hostnames, tokens, or passwords in Git
+- Terraform greenfield AWS→OCP for this workshop
+- AgnosticV PRs without human confirmation ([`AGENTS.md`](../AGENTS.md))
+- Changing catalog IDs
 
 ## Related
 
+- [`dev-cluster/helm/`](../dev-cluster/helm/) — bootstrap chart
 - [`DEVELOPMENT-PLAN.md`](../DEVELOPMENT-PLAN.md) — Phase 5
 - [`agnosticv/README.md`](../agnosticv/README.md) — sizing + draft leaves
 - [`charts/README.md`](../charts/README.md) — sync waves

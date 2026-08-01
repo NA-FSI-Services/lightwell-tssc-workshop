@@ -67,5 +67,5 @@ RHDP injects `deployer.domain` and `deployer.apiUrl` into Helm values for `chart
 - [#10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/10) — CNV sizing
 - [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) — umbrella · [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71)–[#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) · [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21)–[#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23)
 - [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) — Phase 5
-- [DEV-CLUSTER-BOOTSTRAP.md](../docs/DEV-CLUSTER-BOOTSTRAP.md) — OCP+AWS QA bypass while AgnosticV access is blocked
+- [DEV-CLUSTER-BOOTSTRAP.md](../docs/DEV-CLUSTER-BOOTSTRAP.md) — Ephemeral OCP claim QA via `claim.env` + `dev-cluster` Helm bootstrap
 - [redhat-cop/babylon](https://github.com/redhat-cop/babylon) — AgnosticV Operator / CatalogItem materialization

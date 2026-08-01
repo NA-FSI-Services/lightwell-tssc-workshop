@@ -1,0 +1,33 @@
+# Values for ephemeral claim bootstrap. Prefer passing from claim.env via
+# scripts/dev-cluster-bootstrap.sh rather than committing claim-specific values.
+
+gitopsOperator:
+  enabled: true
+  namespace: openshift-gitops-operator
+  channel: latest
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: ""
+
+application:
+  # Set true after GitOps CRDs exist (bootstrap script does this in phase 2)
+  enabled: true
+
+argocd:
+  namespace: openshift-gitops
+  project: default
+  applicationName: lightwell-tssc-root
+
+gitops:
+  repoUrl: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
+  revision: "main"
+  path: "charts/root-app"
+
+deployer:
+  domain: ""
+  apiUrl: ""
+
+showroom:
+  enabled: true
+  antoraPlaybook: "site-ci.yml"
+  repoRef: "main"
