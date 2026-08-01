@@ -55,7 +55,7 @@ https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/main/charts/comp
 |-----|---------|-------|
 | `rhdh.enabled` | `true` | Chart gate |
 | `rhdh.namespace` | `rhdh` | Instance namespace |
-| `rhdh.apiVersion` | `rhdh.redhat.com/v1alpha3` | Override if channel CRD differs |
+| `rhdh.apiVersion` | `rhdh.redhat.com/v1alpha5` | Override if channel CRD differs |
 | `operator.enabled` | `true` | Set `false` if Operator already installed |
 | `operator.channel` | `fast` | Or `fast-1.10` for z-stream only |
 | `softwareTemplates.enabled` | `true` | Mount Template catalog entity |

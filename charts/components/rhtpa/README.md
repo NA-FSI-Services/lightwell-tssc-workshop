@@ -41,7 +41,7 @@ Storage defaults to **filesystem** (PVC) for PoC / RHDP workshops. Prefer S3 / O
 |-----|---------|-------|
 | `rhtpa.enabled` | `true` | Chart gate |
 | `rhtpa.namespace` | `trusted-profile-analyzer` | Instance + operator NS |
-| `operator.channel` | `stable` | Or `stable-v1.0` |
+| `operator.channel` | `stable-v3` | Catalog default; `stable-v1.1` also exists |
 | `trustedProfileAnalyzer.storage.type` | `filesystem` | PoC PVC storage |
 | `trustedProfileAnalyzer.importers.*.enabled` | CVE/OSV on; CSAF/RH SBOM off | Footprint control |
 | `deployer.domain` | `""` | Injected by root-app |

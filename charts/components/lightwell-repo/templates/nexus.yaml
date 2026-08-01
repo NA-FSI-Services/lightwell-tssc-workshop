@@ -59,6 +59,9 @@ spec:
         {{- include "lightwell-repo.labels" . | nindent 8 }}
         app: {{ .Values.nexus.name }}
     spec:
+{{- if .Values.nexus.anyuidScc }}
+      serviceAccountName: {{ .Values.nexus.name }}
+{{- end }}
       securityContext:
         fsGroup: 200
       containers:

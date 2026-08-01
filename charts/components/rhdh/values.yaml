@@ -9,8 +9,8 @@ rhdh:
   namespace: rhdh
   # Backstage CR name
   name: developer-hub
-  # CRD apiVersion — pin if a cluster channel differs
-  apiVersion: rhdh.redhat.com/v1alpha3
+  # CRD apiVersion — RHDH Operator 1.10+ serves v1alpha5 (v1alpha3 is not served)
+  apiVersion: rhdh.redhat.com/v1alpha5
   replicas: 1
   route:
     enabled: true

@@ -135,6 +135,25 @@ helm upgrade --install showroom charts/components/showroom \
   --set showroom.content.repoRef="${GIT_REVISION:-main}"
 ```
 
+## Claim-validation fixes (chart defaults)
+
+Learned from OCP-on-AWS claim QA; defaults now match marketplace / OpenShift 4.20:
+
+| Issue | Fix |
+|-------|-----|
+| RHTPA Subscription `stable` unsatisfiable | `operator.channel: stable-v3` |
+| RHDH Backstage `v1alpha3` not served | `rhdh.apiVersion: rhdh.redhat.com/v1alpha5` |
+| Operator apps fail dry-run before CRDs | root-app `SkipDryRunOnMissingResource` + `ServerSideApply` on TSSC/RHDH apps |
+| Nexus `fsGroup: 200` blocked by restricted SCC | Nexus SA + `system:openshift:scc:anyuid` RoleBinding |
+
+Still manual on a bare claim (not in GitOps charts yet):
+
+- Scale workers toward AgnosticV sizing
+- Install **OpenShift Pipelines** from OperatorHub when not present
+- Grant ArgoCD application-controller **cluster-admin** (or equivalent) so App-of-Apps can create namespaces/SAs
+- **SSO / Keycloak** for RHTPA (`https://sso.<domain>/realms/tpa`) — RHDP Field Content usually supplies this; TPA server CrashLoops without it
+- `spring-boot-lw-poc` runtime image is not published to the internal registry; labs use chart Maven source — scale Deployment to `0` if ImagePullBackOff distracts
+
 ## Gaps vs real RHDP Field Content
 
 | RHDP Field Content | This bypass |
@@ -142,6 +161,7 @@ helm upgrade --install showroom charts/components/showroom \
 | Auto GitOps App + `deployer.*` | `dev-cluster` Helm + scripts |
 | Babylon userinfo email | Console + Showroom Route |
 | CNV pool sizing in AgnosticV | Manual AWS scale on the claim |
+| SSO / Keycloak for RHTPA | Not deployed by charts; TPA needs IdP |
 | Published catalog item | Still requires AgnosticV |
 
 ## Out of scope

@@ -1,0 +1,33 @@
+{{- if and .Values.lightwellRepo.enabled .Values.nexus.enabled .Values.nexus.anyuidScc }}
+---
+# Nexus needs fsGroup 200; restricted SCC blocks that on OpenShift.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.nexus.name }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app: {{ .Values.nexus.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.nexus | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.nexus.name }}-scc-anyuid
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app: {{ .Values.nexus.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.nexus | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.nexus.name }}
+    namespace: {{ .Values.lightwellRepo.namespace }}
+{{- end }}

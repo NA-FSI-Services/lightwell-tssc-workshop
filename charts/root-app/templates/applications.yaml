@@ -37,6 +37,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
 {{- end }}
 
 {{- if .Values.components.rhtpa.enabled }}
@@ -75,6 +77,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
 {{- end }}
 
 {{- if .Values.components.rhacs.enabled }}
@@ -113,6 +117,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
 {{- end }}
 
 {{- if .Values.components.lightwellRepo.enabled }}
@@ -189,6 +195,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
 {{- end }}
 
 {{- if .Values.components.springBootLwPoc.enabled }}

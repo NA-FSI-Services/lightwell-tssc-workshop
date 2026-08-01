@@ -23,6 +23,8 @@ nexus:
   name: nexus
   image: docker.io/sonatype/nexus3:3.70.1
   replicas: 1
+  # Grant anyuid SCC so fsGroup: 200 is allowed under restricted OpenShift SCCs
+  anyuidScc: true
   # Nexus admin password is generated on first boot into a Secret; do not commit it.
   # Document LW_USERNAME / LW_PASSWORD separately for LWN remote auth.
   service:
