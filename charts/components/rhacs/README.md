@@ -21,7 +21,7 @@ Root App-of-Apps places this chart at sync wave **`10`**.
 |----------|---------|
 | Task `lightwell-dep-gate` | Fail when default Maven pin lacks `.rhlw-*` (OSV-friendly / deterministic) |
 | Task `acs-image-check` | `roxctl image check` against Central BUILD policies (Clair/OSV-class) |
-| Task `syft-sbom-rhtpa` | syft CycloneDX SBOM + optional upload to RHTPA |
+| Task `syft-sbom-rhtpa` | syft CycloneDX SBOM (distroless ENTRYPOINT) + UBI publish/upload to RHTPA |
 | Pipeline `lightwell-build-policy-gate` | clone → dep-gate → ACS check → SBOM |
 | ConfigMap `rhacs-lightwell-policy-lab` | Fail / success lab narrative |
 | ConfigMap `rhacs-lightwell-central-policy` | Importable Fixable Critical BUILD policy JSON |

@@ -1,6 +1,9 @@
 {{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.sbom.enabled }}
 ---
 # Generate CycloneDX SBOM (syft) and optionally POST to RHTPA for attestation visibility.
+#
+# ghcr.io/anchore/syft is distroless (no shell) — Tekton `script:` cannot execute there.
+# Generation steps use the image ENTRYPOINT + args; publish uses UBI for results + curl.
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -49,50 +52,77 @@ spec:
         secretName: $(params.rhtpa-secret-name)
         optional: true
   steps:
-    - name: syft-cyclonedx
+    - name: syft-image
       image: {{ .Values.pipelineHooks.sbom.syftImage | quote }}
+      workingDir: /workspace
+      when:
+        - input: "$(params.image)"
+          operator: notin
+          values: [""]
+      args:
+        - packages
+        - $(params.image)
+        - -o
+        - cyclonedx-json=$(workspaces.sbom.path)/sbom.cyclonedx.json
+
+    - name: syft-dir
+      image: {{ .Values.pipelineHooks.sbom.syftImage | quote }}
+      workingDir: /workspace
+      when:
+        - input: "$(params.image)"
+          operator: in
+          values: [""]
+      args:
+        - packages
+        - dir:$(workspaces.source.path)/$(params.source-path)
+        - -o
+        - cyclonedx-json=$(workspaces.sbom.path)/sbom.cyclonedx.json
+
+    - name: publish-sbom
+      image: {{ .Values.pipelineHooks.sbom.uploadImage | quote }}
       workingDir: /workspace
       volumeMounts:
         - name: rhtpa-secret
           mountPath: /rhtpa-secret
       env:
-        - name: PARAM_IMAGE
-          value: $(params.image)
-        - name: PARAM_SOURCE
-          value: $(params.source-path)
         - name: PARAM_RHTPA_URL
           value: $(params.rhtpa-url)
         - name: FAIL_ON_UPLOAD
           value: $(params.fail-on-upload-error)
+        - name: SBOM_DIR
+          value: $(workspaces.sbom.path)
       script: |
-        #!/usr/bin/env sh
-        set -eu
-        OUT="$(workspaces.sbom.path)/sbom.cyclonedx.json"
-        if [ -n "${PARAM_IMAGE}" ]; then
-          echo "syft packages ${PARAM_IMAGE} -o cyclonedx-json"
-          syft packages "${PARAM_IMAGE}" -o cyclonedx-json > "${OUT}"
-        else
-          SRC="$(workspaces.source.path)/${PARAM_SOURCE}"
-          echo "syft packages dir:${SRC} -o cyclonedx-json"
-          syft packages "dir:${SRC}" -o cyclonedx-json > "${OUT}"
+        #!/usr/bin/env bash
+        set -euo pipefail
+        OUT="${SBOM_DIR}/sbom.cyclonedx.json"
+        if [[ ! -f "${OUT}" ]]; then
+          echo "ERROR: ${OUT} missing — syft step did not write CycloneDX"
+          echo -n "failed" > "$(results.upload-status.path)"
+          echo -n "missing" > "$(results.sbom-path.path)"
+          exit 1
         fi
         echo -n "${OUT}" > "$(results.sbom-path.path)"
         ls -la "${OUT}"
+        # Quick sanity (jq may be absent on minimal UBI)
+        head -c 200 "${OUT}"; echo
 
-        if [ -z "${PARAM_RHTPA_URL}" ]; then
+        if [[ -z "${PARAM_RHTPA_URL}" ]]; then
           echo "RHTPA URL empty — SBOM written for manual UI/API upload"
           echo -n "skipped-no-url" > "$(results.upload-status.path)"
           exit 0
         fi
 
+        if ! command -v curl >/dev/null 2>&1; then
+          microdnf install -y curl >/dev/null
+        fi
+
         TOKEN=""
-        if [ -s /rhtpa-secret/token ]; then
+        if [[ -s /rhtpa-secret/token ]]; then
           TOKEN="$(cat /rhtpa-secret/token)"
         fi
 
         # Trustify 3 / RHTPA: POST /api/v3/sbom (application/octet-stream).
         # Fall back to legacy /api/v2/sbom JSON for older bombastic-style endpoints.
-        # Learners can also upload ${OUT} via the RHTPA UI (Module 4).
         set +e
         status=1
         for UPLOAD_URL in \
@@ -100,12 +130,12 @@ spec:
           "${PARAM_RHTPA_URL%/}/api/v2/sbom"
         do
           echo "Attempting SBOM upload to ${UPLOAD_URL}"
-          if [ "${UPLOAD_URL#*/api/v3/}" != "${UPLOAD_URL}" ]; then
+          if [[ "${UPLOAD_URL}" == *"/api/v3/"* ]]; then
             CT="application/octet-stream"
           else
             CT="application/json"
           fi
-          if [ -n "${TOKEN}" ]; then
+          if [[ -n "${TOKEN}" ]]; then
             curl -sS -f -X POST \
               -H "Authorization: Bearer ${TOKEN}" \
               -H "Content-Type: ${CT}" \
@@ -119,21 +149,20 @@ spec:
               "${UPLOAD_URL}"
             status=$?
           fi
-          if [ "${status}" -eq 0 ]; then
+          if [[ "${status}" -eq 0 ]]; then
             break
           fi
         done
         set -e
-        if [ "${status}" -eq 0 ]; then
+        if [[ "${status}" -eq 0 ]]; then
           echo -n "uploaded" > "$(results.upload-status.path)"
           echo "SBOM attestation submitted to RHTPA"
           exit 0
         fi
         echo "WARN: automated upload failed (HTTP/curl ${status}). SBOM is in the sbom workspace — upload via RHTPA UI."
         echo -n "manual-required" > "$(results.upload-status.path)"
-        if [ "${FAIL_ON_UPLOAD}" = "true" ]; then
+        if [[ "${FAIL_ON_UPLOAD}" == "true" ]]; then
           exit 1
         fi
         exit 0
 {{- end }}
-
