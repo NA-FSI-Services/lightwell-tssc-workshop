@@ -19,7 +19,7 @@ By the end of this module, you will be able to:
 == Prerequisites
 
 * xref:module-03-osv.adoc[Module 3] — remediated pin story
-* xref:module-04-sbom.adoc[Module 4] — SBOM → RHTPA
+* xref:module-04-sbom.adoc[Module 4] — SBOM upload to RHTPA
 * Charts synced (or available): `gitea` (student Git), `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
 
 == Your student Git repository
@@ -53,11 +53,11 @@ Two related Pipeline definitions exist:
 
 |`lightwell-build-policy-gate`
 |`stackrox` (RHACS chart)
-|clone → `lightwell-dep-gate` → `acs-image-check` → `syft-sbom-rhtpa`
+|clone, then `lightwell-dep-gate`, `acs-image-check`, `syft-sbom-rhtpa`
 
 |`*-build-sign` (RHDH scaffold)
 |Learner project NS
-|Maven → dep-gate → buildah → ACS → SBOM → `cosign sign` (RHTAS keyless)
+|Maven, dep-gate, buildah, ACS, SBOM, then `cosign sign` (RHTAS keyless)
 |===
 
 This module uses the *policy gate* Pipeline for the deterministic fail/pass lab, then covers RHTAS signing and Argo CD promotion.
@@ -71,7 +71,7 @@ oc -n stackrox get configmap rhacs-lightwell-policy-lab \
   -o jsonpath='{.data.vulnerable_version}{" -> "}{.data.remediated_version}{"\n"}'
 ----
 
-Expected pin pair: `3.14.0` → `3.14.0.rhlw-00001` for `commons-lang3`.
+Expected pin pair for `commons-lang3`: vulnerable `3.14.0`, remediated `3.14.0.rhlw-00001`.
 
 image::module-05-fail-then-pass.png[Pipeline fail then pass on .rhlw pin,width=700]
 
@@ -294,7 +294,7 @@ Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF compo
 
 == Exercise 4: GitOps promotion (Argo CD)
 
-Promotion in this workshop means: *desired state in Git* → Argo CD sync → OpenShift resources Healthy. You do not `oc apply` long-lived app config by hand.
+Promotion in this workshop means: commit desired state in Git, let Argo CD sync, and confirm OpenShift resources are Healthy. You do not `oc apply` long-lived app config by hand.
 
 [NOTE]
 ====
@@ -343,10 +343,10 @@ image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 |Step |Pass criteria
 
 |Dep gate fail
-|Default `3.14.0` → `gate-status=failed`
+|Default `3.14.0` yields `gate-status=failed`
 
 |Dep gate pass
-|Default / properties `3.14.0.rhlw-00001` → `gate-status=passed`
+|Default / properties `3.14.0.rhlw-00001` yields `gate-status=passed`
 
 |RHACS
 |`acs-image-check` passed or intentionally skipped with documented secrets gap

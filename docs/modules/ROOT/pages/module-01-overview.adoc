@@ -5,7 +5,7 @@
 
 Attackers and researchers alike now use AI to discover and weaponize vulnerabilities faster than traditional patch cycles. Scanners and SBOMs *identify* issues, but application teams often cannot take the recommended upgrade path because of compatibility, certification, release freezes, or production risk.
 
-*Lightwell Network* closes that *remediation gap*: signed, backported fixes for eligible third-party application dependencies (libraries, frameworks, build tools, and transitive deps)—without requiring disruptive upgrades, app refactoring, or recertification. This workshop uses two complementary Maven streams—*Validated* for active development and *Remediated* for exact-version security backports (`.rhlw-*`)—and does *not* invent fictional channel names.
+*Lightwell Network* closes that *remediation gap*: signed, backported fixes for eligible third-party application dependencies (libraries, frameworks, build tools, and transitive deps)—without requiring disruptive upgrades, app refactoring, or recertification. This workshop uses two complementary Maven streams—*Validated* for active development and *Remediated* for exact-version security backports (`.rhlw-*`).
 
 In this module you map those tiers, eligibility and coexistence with the Red Hat stack, the supply-chain metadata that travels with artifacts (SLSA L3, SBOM, VEX, OSV), and where the Lightwell console fits—before you wire Maven and pipelines in later labs.
 
@@ -14,7 +14,7 @@ In this module you map those tiers, eligibility and coexistence with the Red Hat
 By the end of this module, you will be able to:
 
 * Explain **Validated** vs **Remediated** Lightwell Network tiers and when to use each
-* Recognize remediated version suffixes such as `5.3.18.rhlw-00003` (not custom `-lw01` names)
+* Recognize remediated version suffixes such as `5.3.18.rhlw-00003` from OSV `fixed` events (the published Lightwell pin, not an internal nickname)
 * Describe how *SBOM*, *VEX*, *SLSA Level 3* provenance, and *OSV* records support triage
 * Place Lightwell next to RHEL / OpenShift / ACS (complementary, not a substitute)
 * Locate the conceptual Lightwell console and the canonical package remotes used in this workshop
@@ -27,7 +27,7 @@ Modern applications pull hundreds of open source components. When a critical CVE
 * *Doing nothing* leaves production exposed
 * *Lightwell Remediated* keeps the *same upstream version line* and publishes a rebuilt artifact with a sequential `.rhlw-0000X` suffix that carries the security fix (and no unrelated feature changes)
 
-AI accelerates both discovery of issues and the need for a repeatable remediation loop (OSV → pin → rebuild), which you practice in Module 3.
+AI accelerates both discovery of issues and the need for a repeatable remediation loop—read the OSV record, pin the remediated version, then rebuild—which you practice in Module 3.
 
 image::module-01-osv-pin-rebuild-loop.png[Remediation evaluation loop,width=700]
 
@@ -41,13 +41,7 @@ Lightwell remediates *application-layer* libraries. Patched content can run on R
 
 Eligible packages generally must be source-available under a recognized open source license, buildable via Red Hat secure pipelines, actively maintained or widely depended on, and free of known malicious provenance. Obsolete language runtimes (for example EOL OpenJDK lines) are *not* the Lightwell remediation target—point those conversations at appropriate lifecycle / EOL offerings separately from this lab path.
 
-== Lightwell Network tiers (authoritative)
-
-[IMPORTANT]
-====
-Use only these tier names in labs and production conversations: *Validated*, *Remediated*, and Java *OSV* (remediated).
-Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secured`.
-====
+== Lightwell Network tiers
 
 [cols="1,2,2",options="header"]
 |===
@@ -62,7 +56,7 @@ Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secur
 |{java-remediated-url}
 
 |*OSV (Java)*
-|Machine-readable fixed-vuln records for the remediated stream (`fixed` → `.rhlw-*`); also how you map CVEs to remediated pins
+|Machine-readable fixed-vuln records for the remediated stream (the `fixed` field names the `.rhlw-*` version); also how you map CVEs to remediated pins
 |{java-osv-url}
 |===
 
@@ -112,7 +106,7 @@ IBM Library Support for Open Source (LSOS) extends EOL lifecycle for selected Ja
 
 Artifacts are expected to ship with supply-chain metadata:
 
-* *SBOM* — CycloneDX for Maven packages; SPDX for Python wheels (this workshop generates app SBOMs with `syft` → RHTPA in Module 4)
+* *SBOM* — CycloneDX for Maven packages; SPDX for Python wheels (this workshop generates app SBOMs with `syft` and uploads them to RHTPA in Module 4)
 * *VEX* — exploitability / remediation status scanners can consume so Lightwell-patched CVEs are not treated as unpatched
 * *SLSA Level 3* — build integrity; artifacts cryptographically signed (Sigstore family; RHTAS in Module 5)
 * *OSV* — fixed-version events for remediated Java (Module 3 toolkit under `tools/osv-eval/`)
@@ -153,20 +147,12 @@ oc -n lightwell-repo get configmap lightwell-channels -o jsonpath='{.data.channe
 
 OSV records tell you *which* exact remediated version to pin.
 
-. Prefer the in-cluster sample (seeded with the artifact manager):
+. In the Showroom terminal, inspect the in-cluster sample (seeded with the artifact manager):
 +
 [source,bash,role=execute]
 ----
 oc -n lightwell-repo get configmap lightwell-sample-osv \
   -o jsonpath='{.data.LW-DEMO-0001\.json}' | head -60
-----
-
-. Or, from the GitOps checkout used by content authors / instructors:
-+
-[source,bash,role=execute]
-----
-# When the repo is available in your terminal workspace:
-jq '.affected[0].ranges[0].events' tools/osv-eval/samples/LW-DEMO-0001.json
 ----
 
 . Confirm you see a Maven ecosystem event with:
@@ -176,7 +162,7 @@ jq '.affected[0].ranges[0].events' tools/osv-eval/samples/LW-DEMO-0001.json
 { "fixed": "5.3.18.rhlw-00003" }
 ----
 
-That `fixed` value is the production pin shape you will apply in Module 3—not a made-up `-lw01` suffix.
+Remediated versions use Lightwell’s published `.rhlw-#####` qualifier (here `5.3.18.rhlw-00003`). That string comes from the OSV `fixed` event—not from an internal nickname or a patch-style suffix borrowed from other Red Hat or vendor builds. In Module 3 you will pin this exact value so Maven, Nexus, and supply-chain metadata stay aligned.
 
 == Exercise 3: Map the workshop story to TSSC tools
 
@@ -189,7 +175,7 @@ You will not configure every product in this module. Use this checklist so the l
 |Enterprise Maven proxy (Validated / Remediated)
 |Module 2 — Nexus `lightwell-repo` + `settings.xml`
 
-|OSV → `.rhlw-*` → source diff → rebuild
+|Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild
 |Module 3 — `tools/osv-eval/` + Spring Boot PoC
 
 |SBOM system of record
@@ -232,14 +218,14 @@ Learners without membership still complete RHDP labs using the seeded Nexus / Co
 * Framed the remediation gap (scanners find issues; upgrades are often blocked)
 * Distinguished *Validated* (bit-for-bit upstream) vs *Remediated* (security-only `.rhlw-*`) and Java *OSV*
 * Placed Lightwell next to platform products, Hardened Images, and (conceptually) LSOS
-* Inspected workshop channel metadata and a sample OSV `fixed` → `.rhlw-*` event
+* Inspected workshop channel metadata and a sample OSV `fixed` event that names a `.rhlw-*` pin
 * Connected the overview to Modules 2–5 (Maven, OSV loop, RHTPA/RHDA, TSSC pipelines)
 
 **Key takeaways**
 
 * Remediated versions use `.rhlw-0000X` (example: `5.3.18.rhlw-00003`); qualifiers are cumulative
 * SBOMs, VEX, SLSA L3 provenance, and OSV records travel with the Lightwell story
-* Do not invent alternate channel names; do not deliver LWN via Satellite
+* Lightwell application libraries are consumed via `packages.redhat.com` (or an enterprise proxy)—not through Satellite content views
 
 **Next**
 

@@ -14,7 +14,6 @@ data:
   mode: {{ .Values.lightwellRepo.mode | quote }}
   version_suffix_note: "Remediated artifacts use .rhlw-0000X (e.g. 5.3.18.rhlw-00003). Artifact manager must allow this suffix."
   channels.yaml: |
-    # Lightwell Network repository model (field PoV / DEVELOPMENT-PLAN.md)
     mode: {{ .Values.lightwellRepo.mode }}
     channels:
       validated:

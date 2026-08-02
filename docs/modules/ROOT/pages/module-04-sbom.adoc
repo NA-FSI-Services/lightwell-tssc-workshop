@@ -254,7 +254,7 @@ image::module-04-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
 * Prefer CycloneDX JSON from `syft` for this workshop (Maven Lightwell packages also ship CycloneDX + VEX; Python uses SPDX)
 * TPA UI/API authorization comes from the workshop Keycloak realm (`chicken-*` + `*:document` scopes)—not from ad-hoc Admin Console edits
 * OSV/VEX help scanners treat Lightwell remediations as fixed—not still-open CVEs
-* Pipeline Task `syft-sbom-rhtpa` automates the same generate → (optional) `POST /api/v3/sbom` upload path in Module 5
+* Pipeline Task `syft-sbom-rhtpa` automates the same generate-and-upload path in Module 5 (optional `POST /api/v3/sbom`)
 * RHDA is optional on a laptop; learners do not need an IDE inside Showroom; do not upload proprietary app source to Red Hat for LWN
 
 **Next**

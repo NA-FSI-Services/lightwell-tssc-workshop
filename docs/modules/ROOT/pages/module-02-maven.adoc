@@ -46,11 +46,7 @@ Canonical remotes (document even when mirroring):
 * Remediated: `{java-remediated-url}`
 * OSV (Java): `{java-osv-url}`
 
-[IMPORTANT]
-====
-Tier and profile names stay *Validated* / *Remediated* (Maven profiles `lightwell-validated` / `lightwell-remediated`).
-Do *not* invent aliases such as `upstream-untrusted` or `lightwell-network-secured`.
-====
+Workshop Maven profiles that select those streams are named `lightwell-validated` and `lightwell-remediated`.
 
 image::module-02-direct-vs-proxy.png[Direct LWN versus enterprise Nexus proxy,width=700]
 
@@ -115,7 +111,7 @@ ConfigMap `lightwell-maven-settings` (chart `lightwell-repo`) ships the learner 
 |Exact-version `.rhlw-*` resolution
 |===
 
-The Spring Boot PoC adds a *POM* profile `lightwell-remediated-pins` that flips dependency versions (for example `commons-lang3` → `3.14.0.rhlw-00001`). Settings profiles select *where* Maven looks; POM profiles select *which version* to build.
+The Spring Boot PoC adds a *POM* profile `lightwell-remediated-pins` that flips dependency versions (for example `commons-lang3` from `3.14.0` to `3.14.0.rhlw-00001`). Settings profiles select *where* Maven looks; POM profiles select *which version* to build.
 
 image::module-02-maven-profiles.png[Maven Validated and Remediated profiles,width=700]
 
@@ -165,15 +161,7 @@ oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}{"\n"}'
 oc -n lightwell-repo get jobs,pods -l app.kubernetes.io/name=lightwell-repo
 ----
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-nexus-repos.png`
-
-Nexus repository list showing the three Lightwell repos. Redact credentials and personal account UI.
-Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/53
-// When ready: image::module-02-nexus-repos.png[Workshop Nexus Lightwell repositories,width=700]
-====
-
+image::module-02-nexus-repos.png[Workshop Nexus Lightwell repositories,width=700]
 == Seeded content: two experiments
 
 In *seeded* mode the Job uploads **two kinds** of Maven content into the same Nexus repo names customers would use for live LWN:
@@ -337,4 +325,4 @@ The Developer Hub Software Template `lightwell-java-service` scaffolds the same 
 
 **Next**
 
-Module 3 walks the remediation evaluation loop: OSV `fixed` → `.rhlw-*` pin → source diff → rebuild.
+Module 3 walks the remediation evaluation loop: read OSV `fixed`, pin the `.rhlw-*` version, compare sources, then rebuild.
