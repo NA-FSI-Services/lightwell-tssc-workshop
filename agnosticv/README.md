@@ -61,10 +61,25 @@ Validate locally: `./scripts/agnosticv-check.sh`
 
 RHDP injects `deployer.domain` and `deployer.apiUrl` into Helm values for `charts/root-app` at order time.
 
+## Module 1 production readiness (Showroom terminal)
+
+Field Content (`ocp4_workload_field_content`) only creates the Argo Application — it does **not** configure OAuth/HTPasswd or grant Showroom RBAC. Learners follow Module 1 from Showroom `/terminal/`, which uses ServiceAccount `showroom:showroom`.
+
+| Requirement | Where it lives | AgnosticD / AgnosticV action |
+|-------------|----------------|------------------------------|
+| Showroom terminal can `oc -n lightwell-repo get configmap …` | `charts/components/showroom` (`terminal.labClusterAccess: true` → ClusterRoleBinding `showroom-lab-cluster-admin`) | **None** — ships in GitOps; do not add HTPasswd to AgV |
+| Channel + sample OSV ConfigMaps | `charts/components/lightwell-repo` | Enable `components.lightwellRepo` before catalog E2E (wave 20) |
+| HTPasswd lab admin IdP | Dev-cluster QA only ([`docs/DEV-CLUSTER-BOOTSTRAP.md`](../docs/DEV-CLUSTER-BOOTSTRAP.md)) | **Do not** add to AgnosticV leaves — RHDP provides claim access separately |
+| Field Content role changes | Reference copy under `roles/ocp4_workload_field_content/` | **No change** — role is fire-and-forget GitOps pointer |
+
+**Gap to close before prod catalog:** ensure `charts/root-app` values (or `ocp4_workload_field_content_helm_values`) enable at least `showroom` + `lightwellRepo` for Module 1 exercises. Defaults keep most components `enabled: false` for progressive QA; catalog leaves should override for the published path.
+
 ## Related
 
+- [RHDP demo / lab onboarding form](https://red.ht/demo-onboarding) — intake answers in [SUBMISSION.md](./SUBMISSION.md#rhdp-demo--lab-onboarding-form)
 - [#9](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/9) — initial AgnosticV draft
 - [#10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/10) — CNV sizing
 - [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) — umbrella · [#71](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/71)–[#73](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/73) · [#21](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/21)–[#23](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/23)
 - [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) — Phase 5
+- [DEV-CLUSTER-BOOTSTRAP.md](../docs/DEV-CLUSTER-BOOTSTRAP.md) — Ephemeral OCP claim QA via `claim.env` + `dev-cluster` Helm bootstrap
 - [redhat-cop/babylon](https://github.com/redhat-cop/babylon) — AgnosticV Operator / CatalogItem materialization

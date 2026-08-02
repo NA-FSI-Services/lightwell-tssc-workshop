@@ -1,0 +1,21 @@
+{{- if .Values.keycloak.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.keycloak.name }}
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+    app: {{ .Values.keycloak.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.syncWaves.deploy | quote }}
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: {{ .Values.keycloak.name }}
+{{- end }}

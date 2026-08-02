@@ -23,3 +23,10 @@ __pycache__/
 # Antora local generate (site-ci.yml / site.yml)
 www/
 .cache/
+
+# Ephemeral RHDP claim secrets (never commit)
+dev-cluster/claim.env
+dev-cluster/*.ca.crt
+docs/DEV-CLUSTER-CLAIM.local.md
+docs/*.ca.crt
+ocp-*.ca.crt

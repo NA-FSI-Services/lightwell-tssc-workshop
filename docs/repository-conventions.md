@@ -37,7 +37,12 @@ lightwell-tssc-workshop/
 │   ├── rhda-rhtpa-shift-left.md     # Module 4 RHDA vs RHTPA (laptop vs Showroom)
 │   ├── repository-conventions.md
 │   ├── ansible-developer-guide.md
-│   └── SHOWROOM-UPDATE-SPEC.md
+│   ├── SHOWROOM-UPDATE-SPEC.md
+│   └── DEV-CLUSTER-BOOTSTRAP.md     # Phase 5 bypass: claim.env + Helm bootstrap
+├── dev-cluster/                     # Ephemeral RHDP OpenShift QA bootstrap (not catalog GitOps path)
+│   ├── claim.env.example
+│   ├── README.md
+│   └── helm/                        # GitOps Subscription + Argo Application for root-app
 ├── site.yml                         # Antora playbook (Showroom antoraPlaybook)
 ├── DEVELOPMENT-PLAN.md
 ├── AGENTS.md
@@ -64,7 +69,7 @@ lightwell-tssc-workshop/
 
 Target components (see [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) and project issues):
 
-`rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc`, optional `parasol-app`, plus Showroom content wiring.
+`keycloak` (workshop SSO for RHTPA), `rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc`, optional `parasol-app`, plus Showroom content wiring.
 
 ## Ansible runner (optional path)
 

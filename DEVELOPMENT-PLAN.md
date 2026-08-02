@@ -209,6 +209,10 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 
 **AgnosticV target:** [`redhat-cop/agnosticv`](https://github.com/redhat-cop/agnosticv) (Babylon-documented). **Strategy:** dev-first → prod. Checklist: [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md).
 
+**RHDP catalog intake form:** [https://red.ht/demo-onboarding](https://red.ht/demo-onboarding) — field answers and Showroom notes recorded in [`agnosticv/SUBMISSION.md`](./agnosticv/SUBMISSION.md#rhdp-demo--lab-onboarding-form) (no requester PII).
+
+**While AgnosticV access is blocked:** order a demo.redhat.com OpenShift claim, fill `dev-cluster/claim.env` from the email, and run [`scripts/dev-cluster-bootstrap.sh`](./scripts/dev-cluster-bootstrap.sh) — see [`docs/DEV-CLUSTER-BOOTSTRAP.md`](./docs/DEV-CLUSTER-BOOTSTRAP.md). That path is for instruction/GitOps QA only; it does not replace catalog onboarding. Do not commit ephemeral claim hostnames or credentials.
+
 | Step | Issue | Outcome |
 |------|-------|---------|
 | Umbrella | [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) | AgnosticV onboarding tracker |
@@ -223,6 +227,7 @@ GitOps (all stages): `https://github.com/NA-FSI-Services/lightwell-tssc-workshop
 
 ## Works cited
 
+- [RHDP demo / lab onboarding](https://red.ht/demo-onboarding)
 - [RHDP Catalog Item Matrix](https://drive.google.com/a/redhat.com/open?id=1YUZ_xcJtffFDKXo0rsb4W38QlcD-JI9AFSHdToRbIbg)
 - [Kickoff: Lightwell (LW) Targeted Enablement Curation](https://drive.google.com/a/redhat.com/open?id=1cOMdKJnb5izWO2bqEM5fkgX7n078fwulrM0F0zpOeXI)
 - [Red Hat Lightwell Network docs — configure Artifactory](https://docs.redhat.com/en/documentation/red_hat_lightwell_network/current/configure-configure_artifactory_to_use_rhln_repository)

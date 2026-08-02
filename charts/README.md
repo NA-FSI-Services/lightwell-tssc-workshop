@@ -17,6 +17,7 @@ charts/
 │   ├── README.md             # Sync waves + local helm validation
 │   └── templates/
 └── components/
+    ├── keycloak/             # Workshop IdP for RHTPA (sso.<domain>/realms/tpa)
     ├── rhdh/                 # Developer Hub + lightwell-java-service placeholder (#3)
     ├── rhtas/                # Trusted Artifact Signer (Fulcio/Rekor/TUF) (#4)
     ├── rhtpa/                # Trusted Profile Analyzer (SBOM/VEX) (#5)
@@ -32,6 +33,7 @@ charts/
 
 | Wave | Components |
 |------|------------|
+| 5 | keycloak |
 | 10 | rhtas, rhtpa, rhacs |
 | 20 | lightwell-repo |
 | 30 | rhdh |

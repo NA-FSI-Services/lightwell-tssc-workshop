@@ -12,7 +12,8 @@ In this module you wire that pattern on the workshop cluster: extract `settings.
 By the end of this module, you will be able to:
 
 * Contrast **direct** Lightwell remotes with the **proxied enterprise manager** pattern used in PoV delivery
-* Use `mvn -s settings.xml -Plightwell-validated …` against the workshop Nexus
+* Run two Maven experiments against workshop Nexus: **resolution** (`dependency:get`) and **consumption** (`clean verify`)
+* Use `mvn -s settings.xml -Plightwell-validated …` (and Remediated pins) against the workshop Nexus
 * Explain how `LW_USERNAME` / `LW_PASSWORD` (and RHDP secret injection) supply auth without committing secrets
 * Locate the Spring Boot PoC / RHDH template settings that match this lab
 
@@ -173,15 +174,45 @@ Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightw
 // When ready: image::module-02-nexus-repos.png[Workshop Nexus Lightwell repositories,width=700]
 ====
 
-== Exercise 2: Validated consumption with Maven
+== Seeded content: two experiments
+
+In *seeded* mode the Job uploads **two kinds** of Maven content into the same Nexus repo names customers would use for live LWN:
+
+[cols="1,2,2",options="header"]
+|===
+|Experiment |What is seeded |What you prove
+
+|*A — Resolution*
+|`spring-core:5.3.18` and `5.3.18.rhlw-00003` as *manifest-only stubs*
+|Maven can fetch Lightwell-shaped coordinates from the enterprise manager (`dependency:get`)
+
+|*B — Consumption*
+|`commons-lang3:3.14.0` and `3.14.0.rhlw-00001` as a *compile-capable* Apache Commons Lang binary (ASL 2.0)
+|The same manager can feed a real Spring Boot PoC build (`clean verify`)
+|===
+
+[NOTE]
+====
+Stubs intentionally omit classes — they are for GAV / remote proofs, not for compiling application code.
+The Remediated `commons-lang3` coordinate re-publishes the same ASL 2.0 binary under the `.rhlw-00001` exact-version suffix so you can practice pin flips without live LWN membership.
+====
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-seed-experiments.png`
+
+Two-column diagram: Experiment A resolution stubs (`spring-core` + `dependency:get`) vs Experiment B compile-capable consumption (`commons-lang3` + `clean verify`), with Validated / Remediated and `.rhlw-*` labels.
+Asset instructions: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/92
+// When ready: image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption experiments,width=700]
+====
+
+== Exercise 2: Validated stream (resolution + consumption)
 
 Use the workshop Spring Boot PoC sources when available on the cluster or in your GitOps checkout:
 
 `charts/components/spring-boot-lw-poc/app/`
 
 . Export `LIGHTWELL_NEXUS_URL` (see Auth section). For ConfigMap-extracted settings that already embed the Nexus URL, you can skip the env var.
-
-. From the PoC `app/` directory (or a copy that includes `pom.xml` + `settings.xml`):
 +
 [source,bash,role=execute]
 ----
@@ -189,16 +220,12 @@ Use the workshop Spring Boot PoC sources when available on the cluster or in you
 cd charts/components/spring-boot-lw-poc/app
 
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
-
-mvn -s settings.xml -Plightwell-validated clean verify
 ----
 
-. Expected outcomes:
-* Build resolves against Validated (and/or Central fallback for non-LWN deps)
-* `commons-lang3` uses the validated pin `3.14.0` (POM default / `lightwell-validated` profile)
+=== Experiment A — resolve a Validated GAV
 
-. Prove a seeded Validated coordinate can be fetched via the remediated *or* validated repo as appropriate:
-+
+Prove Nexus serves the seeded Validated coordinate (watch for `Downloading from lightwell-java-validated`):
+
 [source,bash,role=execute]
 ----
 mvn -s settings.xml dependency:get \
@@ -206,14 +233,31 @@ mvn -s settings.xml dependency:get \
   -Plightwell-validated
 ----
 
+Expected: `BUILD SUCCESS` with download from `lightwell-java-validated` (stub JAR is enough for this step).
+
+=== Experiment B — build the PoC from Validated
+
+[source,bash,role=execute]
+----
+mvn -s settings.xml -Plightwell-validated clean verify
+----
+
+Expected outcomes:
+
+* `commons-lang3:3.14.0` downloads from `lightwell-java-validated` (compile-capable seed)
+* Other Spring Boot deps may still fall back to Maven Central
+* `BUILD SUCCESS` (tests pass)
+
 [TIP]
 ====
 If `mvn` is not on the Showroom PATH, use a Maven container or the toolchain documented for your RHDP environment—keep the same `-s settings.xml -Plightwell-validated` flags.
 ====
 
-== Exercise 3: Resolve a Remediated `.rhlw-*` coordinate
+== Exercise 3: Remediated stream (resolution + consumption)
 
-You are not changing production pins yet (that is Module 3). Confirm the Remediated remote serves the workshop example artifact:
+You are not changing production pins yet (that is Module 3). First confirm the Remediated remote serves the workshop example artifact, then build with the PoC pin profile.
+
+=== Experiment A — resolve a `.rhlw-*` GAV
 
 [source,bash,role=execute]
 ----
@@ -222,7 +266,11 @@ mvn -s settings.xml dependency:get \
   -Plightwell-remediated
 ----
 
-Optional Spring Boot PoC build with the remediated *dependency* profile:
+Expected: download from `lightwell-java-remediated` (resolution stub).
+
+=== Experiment B — build with Remediated pins
+
+This combination selects the Remediated *repository* and the POM pin `3.14.0.rhlw-00001` for `commons-lang3`:
 
 [source,bash,role=execute]
 ----
@@ -231,7 +279,18 @@ mvn -s settings.xml \
   clean verify
 ----
 
-That combination selects the Remediated *repository* and the POM pin `3.14.0.rhlw-00001` for `commons-lang3`.
+Expected: `commons-lang3:3.14.0.rhlw-00001` resolves from Nexus and `BUILD SUCCESS`.
+
+Optional contrast — fetch the remediated pin from Nexus (exists only under `.rhlw-*`, not on Central):
+
+[source,bash,role=execute]
+----
+mvn -s settings.xml dependency:get \
+  -Dartifact=org.apache.commons:commons-lang3:3.14.0.rhlw-00001 \
+  -Plightwell-remediated
+----
+
+Expect `Downloaded from lightwell-java-remediated`. The same GAV is absent from Maven Central.
 
 == Direct `packages.redhat.com` pattern (field reference)
 
@@ -266,12 +325,13 @@ The Developer Hub Software Template `lightwell-java-service` scaffolds the same 
 * Mapped direct LWN remotes vs enterprise Nexus proxy / seeded mirrors
 * Extracted workshop `settings.xml` and identified `lightwell-validated` / `lightwell-remediated` profiles
 * Practiced env-based `LW_*` auth (no secrets in Git)
-* Ran Validated Maven consumption and resolved a sample `.rhlw-*` coordinate
+* Ran *resolution* (`dependency:get` on `spring-core` stubs) and *consumption* (`clean verify` with compile-capable `commons-lang3`) on both Validated and Remediated streams
 
 **Key takeaways**
 
 * Learner UX: `mvn -s settings.xml -Plightwell-validated …`
-* Proxied PoV is the default enterprise story; RHDP may seed the same repo names; air-gap uses mirror/proxy, not Satellite
+* Seeded RHDP can teach both GAV/remote proofs and real builds without live LWN membership
+* Proxied PoV is the default enterprise story; air-gap uses mirror/proxy, not Satellite
 * Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
 * Source jars accompany binaries; application-context testing stays with the consumer
 

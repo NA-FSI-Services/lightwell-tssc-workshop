@@ -27,13 +27,14 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 
 ### Component ownership (do not collapse)
 
-- `rhdh` — Developer Hub + `lightwell-java-service` Software Template  
-- `rhtas` — Trusted Artifact Signer / keyless signing  
-- `rhtpa` — SBOM (and advisory) ingestion/analysis; RHDA consumes its APIs  
-- `rhacs` — Central + pipeline / admission policy gates  
-- `lightwell-repo` — Enterprise artifact manager pattern (validated / remediated / OSV proxy or seeded mirrors)  
-- `spring-boot-lw-poc` — Primary sample app for Maven + LWN labs  
-- `parasol-app` — Optional larger enterprise workload  
+- `keycloak` — Workshop IdP for RHTPA (`sso.<domain>/realms/tpa`; enable before `rhtpa`)
+- `rhdh` — Developer Hub + `lightwell-java-service` Software Template 
+- `rhtas` — Trusted Artifact Signer / keyless signing 
+- `rhtpa` — SBOM (and advisory) ingestion/analysis; RHDA consumes its APIs 
+- `rhacs` — Central + pipeline / admission policy gates 
+- `lightwell-repo` — Enterprise artifact manager pattern (validated / remediated / OSV proxy or seeded mirrors) 
+- `spring-boot-lw-poc` — Primary sample app for Maven + LWN labs 
+- `parasol-app` — Optional larger enterprise workload
 
 ### Canonical LWN endpoints (document even when mirroring)
 

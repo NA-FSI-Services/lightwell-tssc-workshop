@@ -1,0 +1,8 @@
+{{- if .Values.gitopsOperator.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.gitopsOperator.namespace }}
+  labels:
+    app.kubernetes.io/name: lightwell-dev-bootstrap
+{{- end }}

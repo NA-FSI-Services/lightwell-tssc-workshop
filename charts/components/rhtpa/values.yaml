@@ -24,7 +24,8 @@ operator:
   packageName: rhtpa-operator
   # Install into the instance namespace (not openshift-operators)
   namespace: "" # empty → use rhtpa.namespace
-  channel: stable
+  # OpenShift catalog uses stable-v3 (and stable-v1.1); bare "stable" fails resolution
+  channel: stable-v3
   source: redhat-operators
   sourceNamespace: openshift-marketplace
   installPlanApproval: Automatic

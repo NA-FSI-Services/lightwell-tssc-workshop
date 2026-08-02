@@ -28,6 +28,7 @@ Storage defaults to **filesystem** (PVC) for PoC / RHDP workshops. Prefer S3 / O
 ## Prerequisites
 
 - **OIDC** (Keycloak / RHBK) realm matching `oidc.realm` with `frontend` and `cli` clients — chart derives `https://sso.<deployer.domain>/realms/<realm>`
+- Workshop IdP: enable `components.keycloak` (wave 5) in root-app — see [`charts/components/keycloak`](../keycloak/); keep `oidc.cliClientSecret` in sync with that chart
 - Override workshop defaults for `postgresql.password` and `oidc.cliClientSecret` via values or RHDP secret injection (**do not use committed defaults in shared environments**)
 
 ## Reuse sources
@@ -41,7 +42,7 @@ Storage defaults to **filesystem** (PVC) for PoC / RHDP workshops. Prefer S3 / O
 |-----|---------|-------|
 | `rhtpa.enabled` | `true` | Chart gate |
 | `rhtpa.namespace` | `trusted-profile-analyzer` | Instance + operator NS |
-| `operator.channel` | `stable` | Or `stable-v1.0` |
+| `operator.channel` | `stable-v3` | Catalog default; `stable-v1.1` also exists |
 | `trustedProfileAnalyzer.storage.type` | `filesystem` | PoC PVC storage |
 | `trustedProfileAnalyzer.importers.*.enabled` | CVE/OSV on; CSAF/RH SBOM off | Footprint control |
 | `deployer.domain` | `""` | Injected by root-app |

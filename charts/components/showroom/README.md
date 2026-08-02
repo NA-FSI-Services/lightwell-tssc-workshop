@@ -25,10 +25,16 @@ Learners discover modules via `docs/modules/ROOT/nav.adoc` after Antora builds.
 | Wave | Resources |
 |------|-----------|
 | `0` | Namespace |
-| `1` | SA, RBAC, ConfigMaps, PVC |
+| `1` | SA, RBAC (incl. lab ClusterRoleBinding), ConfigMaps, PVC |
 | `2` | Deployment + Service |
 | `3` | Route (`showroom.<deployer.domain>`) |
 | `4` | RHDP `demo-userinfo-showroom` (`showroom_url`) |
+
+## Terminal lab RBAC
+
+The terminal container runs as ServiceAccount `showroom` in namespace `showroom`. Module exercises use `oc -n lightwell-repo …`, `oc get routes -A`, and later TSSC namespaces — **namespace-local `edit` is not enough**.
+
+When `showroom.terminal.labClusterAccess` is `true` (default), the chart creates ClusterRoleBinding `showroom-lab-cluster-admin` → `cluster-admin` for that SA. This is intentional for the RHDP workshop path so Showroom `/terminal/` can follow Modules 1–5 without a separate learner kubeconfig.
 
 Root App-of-Apps places this chart at sync wave **`50`** (last).
 

@@ -1,0 +1,19 @@
+{{- if .Values.gitopsOperator.enabled }}
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-gitops-operator
+  namespace: {{ .Values.gitopsOperator.namespace }}
+  labels:
+    app.kubernetes.io/name: lightwell-dev-bootstrap
+    app.kubernetes.io/component: gitops-operator
+spec:
+  channel: {{ .Values.gitopsOperator.channel | quote }}
+  name: openshift-gitops-operator
+  source: {{ .Values.gitopsOperator.source | quote }}
+  sourceNamespace: {{ .Values.gitopsOperator.sourceNamespace | quote }}
+  installPlanApproval: Automatic
+  {{- if .Values.gitopsOperator.startingCSV }}
+  startingCSV: {{ .Values.gitopsOperator.startingCSV | quote }}
+  {{- end }}
+{{- end }}

@@ -18,6 +18,34 @@
 
 Umbrella: [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20).
 
+## RHDP demo / lab onboarding form
+
+**Portal:** [https://red.ht/demo-onboarding](https://red.ht/demo-onboarding) (RHDP catalog asset intake; Jira Service Management).  
+Not all submissions are approved — RHDP evaluates duplication, cost, and customer/associate value.
+
+Record ticket / request ID on [#20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/20) when submitted. Do **not** commit requester identity, emails, or credentials.
+
+### Answers used for this workshop (sanitized)
+
+| Form prompt | Response |
+|-------------|----------|
+| **Asset Title** | Lightwell Software Supply Chain Security Workshop |
+| **Describe what you would like to build or onboard** | Hands-on RHDP workshop teaching Lightwell Network (Validated / Remediated / Java OSV) with TSSC controls on OpenShift: enterprise Maven, `.rhlw-*` exact-version pins, RHTPA SBOM, RHTAS signing, RHACS policy, GitOps. Field Sourced Content pattern (`agd-v2.ocp-field-asset-cnv.prod`); GitOps `NA-FSI-Services/lightwell-tssc-workshop` → `charts/root-app` @ `main`; DEV-first then prod ID `published.lightwell-tssc-workshop.prod`. Tracker: issue #20. |
+| **What customer use cases or problems will this address?** | Governed OSS consumption when CVEs land without full upgrades; end-to-end demo of Lightwell tiers + Maven + SBOM + signing + policy; repeatable field enablement instead of one-off PoV rebuilds. |
+| **Is this a lab or a demo?** | **Lab** (multi-participant Showroom exercises) |
+| **Which TDP, Sales Play, and/or Sales Tactic?** | Lightwell Network field enablement / software supply chain security; related Trusted Software Supply Chain (RHTAS, RHTPA, RHACS, GitOps) and Application Developer / RHADS-aligned secure delivery. Prefer a named play from [Sales Plays overview](https://content.redhat.com/us/en/sales-enablement/sales-plays-overview.html) when submitting. |
+| **How will you automate workload deployment?** | **Combination of Ansible and GitOps** (Helm + ArgoCD primary; ansible-runner only when Helm cannot express wait/secret/API logic) |
+| **Related to AI or Machine Learning?** | **No** (Module 1 narrative mentions an “AI vulnerability storm”; workload is not AI/ML training or inference) |
+| **Direct access to a GPU?** | **No** |
+| **Can you use MaaS instead of direct GPU?** | **Yes** (no GPU required; avoids dedicated GPU capacity) |
+| **Should it be made available to Partners?** | **No** for initial approval (associate / field first; expand later if needed) |
+
+### Showroom note (common reviewer feedback)
+
+Lab content is already Showroom/Antora in this monorepo (`docs/modules/ROOT/`, `site.yml`, `charts/components/showroom`) — Field Sourced Content pattern, not a separate [`showroom_template_nookbag`](https://github.com/rhpds/showroom_template_nookbag) repo. Optional polish via [create-lab skill](https://rhpds.github.io/rhdp-skills-marketplace/skills/create-lab.html); bootstrap from the nookbag template is **not** required.
+
+**Module 1 terminal RBAC:** Showroom `/terminal/` uses SA `showroom:showroom`. Chart default `terminal.labClusterAccess: true` creates ClusterRoleBinding `showroom-lab-cluster-admin` so Module 1 `oc -n lightwell-repo get configmap …` works. Do **not** add HTPasswd IdP or kubeadmin passwords to AgnosticV — that is [dev-cluster QA only](../docs/DEV-CLUSTER-BOOTSTRAP.md). Ensure catalog Helm values enable `lightwellRepo` (wave 20) before Module 1 E2E sign-off.
+
 ## Babylon flow (why this order)
 
 1. AgnosticV Operator watches the AgnosticV git repo ([babylon `agnosticv-operator`](https://github.com/redhat-cop/babylon/tree/main/agnosticv-operator)).

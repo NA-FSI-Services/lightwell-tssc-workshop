@@ -21,12 +21,19 @@ Set mode in values (or root-app overlay). Never commit real `LW_*` values.
 
 ### Seeded content (default)
 
+Two seed kinds on purpose (Module 2 teaches both):
+
+| Kind | Coordinates | JAR | Lab use |
+|------|-------------|-----|---------|
+| **Resolution stub** | `spring-core:5.3.18` (+ `.rhlw-00003`) | Manifest-only workshop stub | `mvn dependency:get` — prove Nexus hosts Lightwell-shaped GAVs |
+| **Compile-capable** | `commons-lang3:3.14.0` (+ `.rhlw-00001`) | Real Apache Commons Lang 3.14.0 (ASL 2.0), fetched from Maven Central at seed time | `mvn clean verify` — enterprise manager feeds a real PoC build |
+
 | Coordinate | Tier | Notes |
 |------------|------|-------|
-| `org.springframework:spring-core:5.3.18` | Validated | OSV demo base version |
-| `org.springframework:spring-core:5.3.18.rhlw-00003` | Remediated | Exact-version suffix (issue #11 example style) |
-| `org.apache.commons:commons-lang3:3.14.0` | Validated | Matches `spring-boot-lw-poc` validated profile |
-| `org.apache.commons:commons-lang3:3.14.0.rhlw-00001` | Remediated | Matches `lightwell-remediated-pins` profile |
+| `org.springframework:spring-core:5.3.18` | Validated | Resolution stub; OSV demo base version |
+| `org.springframework:spring-core:5.3.18.rhlw-00003` | Remediated | Resolution stub; exact-version suffix |
+| `org.apache.commons:commons-lang3:3.14.0` | Validated | Compile-capable; matches `spring-boot-lw-poc` validated pin |
+| `org.apache.commons:commons-lang3:3.14.0.rhlw-00001` | Remediated | Same binary under `.rhlw-*`; matches `lightwell-remediated-pins` |
 
 **OSV** (raw repo `lightwell-osv-java-remediated`):
 
@@ -43,7 +50,7 @@ sbom/java/validated/org.springframework/spring-core/5.3.18.cdx.json
 sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json
 ```
 
-Stub JARs are workshop placeholders (manifest-only) so Maven resolution succeeds without redistributing upstream binaries.
+Override the Commons Lang download URL with env `COMMONS_LANG3_JAR_URL` on the seed Job if the cluster cannot reach Maven Central.
 
 ## Sync waves (inside this chart)
 
