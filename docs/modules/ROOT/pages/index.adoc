@@ -23,7 +23,7 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 |`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth; mirror / air-gap note
 
 |xref:module-03-osv.adoc[3 — Exact-version remediation]
-|OSV → `.rhlw-*` pin → source diff → rebuild
+|Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild
 
 |xref:module-04-sbom.adoc[4 — SBOM + RHTPA]
 |CycloneDX via `syft`; RHTPA ingest; VEX / scanner narrative; RHDA callout
