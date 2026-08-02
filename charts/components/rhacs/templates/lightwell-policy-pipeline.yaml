@@ -55,9 +55,10 @@ spec:
         - name: output
           workspace: source
       params:
-        - name: url
+        # openshift-pipelines cluster Task git-clone uses uppercase param names
+        - name: URL
           value: $(params.repo-url)
-        - name: revision
+        - name: REVISION
           value: $(params.revision)
 
     - name: lightwell-dep-gate
