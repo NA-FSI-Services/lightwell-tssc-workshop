@@ -79,10 +79,14 @@ pipelineHooks:
   sbom:
     enabled: true
     taskName: syft-sbom-rhtpa
+    # Distroless — used only via ENTRYPOINT/args (no Tekton script:)
     syftImage: "ghcr.io/anchore/syft:v1.18.1"
+    # Shell + curl for results / optional RHTPA upload
+    uploadImage: "registry.access.redhat.com/ubi9/ubi-minimal:latest"
     # Set to https://<rhtpa-route> when RHTPA is synced; empty = write SBOM for UI upload
     rhtpaUrl: ""
     rhtpaSecretName: rhtpa-upload-token
+
   pipeline:
     enabled: true
     name: lightwell-build-policy-gate
