@@ -1,0 +1,36 @@
+{{- if and .Values.gitea.enabled .Values.userInfo.enabled }}
+{{- $url := include "gitea.url" . }}
+{{- $primary := index .Values.students 0 }}
+{{- $repoUrl := printf "%s/%s/%s.git" $url $primary.username .Values.seed.repoName }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-gitea
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  gitea_url: {{ $url | quote }}
+  student_username: {{ $primary.username | quote }}
+  student_password: {{ $primary.password | quote }}
+  student_repo_url: {{ $repoUrl | quote }}
+  student_repo_name: {{ .Values.seed.repoName | quote }}
+  student_repo_revision: {{ .Values.seed.defaultBranch | quote }}
+  student_pom_path: "pom.xml"
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- if gt (len .Values.students) 1 }}
+  # Additional students (username|repo_url) for multi-user claims
+  student_repos: |
+{{- range .Values.students }}
+    {{ .username }}={{ printf "%s/%s/%s.git" $url .username $.Values.seed.repoName }}
+{{- end }}
+{{- end }}
+{{- end }}

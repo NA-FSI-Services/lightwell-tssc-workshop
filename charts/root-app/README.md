@@ -8,6 +8,7 @@ Master Helm chart for the workshop GitOps sync path (`gitops_path: charts/root-a
 |------|------------|------|
 | `5` | `keycloak` | Workshop IdP for RHTPA (`sso.<domain>/realms/tpa`) |
 | `10` | `rhtas`, `rhtpa`, `rhacs` | TSSC operators / platform (`rhtas` #4, `rhtpa` #5, `rhacs` #6) |
+| `15` | `gitea` | Student Git (seeded learner repos for Module 5) |
 | `20` | `lightwell-repo` | Artifact manager (validated / remediated / OSV) (#7) |
 | `30` | `rhdh` | Developer Hub (+ `lightwell-java-service` placeholder; full template in #12) |
 | `40` | `spring-boot-lw-poc`, `parasol-app` | Sample apps (`spring-boot-lw-poc` #24 primary; `parasol-app` #8 optional) |
@@ -23,6 +24,7 @@ Ordering is set via `argocd.argoproj.io/sync-wave` on each Application and docum
 | `components.rhtas` | `charts/components/rhtas` | disabled |
 | `components.rhtpa` | `charts/components/rhtpa` | disabled |
 | `components.rhacs` | `charts/components/rhacs` | disabled |
+| `components.gitea` | `charts/components/gitea` | disabled (enable for Module 5 student repos) |
 | `components.lightwellRepo` | `charts/components/lightwell-repo` | disabled |
 | `components.rhdh` | `charts/components/rhdh` | disabled |
 | `components.springBootLwPoc` | `charts/components/spring-boot-lw-poc` | disabled |

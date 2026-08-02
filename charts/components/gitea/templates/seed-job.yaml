@@ -1,0 +1,91 @@
+{{- if and .Values.gitea.enabled .Values.seed.enabled }}
+{{- $students := .Values.students | toJson }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.seed.jobName }}
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seed
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.seed | quote }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.seed.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.seed.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "gitea.labels" . | nindent 8 }}
+        app.kubernetes.io/component: seed
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.seed.serviceAccountName }}
+      containers:
+        - name: seed
+          image: {{ .Values.seed.image | quote }}
+          imagePullPolicy: {{ .Values.seed.imagePullPolicy | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              if ! command -v git >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
+                if command -v microdnf >/dev/null 2>&1; then
+                  microdnf install -y --nodocs git python3 openssl && microdnf clean all
+                else
+                  dnf install -y -q git python3 openssl && dnf clean all
+                fi
+              fi
+              bash /seed/assemble-repo.sh /seed/repo
+              export SEED_DIR=/seed
+              bash /seed/seed-student-repos.sh
+          env:
+            - name: GITEA_URL
+              value: {{ include "gitea.url" . | quote }}
+            - name: GITEA_NAMESPACE
+              value: {{ .Values.gitea.namespace | quote }}
+            - name: GITEA_DEPLOYMENT
+              value: {{ .Values.gitea.name | quote }}
+            - name: REPO_NAME
+              value: {{ .Values.seed.repoName | quote }}
+            - name: REPO_DESCRIPTION
+              value: {{ .Values.seed.repoDescription | quote }}
+            - name: DEFAULT_BRANCH
+              value: {{ .Values.seed.defaultBranch | quote }}
+            - name: STUDENTS_JSON
+              value: {{ $students | quote }}
+            - name: ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: username
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: password
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: email
+          volumeMounts:
+            - name: seed
+              mountPath: /seed
+          resources:
+            requests:
+              cpu: {{ .Values.seed.resources.requests.cpu | quote }}
+              memory: {{ .Values.seed.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.seed.resources.limits.cpu | quote }}
+              memory: {{ .Values.seed.resources.limits.memory | quote }}
+      volumes:
+        - name: seed
+          configMap:
+            name: {{ .Values.seed.configMapName }}
+            defaultMode: 0755
+{{- end }}

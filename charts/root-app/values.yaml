@@ -1,9 +1,10 @@
 # Lightwell TSSC Workshop — App of Apps
 # AgnosticV gitops_path: charts/root-app
 #
-# Sync wave ordering (IdP → operators → config → apps → showroom):
+# Sync wave ordering (IdP → operators → student git → config → apps → showroom):
 #    5  — Workshop Keycloak (SSO for RHTPA): keycloak
 #   10  — TSSC operators / platform: rhtas, rhtpa, rhacs
+#   15  — Student Git (Gitea): gitea
 #   20  — Artifact manager / LWN pattern: lightwell-repo
 #   30  — Developer Hub: rhdh
 #   40  — Sample apps: spring-boot-lw-poc, parasol-app
@@ -57,6 +58,18 @@ components:
     enabled: false
     namespace: stackrox
     syncWave: "10"
+
+  # --- Wave 15: Student Git (learner repos for Module 5 — not the GitOps monorepo) ---
+  # Chart: charts/components/gitea. Seeds per-student spring-boot-lw-poc repositories.
+  gitea:
+    enabled: false
+    namespace: gitea
+    syncWave: "15"
+    # Primary student (must match charts/components/gitea values students[0] / seed.repoName)
+    studentUsername: student
+    repoName: spring-boot-lw-poc
+    repoRevision: main
+    pomPath: pom.xml
 
   # --- Wave 20: Artifact manager (validated / remediated / OSV) ---
   # Chart: charts/components/lightwell-repo (#7). Enable when ready to sync.

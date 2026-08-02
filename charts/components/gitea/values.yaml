@@ -1,0 +1,82 @@
+# Workshop Gitea — student-facing git for Module 5 (not the workshop GitOps monorepo).
+
+gitea:
+  enabled: true
+  namespace: gitea
+  name: gitea
+  routeHostPrefix: gitea
+  image: docker.io/gitea/gitea:1.22.3
+  replicas: 1
+  # anyuid SCC — Gitea image UID expectations under restricted OpenShift SCCs
+  anyuidScc: true
+  syncWaves:
+    namespace: "0"
+    rbac: "1"
+    config: "1"
+    deploy: "2"
+    route: "3"
+    seed: "4"
+    userinfo: "5"
+  pvc:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # Workshop-only admin — override via values / RHDP secrets in shared envs
+  admin:
+    username: gitea-admin
+    password: "workshop-gitea-admin-changeme"
+    email: gitea-admin@workshop.local
+    secretName: gitea-admin
+  # SQLite under /data (PVC). DISABLE_REGISTRATION — users created by seed Job.
+  config:
+    disableRegistration: true
+    requireSigninView: false
+    defaultPrivate: false
+
+# Students who receive a seeded application repository.
+# Expand this list for multi-user claims; each entry gets <username>/<repoName>.
+students:
+  - username: student
+    password: "workshop-student-changeme"
+    email: student@workshop.local
+    fullName: Workshop Student
+
+seed:
+  enabled: true
+  jobName: gitea-student-repo-seed
+  configMapName: gitea-student-repo-seed
+  serviceAccountName: gitea-seed
+  # OpenShift CLI image (oc + curl + bash); seed installs git/python3 as needed.
+  image: quay.io/openshift/origin-cli:4.17.0
+  imagePullPolicy: IfNotPresent
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400
+  # Application repo pushed for each student (pom.xml at repo root for Module 5).
+  repoName: spring-boot-lw-poc
+  repoDescription: "Lightwell TSSC student lab repository (Module 5 policy pipeline)"
+  defaultBranch: main
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Student Git (Gitea)"
+  instructions: >-
+    In-cluster Gitea for learner application repos. Module 5 pipelines clone your
+    student repository (not the workshop GitOps monorepo). Open gitea_url, sign in
+    with student_username / student_password from this userinfo, then clone
+    student_repo_url. Edit pom.xml for the remediated .rhlw-* pass path and push.
+
+deployer:
+  domain: ""
+  apiUrl: ""

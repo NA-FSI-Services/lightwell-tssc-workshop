@@ -1,5 +1,5 @@
 # App of Apps — ArgoCD Applications for each enabled Lightwell workshop component.
-# Sync waves: keycloak (5) → operators (10) → config (20) → rhdh (30) → apps (40) → showroom (50)
+# Sync waves: keycloak (5) → operators (10) → gitea (15) → config (20) → rhdh (30) → apps (40) → showroom (50)
 
 {{- if .Values.components.keycloak.enabled }}
 ---
@@ -144,6 +144,15 @@ spec:
         rhacs:
           enabled: {{ .Values.components.rhacs.enabled }}
           namespace: {{ .Values.components.rhacs.namespace }}
+        pipelineHooks:
+{{- if and .Values.components.gitea.enabled .Values.deployer.domain }}
+          labRepoUrl: {{ printf "https://gitea.%s/%s/%s.git" .Values.deployer.domain .Values.components.gitea.studentUsername .Values.components.gitea.repoName | quote }}
+          labRevision: {{ .Values.components.gitea.repoRevision | quote }}
+          pipeline:
+            defaultPomPath: {{ .Values.components.gitea.pomPath | quote }}
+{{- else }}
+          labRepoUrl: ""
+{{- end }}
         deployer:
           domain: {{ .Values.deployer.domain | quote }}
           apiUrl: {{ .Values.deployer.apiUrl | quote }}
@@ -167,6 +176,47 @@ spec:
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
+{{- end }}
+
+{{- if .Values.components.gitea.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-gitea
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "root-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.components.gitea.syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: {{ .Values.gitops.basePath }}/components/gitea
+    helm:
+      valuesObject:
+        gitea:
+          enabled: {{ .Values.components.gitea.enabled }}
+          namespace: {{ .Values.components.gitea.namespace }}
+        seed:
+          repoName: {{ .Values.components.gitea.repoName | quote }}
+          defaultBranch: {{ .Values.components.gitea.repoRevision | quote }}
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.components.gitea.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
 {{- end }}
 
 {{- if .Values.components.lightwellRepo.enabled }}

@@ -28,6 +28,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 ### Component ownership (do not collapse)
 
 - `keycloak` — Workshop IdP for RHTPA (`sso.<domain>/realms/tpa`; enable before `rhtpa`)
+- `gitea` — In-cluster student Git; Module 5 / pipeline labs use learner repos (not the GitOps monorepo)
 - `rhdh` — Developer Hub + `lightwell-java-service` Software Template 
 - `rhtas` — Trusted Artifact Signer / keyless signing 
 - `rhtpa` — SBOM (and advisory) ingestion/analysis; RHDA consumes its APIs 
