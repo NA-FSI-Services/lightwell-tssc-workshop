@@ -33,15 +33,19 @@ spec:
             - -ec
             - |
               set -euo pipefail
+              # ConfigMap volume is read-only — assemble writable seed tree under /tmp.
+              WORKDIR=/tmp/gitea-seed
+              mkdir -p "${WORKDIR}"
               if ! command -v git >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
-                if command -v microdnf >/dev/null 2>&1; then
-                  microdnf install -y --nodocs git python3 openssl && microdnf clean all
-                else
-                  dnf install -y -q git python3 openssl && dnf clean all
-                fi
+                dnf install -y -q git python3 openssl tar gzip && dnf clean all
               fi
-              bash /seed/assemble-repo.sh /seed/repo
-              export SEED_DIR=/seed
+              if ! command -v oc >/dev/null 2>&1; then
+                curl -fsSL -o /tmp/oc.tgz \
+                  https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
+                tar -C /usr/local/bin -xzf /tmp/oc.tgz oc
+              fi
+              bash /seed/assemble-repo.sh "${WORKDIR}/repo"
+              export SEED_DIR="${WORKDIR}"
               bash /seed/seed-student-repos.sh
           env:
             - name: GITEA_URL

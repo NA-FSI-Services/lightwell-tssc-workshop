@@ -51,8 +51,8 @@ seed:
   jobName: gitea-student-repo-seed
   configMapName: gitea-student-repo-seed
   serviceAccountName: gitea-seed
-  # OpenShift CLI image (oc + curl + bash); seed installs git/python3 as needed.
-  image: quay.io/openshift/origin-cli:4.17.0
+  # Root-capable UBI so seed can install git/python3 and download oc (origin-cli is non-root).
+  image: registry.access.redhat.com/ubi9/ubi:latest
   imagePullPolicy: IfNotPresent
   backoffLimit: 6
   ttlSecondsAfterFinished: 86400
