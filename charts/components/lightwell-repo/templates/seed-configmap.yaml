@@ -1,6 +1,6 @@
 {{- if and .Values.lightwellRepo.enabled .Values.seed.enabled }}
 ---
-# Seed payloads for deterministic RHDP labs (Maven stubs, OSV path shape, CycloneDX).
+# Seed payloads for deterministic RHDP labs (resolution stubs + compile-capable commons-lang3, OSV, CycloneDX).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -32,11 +32,12 @@ data:
   README: |
     Seeded-mirror mode (lightwellRepo.mode=seeded) uploads these files into Nexus hosted repos.
 
-    Maven (validated):
+    Resolution stubs (manifest-only JAR — Module 2/3 dependency:get):
       org.springframework:spring-core:5.3.18
-      org.apache.commons:commons-lang3:3.14.0
-    Maven (remediated, .rhlw-0000X):
       org.springframework:spring-core:5.3.18.rhlw-00003
+
+    Compile-capable (real Apache Commons Lang 3.14.0 JAR fetched at seed time):
+      org.apache.commons:commons-lang3:3.14.0
       org.apache.commons:commons-lang3:3.14.0.rhlw-00001
 
     OSV path shape (raw repo):

@@ -129,7 +129,7 @@ seed:
       memory: 128Mi
     limits:
       cpu: 500m
-      memory: 256Mi
+      memory: 512Mi
 
 # RHDP userinfo ConfigMap
 userInfo:
@@ -137,10 +137,10 @@ userInfo:
   title: "Lightwell TSSC Workshop — Artifact Manager (LWN)"
   instructions: >-
     Nexus presents Lightwell Validated / Remediated / OSV channels. Default mode is
-    seeded (Job lightwell-repo-seed uploads spring-core + commons-lang3 stubs,
-    OSV at osv/java/remediated/, and CycloneDX SBOMs). For live proxy, set
-    lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD into Secret
-    lightwell-network-credentials. Maven: ConfigMap lightwell-maven-settings.
+    seeded (Job lightwell-repo-seed uploads spring-core resolution stubs, compile-capable
+    commons-lang3 for PoC builds, OSV at osv/java/remediated/, and CycloneDX SBOMs).
+    For live proxy, set lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD into
+    Secret lightwell-network-credentials. Maven: ConfigMap lightwell-maven-settings.
 
 # Injected by root-app / field content workload
 deployer:

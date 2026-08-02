@@ -20,7 +20,7 @@ data:
     - proxy: Maven/raw *proxy* repos pointing at canonical packages.redhat.com URLs,
       authenticated with Secret {{ .Values.credentials.secretName }} (LW_USERNAME / LW_PASSWORD).
     - seeded: Maven/raw *hosted* repos populated by Job lightwell-repo-seed
-      (spring-core + commons-lang3 stubs, OSV at {{ .Values.sampleOsv.rawPath }}, CycloneDX).
+      (spring-core resolution stubs, compile-capable commons-lang3, OSV at {{ .Values.sampleOsv.rawPath }}, CycloneDX).
 
     Naming must allow remediated versions such as {{ .Values.sampleOsv.remediatedVersion }}.
     Prefer the seed Job over running this sketch manually.

@@ -119,7 +119,7 @@ upload_raw() {
     "${NEXUS_SVC}/repository/${repo}/${path}"
 }
 
-prepare_jar() {
+prepare_stub_jar() {
   local out="$1"
   if [[ -f "${SEED_DIR}/workshop-stub.jar" ]]; then
     cp "${SEED_DIR}/workshop-stub.jar" "${out}"
@@ -131,25 +131,71 @@ prepare_jar() {
   fi
 }
 
+# Compile-capable Apache Commons Lang (ASL 2.0) for Spring Boot PoC clean verify.
+# Re-uploaded under Validated + Remediated coordinates so Module 2 can exercise both
+# resolution stubs (spring-core) and real consumption (commons-lang3).
+prepare_commons_lang3_jar() {
+  local out="$1"
+  local url="${COMMONS_LANG3_JAR_URL:-https://repo.maven.apache.org/maven2/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar}"
+  local min_bytes="${COMMONS_LANG3_MIN_BYTES:-100000}"
+  log "Fetching compile-capable commons-lang3 from ${url}"
+  if curl -fsSL --retry 3 --retry-delay 2 -o "${out}" "${url}"; then
+    local size
+    size="$(wc -c < "${out}" | tr -d ' ')"
+    if [[ "${size}" -ge "${min_bytes}" ]]; then
+      log "commons-lang3 jar ready (${size} bytes)"
+      return 0
+    fi
+    log "WARN: downloaded jar too small (${size} bytes); expected >= ${min_bytes}"
+  else
+    log "WARN: download failed for ${url}"
+  fi
+  log "ERROR: compile-capable commons-lang3 required for Module 2 clean verify"
+  exit 1
+}
+
+# Hosted repos use writePolicy ALLOW; delete prior GAV paths so re-seed replaces stubs.
+delete_maven_gavi() {
+  local repo="$1" group_id="$2" artifact_id="$3" version="$4"
+  local group_path
+  group_path="$(echo "${group_id}" | tr '.' '/')"
+  local base="${NEXUS_SVC}/repository/${repo}/${group_path}/${artifact_id}/${version}"
+  local f
+  for f in \
+    "${artifact_id}-${version}.jar" \
+    "${artifact_id}-${version}.pom" \
+    "${artifact_id}-${version}.jar.sha1" \
+    "${artifact_id}-${version}.pom.sha1" \
+    "${artifact_id}-${version}.jar.md5" \
+    "${artifact_id}-${version}.pom.md5"; do
+    curl_ok -X DELETE "${base}/${f}"
+  done
+}
+
 seed_content() {
   local work
   work="$(mktemp -d)"
-  prepare_jar "${work}/stub.jar"
+  prepare_stub_jar "${work}/stub.jar"
+  prepare_commons_lang3_jar "${work}/commons-lang3.jar"
 
   # Learner-facing repo keys (same names as Maven settings.xml)
   local validated_repo="${VALIDATED_REPO:-lightwell-java-validated}"
   local remediated_repo="${REMEDIATED_REPO:-lightwell-java-remediated}"
   local osv_repo="${OSV_REPO:-lightwell-osv-java-remediated}"
 
+  # Experiment A — resolution stubs (Module 2 / 3 dependency:get; not for compile)
   upload_maven "${validated_repo}" "org.springframework" "spring-core" "5.3.18" \
     "${SEED_DIR}/spring-core-5.3.18.pom" "${work}/stub.jar"
   upload_maven "${remediated_repo}" "org.springframework" "spring-core" "5.3.18.rhlw-00003" \
     "${SEED_DIR}/spring-core-5.3.18.rhlw-00003.pom" "${work}/stub.jar"
 
+  # Experiment B — compile-capable consumption (Spring Boot PoC clean verify)
+  delete_maven_gavi "${validated_repo}" "org.apache.commons" "commons-lang3" "3.14.0"
+  delete_maven_gavi "${remediated_repo}" "org.apache.commons" "commons-lang3" "3.14.0.rhlw-00001"
   upload_maven "${validated_repo}" "org.apache.commons" "commons-lang3" "3.14.0" \
-    "${SEED_DIR}/commons-lang3-3.14.0.pom" "${work}/stub.jar"
+    "${SEED_DIR}/commons-lang3-3.14.0.pom" "${work}/commons-lang3.jar"
   upload_maven "${remediated_repo}" "org.apache.commons" "commons-lang3" "3.14.0.rhlw-00001" \
-    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.pom" "${work}/stub.jar"
+    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.pom" "${work}/commons-lang3.jar"
 
   upload_raw "${osv_repo}" "${OSV_PATH}" "${SEED_DIR}/${OSV_ID}.json"
   upload_raw "${osv_repo}" "sbom/java/validated/org.springframework/spring-core/5.3.18.cdx.json" \
@@ -157,7 +203,7 @@ seed_content() {
   upload_raw "${osv_repo}" "sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json" \
     "${SEED_DIR}/spring-core-5.3.18.rhlw-00003.cdx.json"
 
-  log "Seeded Maven + OSV (${OSV_PATH}) + CycloneDX SBOMs"
+  log "Seeded Maven (stubs + compile-capable commons-lang3) + OSV (${OSV_PATH}) + CycloneDX SBOMs"
 }
 
 create_repos() {
