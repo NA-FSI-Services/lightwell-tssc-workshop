@@ -23,6 +23,10 @@ spec:
       labels:
         {{- include "keycloak.labels" . | nindent 8 }}
         app: {{ .Values.keycloak.name }}
+      annotations:
+        # start-dev has no PVC — recreate on realm ConfigMap change so --import-realm
+        # picks up Trustify chicken roles / document scopes (Module 4).
+        checksum/realm-import: {{ include (print $.Template.BasePath "/realm-configmap.yaml") . | sha256sum }}
     spec:
 {{- if .Values.keycloak.anyuidScc }}
       serviceAccountName: {{ .Values.keycloak.name }}

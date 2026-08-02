@@ -108,7 +108,8 @@ trustedProfileAnalyzer:
 # Documents CycloneDX SBOM + VEX ingestion for labs (ConfigMap)
 ingestionInfo:
   enabled: true
-  supportedCycloneDxVersion: "1.4"
+  # Trustify 3 accepts CycloneDX from syft (commonly specVersion 1.5/1.6); 1.4 remains fine
+  supportedCycloneDxVersion: "1.4+"
 
 # RHDP userinfo ConfigMap
 userInfo:

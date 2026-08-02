@@ -1,7 +1,9 @@
 {{- if .Values.keycloak.enabled }}
 ---
-# Realm import for RHTPA — clients frontend (public) + cli (confidential).
-# Wildcard redirect/webOrigins are workshop-only; tighten for shared environments.
+# Realm import for RHTPA / Trustify — clients frontend (public) + cli (confidential).
+# Embeds Keycloak standard client scopes (basic/profile/email/roles/…) plus Trustify
+# chicken-* roles and read|create|delete:document scopes for Module 4 SBOM upload.
+# Wildcard redirect/webOrigins are workshop-only.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -23,6 +25,297 @@ data:
       "resetPasswordAllowed": false,
       "editUsernameAllowed": false,
       "bruteForceProtected": false,
+      "roles": {
+        "realm": [
+          {
+            "name": "chicken-user",
+            "description": "Trustify / RHTPA baseline workshop role (default for new users)"
+          },
+          {
+            "name": "chicken-manager",
+            "description": "Trustify / RHTPA manager — SBOM upload and document create/delete"
+          },
+          {
+            "name": "chicken-admin",
+            "description": "Trustify / RHTPA admin — workshop UI user"
+          }
+        ]
+      },
+      "defaultRoles": ["chicken-user", "offline_access", "uma_authorization"],
+      "clientScopes": [
+        {
+          "name": "basic",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "false",
+            "display.on.consent.screen": "false"
+          },
+          "protocolMappers": [
+            {
+              "name": "sub",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-sub-mapper",
+              "consentRequired": false,
+              "config": {
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "introspection.token.claim": "true",
+                "userinfo.token.claim": "true"
+              }
+            },
+            {
+              "name": "auth_time",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usersessionmodel-note-mapper",
+              "consentRequired": false,
+              "config": {
+                "user.session.note": "AUTH_TIME",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "auth_time",
+                "jsonType.label": "long",
+                "userinfo.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "name": "profile",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "true"
+          },
+          "protocolMappers": [
+            {
+              "name": "username",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-property-mapper",
+              "consentRequired": false,
+              "config": {
+                "user.attribute": "username",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "preferred_username",
+                "jsonType.label": "String",
+                "userinfo.token.claim": "true"
+              }
+            },
+            {
+              "name": "full name",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-full-name-mapper",
+              "consentRequired": false,
+              "config": {
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "userinfo.token.claim": "true"
+              }
+            },
+            {
+              "name": "given name",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-property-mapper",
+              "consentRequired": false,
+              "config": {
+                "user.attribute": "firstName",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "given_name",
+                "jsonType.label": "String",
+                "userinfo.token.claim": "true"
+              }
+            },
+            {
+              "name": "family name",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-property-mapper",
+              "consentRequired": false,
+              "config": {
+                "user.attribute": "lastName",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "family_name",
+                "jsonType.label": "String",
+                "userinfo.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "true"
+          },
+          "protocolMappers": [
+            {
+              "name": "email",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-property-mapper",
+              "consentRequired": false,
+              "config": {
+                "user.attribute": "email",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "email",
+                "jsonType.label": "String",
+                "userinfo.token.claim": "true"
+              }
+            },
+            {
+              "name": "email verified",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-property-mapper",
+              "consentRequired": false,
+              "config": {
+                "user.attribute": "emailVerified",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "email_verified",
+                "jsonType.label": "boolean",
+                "userinfo.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "false"
+          },
+          "protocolMappers": [
+            {
+              "name": "realm roles",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-realm-role-mapper",
+              "consentRequired": false,
+              "config": {
+                "multivalued": "true",
+                "userinfo.token.claim": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "realm_access.roles",
+                "jsonType.label": "String"
+              }
+            },
+            {
+              "name": "client roles",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-client-role-mapper",
+              "consentRequired": false,
+              "config": {
+                "multivalued": "true",
+                "userinfo.token.claim": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "resource_access.${client_id}.roles",
+                "jsonType.label": "String"
+              }
+            },
+            {
+              "name": "audience resolve",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-audience-resolve-mapper",
+              "consentRequired": false,
+              "config": {}
+            }
+          ]
+        },
+        {
+          "name": "web-origins",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "false",
+            "display.on.consent.screen": "false"
+          },
+          "protocolMappers": [
+            {
+              "name": "allowed web origins",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-allowed-origins-mapper",
+              "consentRequired": false,
+              "config": {
+                "introspection.token.claim": "true",
+                "access.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "name": "acr",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "false",
+            "display.on.consent.screen": "false"
+          },
+          "protocolMappers": [
+            {
+              "name": "acr loa level",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-acr-mapper",
+              "consentRequired": false,
+              "config": {
+                "id.token.claim": "true",
+                "introspection.token.claim": "true",
+                "access.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "name": "offline_access",
+          "protocol": "openid-connect",
+          "attributes": {
+            "consent.screen.text": "${offlineAccessScopeConsentText}",
+            "display.on.consent.screen": "true"
+          }
+        },
+        {
+          "name": "read:document",
+          "description": "Trustify read.sbom / read.advisory (and related) permissions",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "false"
+          }
+        },
+        {
+          "name": "create:document",
+          "description": "Trustify create.sbom / upload.dataset (and related) permissions",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "false"
+          }
+        },
+        {
+          "name": "delete:document",
+          "description": "Trustify delete.sbom (and related) permissions",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "false"
+          }
+        }
+      ],
+      "defaultDefaultClientScopes": [
+        "basic",
+        "profile",
+        "email",
+        "roles",
+        "web-origins",
+        "acr",
+        "read:document",
+        "create:document",
+        "delete:document"
+      ],
+      "defaultOptionalClientScopes": [
+        "offline_access"
+      ],
       "clients": [
         {
           "clientId": {{ .Values.oidc.frontendClientId | quote }},
@@ -34,8 +327,23 @@ data:
           "implicitFlowEnabled": false,
           "directAccessGrantsEnabled": true,
           "serviceAccountsEnabled": false,
+          "fullScopeAllowed": true,
           "redirectUris": ["*"],
           "webOrigins": ["*"],
+          "defaultClientScopes": [
+            "basic",
+            "web-origins",
+            "acr",
+            "profile",
+            "roles",
+            "email",
+            "read:document",
+            "create:document",
+            "delete:document"
+          ],
+          "optionalClientScopes": [
+            "offline_access"
+          ],
           "attributes": {
             "pkce.code.challenge.method": "S256"
           }
@@ -51,8 +359,23 @@ data:
           "implicitFlowEnabled": false,
           "directAccessGrantsEnabled": true,
           "serviceAccountsEnabled": true,
+          "fullScopeAllowed": true,
           "redirectUris": ["*"],
-          "webOrigins": ["*"]
+          "webOrigins": ["*"],
+          "defaultClientScopes": [
+            "basic",
+            "web-origins",
+            "acr",
+            "profile",
+            "roles",
+            "email",
+            "read:document",
+            "create:document",
+            "delete:document"
+          ],
+          "optionalClientScopes": [
+            "offline_access"
+          ]
         }
       ],
       "users": [
@@ -69,6 +392,19 @@ data:
               "value": {{ .Values.oidc.workshopUser.password | quote }},
               "temporary": false
             }
+          ],
+          "realmRoles": [
+            "chicken-user",
+            "chicken-manager",
+            "chicken-admin"
+          ]
+        },
+        {
+          "username": {{ printf "service-account-%s" .Values.oidc.cliClientId | quote }},
+          "enabled": true,
+          "serviceAccountClientId": {{ .Values.oidc.cliClientId | quote }},
+          "realmRoles": [
+            "chicken-manager"
           ]
         }
       ]
