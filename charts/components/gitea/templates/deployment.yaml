@@ -1,0 +1,107 @@
+{{- if .Values.gitea.enabled }}
+{{- $host := include "gitea.routeHost" . }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.gitea.name }}
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+    app: {{ .Values.gitea.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.deploy | quote }}
+spec:
+  replicas: {{ .Values.gitea.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Values.gitea.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "gitea.labels" . | nindent 8 }}
+        app: {{ .Values.gitea.name }}
+    spec:
+{{- if .Values.gitea.anyuidScc }}
+      serviceAccountName: {{ .Values.gitea.name }}
+{{- end }}
+      containers:
+        - name: gitea
+          image: {{ .Values.gitea.image | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+            - name: ssh
+              containerPort: 22
+          env:
+            - name: GITEA__server__DOMAIN
+              value: {{ $host | quote }}
+            - name: GITEA__server__ROOT_URL
+              value: {{ printf "https://%s/" $host | quote }}
+            - name: GITEA__server__HTTP_PORT
+              value: "3000"
+            - name: GITEA__server__DISABLE_SSH
+              value: "true"
+            - name: GITEA__database__DB_TYPE
+              value: sqlite3
+            - name: GITEA__database__PATH
+              value: /data/gitea/gitea.db
+            - name: GITEA__security__INSTALL_LOCK
+              value: "true"
+            - name: GITEA__service__DISABLE_REGISTRATION
+              value: {{ .Values.gitea.config.disableRegistration | quote }}
+            - name: GITEA__service__REQUIRE_SIGNIN_VIEW
+              value: {{ .Values.gitea.config.requireSigninView | quote }}
+            - name: GITEA__repository__DEFAULT_PRIVATE
+              value: {{ ternary "true" "false" .Values.gitea.config.defaultPrivate | quote }}
+            - name: GITEA__repository__DEFAULT_BRANCH
+              value: {{ .Values.seed.defaultBranch | quote }}
+            - name: GITEA__admin__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: username
+            - name: GITEA__admin__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: password
+            - name: GITEA__admin__EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: email
+          readinessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: {{ .Values.gitea.resources.requests.cpu | quote }}
+              memory: {{ .Values.gitea.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.gitea.resources.limits.cpu | quote }}
+              memory: {{ .Values.gitea.resources.limits.memory | quote }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.gitea.name }}-data
+{{- end }}

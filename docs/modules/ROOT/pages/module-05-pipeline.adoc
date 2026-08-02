@@ -20,7 +20,28 @@ By the end of this module, you will be able to:
 
 * xref:module-03-osv.adoc[Module 3] — remediated pin story
 * xref:module-04-sbom.adoc[Module 4] — SBOM → RHTPA
-* Charts synced (or available): `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
+* Charts synced (or available): `gitea` (student Git), `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
+
+== Your student Git repository
+
+Pipeline labs clone **your** application repository on the in-cluster Gitea — not the workshop GitOps monorepo.
+
+[source,bash,role=execute]
+----
+# Discover your learner repo (ConfigMap demo-userinfo-gitea)
+oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.gitea_url}{"\n"}{.data.student_repo_url}{"\n"}{.data.student_username}{"\n"}'
+
+export STUDENT_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_repo_url}')"
+export STUDENT_REPO_REV="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_repo_revision}')"
+export STUDENT_POM_PATH="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_pom_path}')"
+echo "STUDENT_REPO_URL=${STUDENT_REPO_URL}"
+----
+
+Sign in at `gitea_url` with `student_username` / `student_password` from the same ConfigMap when you need the web UI or `git push` credentials. Multi-user claims list additional remotes under `student_repos` in that ConfigMap — always use **your** username’s URL.
 
 == Architecture of the lab Pipeline
 
@@ -73,8 +94,9 @@ oc -n stackrox get pipeline lightwell-build-policy-gate
 oc -n stackrox get configmap rhacs-lightwell-policy-lab \
   -o jsonpath='{.data.fail_pipelinerun\.yaml}' > /tmp/lightwell-policy-fail.yaml
 
-# Review: pom-path points at charts/.../spring-boot-lw-poc/app/pom.xml
+# Confirm repo-url matches your student Gitea remote (pom-path=pom.xml at repo root)
 grep -E 'pom-path|dep-gate|repo-url' /tmp/lightwell-policy-fail.yaml
+oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}{"\n"}'
 
 oc -n stackrox create -f /tmp/lightwell-policy-fail.yaml
 ----
@@ -103,7 +125,18 @@ If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-dep-ga
 
 == Exercise 2: Success path (remediated `.rhlw-*` pin)
 
-. In a working copy of the PoC POM, set the *default* properties pin (the gate reads `<properties>`, not only the profile block):
+. Clone **your** student repository, set the *default* properties pin (the gate reads `<properties>`, not only the profile block), commit, and push:
++
+[source,bash,role=execute]
+----
+: "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
+: "${STUDENT_USER:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')}"
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+
+git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${STUDENT_REPO_URL#https://}" /tmp/student-lw-poc
+cd /tmp/student-lw-poc
+# Edit pom.xml — default <commons.lang3.version> must become 3.14.0.rhlw-00001
+----
 +
 [source,xml]
 ----
@@ -112,13 +145,21 @@ If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-dep-ga
 </properties>
 ----
 +
-In a live RHDP session, push that change to a fork / learner repo and point `repo-url` + `revision` at it. For instructor dry-runs against this monorepo after a local edit is committed, re-run the PipelineRun with the same `pom-path`.
+[source,bash,role=execute]
+----
+git add pom.xml
+git commit -m "Pin commons-lang3 to remediated .rhlw-00001"
+git push origin main
+----
 
-. Create a success PipelineRun (copy the fail template; keep `dep-gate-mode=require-remediated`):
+. Create a success PipelineRun against **your** student remote (keep `dep-gate-mode=require-remediated`):
 +
 [source,bash,role=execute]
 ----
-# After the remediated pin is on the revision you will clone:
+: "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
+: "${STUDENT_REPO_REV:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_revision}')}"
+: "${STUDENT_POM_PATH:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_pom_path}')}"
+
 oc -n stackrox create -f - <<EOF
 apiVersion: tekton.dev/v1
 kind: PipelineRun
@@ -130,15 +171,15 @@ spec:
     name: lightwell-build-policy-gate
   params:
     - name: repo-url
-      value: https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git
+      value: ${STUDENT_REPO_URL}
     - name: revision
-      value: main
+      value: ${STUDENT_REPO_REV}
     - name: image
       value: quay.io/centos/centos:stream9
     - name: dep-gate-mode
       value: require-remediated
     - name: pom-path
-      value: charts/components/spring-boot-lw-poc/app/pom.xml
+      value: ${STUDENT_POM_PATH}
     - name: rhtpa-url
       value: ""
   workspaces:
@@ -156,7 +197,7 @@ EOF
 +
 [IMPORTANT]
 ====
-The committed monorepo default pin may still be `3.14.0` until you promote a remediated change. For the pass path, either temporarily patch the POM on a branch learners use, or run the gate Task alone against a workspace that already has the remediated property (instructor technique). Do *not* leave production Git on `main` half-edited without a PR.
+Push the remediated pin to **your** Gitea repository before creating the pass PipelineRun. Do not point `repo-url` at the workshop GitOps monorepo.
 ====
 
 . Verify results:
@@ -254,6 +295,13 @@ Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF compo
 == Exercise 4: GitOps promotion (Argo CD)
 
 Promotion in this workshop means: *desired state in Git* → Argo CD sync → OpenShift resources Healthy. You do not `oc apply` long-lived app config by hand.
+
+[NOTE]
+====
+Your **student** Gitea repository holds application source for pipeline labs (Exercises 1–3).
+Argo CD App-of-Apps syncs *platform / chart desired state* from the catalog GitOps path — that is separate from the learner remotes you clone and push to.
+====
+
 
 . List Applications managed by the root App-of-Apps:
 +

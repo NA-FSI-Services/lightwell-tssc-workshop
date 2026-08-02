@@ -69,7 +69,7 @@ lightwell-tssc-workshop/
 
 Target components (see [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) and project issues):
 
-`keycloak` (workshop SSO for RHTPA), `rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc`, optional `parasol-app`, plus Showroom content wiring.
+`keycloak` (workshop SSO for RHTPA), `gitea` (student Git), `rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc`, optional `parasol-app`, plus Showroom content wiring.
 
 ## Ansible runner (optional path)
 

@@ -1,0 +1,43 @@
+{{- if and .Values.gitea.enabled .Values.gitea.anyuidScc }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.gitea.name }}
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.rbac | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.gitea.name }}-scc-anyuid
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.rbac | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.gitea.name }}
+    namespace: {{ .Values.gitea.namespace }}
+{{- end }}
+{{- if and .Values.gitea.enabled .Values.seed.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.seed.serviceAccountName }}
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seed
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.rbac | quote }}
+{{- end }}

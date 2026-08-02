@@ -76,7 +76,8 @@ Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 |-----|---------|-------|
 | `rhacs.namespace` | `stackrox` | Central + SecuredCluster + gate Tasks |
 | `pipelineHooks.depGate.remediatedVersion` | `3.14.0.rhlw-00001` | Success pin |
-| `pipelineHooks.pipeline.defaultPomPath` | `charts/.../spring-boot-lw-poc/app/pom.xml` | Monorepo lab path |
+| `pipelineHooks.labRepoUrl` | `""` | Student Gitea URL (root-app injects when `gitea` enabled) |
+| `pipelineHooks.pipeline.defaultPomPath` | `pom.xml` | Student repo root (not the GitOps monorepo) |
 | `pipelineHooks.sbom.rhtpaUrl` | `""` | Set when RHTPA Route known |
 | `pipelineHooks.failOnSkipped` | `"false"` | Set `"true"` to fail ACS task without secrets |
 | `deployer.domain` | `""` | Injected by root-app |

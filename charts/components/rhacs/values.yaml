@@ -87,10 +87,21 @@ pipelineHooks:
     rhtpaUrl: ""
     rhtpaSecretName: rhtpa-upload-token
 
+  # Student-facing git (in-cluster Gitea). Prefer root-app injection when
+  # components.gitea.enabled — never point learners at the workshop GitOps monorepo.
+  labRepoUrl: ""
+  labRevision: main
+  # When labRepoUrl is empty, Module 5 discovers URL from demo-userinfo-gitea.
+  # Fallback host pattern used only for ConfigMap examples when deployer.domain is set.
+  labRepoHostPrefix: gitea
+  labRepoOwner: student
+  labRepoName: spring-boot-lw-poc
+
   pipeline:
     enabled: true
     name: lightwell-build-policy-gate
-    defaultPomPath: charts/components/spring-boot-lw-poc/app/pom.xml
+    # Student repos seed pom.xml at repository root (not the monorepo path).
+    defaultPomPath: pom.xml
   centralPolicy:
     enabled: true
 

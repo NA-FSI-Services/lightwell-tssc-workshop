@@ -110,6 +110,9 @@ data:
     demo_app: {{ .Values.demo.appName }}
     workshop: lightwell-tssc-workshop
     modules: "1-5"
+    # Student Git (Module 5) — discover live values from demo-userinfo-gitea in ns gitea
+    gitea_namespace: gitea
+    student_git_userinfo: demo-userinfo-gitea
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
