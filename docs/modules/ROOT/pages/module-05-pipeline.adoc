@@ -176,7 +176,16 @@ oc -n stackrox get taskrun -l tekton.dev/pipelineTask=lightwell-dep-gate \
 
 === RHACS image check
 
-Populate CI secrets when you want a real `roxctl` evaluation (never commit the token):
+Populate CI secrets when you want a real `roxctl` evaluation (never commit the token).
+
+On a **dev claim** (cluster-admin + Central Ready), mint a Continuous Integration token and patch the Secret:
+
+[source,bash]
+----
+./scripts/dev-cluster-rhacs-ci-token.sh
+----
+
+Or create the token in Central UI → **Platform Configuration → Integrations → API Tokens** (role **Continuous Integration**), then:
 
 [source,bash]
 ----
@@ -188,7 +197,7 @@ oc -n stackrox create secret generic rhacs-ci-secrets \
 
 Import the Fixable Critical BUILD policy from ConfigMap `rhacs-lightwell-central-policy` (Central UI → Policy Management) when teaching scanner-backed fails/passes on real images.
 
-Without secrets, `acs-image-check` may *skip* (workshop default `fail-on-skipped=false`)—still note the Task in the pipeline graph.
+Without a `rox-api-token`, `acs-image-check` *skips* (workshop default `fail-on-skipped=false`)—still note the Task in the pipeline graph. After the token is present, re-run the PipelineRun and confirm `check-status` is `passed` or `failed` (not `skipped`).
 
 === SBOM handoff
 
@@ -198,17 +207,29 @@ With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtp
 
 RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived private keys in the workshop.
 
-. Inspect the Securesign instance:
+IMPORTANT: Full scaffolded build+sign needs OpenShift Pipelines Tasks, RHACS Tasks in `stackrox`, registry pull for `registry.redhat.io/rhtas/cosign-rhel9`, and Maven/LWN credentials for the pipeline SA. If those are not ready on your claim, complete the orientation steps below and treat end-to-end sign as instructor-led.
+
+. Inspect the Securesign instance and note Fulcio/Rekor/TUF Routes (also in userinfo ConfigMap `demo-userinfo-rhtas`):
 +
 [source,bash,role=execute]
 ----
 oc -n trusted-artifact-signer get securesign
 oc -n trusted-artifact-signer get routes
+oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o yaml
 ----
 
-. From an RHDH-scaffolded `lightwell-java-service` (or apply `.tekton/pipeline.yaml` from the skeleton), run the `*-build-sign` Pipeline with:
-* `maven-profile` = `lightwell-remediated,lightwell-remediated-pins` (or a POM whose default properties already use `.rhlw-*`)
-* `cosign-fulcio-url` / `cosign-rekor-url` from the RHTAS Routes when not using cluster TUF defaults
+. From an RHDH-scaffolded `lightwell-java-service` (skeleton under the RHDH chart):
++
+[source,bash,role=execute]
+----
+# In the scaffolded repo namespace:
+oc apply -f .tekton/rbac.yaml
+oc apply -f .tekton/pipeline.yaml
+# Edit pipelinerun: image-url + cosign-fulcio-url / cosign-rekor-url from Routes above
+oc create -f .tekton/pipelinerun.yaml
+----
++
+Use `maven-profile` = `lightwell-remediated-pins` (skeleton default) so `lightwell-dep-gate` sees `.rhlw-*` in POM properties. Profile-only `-P` without updating properties will fail the gate.
 
 . After a successful `cosign-sign-keyless` task, verify the signature (from a workstation or debug pod with cosign + TUF root):
 +
@@ -216,8 +237,8 @@ oc -n trusted-artifact-signer get routes
 ----
 # Pattern — substitute image and Fulcio/Rekor/TUF endpoints from your cluster
 # cosign verify \
-#   --fulcio-url="https://fulcio.<domain>" \
-#   --rekor-url="https://rekor.<domain>" \
+#   --fulcio-url="https://fulcio-server-trusted-artifact-signer.apps.<domain>" \
+#   --rekor-url="https://rekor-server-trusted-artifact-signer.apps.<domain>" \
 #   "${IMAGE_URL}"
 ----
 

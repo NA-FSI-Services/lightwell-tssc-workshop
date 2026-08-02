@@ -19,7 +19,7 @@ mvn -s settings.xml -Plightwell-validated clean verify
 mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
 ```
 
-Default remediated pin in `pom.xml`: `commons-lang3` `3.14.0.rhlw-00001` (resolve from seeded Nexus / LWN Remediated).
+Remediated pin via Maven profile `lightwell-remediated-pins`: `commons-lang3` `3.14.0.rhlw-00001` (resolve from seeded Nexus / LWN Remediated). Default `<properties>` stay on validated `3.14.0` for Module 2.
 
 ## Workshop modules
 
@@ -28,12 +28,18 @@ See [docs/MODULES.md](docs/MODULES.md) for Modules 2–5 mapping (Maven, OSV/`.r
 ## Pipeline (RHTAS keyless)
 
 ```bash
+# Once per namespace: SA + ImageStream for buildah push
+oc apply -f .tekton/rbac.yaml
 oc apply -f .tekton/pipeline.yaml
-# Edit .tekton/pipelinerun.yaml image/repo params, then:
+# Edit .tekton/pipelinerun.yaml: image-url, Fulcio/Rekor hosts, repo-url
 oc create -f .tekton/pipelinerun.yaml
 ```
 
-Signing uses **cosign keyless** against Red Hat Trusted Artifact Signer (Fulcio/Rekor). Provide Fulcio/Rekor URLs from the RHTAS chart when not using cluster TUF defaults.
+Default `maven-profile` is `lightwell-remediated-pins` so `lightwell-dep-gate` (require-remediated) sees `.rhlw-*` in effective POM properties.
+
+Signing uses **cosign keyless** against Red Hat Trusted Artifact Signer (Fulcio/Rekor). Set `cosign-fulcio-url` / `cosign-rekor-url` from `oc -n trusted-artifact-signer get routes` when not using cluster TUF defaults.
+
+Prerequisites that are **not** auto-scaffolded: OpenShift Pipelines Tasks (`git-clone`, `maven`, `buildah`), RHACS Tasks in `stackrox`, pull access to `registry.redhat.io/rhtas/cosign-rhel9`, and Maven Nexus/LWN credentials for the pipeline SA.
 
 ## Canonical LWN remotes
 

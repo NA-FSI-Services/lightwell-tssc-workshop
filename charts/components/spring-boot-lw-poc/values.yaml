@@ -13,6 +13,7 @@ springBootLwPoc:
     userinfo: "4"
 
 # Container image — build from ./app/Dockerfile and push, then set image.repository/tag
+# Default tag is not published on RHDP/dev claims → ImagePullBackOff if replicas > 0.
 image:
   repository: image-registry.openshift-image-registry.svc:5000/spring-boot-lw-poc/spring-boot-lw-poc
   tag: latest
@@ -21,7 +22,9 @@ image:
   buildConfig:
     enabled: false
 
-replicas: 1
+# Labs use chart Maven sources (./app); keep Deployment scaled down until an image is published.
+replicas: 0
+
 
 # validated | remediated — exposed on /api/greeting
 lightwellStream: validated
