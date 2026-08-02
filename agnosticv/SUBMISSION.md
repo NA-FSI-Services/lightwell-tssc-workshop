@@ -44,6 +44,8 @@ Record ticket / request ID on [#20](https://github.com/NA-FSI-Services/lightwell
 
 Lab content is already Showroom/Antora in this monorepo (`docs/modules/ROOT/`, `site.yml`, `charts/components/showroom`) — Field Sourced Content pattern, not a separate [`showroom_template_nookbag`](https://github.com/rhpds/showroom_template_nookbag) repo. Optional polish via [create-lab skill](https://rhpds.github.io/rhdp-skills-marketplace/skills/create-lab.html); bootstrap from the nookbag template is **not** required.
 
+**Module 1 terminal RBAC:** Showroom `/terminal/` uses SA `showroom:showroom`. Chart default `terminal.labClusterAccess: true` creates ClusterRoleBinding `showroom-lab-cluster-admin` so Module 1 `oc -n lightwell-repo get configmap …` works. Do **not** add HTPasswd IdP or kubeadmin passwords to AgnosticV — that is [dev-cluster QA only](../docs/DEV-CLUSTER-BOOTSTRAP.md). Ensure catalog Helm values enable `lightwellRepo` (wave 20) before Module 1 E2E sign-off.
+
 ## Babylon flow (why this order)
 
 1. AgnosticV Operator watches the AgnosticV git repo ([babylon `agnosticv-operator`](https://github.com/redhat-cop/babylon/tree/main/agnosticv-operator)).

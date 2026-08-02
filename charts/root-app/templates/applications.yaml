@@ -350,6 +350,7 @@ spec:
           terminal:
             enabled: {{ .Values.components.showroom.terminal.enabled }}
             image: {{ .Values.components.showroom.terminal.image | quote }}
+            labClusterAccess: {{ .Values.components.showroom.terminal.labClusterAccess | default true }}
             resources:
               requests:
                 cpu: {{ .Values.components.showroom.terminal.resources.requests.cpu | quote }}

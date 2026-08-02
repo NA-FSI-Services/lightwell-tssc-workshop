@@ -89,4 +89,9 @@ oc -n openshift-gitops get applications.argoproj.io lightwell-tssc-root -o wide 
   || echo "dev-cluster-bootstrap: WARN: Application not visible yet — wait for openshift-gitops namespace"
 
 echo "dev-cluster-bootstrap: Showroom URL (after sync): https://showroom.${DEPLOYER_DOMAIN}/"
+echo "dev-cluster-bootstrap: next steps"
+echo "  1) ./scripts/dev-cluster-htpasswd.sh   # HTPasswd IdP admin (claim.env HTPASSWD_*)"
+echo "  2) Set OC_LOGIN_MODE=password in claim.env, then ./scripts/dev-cluster-login.sh"
+echo "  3) Enable components by sync wave (lightwellRepo before Module 1 exercises)"
+echo "  4) Walk https://showroom.${DEPLOYER_DOMAIN}/modules/module-01-overview.html"
 echo "dev-cluster-bootstrap: OK"

@@ -109,6 +109,8 @@ components:
     terminal:
       enabled: true
       image: "quay.io/rhpds/openshift-showroom-terminal-ocp:latest"
+      # Required for Module 1–5 Showroom terminal `oc` across lab namespaces
+      labClusterAccess: true
       resources:
         requests:
           cpu: "500m"
