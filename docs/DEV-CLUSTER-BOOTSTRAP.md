@@ -201,7 +201,7 @@ Still manual on a bare claim (not in GitOps charts yet):
 - Install **OpenShift Pipelines** from OperatorHub when not present
 - Grant ArgoCD application-controller **cluster-admin** (or equivalent) so App-of-Apps can create namespaces/SAs
 - Run **HTPasswd IdP** script for stable `admin` login (dev-cluster only)
-- Enable `components.keycloak` (wave 5) before `rhtpa` — workshop IdP at `https://sso.<domain>/realms/tpa`
+- Enable `components.keycloak` (wave 5) before `rhtpa` — workshop IdP at `https://sso.<domain>/realms/tpa` (realm import includes Trustify `chicken-*` roles + `*:document` scopes for Module 4 SBOM upload)
 - After Keycloak is Ready, restart TPA `server` Deployment if it CrashLooped before the IdP existed
 - `spring-boot-lw-poc` runtime image is not published to the internal registry; labs use chart Maven source — scale Deployment to `0` if ImagePullBackOff distracts
 

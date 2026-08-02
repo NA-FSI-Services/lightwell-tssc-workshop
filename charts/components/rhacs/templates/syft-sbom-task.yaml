@@ -90,25 +90,39 @@ spec:
           TOKEN="$(cat /rhtpa-secret/token)"
         fi
 
-        # Trustify / RHTPA bombastic-style ingest paths vary by version; try common upload API.
+        # Trustify 3 / RHTPA: POST /api/v3/sbom (application/octet-stream).
+        # Fall back to legacy /api/v2/sbom JSON for older bombastic-style endpoints.
         # Learners can also upload ${OUT} via the RHTPA UI (Module 4).
-        UPLOAD_URL="${PARAM_RHTPA_URL%/}/api/v2/sbom"
-        echo "Attempting SBOM upload to ${UPLOAD_URL}"
         set +e
-        if [ -n "${TOKEN}" ]; then
-          curl -sS -f -X POST \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data-binary @"${OUT}" \
-            "${UPLOAD_URL}"
-          status=$?
-        else
-          curl -sS -f -X POST \
-            -H "Content-Type: application/json" \
-            --data-binary @"${OUT}" \
-            "${UPLOAD_URL}"
-          status=$?
-        fi
+        status=1
+        for UPLOAD_URL in \
+          "${PARAM_RHTPA_URL%/}/api/v3/sbom" \
+          "${PARAM_RHTPA_URL%/}/api/v2/sbom"
+        do
+          echo "Attempting SBOM upload to ${UPLOAD_URL}"
+          if [ "${UPLOAD_URL#*/api/v3/}" != "${UPLOAD_URL}" ]; then
+            CT="application/octet-stream"
+          else
+            CT="application/json"
+          fi
+          if [ -n "${TOKEN}" ]; then
+            curl -sS -f -X POST \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "Content-Type: ${CT}" \
+              --data-binary @"${OUT}" \
+              "${UPLOAD_URL}"
+            status=$?
+          else
+            curl -sS -f -X POST \
+              -H "Content-Type: ${CT}" \
+              --data-binary @"${OUT}" \
+              "${UPLOAD_URL}"
+            status=$?
+          fi
+          if [ "${status}" -eq 0 ]; then
+            break
+          fi
+        done
         set -e
         if [ "${status}" -eq 0 ]; then
           echo -n "uploaded" > "$(results.upload-status.path)"
@@ -122,3 +136,4 @@ spec:
         fi
         exit 0
 {{- end }}
+

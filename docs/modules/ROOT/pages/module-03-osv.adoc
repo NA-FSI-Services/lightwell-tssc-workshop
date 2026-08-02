@@ -225,4 +225,14 @@ Full optional appendix: xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFES
 
 **Next**
 
-Module 4 generates a CycloneDX SBOM (`syft`) and analyzes it in Trusted Profile Analyzer (optional RHDA on a laptop).
+Before Module 4, confirm workshop SSO is ready (Keycloak IdP for RHTPA):
+
+[source,bash,role=execute]
+----
+oc -n sso get configmap demo-userinfo-keycloak \
+  -o jsonpath='{.data.oidc_issuer}{"\n"}{.data.workshop_username}{"\n"}{.data.trustify_roles}{"\n"}'
+----
+
+You should see issuer `…/realms/tpa`, user `tpa-user`, and Trustify roles `chicken-user,chicken-manager,chicken-admin`. Password is in the same ConfigMap key `workshop_password` (Showroom / RHDP userinfo). Module 4 uses these credentials to sign in to the TPA UI—no Keycloak Admin Console steps for learners.
+
+Then continue to xref:module-04-sbom.adoc[Module 4] (CycloneDX with `syft` → RHTPA; optional RHDA on a laptop).
