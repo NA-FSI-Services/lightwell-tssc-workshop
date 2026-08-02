@@ -1,0 +1,20 @@
+{{- if and .Values.application.enabled .Values.argocd.grantClusterAdmin }}
+# App-of-Apps must create namespaces, SCC RoleBindings, ClusterRoleBindings, etc.
+# Field Content grants equivalent power; bare claims do not.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lightwell-dev-argocd-application-controller
+  labels:
+    app.kubernetes.io/name: lightwell-dev-bootstrap
+    app.kubernetes.io/component: argocd-rbac
+    demo.redhat.com/application: "lightwell-tssc-workshop"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-application-controller
+    namespace: {{ .Values.argocd.namespace }}
+{{- end }}

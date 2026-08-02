@@ -72,7 +72,7 @@ Field Content (`ocp4_workload_field_content`) only creates the Argo Application 
 | HTPasswd lab admin IdP | Dev-cluster QA only ([`docs/DEV-CLUSTER-BOOTSTRAP.md`](../docs/DEV-CLUSTER-BOOTSTRAP.md)) | **Do not** add to AgnosticV leaves — RHDP provides claim access separately |
 | Field Content role changes | Reference copy under `roles/ocp4_workload_field_content/` | **No change** — role is fire-and-forget GitOps pointer |
 
-**Gap to close before prod catalog:** ensure `charts/root-app` values (or `ocp4_workload_field_content_helm_values`) enable at least `showroom` + `lightwellRepo` for Module 1 exercises. Defaults keep most components `enabled: false` for progressive QA; catalog leaves should override for the published path.
+**Catalog Module 1 path:** `agnosticv/lightwell-tssc-workshop/common.yaml` sets `ocp4_workload_field_content_helm_values` to enable `showroom` + `lightwellRepo` (with `terminal.labClusterAccess`). Root-app chart defaults still keep heavier TSSC components `enabled: false` for progressive enablement.
 
 ## Related
 

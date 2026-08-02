@@ -20,11 +20,16 @@ spec:
           domain: {{ required "deployer.domain is required" .Values.deployer.domain | quote }}
           apiUrl: {{ required "deployer.apiUrl is required" .Values.deployer.apiUrl | quote }}
         components:
+          # Module 1 ConfigMap exercises require lightwellRepo (wave 20)
+          lightwellRepo:
+            enabled: {{ .Values.lightwellRepo.enabled }}
           showroom:
             enabled: {{ .Values.showroom.enabled }}
             content:
               antoraPlaybook: {{ .Values.showroom.antoraPlaybook | quote }}
               repoRef: {{ .Values.showroom.repoRef | quote }}
+            terminal:
+              labClusterAccess: {{ .Values.showroom.labClusterAccess }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.argocd.namespace }}
@@ -35,4 +40,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
 {{- end }}

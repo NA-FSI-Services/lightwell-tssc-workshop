@@ -32,16 +32,18 @@ ocp4_workload_field_content_gitops_repo_url: "https://github.com/NA-FSI-Services
 ocp4_workload_field_content_gitops_repo_path: "charts/root-app"
 ocp4_workload_field_content_gitops_repo_revision: "main"
 # deployer.domain / deployer.apiUrl injected by platform at order time.
-# Catalog E2E (Modules 1+) needs lightwellRepo + showroom (showroom chart defaults
-# terminal.labClusterAccess=true for Showroom /terminal/ oc). Example override:
-# ocp4_workload_field_content_helm_values:
-#   components:
-#     lightwellRepo:
-#       enabled: true
-#     showroom:
-#       enabled: true
+# Catalog E2E (Modules 1+) needs lightwellRepo + showroom. Showroom chart defaults
+# terminal.labClusterAccess=true for Showroom /terminal/ oc.
 # Do NOT configure HTPasswd IdP here — that is dev-cluster QA only.
-ocp4_workload_field_content_helm_values: {}
+ocp4_workload_field_content_helm_values:
+  components:
+    lightwellRepo:
+      enabled: true
+    showroom:
+      enabled: true
+      terminal:
+        labClusterAccess: true
+
 
 lifespan:
   default: 48h

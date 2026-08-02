@@ -17,6 +17,8 @@ argocd:
   namespace: openshift-gitops
   project: default
   applicationName: lightwell-tssc-root
+  # Required so App-of-Apps can create namespaces / SCC bindings / ClusterRoleBindings
+  grantClusterAdmin: true
 
 gitops:
   repoUrl: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
@@ -27,7 +29,12 @@ deployer:
   domain: ""
   apiUrl: ""
 
+# Module 1 QA path: Showroom + seeded Lightwell channel/OSV ConfigMaps
+lightwellRepo:
+  enabled: true
+
 showroom:
   enabled: true
   antoraPlaybook: "site-ci.yml"
   repoRef: "main"
+  labClusterAccess: true
