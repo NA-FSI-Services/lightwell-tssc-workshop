@@ -38,29 +38,73 @@ if [[ -z "${POD}" ]]; then
   exit 1
 fi
 
-ensure_user() {
-  local user="$1" pass="$2" email="$3" full_name="$4" admin_flag="$5"
-  local args=(admin user create --username "${user}" --password "${pass}"
-    --email "${email}" --must-change-password=false)
-  if [[ -n "${full_name}" ]]; then
-    args+=(--full-name "${full_name}")
-  fi
-  if [[ "${admin_flag}" == "true" ]]; then
-    args+=(--admin)
-  fi
-  if oc -n "${GITEA_NAMESPACE}" exec "${POD}" -- gitea "${args[@]}" 2>/dev/null; then
-    echo "Created user ${user}"
-  else
-    echo "User ${user} already exists (or create skipped) — continuing"
-  fi
-}
-
-ensure_user "${ADMIN_USER}" "${ADMIN_PASSWORD}" "${ADMIN_EMAIL}" "Gitea Admin" "true"
-
 auth_header() {
   # Basic auth for Gitea API
   printf 'Authorization: Basic %s' "$(printf '%s:%s' "$1" "$2" | base64 -w0 2>/dev/null || printf '%s:%s' "$1" "$2" | base64)"
 }
+
+# Gitea refuses to run its CLI as root — always exec via su git.
+gitea_cli() {
+  local cmd
+  printf -v cmd '%q ' "$@"
+  oc -n "${GITEA_NAMESPACE}" exec "${POD}" -- \
+    su git -s /bin/sh -c "gitea ${cmd}"
+}
+
+ensure_user() {
+  local user="$1" pass="$2" email="$3" full_name="$4" admin_flag="$5"
+  # Prefer admin API (works once an admin exists); bootstrap admin via CLI.
+  if [[ "${admin_flag}" == "true" ]]; then
+    local out
+    if out="$(gitea_cli admin user create --admin --username "${user}" --password "${pass}" --email "${email}" --must-change-password=false 2>&1)"; then
+      echo "Created admin user ${user}"
+      return 0
+    fi
+    if echo "${out}" | grep -qiE 'already exists|has been taken|duplicate'; then
+      echo "Admin user ${user} already exists — continuing"
+      return 0
+    fi
+    echo "ERROR: failed to create admin ${user}: ${out}" >&2
+    exit 1
+  fi
+
+  local code
+  code="$(curl -sS -o /tmp/gitea-user.json -w '%{http_code}' \
+    -H "$(auth_header "${ADMIN_USER}" "${ADMIN_PASSWORD}")" \
+    "${API}/admin/users/${user}" || true)"
+  if [[ "${code}" == "200" ]]; then
+    echo "User ${user} already exists"
+    return 0
+  fi
+  local payload
+  payload="$(python3 - <<PY
+import json
+print(json.dumps({
+  "username": "${user}",
+  "password": "${pass}",
+  "email": "${email}",
+  "full_name": "${full_name}",
+  "must_change_password": False,
+  "send_notify": False,
+}))
+PY
+)"
+  code="$(curl -sS -o /tmp/gitea-user-create.json -w '%{http_code}' \
+    -X POST \
+    -H "$(auth_header "${ADMIN_USER}" "${ADMIN_PASSWORD}")" \
+    -H 'Content-Type: application/json' \
+    -d "${payload}" \
+    "${API}/admin/users")"
+  if [[ "${code}" == "201" ]]; then
+    echo "Created user ${user}"
+    return 0
+  fi
+  echo "ERROR: create user ${user} failed HTTP ${code}" >&2
+  cat /tmp/gitea-user-create.json >&2 || true
+  exit 1
+}
+
+ensure_user "${ADMIN_USER}" "${ADMIN_PASSWORD}" "${ADMIN_EMAIL}" "Gitea Admin" "true"
 
 ensure_repo() {
   local owner="$1" pass="$2"
