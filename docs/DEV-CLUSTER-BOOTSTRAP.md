@@ -14,10 +14,11 @@ flowchart TD
   boot[scripts/dev-cluster-bootstrap.sh]
   htpasswd[scripts/dev-cluster-htpasswd.sh]
   loginAdmin[scripts/dev-cluster-login.sh password]
-  waves[Enable root-app components by sync wave]
   labs[Walk Showroom Modules 1-5]
-  order --> fill --> loginToken --> boot --> htpasswd --> loginAdmin --> waves --> labs
+  order --> fill --> loginToken --> boot --> htpasswd --> loginAdmin --> labs
 ```
+
+`dev-cluster-bootstrap.sh` scales worker MachineSets when they ship at `replicas=0`, installs GitOps, grants Argo CD `cluster-admin`, and enables **Showroom + lightwellRepo** for Module 1. Enable heavier TSSC components later by sync wave.
 
 ## Reusable layout
 
@@ -28,7 +29,8 @@ flowchart TD
 | `dev-cluster/*.ca.crt` | **Local only** — API CA from the email |
 | [`dev-cluster/helm/`](../dev-cluster/helm/) | Helm chart: OpenShift GitOps Subscription (optional) + Argo `Application` for `charts/root-app` |
 | [`scripts/dev-cluster-login.sh`](../scripts/dev-cluster-login.sh) | `oc login` from `claim.env` (`token` or `password`) |
-| [`scripts/dev-cluster-bootstrap.sh`](../scripts/dev-cluster-bootstrap.sh) | Render/apply Helm bootstrap against the logged-in cluster |
+| [`scripts/dev-cluster-scale-workers.sh`](../scripts/dev-cluster-scale-workers.sh) | Scale MachineSets when claims ship with `workers=0` |
+| [`scripts/dev-cluster-bootstrap.sh`](../scripts/dev-cluster-bootstrap.sh) | Scale workers → GitOps → Argo root-app (`showroom` + `lightwellRepo`) + Argo cluster-admin |
 | [`scripts/dev-cluster-htpasswd.sh`](../scripts/dev-cluster-htpasswd.sh) | HTPasswd IdP + `cluster-admin` user for stable console/`oc` login |
 
 Provisioning on the claim uses **Helm** (preferred; matches App-of-Apps). The same `claim.env` can drive Ansible/`oc` later if needed. Do **not** use Terraform to create AWS/OCP for this workshop — RHDP already provides the cluster; we only configure workloads.
@@ -54,6 +56,8 @@ Map the email / portal block into `claim.env` using these names:
 | HTPasswd admin user | `HTPASSWD_ADMIN_USER` | Default `admin` (after `dev-cluster-htpasswd.sh`) |
 | HTPasswd admin password | `HTPASSWD_ADMIN_PASSWORD` | Local only in `claim.env` — never commit |
 | Login mode | `OC_LOGIN_MODE` | `token` (bootstrap) then `password` (day-to-day) |
+| Scale workers | `SCALE_WORKERS` / `WORKER_REPLICAS` | Default `true` / `2` — bare claims often start at MachineSet `0` |
+| Module 1 apps | `ENABLE_LIGHTWELL_REPO` | Default `true` — channel + sample OSV ConfigMaps |
 
 **Never commit** filled `claim.env`, CA files, or passwords. When the claim expires, delete the local files and start again from `claim.env.example`.
 
@@ -135,20 +139,14 @@ Expect `mode=seeded`, a `fixed: 5.3.18.rhlw-00003` event, and the Nexus/Showroom
 
 ## Manual steps the scripts do not replace
 
-### Scale workers
+### Progressive component enable (beyond Module 1)
 
-1. Open `AWS_CONSOLE_URL` from the claim (if present).
-2. Resize / add workers toward the sizing table.
-3. Confirm: `oc get nodes -o wide`
-
-### Progressive component enable
-
-Defaults in [`charts/root-app/values.yaml`](../charts/root-app/values.yaml) keep most components `enabled: false` (Showroom is `true`). Enable by sync wave:
+Bootstrap enables **Showroom + lightwellRepo**. Root-app chart defaults keep other components `enabled: false`. Enable by sync wave for later modules:
 
 | Order | Wave | Component | Lab focus |
 |------:|------|-----------|-----------|
-| 1 | 50 | `showroom` | Modules prose + terminal |
-| 2 | 20 | `lightwellRepo` | Modules 1–3 (**required for Module 1 ConfigMap exercises**) |
+| ✓ | 50 | `showroom` | Modules prose + terminal (**bootstrap default**) |
+| ✓ | 20 | `lightwellRepo` | Modules 1–3 ConfigMaps / Nexus (**bootstrap default**) |
 | 3 | 40 | `springBootLwPoc` | Maven PoC / pins |
 | 4 | 5 | `keycloak` | SSO for RHTPA (`sso.<domain>/realms/tpa`) |
 | 5 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (enable `keycloak` before `rhtpa`) |
@@ -156,6 +154,8 @@ Defaults in [`charts/root-app/values.yaml`](../charts/root-app/values.yaml) keep
 | — | 40 | `parasolApp` | Keep **off** |
 
 Override via PR to `main`, or temporary Helm values on the Argo Application. Prefer `ANTORA_PLAYBOOK=site-ci.yml` when the stock Antora image lacks Mermaid/tabs — see [`SHOWROOM-UPDATE-SPEC.md`](./SHOWROOM-UPDATE-SPEC.md).
+
+If Machine API is unavailable, scale workers via `AWS_CONSOLE_URL` toward the sizing table, then re-run `./scripts/dev-cluster-scale-workers.sh` or bootstrap.
 
 ### Smoke checklist
 
@@ -194,17 +194,20 @@ Learned from OCP-on-AWS claim QA; defaults now match marketplace / OpenShift 4.2
 | Operator apps fail dry-run before CRDs | root-app `SkipDryRunOnMissingResource` + `ServerSideApply` on TSSC/RHDH apps |
 | Nexus `fsGroup: 200` blocked by restricted SCC | Nexus SA + `system:openshift:scc:anyuid` RoleBinding |
 | Showroom terminal Forbidden on Module 1 `oc -n lightwell-repo` | `showroom.terminal.labClusterAccess` → ClusterRoleBinding `showroom-lab-cluster-admin` |
+| Claim MachineSets at `replicas=0` / API starvation | `scripts/dev-cluster-scale-workers.sh` (called from bootstrap; `WORKER_REPLICAS=2`) |
+| Argo CD cannot create namespaces / SCC bindings | Bootstrap Helm CRB + `oc adm policy` for `openshift-gitops-argocd-application-controller` |
+| Module 1 ConfigMaps missing (`lightwellRepo` off) | Bootstrap Application values enable `components.lightwellRepo` (AgV `common.yaml` too) |
+| Showroom PVC stuck Pending → sync deadlock | PVC sync-wave aligned with Deployment (`WaitForFirstConsumer` / gp3-csi) |
 
-Still manual on a bare claim (not in GitOps charts yet):
+Still manual on a bare claim (not fully automated yet):
 
-- Scale workers toward AgnosticV sizing
 - Install **OpenShift Pipelines** from OperatorHub when not present
-- Grant ArgoCD application-controller **cluster-admin** (or equivalent) so App-of-Apps can create namespaces/SAs
 - Run **HTPasswd IdP** script for stable `admin` login (dev-cluster only)
 - Enable `components.keycloak` (wave 5) before `rhtpa` — workshop IdP at `https://sso.<domain>/realms/tpa` (realm import includes Trustify `chicken-*` roles + `*:document` scopes for Module 4 SBOM upload)
 - After Keycloak is Ready, restart TPA `server` Deployment if it CrashLooped before the IdP existed
 - Chart default `spring-boot-lw-poc.replicas: 0` (runtime image not published); set `replicas: 1` only after pushing `image.repository:tag`
 - After RHACS Central is Ready, mint CI token for real `acs-image-check`: `./scripts/dev-cluster-rhacs-ci-token.sh` (never commit the token)
+- Control-plane instance size (claim `m6a.xlarge` masters can flap under load; prefer field-asset CNV sizing)
 
 ## Gaps vs real RHDP Field Content
 
@@ -212,7 +215,7 @@ Still manual on a bare claim (not in GitOps charts yet):
 |--------------------|-------------|
 | Auto GitOps App + `deployer.*` | `dev-cluster` Helm + scripts |
 | Babylon userinfo email | Console + Showroom Route |
-| CNV pool sizing in AgnosticV | Manual AWS scale on the claim |
+| CNV pool sizing in AgnosticV | `dev-cluster-scale-workers.sh` (MachineSet) or AWS console |
 | SSO / Keycloak for RHTPA | `charts/components/keycloak` (enable wave 5) |
 | Learner cluster login | RHDP-issued access; **not** this HTPasswd IdP |
 | Showroom terminal lab `oc` | Same chart RBAC (`labClusterAccess`) once GitOps syncs |

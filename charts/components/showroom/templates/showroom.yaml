@@ -114,6 +114,8 @@ data:
     gitea_namespace: gitea
     student_git_userinfo: demo-userinfo-gitea
 ---
+# PVC must share the Deployment sync wave. gp3-csi uses WaitForFirstConsumer —
+# a PVC-only earlier wave stays Pending forever and deadlocks App-of-Apps sync.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -122,7 +124,7 @@ metadata:
   labels:
     {{- include "showroom.labels" . | nindent 4 }}
   annotations:
-    argocd.argoproj.io/sync-wave: {{ .Values.showroom.syncWaves.config | quote }}
+    argocd.argoproj.io/sync-wave: {{ .Values.showroom.syncWaves.workload | quote }}
 spec:
   accessModes:
   - ReadWriteOnce
