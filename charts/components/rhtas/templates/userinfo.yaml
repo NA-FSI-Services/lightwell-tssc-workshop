@@ -23,4 +23,10 @@ data:
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
   # After Ready: oc get securesign {{ .Values.rhtas.name }} -n {{ .Values.rhtas.namespace }} -o jsonpath='{.status}'
   status_hint: "oc get securesign -n {{ .Values.rhtas.namespace }}"
+  routes_hint: "oc -n {{ .Values.rhtas.namespace }} get routes"
+  # Typical Route hosts when deployer.domain is set (confirm with routes_hint)
+  fulcio_url_hint: {{ printf "https://fulcio-server-%s.apps.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
+  rekor_url_hint: {{ printf "https://rekor-server-%s.apps.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
+  tuf_url_hint: {{ printf "https://tuf-%s.apps.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
+  cosign_image: "registry.redhat.io/rhtas/cosign-rhel9:latest"
 {{- end }}

@@ -150,6 +150,14 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.components.rhacs.namespace }}
+  # Preserve patched rox-api-token on rhacs-ci-secrets (Helm only manages endpoint).
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: rhacs-ci-secrets
+      jsonPointers:
+        - /data
+        - /stringData
   syncPolicy:
     automated:
       prune: true
@@ -158,6 +166,7 @@ spec:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 {{- end }}
 
 {{- if .Values.components.lightwellRepo.enabled }}

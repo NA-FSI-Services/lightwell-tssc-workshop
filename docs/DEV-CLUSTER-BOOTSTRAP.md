@@ -203,7 +203,8 @@ Still manual on a bare claim (not in GitOps charts yet):
 - Run **HTPasswd IdP** script for stable `admin` login (dev-cluster only)
 - Enable `components.keycloak` (wave 5) before `rhtpa` — workshop IdP at `https://sso.<domain>/realms/tpa` (realm import includes Trustify `chicken-*` roles + `*:document` scopes for Module 4 SBOM upload)
 - After Keycloak is Ready, restart TPA `server` Deployment if it CrashLooped before the IdP existed
-- `spring-boot-lw-poc` runtime image is not published to the internal registry; labs use chart Maven source — scale Deployment to `0` if ImagePullBackOff distracts
+- Chart default `spring-boot-lw-poc.replicas: 0` (runtime image not published); set `replicas: 1` only after pushing `image.repository:tag`
+- After RHACS Central is Ready, mint CI token for real `acs-image-check`: `./scripts/dev-cluster-rhacs-ci-token.sh` (never commit the token)
 
 ## Gaps vs real RHDP Field Content
 

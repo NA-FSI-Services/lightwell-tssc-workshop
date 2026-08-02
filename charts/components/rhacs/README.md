@@ -45,12 +45,22 @@ EOF
 
 ### CI secrets
 
+Dev claim (cluster-admin + Central Ready):
+
+```bash
+./scripts/dev-cluster-rhacs-ci-token.sh
+```
+
+Manual (never commit the token):
+
 ```bash
 oc -n stackrox create secret generic rhacs-ci-secrets \
   --from-literal=rox-api-endpoint='central-stackrox.apps.<domain>:443' \
   --from-literal=rox-api-token='<TOKEN>' \
   --dry-run=client -o yaml | oc apply -f -
 ```
+
+Helm ships `rox-api-endpoint` only; root-app `ignoreDifferences` on Secret `/data` keeps a patched token across syncs.
 
 Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 

@@ -19,8 +19,10 @@ spec:
       description: Destination image (e.g. image-registry.../${{ values.name }}:latest)
     - name: maven-profile
       type: string
-      default: lightwell-validated
-      description: lightwell-validated or lightwell-remediated (add lightwell-remediated-pins for .rhlw-*)
+      # dep-gate require-remediated reads <properties>; enable lightwell-remediated-pins
+      # (or pin .rhlw-* in default properties) so the gate passes.
+      default: lightwell-remediated-pins
+      description: Maven -P value; use lightwell-remediated-pins for .rhlw-* + dep-gate
     - name: cosign-fulcio-url
       type: string
       default: ""
@@ -49,9 +51,10 @@ spec:
         - name: output
           workspace: source
       params:
-        - name: url
+        # Cluster Task git-clone (openshift-pipelines) expects URL / REVISION
+        - name: URL
           value: $(params.repo-url)
-        - name: revision
+        - name: REVISION
           value: $(params.revision)
 
     - name: maven-package

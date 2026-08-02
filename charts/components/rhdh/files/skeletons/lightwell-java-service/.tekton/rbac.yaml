@@ -1,0 +1,47 @@
+# Apply once per scaffolded namespace before PipelineRuns.
+# ImageStream + pipeline SA for buildah push to the internal registry.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-edit
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+---
+# Allow buildah to push to the OpenShift internal registry for this project.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-system-image-puller
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-builder
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: ${{ values.name }}
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+spec:
+  lookupPolicy:
+    local: true

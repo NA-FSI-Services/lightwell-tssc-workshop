@@ -15,8 +15,14 @@ spec:
       value: main
     - name: image-url
       value: image-registry.openshift-image-registry.svc:5000/${{ values.name }}/${{ values.name }}:latest
+    # Prefer lightwell-remediated-pins so dep-gate + .rhlw-* align (Module 5 Ex3).
     - name: maven-profile
-      value: ${{ values.lwnProfile }}
+      value: lightwell-remediated-pins
+    # Fill from: oc -n trusted-artifact-signer get route
+    - name: cosign-fulcio-url
+      value: https://fulcio-server-trusted-artifact-signer.apps.<domain>
+    - name: cosign-rekor-url
+      value: https://rekor-server-trusted-artifact-signer.apps.<domain>
   workspaces:
     - name: source
       volumeClaimTemplate:
