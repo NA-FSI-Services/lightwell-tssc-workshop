@@ -10,10 +10,14 @@ Deploys RHACS **Central** (and optional same-cluster **SecuredCluster**) via the
 | `1` | OperatorGroup + Subscription |
 | `2` | `Central` CR |
 | `3` | `SecuredCluster` CR |
-| `4` | Tekton Tasks / Pipeline + CI secret + lab ConfigMaps |
-| `5` | RHDP userinfo ConfigMap |
+| `4` | Tekton Tasks / Pipeline + CI secret placeholder + lab ConfigMaps |
+| `5` | Job `rhacs-ci-token-mint` (Central CI API token → `rhacs-ci-secrets`) |
+| `6` | RHDP userinfo ConfigMap |
 
 Root App-of-Apps places this chart at sync wave **`10`**.
+
+**Prerequisite:** enable `components.pipelines` (wave **8**) so Tekton CRDs exist before
+wave-`4` Tasks/Pipeline in this chart sync. See [`charts/components/pipelines`](../pipelines/).
 
 ## Pipeline policy gates (issue #13)
 
@@ -79,6 +83,7 @@ Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 | `pipelineHooks.labRepoUrl` | `""` | Student Gitea URL (root-app injects when `gitea` enabled) |
 | `pipelineHooks.pipeline.defaultPomPath` | `pom.xml` | Student repo root (not the GitOps monorepo) |
 | `pipelineHooks.sbom.rhtpaUrl` | `""` | Set when RHTPA Route known |
+| `pipelineHooks.ciTokenJob.enabled` | `true` | Mint CI token into `rhacs-ci-secrets` after Central Ready |
 | `pipelineHooks.failOnSkipped` | `"false"` | Set `"true"` to fail ACS task without secrets |
 | `deployer.domain` | `""` | Injected by root-app |
 

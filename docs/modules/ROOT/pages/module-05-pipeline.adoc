@@ -219,7 +219,15 @@ oc -n stackrox get taskrun -l tekton.dev/pipelineTask=lightwell-dep-gate \
 
 Populate CI secrets when you want a real `roxctl` evaluation (never commit the token).
 
-On a **dev claim** (cluster-admin + Central Ready), mint a Continuous Integration token and patch the Secret:
+On a **GitOps-provisioned** claim, Job `rhacs-ci-token-mint` in `stackrox` fills Secret `rhacs-ci-secrets` after Central is Ready. Confirm:
+
+[source,bash]
+----
+oc -n stackrox get job rhacs-ci-token-mint
+oc -n stackrox get secret rhacs-ci-secrets -o jsonpath='{.data.rox-api-token}' | wc -c
+----
+
+Manual fallback (cluster-admin + Central Ready):
 
 [source,bash]
 ----

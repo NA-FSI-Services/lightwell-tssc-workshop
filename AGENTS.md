@@ -28,6 +28,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 ### Component ownership (do not collapse)
 
 - `keycloak` — Workshop IdP for RHTPA (`sso.<domain>/realms/tpa`; enable before `rhtpa`)
+- `pipelines` — OpenShift Pipelines (Tekton) Operator; enable before `rhacs` Module 5 Tasks / student `.tekton`
 - `gitea` — In-cluster student Git; Module 5 / pipeline labs use learner repos (not the GitOps monorepo)
 - `rhdh` — Developer Hub + `lightwell-java-service` Software Template (scaffold may land in Gitea; see learner Git rules)
 - `rhtas` — Trusted Artifact Signer / keyless signing 

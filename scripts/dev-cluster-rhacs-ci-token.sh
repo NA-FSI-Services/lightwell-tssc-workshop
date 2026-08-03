@@ -2,6 +2,9 @@
 # Mint an RHACS Central API token (Continuous Integration role) and patch
 # Secret rhacs-ci-secrets for Tekton Task acs-image-check (Module 5).
 #
+# Prefer the chart Job (pipelineHooks.ciTokenJob) when RHACS is synced via GitOps.
+# This script remains a manual fallback for claim QA / debugging.
+#
 # Dev-cluster / claim QA only. Never commit the token.
 # Requires: oc login as cluster-admin, Central Ready, curl, jq.
 set -euo pipefail

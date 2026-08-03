@@ -31,6 +31,17 @@ spec:
             students:
 {{- toYaml .Values.gitea.students | nindent 14 }}
 {{- end }}
+          # Module 4–5 TSSC stack (bootstrap ENABLE_* / ENABLE_TSSC_STACK)
+          keycloak:
+            enabled: {{ .Values.keycloak.enabled }}
+          pipelines:
+            enabled: {{ .Values.pipelines.enabled }}
+          rhtas:
+            enabled: {{ .Values.rhtas.enabled }}
+          rhtpa:
+            enabled: {{ .Values.rhtpa.enabled }}
+          rhacs:
+            enabled: {{ .Values.rhacs.enabled }}
           showroom:
             enabled: {{ .Values.showroom.enabled }}
             content:

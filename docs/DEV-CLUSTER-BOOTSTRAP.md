@@ -172,8 +172,9 @@ Bootstrap enables **Showroom + lightwellRepo**. Root-app chart defaults keep oth
 | ✓ | 15 | `gitea` | Module 5 student Git — **single `user1`** (**bootstrap default**; see [WORKSHOP-USER](./DEV-CLUSTER-WORKSHOP-USER.md)) |
 | 4 | 40 | `springBootLwPoc` | Monorepo Maven PoC only — keep **off** when Gitea gitops ApplicationSet is SoT |
 | 5 | 5 | `keycloak` | SSO for RHTPA (`sso.<domain>/realms/tpa`) |
-| 6 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (enable `keycloak` before `rhtpa`) |
-| 7 | 30 | `rhdh` | Software Template |
+| 6 | 8 | `pipelines` | OpenShift Pipelines / Tekton (before `rhacs` Tasks) |
+| 7 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (enable `keycloak` before `rhtpa`) |
+| 8 | 30 | `rhdh` | Software Template |
 | — | 40 | `parasolApp` | Keep **off** |
 
 Override via PR to `main`, or temporary Helm values on the Argo Application. Prefer `ANTORA_PLAYBOOK=site-ci.yml` when the stock Antora image lacks Mermaid/tabs — see [`SHOWROOM-UPDATE-SPEC.md`](./SHOWROOM-UPDATE-SPEC.md).
@@ -222,16 +223,22 @@ Learned from OCP-on-AWS claim QA; defaults now match marketplace / OpenShift 4.2
 | Argo CD cannot create namespaces / SCC bindings | Bootstrap Helm CRB + `oc adm policy` for `openshift-gitops-argocd-application-controller` |
 | Module 1 ConfigMaps missing (`lightwellRepo` off) | Bootstrap Application values enable `components.lightwellRepo` (AgV `common.yaml` too) |
 | Showroom PVC stuck Pending → sync deadlock | PVC sync-wave aligned with Deployment (`WaitForFirstConsumer` / gp3-csi) |
+| RHACS Tasks fail without Tekton CRDs | Enable `components.pipelines` (wave 8) before / with Module 5 stack |
+| Manual RHACS CI token / TPA restart | Jobs `rhacs-ci-token-mint` + `rhtpa-oidc-wait`; bootstrap `ENABLE_TSSC_STACK` |
 
 Still manual on a bare claim (not fully automated yet):
 
-- Install **OpenShift Pipelines** from OperatorHub when not present
 - Run **HTPasswd IdP** script for stable `admin` login (dev-cluster only)
-- Enable `components.keycloak` (wave 5) before `rhtpa` — workshop IdP at `https://sso.<domain>/realms/tpa` (realm import includes Trustify `chicken-*` roles + `*:document` scopes for Module 4 SBOM upload)
-- After Keycloak is Ready, restart TPA `server` Deployment if it CrashLooped before the IdP existed
 - Chart default `spring-boot-lw-poc.replicas: 0` (runtime image not published); set `replicas: 1` only after pushing `image.repository:tag`
-- After RHACS Central is Ready, mint CI token for real `acs-image-check`: `./scripts/dev-cluster-rhacs-ci-token.sh` (never commit the token)
 - Control-plane instance size (claim `m6a.xlarge` masters can flap under load; prefer field-asset CNV sizing)
+
+Automated in charts (enable via `ENABLE_TSSC_STACK=true` or individuals in `claim.env`):
+
+- `components.keycloak` (wave 5) before `rhtpa` — workshop IdP at `https://sso.<domain>/realms/tpa`
+- `components.pipelines` (wave 8) — Tekton CRDs before RHACS Tasks
+- `components.rhtas` / `rhtpa` / `rhacs` (wave 10)
+- Job `rhtpa-oidc-wait` — waits for Keycloak OIDC; rolls TPA `server` only if not Ready
+- Job `rhacs-ci-token-mint` — mints Central Continuous Integration token into `rhacs-ci-secrets` (fallback: `./scripts/dev-cluster-rhacs-ci-token.sh`)
 
 ## Gaps vs real RHDP Field Content
 

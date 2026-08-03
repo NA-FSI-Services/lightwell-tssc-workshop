@@ -1,8 +1,9 @@
 # Lightwell TSSC Workshop — App of Apps
 # AgnosticV gitops_path: charts/root-app
 #
-# Sync wave ordering (IdP → operators → student git → config → apps → showroom):
+# Sync wave ordering (IdP → pipelines → operators → student git → config → apps → showroom):
 #    5  — Workshop Keycloak (SSO for RHTPA): keycloak
+#    8  — OpenShift Pipelines (Tekton CRDs for Module 5 / RHACS Tasks): pipelines
 #   10  — TSSC operators / platform: rhtas, rhtpa, rhacs
 #   15  — Student Git (Gitea): gitea
 #   20  — Artifact manager / LWN pattern: lightwell-repo
@@ -39,6 +40,13 @@ components:
     enabled: false
     namespace: sso
     syncWave: "5"
+
+  # --- Wave 8: OpenShift Pipelines (Tekton) — enable before rhacs Module 5 Tasks ---
+  # Chart: charts/components/pipelines. OLM Subscription into openshift-operators.
+  pipelines:
+    enabled: false
+    namespace: openshift-operators
+    syncWave: "8"
 
   # --- Wave 10: TSSC operators / platform ---
   # Chart: charts/components/rhtas (#4). Enable when cluster is ready to sync.

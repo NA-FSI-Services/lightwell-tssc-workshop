@@ -1,0 +1,91 @@
+{{- if and .Values.rhtpa.enabled .Values.oidcWait.enabled }}
+{{- $issuer := include "rhtpa.oidcIssuer" . }}
+---
+# Wait for Keycloak / workshop IdP OIDC discovery, then roll TPA server if not Ready.
+# Avoids CrashLoop when rhtpa syncs before keycloak realm is available (wave 5 → 10).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.oidcWait.jobName }}
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oidc-wait
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.oidcWait | quote }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.oidcWait.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.oidcWait.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "rhtpa.labels" . | nindent 8 }}
+        app.kubernetes.io/component: oidc-wait
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.oidcWait.serviceAccountName }}
+      containers:
+        - name: oidc-wait
+          image: {{ .Values.oidcWait.image | quote }}
+          imagePullPolicy: {{ .Values.oidcWait.imagePullPolicy | quote }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Values.rhtpa.namespace | quote }}
+            - name: SERVER_DEPLOYMENT
+              value: {{ .Values.oidcWait.serverDeployment | quote }}
+            - name: OIDC_DISCOVERY
+              value: {{ printf "%s/.well-known/openid-configuration" $issuer | quote }}
+            - name: WAIT_SECONDS
+              value: {{ .Values.oidcWait.waitSeconds | quote }}
+            - name: ROLLOUT_TIMEOUT
+              value: {{ .Values.oidcWait.rolloutTimeout | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              if ! command -v oc >/dev/null 2>&1; then
+                curl -fsSL -o /tmp/oc.tgz \
+                  https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
+                tar -C /usr/local/bin -xzf /tmp/oc.tgz oc
+              fi
+              if ! command -v curl >/dev/null 2>&1; then
+                dnf install -y -q curl && dnf clean all
+              fi
+
+              echo "Waiting for OIDC discovery at ${OIDC_DISCOVERY} (up to ${WAIT_SECONDS}s)..."
+              deadline=$((SECONDS + WAIT_SECONDS))
+              while (( SECONDS < deadline )); do
+                code="$(curl -sk -o /dev/null -w '%{http_code}' "${OIDC_DISCOVERY}" || true)"
+                if [[ "${code}" == "200" ]]; then
+                  echo "OIDC ready (HTTP 200)"
+                  break
+                fi
+                echo "  oidc=${code} — retry"
+                sleep 10
+              done
+              code="$(curl -sk -o /dev/null -w '%{http_code}' "${OIDC_DISCOVERY}" || true)"
+              if [[ "${code}" != "200" ]]; then
+                echo "OIDC discovery not ready after ${WAIT_SECONDS}s (last=${code})" >&2
+                exit 1
+              fi
+
+              if ! oc -n "${NAMESPACE}" get deploy "${SERVER_DEPLOYMENT}" >/dev/null 2>&1; then
+                echo "Deployment ${SERVER_DEPLOYMENT} not found yet — OK (Operator may still create it)"
+                exit 0
+              fi
+
+              ready="$(oc -n "${NAMESPACE}" get deploy "${SERVER_DEPLOYMENT}" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo 0)"
+              ready="${ready:-0}"
+              if [[ "${ready}" -ge 1 ]]; then
+                echo "Deployment ${SERVER_DEPLOYMENT} already Ready (${ready}) — no restart"
+                exit 0
+              fi
+
+              echo "Rolling ${SERVER_DEPLOYMENT} so it re-reads OIDC..."
+              oc -n "${NAMESPACE}" rollout restart "deployment/${SERVER_DEPLOYMENT}"
+              oc -n "${NAMESPACE}" rollout status "deployment/${SERVER_DEPLOYMENT}" --timeout="${ROLLOUT_TIMEOUT}"
+              echo "OIDC wait / server rollout complete"
+{{- end }}

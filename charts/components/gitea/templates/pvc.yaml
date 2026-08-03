@@ -8,7 +8,9 @@ metadata:
   labels:
     {{- include "gitea.labels" . | nindent 4 }}
   annotations:
-    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.config | quote }}
+    # Same wave as Deployment — WaitForFirstConsumer PVCs stay Progressing until a
+    # consumer exists; a later deploy wave deadlocks (Argo waits for PVC Healthy).
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.deploy | quote }}
 spec:
   accessModes:
     - ReadWriteOnce

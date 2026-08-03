@@ -1,0 +1,23 @@
+{{- if and .Values.pipelines.enabled .Values.operator.enabled }}
+{{- $existingSub := lookup "operators.coreos.com/v1alpha1" "Subscription" .Values.operator.namespace .Values.operator.name }}
+{{- if not $existingSub.metadata }}
+---
+# OpenShift Pipelines Operator via OLM — Module 5 / RHACS Tekton prerequisite.
+# Installs into openshift-operators (AllNamespaces). Skipped if Subscription exists.
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ .Values.operator.name }}
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.operator | quote }}
+spec:
+  channel: {{ .Values.operator.channel }}
+  installPlanApproval: {{ .Values.operator.installPlanApproval }}
+  name: {{ .Values.operator.packageName }}
+  source: {{ .Values.operator.source }}
+  sourceNamespace: {{ .Values.operator.sourceNamespace }}
+{{- end }}
+{{- end }}

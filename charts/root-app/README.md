@@ -7,6 +7,7 @@ Master Helm chart for the workshop GitOps sync path (`gitops_path: charts/root-a
 | Wave | Components | Role |
 |------|------------|------|
 | `5` | `keycloak` | Workshop IdP for RHTPA (`sso.<domain>/realms/tpa`) |
+| `8` | `pipelines` | OpenShift Pipelines / Tekton (Module 5 + RHACS Tasks) |
 | `10` | `rhtas`, `rhtpa`, `rhacs` | TSSC operators / platform (`rhtas` #4, `rhtpa` #5, `rhacs` #6) |
 | `15` | `gitea` | Student Git (seeded learner repos for Module 5) |
 | `20` | `lightwell-repo` | Artifact manager (validated / remediated / OSV) (#7) |
@@ -21,6 +22,7 @@ Ordering is set via `argocd.argoproj.io/sync-wave` on each Application and docum
 | Values key | Chart path | Default |
 |------------|------------|---------|
 | `components.keycloak` | `charts/components/keycloak` | disabled (enable before `rhtpa`) |
+| `components.pipelines` | `charts/components/pipelines` | disabled (enable before `rhacs` Module 5 Tasks) |
 | `components.rhtas` | `charts/components/rhtas` | disabled |
 | `components.rhtpa` | `charts/components/rhtpa` | disabled |
 | `components.rhacs` | `charts/components/rhacs` | disabled |

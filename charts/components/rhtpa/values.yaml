@@ -15,7 +15,8 @@ rhtpa:
     database: "2"
     secrets: "2"
     instance: "3"
-    userinfo: "4"
+    oidcWait: "4"
+    userinfo: "5"
 
 # OLM install — RHTPA Operator is namespace-scoped (RHADS pattern)
 operator:
@@ -61,6 +62,19 @@ oidc:
   # Workshop-only default — inject via RHDP secret in real orders
   cliClientSecret: "workshop-tpa-cli-changeme"
   cliSecretName: tpa-realm-cli-clients
+
+# After TrustedProfileAnalyzer exists, wait for Keycloak OIDC then roll server if needed.
+oidcWait:
+  enabled: true
+  jobName: rhtpa-oidc-wait
+  serviceAccountName: rhtpa-oidc-wait
+  serverDeployment: server
+  image: registry.access.redhat.com/ubi9/ubi:latest
+  imagePullPolicy: IfNotPresent
+  waitSeconds: "900"
+  rolloutTimeout: "600s"
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400
 
 # TrustedProfileAnalyzer instance
 trustedProfileAnalyzer:

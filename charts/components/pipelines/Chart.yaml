@@ -1,0 +1,9 @@
+apiVersion: v2
+name: pipelines
+description: Red Hat OpenShift Pipelines (Tekton) Operator via OLM — Module 5 prerequisite
+type: application
+version: 0.1.0
+appVersion: "latest"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop
