@@ -205,9 +205,9 @@ That tree includes `pom.xml` (dual-stream version properties + `lightwell-remedi
 
 [IMPORTANT]
 ====
-Module 2 does *not* attach to a running Spring Boot Deployment.
-On RHDP / dev claims the optional GitOps Deployment stays at `replicas: 0` until a container image is published (see chase [#100](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/100)).
-You validate Maven remotes from the **Showroom terminal** container (`mvn` + `java` + `oc` are already installed there).
+Module 2 does *not* attach to a running Spring Boot Deployment — you validate Maven remotes from the **Showroom terminal** (`mvn` + `java` + `oc` are already installed there).
+
+A per-student GitOps app may already exist (`lw-poc-<username>` from Gitea) scaled to `replicas: 0` until you publish and promote an image in xref:module-05-pipeline.adoc[Module 5 Exercise 4]. That runtime path is out of scope here.
 ====
 
 === Find and enter the Showroom terminal container
@@ -236,12 +236,10 @@ Same as the settings extract above: clone your Gitea app repo into `/tmp` and ke
 [source,bash,role=execute]
 ----
 : "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
-: "${STUDENT_USER:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')}"
-: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 rm -rf /tmp/spring-boot-lw-poc
-# Auth form matches Module 5 (repos are public; credentials still work for clone/push)
-git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${STUDENT_REPO_URL#https://}" /tmp/spring-boot-lw-poc
+# Student app repos are public — anonymous clone; credentials are for Module 5 push only
+git clone "${STUDENT_REPO_URL}" /tmp/spring-boot-lw-poc
 cd /tmp/spring-boot-lw-poc
 
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
