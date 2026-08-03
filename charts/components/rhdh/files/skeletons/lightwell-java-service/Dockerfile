@@ -5,7 +5,7 @@ USER root
 WORKDIR /build
 COPY pom.xml ./
 COPY src ./src
-RUN mvn -B -DskipTests package
+RUN mvn -B -DskipTests -Dcommons.lang3.version=3.14.0 package
 
 FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.21
 WORKDIR /deployments
