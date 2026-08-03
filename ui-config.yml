@@ -11,8 +11,8 @@ view_switcher:
   enabled: true
   default_mode: split
 
-antora:
-  name: modules
+# Do not set antora.name alone — nookbag v0.4 requires antora.modules (array) when
+# the antora: block is present. Omit antora: so the shell defaults to /modules/.
 
 tabs:
   - name: Terminal
