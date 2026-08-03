@@ -120,11 +120,11 @@ If the namespace is not ready yet, continue with SBOM *generation* locally; uplo
 
 Build the PoC, then scan the artifact or `target/` directory.
 
-. From the Spring Boot PoC app directory:
+. From the Spring Boot PoC app directory (Gitea clone from Module 2):
 +
 [source,bash,role=execute]
 ----
-cd charts/components/spring-boot-lw-poc/app
+cd /tmp/spring-boot-lw-poc
 
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
 
@@ -245,7 +245,7 @@ Instructor laptop (optional demo):
 . Install https://marketplace.visualstudio.com/items?itemName=redhat.fabric8-analytics[Red Hat Dependency Analytics] (VS Code or JetBrains).
 . Ensure `mvn` is on `PATH`.
 . Set *Backend URL* to `https://rhda.rhcloud.com` (public) or the workshop Exhort/RHDA route when published.
-. Open `charts/components/spring-boot-lw-poc/app/pom.xml` and run Dependency Analytics; compare with the RHTPA UI from Exercise 3.
+. Open `pom.xml` in your Gitea `spring-boot-lw-poc` clone and run Dependency Analytics; compare with the RHTPA UI from Exercise 3.
 
 Details: xref:rhda-shift-left.adoc[RHDA shift-left appendix].
 

@@ -79,7 +79,7 @@ Target components (see [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) and project
 | GitHub monorepo (this repo) | ArgoCD, authors, agents | Platform charts / GitOps only — not student app or student runtime SoT when Gitea gitops ApplicationSet is enabled |
 | In-cluster Gitea | Learners | App remotes (`student_repo_url`) + Module 5 Ex4 gitops remotes (`student_gitops_repo_url`) |
 
-When a learner app lives under a monorepo path (example: `charts/components/spring-boot-lw-poc/app`), **environment preparation** must clone that source, isolate the subtree, and seed a Gitea repo with those contents **at repo root** — students must not see the rest of the workshop repository. A second Gitea remote may hold the thin Helm chart (excluding `./app`) for Argo CD promote. See [AGENTS.md](../AGENTS.md) (**Learner Git — Gitea first**) and [`charts/components/gitea/README.md`](../charts/components/gitea/README.md).
+When a learner app lives under a monorepo path (example: `charts/components/spring-boot-lw-poc/app`), **environment preparation** must clone that source, isolate the subtree, and seed Gitea repo **`spring-boot-lw-poc`** with those contents **at repo root** — students must not see the rest of the workshop repository or be told to clone GitHub. A second Gitea remote may hold the thin Helm chart (excluding `./app`) for Argo CD promote. See [AGENTS.md](../AGENTS.md) (**Learner Git — Gitea first**) and [`charts/components/gitea/README.md`](../charts/components/gitea/README.md).
 
 ## Ansible runner (optional path)
 
