@@ -23,6 +23,7 @@ By the end of this module, you will be able to:
 * xref:module-03-osv.adoc[Module 3] — remediated pins context (optional but recommended); end-of-module SSO check
 * Chart `keycloak` Healthy/Synced (namespace `sso`) — IdP at `https://sso.<domain>/realms/tpa`
 * Chart `rhtpa` Healthy/Synced when you need a live UI (namespace `trusted-profile-analyzer`)
+* On fresh claims, Job `rhtpa-oidc-wait` waits for Keycloak OIDC discovery before treating TPA as ready (no learner restart step)
 
 == Exercise 0: Confirm Keycloak *single sign-on (SSO)* for TPA
 
@@ -51,7 +52,17 @@ Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightw
 
 [TIP]
 ====
-On a *long-lived* claim where Keycloak was synced *before* the Trustify roles landed in Git, recreate the Keycloak pod after ArgoCD syncs `charts/components/keycloak` (`oc -n sso delete pod -l app=keycloak`). `start-dev` has no *PersistentVolumeClaim (PVC)*, so `--import-realm` reloads `tpa` with chicken roles and document scopes. Then restart RHTPA so it reloads *JSON Web Key Set (JWKS)* material: `oc -n trusted-profile-analyzer rollout restart deploy/server` (scale to `0` then `1` if the server PVC leaves pods CrashLoopBackOff). Fresh catalog / bootstrap claims already get the full realm on first start.
+*Fresh catalog / bootstrap claims:* Job `rhtpa-oidc-wait` in `trusted-profile-analyzer` waits for
+`https://sso.<domain>/realms/tpa/.well-known/openid-configuration` and rolls Deployment `server`
+only if it is not Ready — confirm with `oc -n trusted-profile-analyzer get job rhtpa-oidc-wait`.
+
+*Long-lived claims* where Keycloak was synced *before* Trustify roles landed in Git: recreate the
+Keycloak pod after ArgoCD syncs `charts/components/keycloak`
+(`oc -n sso delete pod -l app=keycloak`). `start-dev` has no *PersistentVolumeClaim (PVC)*, so
+`--import-realm` reloads `tpa` with chicken roles and document scopes. Then restart RHTPA so it
+reloads *JSON Web Key Set (JWKS)* material:
+`oc -n trusted-profile-analyzer rollout restart deploy/server`
+(scale to `0` then `1` if the server PVC leaves pods CrashLoopBackOff).
 ====
 
 == Roles: RHTPA vs RHDA

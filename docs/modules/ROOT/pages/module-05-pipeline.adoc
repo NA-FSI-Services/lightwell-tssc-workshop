@@ -20,7 +20,8 @@ By the end of this module, you will be able to:
 
 * xref:module-03-osv.adoc[Module 3] — remediated pin story
 * xref:module-04-sbom.adoc[Module 4] — SBOM upload to RHTPA
-* Charts synced (or available): `gitea` (student Git), `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
+* Charts synced (or available): `pipelines` (OpenShift Pipelines / Tekton CRDs), `gitea` (student Git), `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
+* Job `rhacs-ci-token-mint` Complete (fills `rhacs-ci-secrets` for `acs-image-check`) — see Exercise 2
 
 == Your student Git repository
 
@@ -79,13 +80,16 @@ image::module-05-fail-then-pass.png[Pipeline fail then pass on .rhlw pin,width=7
 
 Default `spring-boot-lw-poc` properties pin `commons-lang3` at `3.14.0` (*no* `.rhlw-*`). With `dep-gate-mode=require-remediated`, Task `lightwell-dep-gate` must fail.
 
-. Confirm Tasks and Pipeline exist:
+. Confirm Pipelines (Tekton) and RHACS Tasks/Pipeline exist:
 +
 [source,bash,role=execute]
 ----
+oc get crd pipelines.tekton.dev
 oc -n stackrox get tasks lightwell-dep-gate acs-image-check syft-sbom-rhtpa
 oc -n stackrox get pipeline lightwell-build-policy-gate
 ----
++
+Tekton CRDs come from chart `pipelines` (OpenShift Pipelines Operator via GitOps)—not a manual OperatorHub install for learners.
 
 . Extract the sample fail PipelineRun from the lab ConfigMap and create it:
 +
@@ -217,24 +221,21 @@ oc -n stackrox get taskrun -l tekton.dev/pipelineTask=lightwell-dep-gate \
 
 === RHACS image check
 
-Populate CI secrets when you want a real `roxctl` evaluation (never commit the token).
+GitOps Job `rhacs-ci-token-mint` mints a Central **Continuous Integration** API token into Secret
+`rhacs-ci-secrets` after Central is Ready (never commit the token). Confirm before expecting a
+real `roxctl` evaluation:
 
-On a **GitOps-provisioned** claim, Job `rhacs-ci-token-mint` in `stackrox` fills Secret `rhacs-ci-secrets` after Central is Ready. Confirm:
-
-[source,bash]
+[source,bash,role=execute]
 ----
 oc -n stackrox get job rhacs-ci-token-mint
+# Non-zero length means the token key is present (do not print the token)
 oc -n stackrox get secret rhacs-ci-secrets -o jsonpath='{.data.rox-api-token}' | wc -c
 ----
 
-Manual fallback (cluster-admin + Central Ready):
-
-[source,bash]
-----
-./scripts/dev-cluster-rhacs-ci-token.sh
-----
-
-Or create the token in Central UI → **Platform Configuration → Integrations → API Tokens** (role **Continuous Integration**), then:
+If the Job is missing or the secret has no token (rare on a healthy claim), use a cluster-admin
+fallback: `./scripts/dev-cluster-rhacs-ci-token.sh`, or create the token in Central UI →
+**Platform Configuration → Integrations → API Tokens** (role **Continuous Integration**) and
+patch the Secret:
 
 [source,bash]
 ----
@@ -246,7 +247,10 @@ oc -n stackrox create secret generic rhacs-ci-secrets \
 
 Import the Fixable Critical BUILD policy from ConfigMap `rhacs-lightwell-central-policy` (Central UI → Policy Management) when teaching scanner-backed fails/passes on real images.
 
-Without a `rox-api-token`, `acs-image-check` *skips* (workshop default `fail-on-skipped=false`)—still note the Task in the pipeline graph. After the token is present, re-run the PipelineRun and confirm `check-status` is `passed` or `failed` (not `skipped`).
+With the token present, re-run the PipelineRun and confirm `acs-image-check` `check-status` is
+`passed` or `failed` (not `skipped`). Workshop default `fail-on-skipped=false` still soft-skips
+if the secret is empty so the dep-gate narrative can continue—treat a skip as a provisioning gap,
+not the happy path.
 
 === SBOM handoff
 
@@ -258,7 +262,7 @@ RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived priva
 
 This exercise uses your **Gitea** student repository (path-isolated app + `.tekton/` overlay). Do **not** clone GitHub for the app remote. Image build uses an OpenShift **BuildConfig** (Dockerfile multi-stage; Maven Central inside the image build). Tekton runs dep-gate → build → ACS → SBOM → cosign. The image stays in your **learner lab namespace** — Exercise 4 promotes it into your product namespace via the Gitea **gitops** remote.
 
-IMPORTANT: Needs OpenShift Pipelines (`git-clone`), RHACS Tasks in `stackrox`, and pull access to `registry.redhat.io/rhtas/cosign-rhel9` for the sign step. `acs-image-check` may *soft-skip* without a Central CI token — that is acceptable for this exercise.
+IMPORTANT: Needs OpenShift Pipelines from chart `pipelines` (`git-clone` and Tekton CRDs), RHACS Tasks in `stackrox`, Job `rhacs-ci-token-mint` for a real `acs-image-check`, and pull access to `registry.redhat.io/rhtas/cosign-rhel9` for the sign step. Soft-skip of `acs-image-check` only if the CI token Secret is empty — confirm the Job first.
 
 . Inspect the Securesign instance and note Fulcio/Rekor/TUF Routes (also in userinfo ConfigMap `demo-userinfo-rhtas`):
 +
@@ -351,7 +355,7 @@ sed \
 tkn -n "${LAB_NS}" pipelinerun list
 ----
 +
-Expected graph: `clone` → `lightwell-dep-gate` → `openshift-build` (BuildConfig) → `acs-image-check` (pass or soft-skip) → `syft-sbom-rhtpa` → `cosign-sign-keyless`.
+Expected graph: `clone` → `lightwell-dep-gate` → `openshift-build` (BuildConfig) → `acs-image-check` (expect pass/fail with CI token from `rhacs-ci-token-mint`) → `syft-sbom-rhtpa` → `cosign-sign-keyless`.
 
 . After a successful `cosign-sign-keyless` task, verify the signature (workstation or debug pod with cosign). Initialize TUF first, then verify with the pipeline SA identity confirmed on claim:
 +
@@ -509,13 +513,13 @@ If the Application stays `Unknown` / clone errors right after seed, wait for the
 |Default / properties `3.14.0.rhlw-00001` yields `gate-status=passed`
 
 |RHACS
-|`acs-image-check` passed or intentionally skipped with documented secrets gap
+|Job `rhacs-ci-token-mint` Complete; `acs-image-check` passed or failed (not skipped)
 
 |SBOM
 |CycloneDX written; uploaded or manual RHTPA UI
 
 |Sign / verify
-|Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image)
+|Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image); Tekton from chart `pipelines`
 
 |GitOps
 |`oc tag` lab → `lw-poc-<user>` ImageStream; digest + `replicas: 1` committed to Gitea gitops repo; Argo Application Synced + Healthy; Route responds
@@ -533,6 +537,7 @@ If the Application stays `Unknown` / clone errors right after seed, wait for the
 **Key takeaways**
 
 * Pipelines enforce the Module 3 pin story before images ship; ACS policy and Lightwell remediations work together
+* OpenShift Pipelines and the RHACS CI token are provisioned by GitOps (`pipelines` chart + Job `rhacs-ci-token-mint`)—learners verify readiness, they do not install Operators by hand
 * Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog; Lightwell artifacts themselves also use RHTAS-class signing / SLSA L3
 * Git remains the source of truth; Argo CD promotes digest pins from your Gitea gitops remote after pipeline gates
 
