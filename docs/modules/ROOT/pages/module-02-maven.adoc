@@ -14,8 +14,8 @@ By the end of this module, you will be able to:
 * Contrast **direct** Lightwell remotes with the **proxied enterprise manager** pattern used in PoV delivery
 * Run two Maven experiments against workshop Nexus: **resolution** (`dependency:get`) and **consumption** (`clean verify`)
 * Use `mvn -s settings.xml -Plightwell-validated …` (and Remediated pins) against the workshop Nexus
-* Explain how `LW_USERNAME` / `LW_PASSWORD` (and RHDP secret injection) supply auth without committing secrets
-* Locate the Spring Boot PoC / RHDH template settings that match this lab
+* Explain how `LW_USERNAME` / `LW_PASSWORD` (and *Red Hat Demo Platform (RHDP)* secret injection) supply auth without committing secrets
+* Locate the Spring Boot *proof-of-concept (PoC)* sources and run Maven from the Showroom terminal container
 
 == Enterprise consumption patterns
 
@@ -33,7 +33,7 @@ By the end of this module, you will be able to:
 
 |*Seeded (RHDP)*
 |Same Nexus *repository names*; content uploaded by Job `lightwell-repo-seed`
-|Deterministic labs when live LWN membership is unavailable
+|Deterministic labs when live *Lightwell Network (LWN)* membership is unavailable
 |===
 
 Disconnected / air-gapped environments use the same *proxy or mirror* techniques customers already use for Red Hat content—sync into a local registry manager, then point Maven at that manager. Lightwell content is *not* synced through Red Hat Satellite content views or errata; delivery is via the artifact repository infrastructure (`packages.redhat.com` / Pulp) that build tools and managers consume.
@@ -73,7 +73,7 @@ oc -n lightwell-repo create secret generic lightwell-network-credentials \
 
 RHDP catalog delivery should inject these via platform secrets / ExternalSecret—not by editing Git values with real passwords.
 
-Maven `settings.xml` in the Spring Boot PoC and RHDH `lightwell-java-service` skeleton binds server credentials with:
+Maven `settings.xml` in the Spring Boot PoC and *Red Hat Developer Hub (RHDH)* `lightwell-java-service` skeleton binds server credentials with:
 
 [source,xml]
 ----
@@ -111,7 +111,7 @@ ConfigMap `lightwell-maven-settings` (chart `lightwell-repo`) ships the learner 
 |Exact-version `.rhlw-*` resolution
 |===
 
-The Spring Boot PoC adds a *POM* profile `lightwell-remediated-pins` that flips dependency versions (for example `commons-lang3` from `3.14.0` to `3.14.0.rhlw-00001`). Settings profiles select *where* Maven looks; POM profiles select *which version* to build.
+The Spring Boot PoC adds a *Project Object Model (POM)* profile `lightwell-remediated-pins` that flips dependency versions (for example `commons-lang3` from `3.14.0` to `3.14.0.rhlw-00001`). Settings profiles select *where* Maven looks; POM profiles select *which version* to build.
 
 image::module-02-maven-profiles.png[Maven Validated and Remediated profiles,width=700]
 
@@ -175,13 +175,13 @@ In *seeded* mode the Job uploads **two kinds** of Maven content into the same Ne
 |Maven can fetch Lightwell-shaped coordinates from the enterprise manager (`dependency:get`)
 
 |*B — Consumption*
-|`commons-lang3:3.14.0` and `3.14.0.rhlw-00001` as a *compile-capable* Apache Commons Lang binary (ASL 2.0)
+|`commons-lang3:3.14.0` and `3.14.0.rhlw-00001` as a *compile-capable* Apache Commons Lang binary (*Apache Software License (ASL)* 2.0)
 |The same manager can feed a real Spring Boot PoC build (`clean verify`)
 |===
 
 [NOTE]
 ====
-Stubs intentionally omit classes — they are for GAV / remote proofs, not for compiling application code.
+Stubs intentionally omit classes — they are for *GroupId:ArtifactId:Version (GAV)* / remote proofs, not for compiling application code.
 The Remediated `commons-lang3` coordinate re-publishes the same ASL 2.0 binary under the `.rhlw-00001` exact-version suffix so you can practice pin flips without live LWN membership.
 ====
 
@@ -189,19 +189,59 @@ image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption exp
 
 == Exercise 2: Validated stream (resolution + consumption)
 
-Use the workshop Spring Boot PoC sources when available on the cluster or in your GitOps checkout:
+=== What is the Spring Boot PoC?
+
+The *Spring Boot PoC* (`spring-boot-lw-poc`) is this workshop’s primary learner application: a small **Spring Boot 3 / Java 17 / Maven** greeting API used to practice Lightwell Network **Validated** and **Remediated** consumption. Sources live in the workshop Git repository at:
 
 `charts/components/spring-boot-lw-poc/app/`
 
-. Export `LIGHTWELL_NEXUS_URL` (see Auth section). For ConfigMap-extracted settings that already embed the Nexus URL, you can skip the env var.
+That tree includes `pom.xml` (dual-stream version properties + `lightwell-remediated-pins`), env-aware `settings.xml`, and a simple `/api/greeting` controller. Later modules reuse the same project for OSV pins, SBOM generation, and pipeline gates.
+
+[IMPORTANT]
+====
+Module 2 does *not* attach to a running Spring Boot Deployment.
+On RHDP / dev claims the optional GitOps Deployment stays at `replicas: 0` until a container image is published (see chase [#100](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/100)).
+You validate Maven remotes from the **Showroom terminal** container (`mvn` + `java` + `oc` are already installed there).
+====
+
+=== Find and enter the Showroom terminal container
+
+. Prefer the Showroom UI terminal pane (`/terminal/`) — that session *is* container `terminal` on Deployment `showroom`.
+. From a laptop (same environment the labs expect), locate the pod and open a shell in that container:
 +
 [source,bash,role=execute]
 ----
-# Prefer the app copy that already has env-aware settings.xml
-cd charts/components/spring-boot-lw-poc/app
+oc -n showroom get pods -l app.kubernetes.io/name=showroom
+oc -n showroom rsh -c terminal deploy/showroom
+----
+
+. Confirm the toolchain:
++
+[source,bash,role=execute]
+----
+which mvn java oc
+mvn -v | head -2
+----
+
+=== Stage the PoC sources and Nexus URL
+
+The terminal home *PersistentVolumeClaim (PVC)* is often root-owned, so clone into `/tmp` and keep Maven’s local repository writable:
+
+[source,bash,role=execute]
+----
+rm -rf /tmp/lightwell-tssc-workshop
+git clone --depth 1 --branch main \
+  https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git \
+  /tmp/lightwell-tssc-workshop
+
+cd /tmp/lightwell-tssc-workshop/charts/components/spring-boot-lw-poc/app
 
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+# Writable .m2 (required when /home/lab-user is not writable)
+export MVN_LOCAL='-Dmaven.repo.local=/tmp/m2'
 ----
+
+For ConfigMap-extracted settings that already embed the Nexus URL, you can skip `LIGHTWELL_NEXUS_URL`. Keep using `$MVN_LOCAL` on every `mvn` invocation in this module.
 
 === Experiment A — resolve a Validated GAV
 
@@ -209,7 +249,7 @@ Prove Nexus serves the seeded Validated coordinate (watch for `Downloading from 
 
 [source,bash,role=execute]
 ----
-mvn -s settings.xml dependency:get \
+mvn $MVN_LOCAL -s settings.xml dependency:get \
   -Dartifact=org.springframework:spring-core:5.3.18 \
   -Plightwell-validated
 ----
@@ -220,7 +260,7 @@ Expected: `BUILD SUCCESS` with download from `lightwell-java-validated` (stub JA
 
 [source,bash,role=execute]
 ----
-mvn -s settings.xml -Plightwell-validated clean verify
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated clean verify
 ----
 
 Expected outcomes:
@@ -229,20 +269,17 @@ Expected outcomes:
 * Other Spring Boot deps may still fall back to Maven Central
 * `BUILD SUCCESS` (tests pass)
 
-[TIP]
-====
-If `mvn` is not on the Showroom PATH, use a Maven container or the toolchain documented for your RHDP environment—keep the same `-s settings.xml -Plightwell-validated` flags.
-====
-
 == Exercise 3: Remediated stream (resolution + consumption)
 
 You are not changing production pins yet (that is Module 3). First confirm the Remediated remote serves the workshop example artifact, then build with the PoC pin profile.
+
+Stay in the PoC app directory from Exercise 2 (`/tmp/lightwell-tssc-workshop/charts/components/spring-boot-lw-poc/app`) with `LIGHTWELL_NEXUS_URL` and `MVN_LOCAL` still set.
 
 === Experiment A — resolve a `.rhlw-*` GAV
 
 [source,bash,role=execute]
 ----
-mvn -s settings.xml dependency:get \
+mvn $MVN_LOCAL -s settings.xml dependency:get \
   -Dartifact=org.springframework:spring-core:5.3.18.rhlw-00003 \
   -Plightwell-remediated
 ----
@@ -255,7 +292,7 @@ This combination selects the Remediated *repository* and the POM pin `3.14.0.rhl
 
 [source,bash,role=execute]
 ----
-mvn -s settings.xml \
+mvn $MVN_LOCAL -s settings.xml \
   -Plightwell-remediated,lightwell-remediated-pins \
   clean verify
 ----
@@ -266,7 +303,7 @@ Optional contrast — fetch the remediated pin from Nexus (exists only under `.r
 
 [source,bash,role=execute]
 ----
-mvn -s settings.xml dependency:get \
+mvn $MVN_LOCAL -s settings.xml dependency:get \
   -Dartifact=org.apache.commons:commons-lang3:3.14.0.rhlw-00001 \
   -Plightwell-remediated
 ----
