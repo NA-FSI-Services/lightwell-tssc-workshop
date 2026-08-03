@@ -31,7 +31,7 @@ You need either:
 [arabic]
 . Inspect an OSV file from the Java remediated OSV repo (or the workshop sample)
 . Read `affected[].ranges[].events[].fixed` to get the target `.rhlw-*` version
-. Compare sources for the base vs remediated artifacts (`diff -r`)
+. Compare sources for the base vs remediated artifacts (`git diff --no-index`)
 . Update `pom.xml` to the remediated pin and rebuild
 
 Canonical OSV remote: `{java-osv-url}`  
@@ -114,13 +114,13 @@ Workshop fixtures under `tools/osv-eval/fixtures/` stand in for `-sources.jar` t
 ./tools/osv-eval/scripts/diff-sources.sh --fixture
 ----
 
-You should see a `diff -ruN` highlighting a length-check backport in `VulnerableUtil.java` (demo stub, not production Spring Framework sources).
+You should see a `git diff --no-index` highlighting a length-check backport in `VulnerableUtil.java` (demo stub, not production Spring Framework sources). The helper uses `git` because the Showroom terminal image does not ship GNU `diff`.
 
 Manual equivalent:
 
 [source,bash,role=execute]
 ----
-diff -ruN \
+git --no-pager diff --no-index -- \
   tools/osv-eval/fixtures/upstream \
   tools/osv-eval/fixtures/remediated
 ----
@@ -209,7 +209,7 @@ Full optional appendix: xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFES
 **What you accomplished**
 
 * Extracted `fixed` as `5.3.18.rhlw-00003` from sample OSV `LW-DEMO-0001`
-* Compared upstream vs remediated sources (fixture `diff -r`, optional jar fetch)
+* Compared upstream vs remediated sources (fixture `git diff --no-index`, optional jar fetch)
 * Applied an exact-version `.rhlw-*` pin in the Spring Boot PoC and rebuilt successfully
 
 **Key takeaways**

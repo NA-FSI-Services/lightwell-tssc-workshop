@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Fetch (or use fixtures for) upstream vs Lightwell-remediated -sources.jar and diff -r.
+# Fetch (or use fixtures for) upstream vs Lightwell-remediated -sources.jar and diff.
+# Uses git diff --no-index (Showroom terminal has git, not GNU diffutils).
 # Does not require customer systems — fixtures mode is the RHDP default.
 set -euo pipefail
 
@@ -22,6 +23,8 @@ Usage: $0 [--fixture|--fetch] [--osv FILE] [--workdir DIR]
   --fetch     Download *-sources.jar from Maven remotes (needs network + optional LW_*)
   --osv FILE  OSV JSON used to discover GAV / .rhlw-* pin (default: samples/LW-DEMO-0001.json)
   --workdir   Scratch directory (default: mktemp)
+
+Diff tool: git --no-pager diff --no-index (required; present in Showroom terminal).
 
 Fetch mode remotes:
   LIGHTWELL_NEXUS_URL   Enterprise Nexus base (preferred in workshop)
@@ -119,6 +122,24 @@ unpack_jar() {
   fi
 }
 
+# Showroom terminal ships git but not GNU diffutils — prefer git diff --no-index.
+# Exit: 0 identical, 1 differences (expected for fixtures), >=2 tool failure.
+# Do not toggle set -e here — returning 1 under set -e aborts the caller.
+run_tree_diff() {
+  local left="$1" right="$2" rc=0
+  if ! command -v git >/dev/null 2>&1; then
+    echo "ERROR: git is required for source diffs (Showroom has git; install git if local)." >&2
+    return 127
+  fi
+  echo "git --no-pager diff --no-index -- ${left} ${right}"
+  git --no-pager diff --no-index -- "${left}" "${right}" && rc=0 || rc=$?
+  if [[ "${rc}" -gt 1 ]]; then
+    echo "ERROR: git diff failed (exit ${rc})" >&2
+    return "${rc}"
+  fi
+  return "${rc}"
+}
+
 run_fixture() {
   echo "=== Fixture mode (offline Module 3 demo) ==="
   echo "OSV: ${OSV_FILE}"
@@ -126,19 +147,18 @@ run_fixture() {
   echo "Pin: ${GROUP_ID}:${ARTIFACT_ID}:${BASE_VER} → ${FIXED_VER}"
   local left="${ROOT}/fixtures/upstream"
   local right="${ROOT}/fixtures/remediated"
-  echo "diff -ruN ${left} ${right}"
-  set +e
-  diff -ruN "${left}" "${right}"
-  local rc=$?
-  set -e
+  local rc=0
+  run_tree_diff "${left}" "${right}" && rc=0 || rc=$?
+  if [[ "${rc}" -gt 1 ]]; then
+    return "${rc}"
+  fi
   if [[ "${rc}" -eq 0 ]]; then
     echo "WARN: no differences (unexpected for demo fixtures)" >&2
   else
     echo "---"
     echo "OK: source diff shows remediated changes for narrative pin ${FIXED_VER}"
   fi
-  # diff returns 1 when files differ — treat as success for the lab
-  [[ "${rc}" -eq 1 || "${rc}" -eq 0 ]]
+  return 0
 }
 
 run_fetch() {
@@ -156,14 +176,14 @@ run_fetch() {
   unpack_jar "${up_jar}" "${WORKDIR}/upstream"
   unpack_jar "${rem_jar}" "${WORKDIR}/remediated"
 
-  echo "diff -ruN ${WORKDIR}/upstream ${WORKDIR}/remediated"
-  set +e
-  diff -ruN "${WORKDIR}/upstream" "${WORKDIR}/remediated"
-  local rc=$?
-  set -e
+  local rc=0
+  run_tree_diff "${WORKDIR}/upstream" "${WORKDIR}/remediated" && rc=0 || rc=$?
   echo "---"
   echo "Jars kept under ${WORKDIR}/jars"
-  [[ "${rc}" -eq 1 || "${rc}" -eq 0 ]]
+  if [[ "${rc}" -gt 1 ]]; then
+    return "${rc}"
+  fi
+  return 0
 }
 
 main() {

@@ -8,10 +8,10 @@ No customer systems required. Sample OSV matches the seeded Nexus path from [`ch
 ```text
 tools/osv-eval/
 ├── samples/LW-DEMO-0001.json     # Maven ecosystem fixed: 5.3.18.rhlw-00003
-├── fixtures/{upstream,remediated}/  # Offline source trees for diff -r
+├── fixtures/{upstream,remediated}/  # Offline source trees for git diff --no-index
 ├── scripts/
 │   ├── osv-pin.sh                # Parse OSV → GAV + fixed .rhlw-* pin
-│   ├── diff-sources.sh           # Fixture or fetch *-sources.jar + diff -r
+│   ├── diff-sources.sh           # Fixture or fetch *-sources.jar + git diff
 │   └── poll-pulp-manifest.sh     # Instructor: PULP_MANIFEST watch
 └── playbooks/poll-osv-manifest.yml
 ```
@@ -43,7 +43,7 @@ chmod +x tools/osv-eval/scripts/*.sh
 ./tools/osv-eval/scripts/diff-sources.sh --fixture
 ```
 
-Shows `diff -ruN` between stub upstream vs remediated trees (length check added in remediated).
+Shows `git --no-pager diff --no-index` between stub upstream vs remediated trees (length check added in remediated). Uses `git` so Showroom works without GNU diffutils.
 
 ### Live / instructor (fetch `-sources.jar`)
 
@@ -63,7 +63,7 @@ Manual equivalent:
 mkdir -p /tmp/lw-osv/{u,r}
 cd /tmp/lw-osv/u && jar xf ../spring-core-5.3.18-sources.jar
 cd /tmp/lw-osv/r && jar xf ../spring-core-5.3.18.rhlw-00003-sources.jar
-diff -ruN /tmp/lw-osv/u /tmp/lw-osv/r
+git --no-pager diff --no-index -- /tmp/lw-osv/u /tmp/lw-osv/r
 ```
 
 Then pin and rebuild (learner app / scaffold):
