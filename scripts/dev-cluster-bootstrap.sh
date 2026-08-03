@@ -48,6 +48,20 @@ WAIT_GITOPS_SECONDS="${WAIT_GITOPS_SECONDS:-600}"
 WAIT_ARGOCD_SECONDS="${WAIT_ARGOCD_SECONDS:-600}"
 ENABLE_LIGHTWELL_REPO="${ENABLE_LIGHTWELL_REPO:-true}"
 ENABLE_GITEA="${ENABLE_GITEA:-true}"
+# Module 4–5 TSSC stack — ENABLE_TSSC_STACK=true flips all five; individuals override when set.
+ENABLE_TSSC_STACK="${ENABLE_TSSC_STACK:-false}"
+if [[ "${ENABLE_TSSC_STACK}" == "true" ]]; then
+  ENABLE_KEYCLOAK="${ENABLE_KEYCLOAK:-true}"
+  ENABLE_PIPELINES="${ENABLE_PIPELINES:-true}"
+  ENABLE_RHTAS="${ENABLE_RHTAS:-true}"
+  ENABLE_RHTPA="${ENABLE_RHTPA:-true}"
+  ENABLE_RHACS="${ENABLE_RHACS:-true}"
+fi
+ENABLE_KEYCLOAK="${ENABLE_KEYCLOAK:-false}"
+ENABLE_PIPELINES="${ENABLE_PIPELINES:-false}"
+ENABLE_RHTAS="${ENABLE_RHTAS:-false}"
+ENABLE_RHTPA="${ENABLE_RHTPA:-false}"
+ENABLE_RHACS="${ENABLE_RHACS:-false}"
 SHOWROOM_LAB_CLUSTER_ACCESS="${SHOWROOM_LAB_CLUSTER_ACCESS:-true}"
 SCALE_WORKERS="${SCALE_WORKERS:-true}"
 ARGOCD_GRANT_CLUSTER_ADMIN="${ARGOCD_GRANT_CLUSTER_ADMIN:-true}"
@@ -88,6 +102,11 @@ helm_common=(
   --set "gitea.students[0].password=${WORKSHOP_USER_PASSWORD}"
   --set "gitea.students[0].email=${WORKSHOP_USER_EMAIL}"
   --set "gitea.students[0].fullName=${WORKSHOP_USER_FULL_NAME}"
+  --set "keycloak.enabled=${ENABLE_KEYCLOAK}"
+  --set "pipelines.enabled=${ENABLE_PIPELINES}"
+  --set "rhtas.enabled=${ENABLE_RHTAS}"
+  --set "rhtpa.enabled=${ENABLE_RHTPA}"
+  --set "rhacs.enabled=${ENABLE_RHACS}"
   --set "argocd.grantClusterAdmin=${ARGOCD_GRANT_CLUSTER_ADMIN}"
 )
 
@@ -159,9 +178,13 @@ echo "  2) Set OC_LOGIN_MODE=password in claim.env, then ./scripts/dev-cluster-l
 echo "  3) Wait for lightwell-tssc-root-showroom + lightwell-tssc-root-lightwell-repo Healthy"
 if [[ "${ENABLE_GITEA}" == "true" ]]; then
   echo "  4) Wait for lightwell-tssc-root-gitea Healthy; seed Job creates ${WORKSHOP_USER} remotes"
-  echo "  5) Smoke: oc -n showroom exec deploy/showroom -c terminal -- oc -n lightwell-repo get cm lightwell-channels"
-  echo "  6) Module 5: use WORKSHOP_USER / WORKSHOP_USER_PASSWORD above (docs/DEV-CLUSTER-WORKSHOP-USER.md)"
-else
-  echo "  4) Smoke: oc -n showroom exec deploy/showroom -c terminal -- oc -n lightwell-repo get cm lightwell-channels"
+fi
+if [[ "${ENABLE_KEYCLOAK}" == "true" || "${ENABLE_PIPELINES}" == "true" || "${ENABLE_RHACS}" == "true" ]]; then
+  echo "  *) TSSC: keycloak=${ENABLE_KEYCLOAK} pipelines=${ENABLE_PIPELINES} rhtas=${ENABLE_RHTAS} rhtpa=${ENABLE_RHTPA} rhacs=${ENABLE_RHACS}"
+  echo "     Wait for those Applications Healthy (RHACS Job mints CI token; RHTPA Job waits OIDC)"
+fi
+echo "  *) Smoke: oc -n showroom exec deploy/showroom -c terminal -- oc -n lightwell-repo get cm lightwell-channels"
+if [[ "${ENABLE_GITEA}" == "true" ]]; then
+  echo "  *) Module 5: use WORKSHOP_USER / WORKSHOP_USER_PASSWORD above (docs/DEV-CLUSTER-WORKSHOP-USER.md)"
 fi
 echo "dev-cluster-bootstrap: OK"

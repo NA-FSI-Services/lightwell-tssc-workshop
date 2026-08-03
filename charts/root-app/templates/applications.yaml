@@ -1,5 +1,5 @@
 # App of Apps — ArgoCD Applications for each enabled Lightwell workshop component.
-# Sync waves: keycloak (5) → operators (10) → gitea (15) → config (20) → rhdh (30) → apps (40) → showroom (50)
+# Sync waves: keycloak (5) → pipelines (8) → operators (10) → gitea (15) → config (20) → rhdh (30) → apps (40) → showroom (50)
 
 {{- if .Values.components.keycloak.enabled }}
 ---
@@ -37,6 +37,45 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
+{{- end }}
+
+{{- if .Values.components.pipelines.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-pipelines
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "root-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.components.pipelines.syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: {{ .Values.gitops.basePath }}/components/pipelines
+    helm:
+      valuesObject:
+        pipelines:
+          enabled: {{ .Values.components.pipelines.enabled }}
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.components.pipelines.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
 {{- end }}
 

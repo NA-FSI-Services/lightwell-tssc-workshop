@@ -10,7 +10,8 @@ Deploys Trusted Profile Analyzer for the Lightwell TSSC workshop via the **RHTPA
 | `1` | OperatorGroup + Subscription |
 | `2` | PostgreSQL + OIDC CLI secret |
 | `3` | `TrustedProfileAnalyzer` CR |
-| `4` | Ingestion-info + RHDP userinfo ConfigMaps |
+| `4` | Job `rhtpa-oidc-wait` (wait Keycloak OIDC; roll `server` if not Ready) |
+| `5` | Ingestion-info + RHDP userinfo ConfigMaps |
 
 Root App-of-Apps places this chart at sync wave **`10`** (with other TSSC operators).
 
@@ -29,6 +30,7 @@ Storage defaults to **filesystem** (PVC) for PoC / RHDP workshops. Prefer S3 / O
 
 - **OIDC** (Keycloak / RHBK) realm matching `oidc.realm` with `frontend` and `cli` clients — chart derives `https://sso.<deployer.domain>/realms/<realm>`
 - Workshop IdP: enable `components.keycloak` (wave 5) in root-app — see [`charts/components/keycloak`](../keycloak/); keep `oidc.cliClientSecret` in sync with that chart
+- Job `rhtpa-oidc-wait` waits for `…/realms/tpa/.well-known/openid-configuration` and rolls Deployment `server` only when not Ready (avoids CrashLoop when TPA syncs before Keycloak)
 - Override workshop defaults for `postgresql.password` and `oidc.cliClientSecret` via values or RHDP secret injection (**do not use committed defaults in shared environments**)
 
 ## Reuse sources

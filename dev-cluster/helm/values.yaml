@@ -39,6 +39,18 @@ gitea:
   studentUsername: user1
   students: []
 
+# Module 4–5 TSSC stack (off by default — enable via claim.env ENABLE_* / ENABLE_TSSC_STACK)
+keycloak:
+  enabled: false
+pipelines:
+  enabled: false
+rhtas:
+  enabled: false
+rhtpa:
+  enabled: false
+rhacs:
+  enabled: false
+
 showroom:
   enabled: true
   antoraPlaybook: "site-ci.yml"

@@ -13,7 +13,8 @@ rhacs:
     central: "2"
     securedCluster: "3"
     pipeline: "4"
-    userinfo: "5"
+    ciToken: "5"
+    userinfo: "6"
 
 # OLM install — RHACS Operator in dedicated rhacs-operator namespace
 operator:
@@ -65,6 +66,18 @@ pipelineHooks:
   #   rox-api-token: <CI API token from Central>
   secretName: rhacs-ci-secrets
   createSecretPlaceholder: true
+  # After Central Ready, Job mints Continuous Integration token into secretName (idempotent).
+  ciTokenJob:
+    enabled: true
+    jobName: rhacs-ci-token-mint
+    serviceAccountName: rhacs-ci-token
+    image: registry.access.redhat.com/ubi9/ubi:latest
+    imagePullPolicy: IfNotPresent
+    tokenName: lightwell-ci
+    role: Continuous Integration
+    waitSeconds: "600"
+    backoffLimit: 6
+    ttlSecondsAfterFinished: 86400
   insecureSkipTlsVerify: "true"
   # When true, acs-image-check fails if CI secrets are missing (strict workshop runs)
   failOnSkipped: "false"
@@ -110,8 +123,9 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Advanced Cluster Security"
   instructions: >-
-    Open RHACS Central (stackrox). Import the Fixable Critical BUILD policy, create a
-    CI token into Secret rhacs-ci-secrets, then run Pipeline lightwell-build-policy-gate:
+    Open RHACS Central (stackrox). Import the Fixable Critical BUILD policy.
+    Secret rhacs-ci-secrets is filled by Job rhacs-ci-token-mint (or
+    ./scripts/dev-cluster-rhacs-ci-token.sh). Run Pipeline lightwell-build-policy-gate:
     fail on non-remediated Maven pins, pass after .rhlw-* update, then SBOM → RHTPA.
 
 # Injected by root-app / field content workload
