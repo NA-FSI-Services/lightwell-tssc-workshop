@@ -33,6 +33,12 @@ deployer:
 lightwellRepo:
   enabled: true
 
+# Module 5 / Gitea learner — single user1 for instruction QA (password from bootstrap)
+gitea:
+  enabled: true
+  studentUsername: user1
+  students: []
+
 showroom:
   enabled: true
   antoraPlaybook: "site-ci.yml"

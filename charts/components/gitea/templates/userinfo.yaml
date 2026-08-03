@@ -2,6 +2,9 @@
 {{- $url := include "gitea.url" . }}
 {{- $primary := index .Values.students 0 }}
 {{- $repoUrl := printf "%s/%s/%s.git" $url $primary.username .Values.seed.repoName }}
+{{- $gitopsRepo := .Values.seed.gitops.repoName | default "gitops-spring-boot-lw-poc" }}
+{{- $gitopsUrl := printf "%s/%s/%s.git" $url $primary.username $gitopsRepo }}
+{{- $promoteNs := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $primary.username }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -24,13 +27,17 @@ data:
   student_repo_name: {{ .Values.seed.repoName | quote }}
   student_repo_revision: {{ .Values.seed.defaultBranch | quote }}
   student_pom_path: "pom.xml"
+  student_gitops_repo_url: {{ $gitopsUrl | quote }}
+  student_gitops_repo_name: {{ $gitopsRepo | quote }}
+  student_promote_namespace: {{ $promoteNs | quote }}
+  student_argocd_app: {{ printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $primary.username | quote }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
 {{- if gt (len .Values.students) 1 }}
-  # Additional students (username|repo_url) for multi-user claims
+  # Additional students (username|app_repo|gitops_repo|promote_ns)
   student_repos: |
 {{- range .Values.students }}
-    {{ .username }}={{ printf "%s/%s/%s.git" $url .username $.Values.seed.repoName }}
+    {{ .username }}={{ printf "%s/%s/%s.git" $url .username $.Values.seed.repoName }}|{{ printf "%s/%s/%s.git" $url .username $gitopsRepo }}|{{ printf "%s-%s" ($.Values.gitopsAppSet.namespacePrefix | default "lw-poc") .username }}
 {{- end }}
 {{- end }}
 {{- end }}

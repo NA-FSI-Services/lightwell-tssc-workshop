@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create workshop admin (if needed), student users, and seed application repos.
+# Create workshop admin (if needed), student users, and seed application + gitops repos.
 set -euo pipefail
 
 : "${GITEA_URL:?}"
@@ -13,6 +13,11 @@ set -euo pipefail
 : "${DEFAULT_BRANCH:?}"
 : "${STUDENTS_JSON:?}"
 : "${SEED_DIR:=/seed}"
+
+# Optional second repo (Module 5 Ex4 / #100) — thin Helm chart without ./app
+GITOPS_REPO_NAME="${GITOPS_REPO_NAME:-}"
+GITOPS_REPO_DESCRIPTION="${GITOPS_REPO_DESCRIPTION:-Lightwell TSSC student GitOps chart (Module 5 promote)}"
+GITOPS_SEED_SUBDIR="${GITOPS_SEED_SUBDIR:-gitops-repo}"
 
 API="${GITEA_URL%/}/api/v1"
 WORKDIR="$(mktemp -d)"
@@ -39,11 +44,9 @@ if [[ -z "${POD}" ]]; then
 fi
 
 auth_header() {
-  # Basic auth for Gitea API
   printf 'Authorization: Basic %s' "$(printf '%s:%s' "$1" "$2" | base64 -w0 2>/dev/null || printf '%s:%s' "$1" "$2" | base64)"
 }
 
-# Gitea refuses to run its CLI as root — always exec via su git.
 gitea_cli() {
   local cmd
   printf -v cmd '%q ' "$@"
@@ -53,7 +56,6 @@ gitea_cli() {
 
 ensure_user() {
   local user="$1" pass="$2" email="$3" full_name="$4" admin_flag="$5"
-  # Prefer admin API (works once an admin exists); bootstrap admin via CLI.
   if [[ "${admin_flag}" == "true" ]]; then
     local out
     if out="$(gitea_cli admin user create --admin --username "${user}" --password "${pass}" --email "${email}" --must-change-password=false 2>&1)"; then
@@ -99,7 +101,6 @@ PY
     echo "Created user ${user}"
     return 0
   fi
-  # Idempotent re-seed: Gitea returns 422 when the user already exists
   if [[ "${code}" == "422" ]] && grep -qiE 'already exists|user already exists' /tmp/gitea-user-create.json 2>/dev/null; then
     echo "User ${user} already exists — continuing"
     return 0
@@ -112,14 +113,14 @@ PY
 ensure_user "${ADMIN_USER}" "${ADMIN_PASSWORD}" "${ADMIN_EMAIL}" "Gitea Admin" "true"
 
 ensure_repo() {
-  local owner="$1" pass="$2"
+  local owner="$1" pass="$2" repo_name="$3" repo_desc="$4"
   local code
   code="$(curl -sS -o /tmp/gitea-repo.json -w '%{http_code}' \
     -H "$(auth_header "${owner}" "${pass}")" \
     -H 'Content-Type: application/json' \
-    "${API}/repos/${owner}/${REPO_NAME}" || true)"
+    "${API}/repos/${owner}/${repo_name}" || true)"
   if [[ "${code}" == "200" ]]; then
-    echo "Repo ${owner}/${REPO_NAME} already exists"
+    echo "Repo ${owner}/${repo_name} already exists"
     return 0
   fi
   code="$(curl -sS -o /tmp/gitea-repo-create.json -w '%{http_code}' \
@@ -127,46 +128,49 @@ ensure_repo() {
     -H "$(auth_header "${owner}" "${pass}")" \
     -H 'Content-Type: application/json' \
     -d "$(printf '{"name":"%s","description":"%s","private":false,"auto_init":false,"default_branch":"%s"}' \
-      "${REPO_NAME}" "${REPO_DESCRIPTION}" "${DEFAULT_BRANCH}")" \
+      "${repo_name}" "${repo_desc}" "${DEFAULT_BRANCH}")" \
     "${API}/user/repos")"
   if [[ "${code}" != "201" ]]; then
-    echo "ERROR: create repo ${owner}/${REPO_NAME} failed HTTP ${code}" >&2
+    echo "ERROR: create repo ${owner}/${repo_name} failed HTTP ${code}" >&2
     cat /tmp/gitea-repo-create.json >&2 || true
     exit 1
   fi
-  echo "Created repo ${owner}/${REPO_NAME}"
+  echo "Created repo ${owner}/${repo_name}"
 }
 
-push_seed() {
-  local owner="$1" pass="$2"
-  local repo_dir="${WORKDIR}/${owner}-${REPO_NAME}"
+push_seed_tree() {
+  local owner="$1" pass="$2" repo_name="$3" seed_subdir="$4" commit_msg="$5"
+  local src="${SEED_DIR}/${seed_subdir}"
+  if [[ ! -d "${src}" ]]; then
+    echo "ERROR: seed tree missing: ${src}" >&2
+    exit 1
+  fi
+  local repo_dir="${WORKDIR}/${owner}-${repo_name}"
   rm -rf "${repo_dir}"
   mkdir -p "${repo_dir}"
-  cp -a "${SEED_DIR}/repo/." "${repo_dir}/"
+  cp -a "${src}/." "${repo_dir}/"
   (
     cd "${repo_dir}"
     git init -b "${DEFAULT_BRANCH}"
     git config user.email "${owner}@workshop.local"
     git config user.name "${owner}"
     git add .
-    git commit -m "Seed student lab repository for Lightwell Module 5"
-    git remote add origin "https://${owner}:${pass}@${GITEA_URL#https://}/${owner}/${REPO_NAME}.git"
+    git commit -m "${commit_msg}"
+    git remote add origin "https://${owner}:${pass}@${GITEA_URL#https://}/${owner}/${repo_name}.git"
     export GIT_TERMINAL_PROMPT=0
     export GIT_SSL_NO_VERIFY="${GIT_SSL_NO_VERIFY:-true}"
-    # Retry push while Gitea finishes repo creation
     for i in $(seq 1 12); do
       if git -c http.sslVerify=false push -u --force origin "${DEFAULT_BRANCH}"; then
-        echo "Pushed seed to ${owner}/${REPO_NAME}"
+        echo "Pushed seed to ${owner}/${repo_name}"
         return 0
       fi
       sleep 5
     done
-    echo "ERROR: git push failed for ${owner}/${REPO_NAME}" >&2
+    echo "ERROR: git push failed for ${owner}/${repo_name}" >&2
     exit 1
   )
 }
 
-# STUDENTS_JSON: [{"username":"...","password":"...","email":"...","fullName":"..."}, ...]
 if ! command -v python3 >/dev/null 2>&1; then
   echo "ERROR: python3 required to parse STUDENTS_JSON" >&2
   exit 1
@@ -187,9 +191,17 @@ PY
 while IFS=$'\t' read -r user pass email full_name; do
   [[ -z "${user}" ]] && continue
   ensure_user "${user}" "${pass}" "${email}" "${full_name}" "false"
-  ensure_repo "${user}" "${pass}"
-  push_seed "${user}" "${pass}"
+  ensure_repo "${user}" "${pass}" "${REPO_NAME}" "${REPO_DESCRIPTION}"
+  push_seed_tree "${user}" "${pass}" "${REPO_NAME}" "repo" \
+    "Seed student lab repository for Lightwell Module 5"
   echo "STUDENT_REPO_URL=${GITEA_URL%/}/${user}/${REPO_NAME}.git"
+
+  if [[ -n "${GITOPS_REPO_NAME}" ]]; then
+    ensure_repo "${user}" "${pass}" "${GITOPS_REPO_NAME}" "${GITOPS_REPO_DESCRIPTION}"
+    push_seed_tree "${user}" "${pass}" "${GITOPS_REPO_NAME}" "${GITOPS_SEED_SUBDIR}" \
+      "Seed student GitOps chart for Lightwell Module 5 Ex4"
+    echo "STUDENT_GITOPS_REPO_URL=${GITEA_URL%/}/${user}/${GITOPS_REPO_NAME}.git"
+  fi
 done <"${WORKDIR}/students.tsv"
 
 echo "gitea-student-repo-seed: complete"

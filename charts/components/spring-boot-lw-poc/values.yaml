@@ -12,17 +12,20 @@ springBootLwPoc:
     route: "3"
     userinfo: "4"
 
-# Container image — build from ./app/Dockerfile and push, then set image.repository/tag
-# Default tag is not published on RHDP/dev claims → ImagePullBackOff if replicas > 0.
+# Container image — prefer digest pin after Module 5 Ex4 promote (#100).
+# repository empty → derived as {registry}/{namespace}/{name}
 image:
-  repository: image-registry.openshift-image-registry.svc:5000/spring-boot-lw-poc/spring-boot-lw-poc
+  registry: image-registry.openshift-image-registry.svc:5000
+  name: spring-boot-lw-poc
+  repository: ""
   tag: latest
+  # When set (sha256:…), Deployment uses repo@digest instead of :tag
+  digest: ""
   pullPolicy: IfNotPresent
-  # When true, chart renders an OpenShift BuildConfig from the in-repo Dockerfile context note
   buildConfig:
     enabled: false
 
-# Labs use chart Maven sources (./app); keep Deployment scaled down until an image is published.
+# Labs / GitOps: keep scaled down until a digest is promoted (Healthy without ImagePullBackOff).
 replicas: 0
 
 

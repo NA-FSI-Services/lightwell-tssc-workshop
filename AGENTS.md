@@ -43,18 +43,19 @@ Students must **not** be directed to clone, fork, or push to GitHub for lab appl
 
 | Audience | Git surface |
 |----------|-------------|
-| **Learners** | Gitea only — discover URLs via `demo-userinfo-gitea` (`gitea_url`, `student_repo_url`, credentials) |
-| **Operators / GitOps** | This workshop monorepo on GitHub (ArgoCD sync source) — never presented as the student app remote |
+| **Learners** | Gitea only — discover URLs via `demo-userinfo-gitea` (`gitea_url`, `student_repo_url`, `student_gitops_repo_url`, credentials) |
+| **Operators / GitOps** | This workshop monorepo on GitHub (ArgoCD sync source for platform charts) — never presented as the student app or student runtime remote |
 | **Authors / agents** | May read monorepo paths on GitHub when building charts; seed Jobs isolate learner-facing trees into Gitea |
 
 **Path isolation when the app lives under a monorepo subdirectory** (e.g. `charts/components/spring-boot-lw-poc/app`):
 
 1. Provision-time automation (Gitea seed Job, ansible-runner, or equivalent) clones the **workshop** Git source (GitHub or the synced checkout).
 2. Extracts **only** the intended application subtree (and any files that must sit at repo root for labs, such as `pom.xml`, `Dockerfile`, `.tekton/`).
-3. Creates / updates the student's Gitea repository with **that isolated tree at repository root**.
-4. Does **not** expose charts, AgnosticV, other components, secrets, or the rest of the monorepo in the student remote.
+3. Creates / updates the student's Gitea **application** repository with **that isolated tree at repository root**.
+4. Optionally seeds a separate Gitea **gitops** repository with the thin Helm chart (same component path **minus** `./app`) for Argo CD runtime promote (Module 5 Ex4).
+5. Does **not** expose AgnosticV, other components, secrets, or the rest of the monorepo in student remotes.
 
-Lab modules, PipelineRuns, and RHDH templates must clone **`student_repo_url`** (or the per-user URL under `student_repos`), never `github.com/NA-FSI-Services/lightwell-tssc-workshop` (or any GitHub app URL) as the learner workflow.
+Lab modules, PipelineRuns, and RHDH templates must clone **`student_repo_url`** (or the per-user URL under `student_repos`) for app work, and **`student_gitops_repo_url`** for digest promote — never `github.com/NA-FSI-Services/lightwell-tssc-workshop` (or any GitHub app URL) as the learner workflow.
 
 When adding a new learner application source that currently lives at `/some/inner/path` in this repo, update the Gitea seed (or add a prepare Job) to perform isolation — do not ask students to `cd` into a monorepo path or clone GitHub.
 
@@ -122,3 +123,11 @@ Before claiming a chart or module done:
 ## When uncertain
 
 Prefer the smallest change that advances the current phase issue. Ask the human before altering catalog IDs, pool selection, cluster sizing, org-level repository transfer plans, or whether labs use live LWN vs seeded mirrors.
+
+## Dev-cluster QA (agents)
+
+When provisioning an ephemeral claim via [`scripts/dev-cluster-bootstrap.sh`](./scripts/dev-cluster-bootstrap.sh):
+
+- Expect a single Gitea learner **`user1`** with a **generated password** printed in the bootstrap banner.
+- Capture that password for Module 5 / Gitea / promote tests; details in [`docs/DEV-CLUSTER-WORKSHOP-USER.md`](./docs/DEV-CLUSTER-WORKSHOP-USER.md).
+- Do not commit `dev-cluster/claim.env` or `dev-cluster/workshop-user.env`.

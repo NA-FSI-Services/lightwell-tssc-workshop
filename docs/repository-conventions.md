@@ -38,7 +38,8 @@ lightwell-tssc-workshop/
 │   ├── repository-conventions.md
 │   ├── ansible-developer-guide.md
 │   ├── SHOWROOM-UPDATE-SPEC.md
-│   └── DEV-CLUSTER-BOOTSTRAP.md     # Phase 5 bypass: claim.env + Helm bootstrap
+│   ├── DEV-CLUSTER-BOOTSTRAP.md     # Phase 5 bypass: claim.env + Helm bootstrap
+│   └── DEV-CLUSTER-WORKSHOP-USER.md # Dev QA: user1 + generated password (agents)
 ├── dev-cluster/                     # Ephemeral RHDP OpenShift QA bootstrap (not catalog GitOps path)
 │   ├── claim.env.example
 │   ├── README.md
@@ -75,10 +76,10 @@ Target components (see [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) and project
 
 | Surface | Who uses it | Rule |
 |---------|-------------|------|
-| GitHub monorepo (this repo) | ArgoCD, authors, agents | GitOps + chart sources only |
-| In-cluster Gitea | Learners | All clone / push / PipelineRun `repo-url` for application labs |
+| GitHub monorepo (this repo) | ArgoCD, authors, agents | Platform charts / GitOps only — not student app or student runtime SoT when Gitea gitops ApplicationSet is enabled |
+| In-cluster Gitea | Learners | App remotes (`student_repo_url`) + Module 5 Ex4 gitops remotes (`student_gitops_repo_url`) |
 
-When a learner app lives under a monorepo path (example: `charts/components/spring-boot-lw-poc/app`), **environment preparation** must clone that source, isolate the subtree, and seed a Gitea repo with those contents **at repo root** — students must not see the rest of the workshop repository. See [AGENTS.md](../AGENTS.md) (**Learner Git — Gitea first**) and [`charts/components/gitea/README.md`](../charts/components/gitea/README.md).
+When a learner app lives under a monorepo path (example: `charts/components/spring-boot-lw-poc/app`), **environment preparation** must clone that source, isolate the subtree, and seed a Gitea repo with those contents **at repo root** — students must not see the rest of the workshop repository. A second Gitea remote may hold the thin Helm chart (excluding `./app`) for Argo CD promote. See [AGENTS.md](../AGENTS.md) (**Learner Git — Gitea first**) and [`charts/components/gitea/README.md`](../charts/components/gitea/README.md).
 
 ## Ansible runner (optional path)
 

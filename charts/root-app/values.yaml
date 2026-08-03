@@ -60,16 +60,20 @@ components:
     syncWave: "10"
 
   # --- Wave 15: Student Git (learner repos for Module 5 — not the GitOps monorepo) ---
-  # Chart: charts/components/gitea. Seeds per-student spring-boot-lw-poc repositories.
+  # Chart: charts/components/gitea. Seeds per-student app + gitops remotes; ApplicationSet → lw-poc-<user>.
   gitea:
     enabled: false
     namespace: gitea
     syncWave: "15"
-    # Primary student (must match charts/components/gitea values students[0] / seed.repoName)
+    # Primary student (must match students[0].username when students is set)
     studentUsername: student
     repoName: spring-boot-lw-poc
     repoRevision: main
     pomPath: pom.xml
+    # When non-empty, overrides charts/components/gitea default students list.
+    # Dev-cluster bootstrap sets a single user1 + generated password (see
+    # docs/DEV-CLUSTER-WORKSHOP-USER.md). Leave empty for chart defaults.
+    students: []
 
   # --- Wave 20: Artifact manager (validated / remediated / OSV) ---
   # Chart: charts/components/lightwell-repo (#7). Enable when ready to sync.
@@ -88,7 +92,8 @@ components:
     syncWave: "30"
 
   # --- Wave 40: Sample applications ---
-  # Chart: charts/components/spring-boot-lw-poc (#24). Primary LWN Maven PoC.
+  # Chart: charts/components/spring-boot-lw-poc (#24). Keep disabled when Gitea gitops
+  # ApplicationSet is the runtime SoT (Module 5 Ex4 / #100 M1). Enable only for monorepo demos.
   springBootLwPoc:
     enabled: false
     namespace: spring-boot-lw-poc

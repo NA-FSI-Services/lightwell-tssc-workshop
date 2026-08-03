@@ -248,7 +248,7 @@ With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtp
 
 RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived private keys in the workshop.
 
-This exercise uses your **Gitea** student repository (path-isolated app + `.tekton/` overlay). Do **not** clone GitHub for the app remote. Image build uses an OpenShift **BuildConfig** (Dockerfile multi-stage; Maven Central inside the image build). Tekton runs dep-gate → build → ACS → SBOM → cosign. The image stays in your **learner lab namespace** (GitOps `spring-boot-lw-poc` Route image is a later promote — issue #100).
+This exercise uses your **Gitea** student repository (path-isolated app + `.tekton/` overlay). Do **not** clone GitHub for the app remote. Image build uses an OpenShift **BuildConfig** (Dockerfile multi-stage; Maven Central inside the image build). Tekton runs dep-gate → build → ACS → SBOM → cosign. The image stays in your **learner lab namespace** — Exercise 4 promotes it into your product namespace via the Gitea **gitops** remote.
 
 IMPORTANT: Needs OpenShift Pipelines (`git-clone`), RHACS Tasks in `stackrox`, and pull access to `registry.redhat.io/rhtas/cosign-rhel9` for the sign step. `acs-image-check` may *soft-skip* without a Central CI token — that is acceptable for this exercise.
 
@@ -333,7 +333,7 @@ IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boo
 
 # Edit generateName run — prefer a one-shot create from the example file:
 sed \
-  -e "s|https://gitea.<domain>/student/spring-boot-lw-poc.git|${STUDENT_REPO_URL}|" \
+  -e "s|https://gitea.<domain>/user1/spring-boot-lw-poc.git|${STUDENT_REPO_URL}|" \
   -e "s|<lab-namespace>|${LAB_NS}|g" \
   -e "s|https://fulcio-server-trusted-artifact-signer.apps.<domain>|${FULCIO}|" \
   -e "s|https://rekor-server-trusted-artifact-signer.apps.<domain>|${REKOR}|" \
@@ -380,47 +380,113 @@ Optional advanced path: RHDH Software Template `lightwell-java-service` can scaf
 
 == Exercise 4: GitOps promotion (Argo CD)
 
-Promotion in this workshop means: commit desired state in Git, let Argo CD sync, and confirm OpenShift resources are Healthy. You do not `oc apply` long-lived app config by hand.
+Promotion means: tag the signed lab image into your **product** namespace, commit the image **digest** and `replicas: 1` to your **Gitea gitops** repo, let Argo CD sync, and confirm the Route is Healthy. You do not `oc apply` long-lived Deployment YAML by hand.
 
 [NOTE]
 ====
-Your **student** Gitea repository holds application source for pipeline labs (Exercises 1–3).
-Argo CD App-of-Apps syncs *platform / chart desired state* from the catalog GitOps path — that is separate from the learner remotes you clone and push to.
+You have **two** Gitea remotes (never GitHub):
+
+* `student_repo_url` — application source + `.tekton/` (Exercises 1–3)
+* `student_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD ApplicationSet syncs this into `student_promote_namespace` (`lw-poc-<username>`)
+
+The workshop monorepo Application for `spring-boot-lw-poc` stays **disabled**. Runtime desired state is your Gitea gitops repo.
 ====
 
-
-. List Applications managed by the root App-of-Apps:
+. Discover promote coordinates from userinfo:
 +
 [source,bash,role=execute]
 ----
-oc -n openshift-gitops get applications.argoproj.io
-# Names vary by release; look for root-app children such as *-spring-boot-lw-poc, *-rhacs, *-rhtas
+export LAB_NS="${LAB_NS:-student-lab}"
+export PROMOTE_NS="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_promote_namespace}')"
+export GITOPS_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_gitops_repo_url}')"
+export ARGO_APP="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_argocd_app}')"
+export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_username}')"
+export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_password}')"
+
+echo "PROMOTE_NS=${PROMOTE_NS}"
+echo "GITOPS_REPO_URL=${GITOPS_REPO_URL}"
+echo "ARGO_APP=${ARGO_APP}"
 ----
 
-. Check sync/health for the sample app Application:
+. Confirm the ApplicationSet child Application exists and is Synced (chart at `replicas: 0`, empty digest → Healthy without ImagePullBackOff):
 +
 [source,bash,role=execute]
 ----
-oc -n openshift-gitops get applications.argoproj.io \
-  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status \
-  | egrep -i 'spring-boot|NAME|lightwell|root' || true
+oc -n openshift-gitops get applications.argoproj.io "${ARGO_APP}" \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+oc -n "${PROMOTE_NS}" get imagestream,deploy,route 2>/dev/null || \
+  echo "Namespace may still be creating — wait for Argo sync after seed"
 ----
 
-. In the Argo CD UI, open the root application and confirm child apps (including `spring-boot-lw-poc` when enabled) are *Synced* / *Healthy*.
+. Tag the signed lab image into the product ImageStream (R1):
++
+[source,bash,role=execute]
+----
+# Requires a successful Exercise 3 build in LAB_NS
+oc tag "${LAB_NS}/spring-boot-lw-poc:latest" "${PROMOTE_NS}/spring-boot-lw-poc:latest"
 
-. Promotion beat (field narrative):
-* Merge / push image tag or chart values change to Git (for example bump the PoC image digest after a signed build)
-* Argo CD detects the commit (or you click *Refresh* / *Sync*)
-* Deployment rolls out the signed image; earlier gates ensure only remediated pins reached the registry
+# Digest for values.yaml (keep the sha256: prefix)
+export IMAGE_DIGEST="$(oc -n "${PROMOTE_NS}" get imagestreamtag spring-boot-lw-poc:latest \
+  -o jsonpath='{.image.metadata.name}')"
+echo "IMAGE_DIGEST=${IMAGE_DIGEST}"
+test -n "${IMAGE_DIGEST}" && [[ "${IMAGE_DIGEST}" == sha256:* ]]
+----
+
+. Clone your **gitops** Gitea repo, pin digest + scale up, commit, and push:
++
+[source,bash,role=execute]
+----
+rm -rf /tmp/gitops-spring-boot-lw-poc
+git clone "${GITOPS_REPO_URL}" /tmp/gitops-spring-boot-lw-poc
+cd /tmp/gitops-spring-boot-lw-poc
+
+# Patch values.yaml: set image.digest and replicas: 1
+python3 - <<PY
+from pathlib import Path
+import os, re
+p = Path("values.yaml")
+text = p.read_text()
+digest = os.environ["IMAGE_DIGEST"]
+text = re.sub(r'(?m)^(\s*digest:\s*).*$', r'\1"' + digest + '"', text, count=1)
+text = re.sub(r'(?m)^replicas:\s*\d+\s*$', "replicas: 1", text, count=1)
+p.write_text(text)
+print(p.read_text().split("image:")[1][:400])
+PY
+
+git config user.email "${STUDENT_USER}@workshop.local"
+git config user.name "${STUDENT_USER}"
+git add values.yaml
+git commit -m "Promote signed image digest and scale to 1 replica"
+# Prefer credential helper / URL from userinfo — do not commit passwords
+git push "https://${STUDENT_USER}:${STUDENT_PASS}@${GITOPS_REPO_URL#https://}" HEAD:main
+----
+
+. Wait for Argo CD auto-sync (or refresh), then verify Healthy Deployment + Route:
++
+[source,bash,role=execute]
+----
+oc -n openshift-gitops wait --for=jsonpath='{.status.sync.status}'=Synced \
+  "applications.argoproj.io/${ARGO_APP}" --timeout=180s || true
+oc -n openshift-gitops get applications.argoproj.io "${ARGO_APP}" \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+
+oc -n "${PROMOTE_NS}" get deploy,pods,route
+ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route spring-boot-lw-poc \
+  -o jsonpath='{.spec.host}')"
+curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
+----
 
 image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 
-[source,bash,role=execute]
-----
-# Optional: trigger a sync on a known Application name
-# oc -n openshift-gitops patch application <app-name> --type merge \
-#   -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD"}}}'
-----
+[TIP]
+====
+If the Application stays `Unknown` / clone errors right after seed, wait for the Gitea gitops repo to finish seeding, then `oc -n openshift-gitops annotate applications.argoproj.io/${ARGO_APP} argocd.argoproj.io/refresh=hard --overwrite`.
+====
 
 == End-to-end checklist
 
@@ -444,7 +510,7 @@ image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 |Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image)
 
 |GitOps
-|Argo CD Application Synced + Healthy for promoted app
+|`oc tag` lab → `lw-poc-<user>` ImageStream; digest + `replicas: 1` committed to Gitea gitops repo; Argo Application Synced + Healthy; Route responds
 |===
 
 == Module summary
@@ -454,13 +520,13 @@ image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 * Demonstrated fail-then-pass policy on Lightwell remediated pins
 * Ran RHACS / SBOM pipeline tasks after the dep gate
 * Oriented keyless signing with RHTAS and verification with cosign
-* Confirmed GitOps promotion via Argo CD App-of-Apps
+* Confirmed GitOps promotion: digest pin in Gitea gitops → Argo CD → product namespace Route
 
 **Key takeaways**
 
 * Pipelines enforce the Module 3 pin story before images ship; ACS policy and Lightwell remediations work together
 * Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog; Lightwell artifacts themselves also use RHTAS-class signing / SLSA L3
-* Git remains the source of truth; Argo CD promotes what gates already approved
+* Git remains the source of truth; Argo CD promotes digest pins from your Gitea gitops remote after pipeline gates
 
 **Workshop complete**
 

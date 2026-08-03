@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: spring-boot-lw-poc
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: {{ include "spring-boot-lw-poc.imageRef" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
