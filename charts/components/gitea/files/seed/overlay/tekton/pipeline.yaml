@@ -158,16 +158,21 @@ spec:
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
-              EXTRA=()
+              TOKEN_FILE=/var/run/secrets/kubernetes.io/serviceaccount/token
+              EXTRA=(
+                --identity-token="${TOKEN_FILE}"
+                --oidc-issuer=https://kubernetes.default.svc
+                --fulcio-auth-flow=token
+                --allow-http-registry
+                --allow-insecure-registry
+              )
               if [[ -n "${FULCIO_URL}" ]]; then
                 EXTRA+=(--fulcio-url="${FULCIO_URL}")
               fi
               if [[ -n "${REKOR_URL}" ]]; then
                 EXTRA+=(--rekor-url="${REKOR_URL}")
               fi
-              # Internal OpenShift registry is HTTP on .svc:5000
-              cosign sign --yes --allow-http-registry --allow-insecure-registry \
-                "${EXTRA[@]}" "${IMAGE}"
+              cosign sign --yes "${EXTRA[@]}" "${IMAGE}"
               echo "Signed ${IMAGE} (keyless / RHTAS)"
       params:
         - name: image
