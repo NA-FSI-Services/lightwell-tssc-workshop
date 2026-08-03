@@ -19,3 +19,21 @@ app.kubernetes.io/part-of: lightwell-tssc-workshop
 {{- define "spring-boot-lw-poc.appUrl" -}}
 https://{{ include "spring-boot-lw-poc.routeHost" . }}
 {{- end -}}
+
+{{- define "spring-boot-lw-poc.imageRepository" -}}
+{{- if .Values.image.repository -}}
+{{- .Values.image.repository -}}
+{{- else -}}
+{{ .Values.image.registry }}/{{ .Values.springBootLwPoc.namespace }}/{{ .Values.image.name }}
+{{- end -}}
+{{- end -}}
+
+{{- /* Prefer digest when set (Module 5 Ex4 / #100 promote); else tag. */ -}}
+{{- define "spring-boot-lw-poc.imageRef" -}}
+{{- $repo := include "spring-boot-lw-poc.imageRepository" . -}}
+{{- if .Values.image.digest -}}
+{{ $repo }}@{{ .Values.image.digest }}
+{{- else -}}
+{{ $repo }}:{{ .Values.image.tag }}
+{{- end -}}
+{{- end -}}

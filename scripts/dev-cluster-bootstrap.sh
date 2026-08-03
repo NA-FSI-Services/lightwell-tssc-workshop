@@ -47,9 +47,15 @@ INSTALL_GITOPS_OPERATOR="${INSTALL_GITOPS_OPERATOR:-true}"
 WAIT_GITOPS_SECONDS="${WAIT_GITOPS_SECONDS:-600}"
 WAIT_ARGOCD_SECONDS="${WAIT_ARGOCD_SECONDS:-600}"
 ENABLE_LIGHTWELL_REPO="${ENABLE_LIGHTWELL_REPO:-true}"
+ENABLE_GITEA="${ENABLE_GITEA:-true}"
 SHOWROOM_LAB_CLUSTER_ACCESS="${SHOWROOM_LAB_CLUSTER_ACCESS:-true}"
 SCALE_WORKERS="${SCALE_WORKERS:-true}"
 ARGOCD_GRANT_CLUSTER_ADMIN="${ARGOCD_GRANT_CLUSTER_ADMIN:-true}"
+
+# --- Workshop learner (single user1 for instruction QA) ---
+# shellcheck disable=SC1091
+source "${ROOT}/scripts/dev-cluster-workshop-user.sh"
+ensure_workshop_user
 
 if ! oc whoami >/dev/null 2>&1; then
   echo "dev-cluster-bootstrap: not logged in — run ./scripts/dev-cluster-login.sh first" >&2
@@ -76,6 +82,12 @@ helm_common=(
   --set "showroom.repoRef=${GIT_REVISION}"
   --set "showroom.labClusterAccess=${SHOWROOM_LAB_CLUSTER_ACCESS}"
   --set "lightwellRepo.enabled=${ENABLE_LIGHTWELL_REPO}"
+  --set "gitea.enabled=${ENABLE_GITEA}"
+  --set "gitea.studentUsername=${WORKSHOP_USER}"
+  --set "gitea.students[0].username=${WORKSHOP_USER}"
+  --set "gitea.students[0].password=${WORKSHOP_USER_PASSWORD}"
+  --set "gitea.students[0].email=${WORKSHOP_USER_EMAIL}"
+  --set "gitea.students[0].fullName=${WORKSHOP_USER_FULL_NAME}"
   --set "argocd.grantClusterAdmin=${ARGOCD_GRANT_CLUSTER_ADMIN}"
 )
 
@@ -137,11 +149,19 @@ echo "dev-cluster-bootstrap: Application status"
 oc -n openshift-gitops get applications.argoproj.io lightwell-tssc-root -o wide 2>/dev/null \
   || echo "dev-cluster-bootstrap: WARN: Application not visible yet — wait for openshift-gitops namespace"
 
+print_workshop_user_banner
+
 echo "dev-cluster-bootstrap: Showroom URL (after sync): https://showroom.${DEPLOYER_DOMAIN}/"
 echo "dev-cluster-bootstrap: Module 1: https://showroom.${DEPLOYER_DOMAIN}/modules/module-01-overview.html"
 echo "dev-cluster-bootstrap: next steps"
 echo "  1) ./scripts/dev-cluster-htpasswd.sh   # HTPasswd IdP admin (claim.env HTPASSWD_*)"
 echo "  2) Set OC_LOGIN_MODE=password in claim.env, then ./scripts/dev-cluster-login.sh"
 echo "  3) Wait for lightwell-tssc-root-showroom + lightwell-tssc-root-lightwell-repo Healthy"
-echo "  4) Smoke: oc -n showroom exec deploy/showroom -c terminal -- oc -n lightwell-repo get cm lightwell-channels"
+if [[ "${ENABLE_GITEA}" == "true" ]]; then
+  echo "  4) Wait for lightwell-tssc-root-gitea Healthy; seed Job creates ${WORKSHOP_USER} remotes"
+  echo "  5) Smoke: oc -n showroom exec deploy/showroom -c terminal -- oc -n lightwell-repo get cm lightwell-channels"
+  echo "  6) Module 5: use WORKSHOP_USER / WORKSHOP_USER_PASSWORD above (docs/DEV-CLUSTER-WORKSHOP-USER.md)"
+else
+  echo "  4) Smoke: oc -n showroom exec deploy/showroom -c terminal -- oc -n lightwell-repo get cm lightwell-channels"
+fi
 echo "dev-cluster-bootstrap: OK"

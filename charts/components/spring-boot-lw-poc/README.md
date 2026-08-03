@@ -37,9 +37,12 @@ Endpoints (after Route is up): `/api/greeting`, `/api/healthz`, `/swagger-ui.htm
 
 ## Image / deploy
 
-1. Build and push from `app/Dockerfile` into the cluster registry (or Quay).
-2. Set `image.repository` / `image.tag` in values (defaults assume in-cluster registry path).
-3. Enable from root-app: `components.springBootLwPoc.enabled=true`.
+Default `replicas: 0` and empty `image.digest` keep Argo **Healthy** before promote.
+
+1. Prefer digest pin after Module 5 Ex4: set `image.digest: sha256:…` and `replicas: 1`.
+2. When `image.repository` is empty, the image is derived as `{registry}/{namespace}/{name}`.
+3. Chart renders an ImageStream for `oc tag` promote into the product namespace.
+4. **Workshop runtime path (#100):** leave root-app `components.springBootLwPoc.enabled=false`; Gitea seeds a thin chart (no `./app`) and ApplicationSet syncs `lw-poc-<user>`. Enable the monorepo Application only for non-Gitea demos.
 
 ## Sync waves
 

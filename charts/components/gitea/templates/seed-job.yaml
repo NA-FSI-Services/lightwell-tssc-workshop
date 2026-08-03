@@ -46,6 +46,10 @@ spec:
               fi
               export SEED_MOUNT=/seed
               bash /seed/assemble-repo.sh "${WORKDIR}/repo"
+{{- if .Values.seed.gitops.enabled }}
+              export GITOPS_SOURCE_PATH={{ .Values.seed.gitops.sourcePath | quote }}
+              bash /seed/assemble-gitops-repo.sh "${WORKDIR}/gitops-repo"
+{{- end }}
               export SEED_DIR="${WORKDIR}"
               bash /seed/seed-student-repos.sh
           env:
@@ -73,6 +77,14 @@ spec:
               value: {{ .Values.seed.source.path | quote }}
             - name: SOURCE_GIT_SSL_VERIFY
               value: {{ .Values.seed.source.gitSslVerify | quote }}
+{{- if .Values.seed.gitops.enabled }}
+            - name: GITOPS_REPO_NAME
+              value: {{ .Values.seed.gitops.repoName | quote }}
+            - name: GITOPS_REPO_DESCRIPTION
+              value: {{ .Values.seed.gitops.repoDescription | quote }}
+            - name: GITOPS_SEED_SUBDIR
+              value: gitops-repo
+{{- end }}
             - name: ADMIN_USER
               valueFrom:
                 secretKeyRef:

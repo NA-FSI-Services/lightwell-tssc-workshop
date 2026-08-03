@@ -32,6 +32,8 @@ flowchart TD
 | [`scripts/dev-cluster-scale-workers.sh`](../scripts/dev-cluster-scale-workers.sh) | Scale MachineSets when claims ship with `workers=0` |
 | [`scripts/dev-cluster-bootstrap.sh`](../scripts/dev-cluster-bootstrap.sh) | Scale workers → GitOps → Argo root-app (`showroom` + `lightwellRepo`) + Argo cluster-admin |
 | [`scripts/dev-cluster-htpasswd.sh`](../scripts/dev-cluster-htpasswd.sh) | HTPasswd IdP + `cluster-admin` user for stable console/`oc` login |
+| [`scripts/dev-cluster-workshop-user.sh`](../scripts/dev-cluster-workshop-user.sh) | Single learner `user1` + random password (echo + gitignored persist) |
+| [`docs/DEV-CLUSTER-WORKSHOP-USER.md`](./DEV-CLUSTER-WORKSHOP-USER.md) | **Agents:** capture workshop learner password for Module 5 tests |
 
 Provisioning on the claim uses **Helm** (preferred; matches App-of-Apps). The same `claim.env` can drive Ansible/`oc` later if needed. Do **not** use Terraform to create AWS/OCP for this workshop — RHDP already provides the cluster; we only configure workloads.
 
@@ -58,6 +60,8 @@ Map the email / portal block into `claim.env` using these names:
 | Login mode | `OC_LOGIN_MODE` | `token` (bootstrap) then `password` (day-to-day) |
 | Scale workers | `SCALE_WORKERS` / `WORKER_REPLICAS` | Default `true` / `2` — bare claims often start at MachineSet `0` |
 | Module 1 apps | `ENABLE_LIGHTWELL_REPO` | Default `true` — channel + sample OSV ConfigMaps |
+| Student Git | `ENABLE_GITEA` | Default `true` — single `user1` learner (see workshop-user doc) |
+| Workshop learner | `WORKSHOP_USER` / `WORKSHOP_USER_PASSWORD` | Default `user1` / generated; echoed by bootstrap |
 
 **Never commit** filled `claim.env`, CA files, or passwords. When the claim expires, delete the local files and start again from `claim.env.example`.
 
@@ -71,6 +75,8 @@ cp dev-cluster/claim.env.example dev-cluster/claim.env
 
 ./scripts/dev-cluster-login.sh
 ./scripts/dev-cluster-bootstrap.sh
+# ↑ prints WORKSHOP LEARNER CREDENTIALS banner (user1 + random password)
+#   Agents: copy password from stdout — see docs/DEV-CLUSTER-WORKSHOP-USER.md
 
 # Stable admin user (HTPasswd IdP) — replaces relying on kubeadmin / SA token alone
 ./scripts/dev-cluster-htpasswd.sh
@@ -92,6 +98,22 @@ Ephemeral claims often ship with an empty OAuth `spec` and a short-lived kubeadm
 3. Switch `OC_LOGIN_MODE=password` and re-login as `admin`.
 
 This is **not** part of Field Content / AgnosticV production provisioning. Catalog learners use Showroom (and RHDP-issued access); the Showroom terminal SA gets lab RBAC from [`charts/components/showroom`](../charts/components/showroom/) (`terminal.labClusterAccess: true`).
+
+### Workshop learner (`user1`) — agents read this
+
+Bootstrap enables **Gitea** with **one** student: `user1`. A random password is generated
+(unless `WORKSHOP_USER_PASSWORD` is already set in `claim.env`), printed in a banner at
+the end of `dev-cluster-bootstrap.sh`, and written to gitignored
+`dev-cluster/workshop-user.env` + `claim.env`.
+
+**Agents generating or testing the environment must capture that password** and use it
+for Module 5 / Gitea / promote walks. Full contract:
+[`DEV-CLUSTER-WORKSHOP-USER.md`](./DEV-CLUSTER-WORKSHOP-USER.md).
+
+```bash
+# Re-print credentials without re-bootstrap:
+./scripts/dev-cluster-workshop-user.sh
+```
 
 ### Module 1 smoke (Showroom terminal)
 
@@ -147,10 +169,11 @@ Bootstrap enables **Showroom + lightwellRepo**. Root-app chart defaults keep oth
 |------:|------|-----------|-----------|
 | ✓ | 50 | `showroom` | Modules prose + terminal (**bootstrap default**) |
 | ✓ | 20 | `lightwellRepo` | Modules 1–3 ConfigMaps / Nexus (**bootstrap default**) |
-| 3 | 40 | `springBootLwPoc` | Maven PoC / pins |
-| 4 | 5 | `keycloak` | SSO for RHTPA (`sso.<domain>/realms/tpa`) |
-| 5 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (enable `keycloak` before `rhtpa`) |
-| 6 | 30 | `rhdh` | Software Template |
+| ✓ | 15 | `gitea` | Module 5 student Git — **single `user1`** (**bootstrap default**; see [WORKSHOP-USER](./DEV-CLUSTER-WORKSHOP-USER.md)) |
+| 4 | 40 | `springBootLwPoc` | Monorepo Maven PoC only — keep **off** when Gitea gitops ApplicationSet is SoT |
+| 5 | 5 | `keycloak` | SSO for RHTPA (`sso.<domain>/realms/tpa`) |
+| 6 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (enable `keycloak` before `rhtpa`) |
+| 7 | 30 | `rhdh` | Software Template |
 | — | 40 | `parasolApp` | Keep **off** |
 
 Override via PR to `main`, or temporary Helm values on the Argo Application. Prefer `ANTORA_PLAYBOOK=site-ci.yml` when the stock Antora image lacks Mermaid/tabs — see [`SHOWROOM-UPDATE-SPEC.md`](./SHOWROOM-UPDATE-SPEC.md).
@@ -162,6 +185,7 @@ If Machine API is unavailable, scale workers via `AWS_CONSOLE_URL` toward the si
 - [ ] `lightwell-tssc-root` Application **Synced** / **Healthy**
 - [ ] HTPasswd IdP present (`oc get oauth cluster -o jsonpath='{.spec.identityProviders[*].name}'`)
 - [ ] `oc login` as `admin` with `OC_LOGIN_MODE=password`
+- [ ] Bootstrap banner (or `./scripts/dev-cluster-workshop-user.sh`) shows `user1` + password; Gitea `demo-userinfo-gitea` matches after sync
 - [ ] `https://showroom.${DEPLOYER_DOMAIN}/` serves Modules + FAQ appendix
 - [ ] ClusterRoleBinding `showroom-lab-cluster-admin` exists
 - [ ] Showroom terminal can `oc -n lightwell-repo get configmap lightwell-channels`

@@ -16,7 +16,8 @@ gitea:
     deploy: "2"
     route: "3"
     seed: "4"
-    userinfo: "5"
+    applicationset: "5"
+    userinfo: "6"
   pvc:
     size: 5Gi
   resources:
@@ -38,8 +39,10 @@ gitea:
     requireSigninView: false
     defaultPrivate: false
 
-# Students who receive a seeded application repository.
-# Expand this list for multi-user claims; each entry gets <username>/<repoName>.
+# Students who receive seeded application + gitops repositories.
+# Catalog / chart default: one `student` placeholder.
+# Dev-cluster bootstrap overrides to a single `user1` + generated password
+# (docs/DEV-CLUSTER-WORKSHOP-USER.md) — do not rely on this changeme on claims.
 students:
   - username: student
     password: "workshop-student-changeme"
@@ -73,6 +76,12 @@ seed:
     # Leave empty for public repos. Never commit real credentials into values.
     gitSecretName: ""
     gitSslVerify: true
+  # Second Gitea remote per student: thin Helm chart (minus ./app) for Module 5 Ex4 promote (#100).
+  gitops:
+    enabled: true
+    repoName: gitops-spring-boot-lw-poc
+    repoDescription: "Lightwell TSSC student GitOps chart (Module 5 Ex4 promote)"
+    sourcePath: charts/components/spring-boot-lw-poc
   resources:
     requests:
       cpu: 100m
@@ -81,15 +90,24 @@ seed:
       cpu: 500m
       memory: 512Mi
 
+# Per-student Argo CD Applications pointing at public Gitea gitops remotes (#100 X1/G1/C1).
+# Monorepo spring-boot-lw-poc Application stays disabled (M1) — Gitea is runtime SoT.
+gitopsAppSet:
+  enabled: true
+  name: lightwell-student-gitops-sb
+  argocdNamespace: openshift-gitops
+  project: default
+  appNamePrefix: lw-poc
+  namespacePrefix: lw-poc
+
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"
   instructions: >-
-    In-cluster Gitea for learner application repos. Module 5 pipelines clone your
-    student repository (not the workshop GitOps monorepo or GitHub). Open gitea_url,
-    sign in with student_username / student_password from this userinfo, then clone
-    student_repo_url. The seed Job isolates spring-boot-lw-poc/app and overlays .tekton
-    for BuildConfig + RHTAS cosign. Edit pom.xml for the remediated .rhlw-* pass path and push.
+    In-cluster Gitea for learner app + GitOps remotes (not the workshop monorepo or GitHub).
+    Use student_repo_url for Module 5 pipeline labs (.tekton / pom). Use
+    student_gitops_repo_url for Exercise 4 promote into student_promote_namespace
+    (digest + replicas). Credentials: student_username / student_password.
 
 deployer:
   domain: ""

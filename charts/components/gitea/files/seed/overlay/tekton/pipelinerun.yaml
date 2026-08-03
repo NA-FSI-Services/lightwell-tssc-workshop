@@ -11,7 +11,7 @@ spec:
     name: spring-boot-lw-poc-build-sign
   params:
     - name: repo-url
-      value: https://gitea.<domain>/student/spring-boot-lw-poc.git
+      value: https://gitea.<domain>/user1/spring-boot-lw-poc.git
     - name: revision
       value: main
     # Learner lab namespace ImageStream (not GitOps spring-boot-lw-poc NS — see #100)

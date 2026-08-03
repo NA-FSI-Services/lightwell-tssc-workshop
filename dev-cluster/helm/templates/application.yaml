@@ -23,6 +23,14 @@ spec:
           # Module 1 ConfigMap exercises require lightwellRepo (wave 20)
           lightwellRepo:
             enabled: {{ .Values.lightwellRepo.enabled }}
+          # Module 5 student Git — single workshop user from bootstrap (see DEV-CLUSTER-WORKSHOP-USER.md)
+          gitea:
+            enabled: {{ .Values.gitea.enabled }}
+            studentUsername: {{ .Values.gitea.studentUsername | quote }}
+{{- if .Values.gitea.students }}
+            students:
+{{- toYaml .Values.gitea.students | nindent 14 }}
+{{- end }}
           showroom:
             enabled: {{ .Values.showroom.enabled }}
             content:
