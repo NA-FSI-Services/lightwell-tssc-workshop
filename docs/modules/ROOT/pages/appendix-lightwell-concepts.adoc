@@ -71,6 +71,8 @@ Hands-on work stays in the core modules. Use this page when a learner asks “wh
 
 == OSV, SBOM, and pipelines
 
+Acronym expansions: xref:appendix-acronyms.adoc[Acronym glossary]. First teaching definitions also appear in xref:module-01-overview.adoc[Module 1] and the workshop xref:index.adoc[home] page.
+
 [cols="1,2",options="header"]
 |===
 |Question |Workshop answer

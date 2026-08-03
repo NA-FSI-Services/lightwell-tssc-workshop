@@ -1,15 +1,15 @@
 = Lightwell Software Supply Chain Security Workshop
 :toc:
 
-Welcome. This RHDP workshop teaches the same Lightwell Network integration patterns used in field proof-of-value delivery—paired with Red Hat Trusted Software Supply Chain controls on OpenShift.
+Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwell Network (LWN)* integration patterns used in field *proof-of-value (PoV)* delivery—paired with Red Hat *Trusted Software Supply Chain (TSSC)* controls on OpenShift.
 
 == What you will learn
 
 . *Validated* vs *Remediated* repository tiers (exact-version `.rhlw-*` pins; bit-for-bit Validated vs security-only Remediated)
 . Enterprise Maven consumption via an artifact manager proxy (not Satellite)
-. OSV-driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)
-. SBOM / VEX analysis with Trusted Profile Analyzer (optional RHDA on a laptop)
-. Pipeline signing (RHTAS), policy gates (RHACS), and GitOps promotion
+. *Open Source Vulnerabilities (OSV)*–driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)
+. *Software Bill of Materials (SBOM)* / *Vulnerability Exploitability eXchange (VEX)* analysis with *Red Hat Trusted Profile Analyzer (RHTPA)* (optional *Red Hat Dependency Analytics (RHDA)* on a laptop)
+. Pipeline signing (*Red Hat Trusted Artifact Signer (RHTAS)*), policy gates (*Red Hat Advanced Cluster Security (RHACS)*), and GitOps promotion
 
 == Lab modules
 
@@ -17,7 +17,7 @@ Welcome. This RHDP workshop teaches the same Lightwell Network integration patte
 |Module |Focus
 
 |xref:module-01-overview.adoc[1 — Overview]
-|Remediation gap; Validated vs Remediated; coexistence; SLSA / SBOM / VEX / OSV
+|Remediation gap; Validated vs Remediated; coexistence; *Supply-chain Levels for Software Artifacts (SLSA)* / SBOM / VEX / OSV
 
 |xref:module-02-maven.adoc[2 — Maven integration]
 |`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth; mirror / air-gap note
@@ -36,7 +36,7 @@ No additional hands-on modules are required for the FAQ concept coverage—enric
 
 == Before you start
 
-* This guide runs in the RHDP **Showroom** split-screen UI (lab nav + embedded terminal at `/terminal/`).
+* This guide runs in the RHDP **Showroom** split-screen *user interface (UI)* (lab nav + embedded terminal at `/terminal/`).
 * Use the Showroom terminal for `oc` / `tkn` / `mvn` / `syft` commands.
 * Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`).
 * Canonical console (membership / browsing): {lightwell-console-url}
@@ -44,4 +44,4 @@ No additional hands-on modules are required for the FAQ concept coverage—enric
 
 Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-05-pipeline.adoc[Module 5] using the left-hand nav.
 
-Optional appendices (not required for the core path): xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].
+Optional appendices (not required for the core path): xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:appendix-acronyms.adoc[Acronym glossary], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].

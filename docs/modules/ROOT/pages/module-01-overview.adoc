@@ -3,11 +3,11 @@
 :toc:
 :toclevels: 2
 
-Attackers and researchers alike now use AI to discover and weaponize vulnerabilities faster than traditional patch cycles. Scanners and SBOMs *identify* issues, but application teams often cannot take the recommended upgrade path because of compatibility, certification, release freezes, or production risk.
+Attackers and researchers alike now use AI to discover and weaponize vulnerabilities faster than traditional patch cycles. Scanners and *Software Bills of Materials (SBOMs)* *identify* issues, but application teams often cannot take the recommended upgrade path because of compatibility, certification, release freezes, or production risk.
 
-*Lightwell Network* closes that *remediation gap*: signed, backported fixes for eligible third-party application dependencies (libraries, frameworks, build tools, and transitive deps)—without requiring disruptive upgrades, app refactoring, or recertification. This workshop uses two complementary Maven streams—*Validated* for active development and *Remediated* for exact-version security backports (`.rhlw-*`).
+*Lightwell Network (LWN)* closes that *remediation gap*: signed, backported fixes for eligible third-party application dependencies (libraries, frameworks, build tools, and transitive deps)—without requiring disruptive upgrades, app refactoring, or recertification. This workshop uses two complementary Maven streams—*Validated* for active development and *Remediated* for exact-version security backports (`.rhlw-*`).
 
-In this module you map those tiers, eligibility and coexistence with the Red Hat stack, the supply-chain metadata that travels with artifacts (SLSA L3, SBOM, VEX, OSV), and where the Lightwell console fits—before you wire Maven and pipelines in later labs.
+In this module you map those tiers, eligibility and coexistence with the Red Hat stack, the supply-chain metadata that travels with artifacts (*Supply-chain Levels for Software Artifacts (SLSA)* L3, SBOM, *Vulnerability Exploitability eXchange (VEX)*, *Open Source Vulnerabilities (OSV)*), and where the Lightwell console fits—before you wire Maven and pipelines in later labs.
 
 == Learning objectives
 
@@ -21,9 +21,9 @@ By the end of this module, you will be able to:
 
 == Background: the vulnerability storm
 
-Modern applications pull hundreds of open source components. When a critical CVE hits a widely pinned library:
+Modern applications pull hundreds of open source components. When a critical *Common Vulnerabilities and Exposures (CVE)* hits a widely pinned library:
 
-* *Major upgrades* can break APIs and delay releases
+* *Major upgrades* can break *application programming interfaces (APIs)* and delay releases
 * *Doing nothing* leaves production exposed
 * *Lightwell Remediated* keeps the *same upstream version line* and publishes a rebuilt artifact with a sequential `.rhlw-0000X` suffix that carries the security fix (and no unrelated feature changes)
 
@@ -33,13 +33,13 @@ image::module-01-osv-pin-rebuild-loop.png[Remediation evaluation loop,width=700]
 
 === Scope (what this workshop covers)
 
-At launch, Lightwell covers *Java (Maven)* and *Python (PyPI)*. This RHDP catalog focuses on the *Java / Maven* golden path. Python is a validated-oriented secondary story and is *not* required to complete Modules 2–5. Do not promise unannounced ecosystems (npm, .NET, Go, and so on) in field conversations until they are officially available.
+At launch, Lightwell covers *Java (Maven)* and *Python (PyPI)*. This *Red Hat Demo Platform (RHDP)* catalog focuses on the *Java / Maven* golden path. Python is a validated-oriented secondary story and is *not* required to complete Modules 2–5. Do not promise unannounced ecosystems (npm, .NET, Go, and so on) in field conversations until they are officially available.
 
-Lightwell remediates *application-layer* libraries. Patched content can run on Red Hat and non–Red Hat stacks (for example OpenJDK on another Linux distribution)—it is not limited to RHEL-only runtimes.
+Lightwell remediates *application-layer* libraries. Patched content can run on Red Hat and non–Red Hat stacks (for example OpenJDK on another Linux distribution)—it is not limited to *Red Hat Enterprise Linux (RHEL)*-only runtimes.
 
 === Package eligibility (field brief)
 
-Eligible packages generally must be source-available under a recognized open source license, buildable via Red Hat secure pipelines, actively maintained or widely depended on, and free of known malicious provenance. Obsolete language runtimes (for example EOL OpenJDK lines) are *not* the Lightwell remediation target—point those conversations at appropriate lifecycle / EOL offerings separately from this lab path.
+Eligible packages generally must be source-available under a recognized open source license, buildable via Red Hat secure pipelines, actively maintained or widely depended on, and free of known malicious provenance. Obsolete language runtimes (for example *end-of-life (EOL)* OpenJDK lines) are *not* the Lightwell remediation target—point those conversations at appropriate lifecycle / EOL offerings separately from this lab path.
 
 == Lightwell Network tiers
 
@@ -97,19 +97,19 @@ How to tell which tier you are looking at:
 
 image::module-01-control-decision.png["Choosing the right control: product support, Hardened Images, Validated, Remediated",width=700]
 
-Lightwell is *complementary* to RHEL, OpenShift, Ansible, and Advanced Cluster Security (ACS): those products secure OS/platform configurations; Lightwell covers third-party application dependencies outside those boundaries. An existing Red Hat product subscription is not a prerequisite for understanding the LWN patterns in this workshop.
+Lightwell is *complementary* to RHEL, OpenShift, Ansible, and *Advanced Cluster Security (ACS)* (*Red Hat Advanced Cluster Security (RHACS)*): those products secure OS/platform configurations; Lightwell covers third-party application dependencies outside those boundaries. An existing Red Hat product subscription is not a prerequisite for understanding the LWN patterns in this workshop.
 
 [NOTE]
 ====
-IBM Library Support for Open Source (LSOS) extends EOL lifecycle for selected Java frameworks. Lightwell instead backports across a broad dependency catalog with registry signing, SBOM/VEX, and SLSA L3 attestations. Teams may use both: LSOS for an EOL framework line, Lightwell for the transitive graph around it. This workshop does *not* exercise LSOS.
+IBM *Library Support for Open Source (LSOS)* extends EOL lifecycle for selected Java frameworks. Lightwell instead backports across a broad dependency catalog with registry signing, SBOM/VEX, and SLSA L3 attestations. Teams may use both: LSOS for an EOL framework line, Lightwell for the transitive graph around it. This workshop does *not* exercise LSOS.
 ====
 
 Artifacts are expected to ship with supply-chain metadata:
 
-* *SBOM* — CycloneDX for Maven packages; SPDX for Python wheels (this workshop generates app SBOMs with `syft` and uploads them to RHTPA in Module 4)
-* *VEX* — exploitability / remediation status scanners can consume so Lightwell-patched CVEs are not treated as unpatched
-* *SLSA Level 3* — build integrity; artifacts cryptographically signed (Sigstore family; RHTAS in Module 5)
-* *OSV* — fixed-version events for remediated Java (Module 3 toolkit under `tools/osv-eval/`)
+* *SBOM* (Software Bill of Materials) — inventory of components in an artifact; CycloneDX for Maven packages, *Software Package Data Exchange (SPDX)* for Python wheels (this workshop generates app SBOMs with `syft` and uploads them to *Red Hat Trusted Profile Analyzer (RHTPA)* in Module 4)
+* *VEX* (Vulnerability Exploitability eXchange) — machine-readable exploitability / remediation status scanners can consume so Lightwell-patched CVEs are not treated as unpatched
+* *SLSA* (Supply-chain Levels for Software Artifacts) *Level 3* — build integrity; artifacts cryptographically signed (Sigstore family; *Red Hat Trusted Artifact Signer (RHTAS)* in Module 5)
+* *OSV* (Open Source Vulnerabilities) — fixed-version events for remediated Java (Module 3 toolkit under `tools/osv-eval/`)
 
 Lightwell application libraries are *not* delivered through Red Hat Satellite content views—build tools and repository managers consume `packages.redhat.com` (or an enterprise proxy/mirror).
 

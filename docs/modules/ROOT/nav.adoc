@@ -9,5 +9,6 @@
 
 .Appendix
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)]
+* xref:appendix-acronyms.adoc[Acronym glossary]
 * xref:rhda-shift-left.adoc[RHDA shift-left (laptop)]
 * xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling (advanced)]

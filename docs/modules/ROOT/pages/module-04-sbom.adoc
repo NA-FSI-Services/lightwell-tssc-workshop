@@ -3,7 +3,7 @@
 :toc:
 :toclevels: 2
 
-Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. Every Lightwell-distributed package is built with SLSA Level 3 integrity and signed; Maven packages include CycloneDX SBOMs and VEX advisories (Python wheels use SPDX). In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)*, and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence—without installing an IDE in Showroom.
+Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. Every Lightwell-distributed package is built with *Supply-chain Levels for Software Artifacts (SLSA)* Level 3 integrity and signed; Maven packages include CycloneDX *Software Bills of Materials (SBOMs)* and *Vulnerability Exploitability eXchange (VEX)* advisories (Python wheels use *Software Package Data Exchange (SPDX)*). In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)* (also called *TPA*), and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence—without installing an IDE in Showroom.
 
 Customers submit *dependency manifests* (for example `pom.xml`) and SBOMs for program workflows—not proprietary application source code. Application source stays in the customer environment.
 
@@ -24,11 +24,11 @@ By the end of this module, you will be able to:
 * Chart `keycloak` Healthy/Synced (namespace `sso`) — IdP at `https://sso.<domain>/realms/tpa`
 * Chart `rhtpa` Healthy/Synced when you need a live UI (namespace `trusted-profile-analyzer`)
 
-== Exercise 0: Confirm Keycloak SSO for TPA
+== Exercise 0: Confirm Keycloak *single sign-on (SSO)* for TPA
 
 GitOps imports the `tpa` realm with Trustify **chicken-*** roles and **read|create|delete:document** client scopes. Learners do *not* create roles in the Keycloak Admin Console.
 
-. Read workshop credentials from RHDP userinfo:
+. Read workshop credentials from *Red Hat Demo Platform (RHDP)* userinfo:
 +
 [source,bash,role=execute]
 ----
@@ -38,7 +38,7 @@ oc -n sso get configmap demo-userinfo-keycloak \
 oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.workshop_password}{"\n"}'
 ----
 
-. Open the issuer host (Route `sso` in namespace `sso`) and confirm the realm path ends with `/realms/tpa`. You will complete browser sign-in in Exercise 3 against the TPA UI (OIDC redirect to this IdP).
+. Open the issuer host (Route `sso` in namespace `sso`) and confirm the realm path ends with `/realms/tpa`. You will complete browser sign-in in Exercise 3 against the TPA UI (*OpenID Connect (OIDC)* redirect to this *identity provider (IdP)*).
 
 [NOTE]
 ====
@@ -51,7 +51,7 @@ Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightw
 
 [TIP]
 ====
-On a *long-lived* claim where Keycloak was synced *before* the Trustify roles landed in Git, recreate the Keycloak pod after ArgoCD syncs `charts/components/keycloak` (`oc -n sso delete pod -l app=keycloak`). `start-dev` has no PVC, so `--import-realm` reloads `tpa` with chicken roles and document scopes. Then restart RHTPA so it reloads JWKS: `oc -n trusted-profile-analyzer rollout restart deploy/server` (scale to `0` then `1` if the server PVC leaves pods CrashLoopBackOff). Fresh catalog / bootstrap claims already get the full realm on first start.
+On a *long-lived* claim where Keycloak was synced *before* the Trustify roles landed in Git, recreate the Keycloak pod after ArgoCD syncs `charts/components/keycloak` (`oc -n sso delete pod -l app=keycloak`). `start-dev` has no *PersistentVolumeClaim (PVC)*, so `--import-realm` reloads `tpa` with chicken roles and document scopes. Then restart RHTPA so it reloads *JSON Web Key Set (JWKS)* material: `oc -n trusted-profile-analyzer rollout restart deploy/server` (scale to `0` then `1` if the server PVC leaves pods CrashLoopBackOff). Fresh catalog / bootstrap claims already get the full realm on first start.
 ====
 
 == Roles: RHTPA vs RHDA
@@ -73,7 +73,7 @@ On a *long-lived* claim where Keycloak was synced *before* the Trustify roles la
 |Instructor or demo *laptop* only — not in Showroom
 |===
 
-OSV feeds and *VEX* metadata published with Lightwell content let code-scanning tools in CI/CD recognize that a CVE has been remediated via a `.rhlw-*` pin—so pipelines do not keep flagging the issue as unpatched after you adopt Remediated.
+OSV feeds and *VEX* metadata published with Lightwell content let code-scanning tools in *continuous integration / continuous delivery (CI/CD)* recognize that a CVE has been remediated via a `.rhlw-*` pin—so pipelines do not keep flagging the issue as unpatched after you adopt Remediated.
 
 Full author notes: `docs/rhda-rhtpa-shift-left.md`. Showroom appendix: xref:rhda-shift-left.adoc[RHDA shift-left].
 

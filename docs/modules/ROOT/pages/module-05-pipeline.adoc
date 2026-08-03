@@ -3,9 +3,9 @@
 :toc:
 :toclevels: 2
 
-Modules 2–4 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, RHACS image policy, *keyless* signing with Red Hat Trusted Artifact Signer (RHTAS), and GitOps promotion with Argo CD.
+Modules 2–4 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
 
-Lightwell and ACS are complementary: Lightwell remediates application dependencies; ACS (and this workshop’s dep-gate / image-check Tasks) *enforce* that builds and images meet policy before promotion. OSV and VEX metadata help CI scanners recognize remediated pins so gates and third-party scanners stay aligned.
+Lightwell and *Advanced Cluster Security (ACS)* are complementary: Lightwell remediates application dependencies; ACS (and this workshop’s dep-gate / image-check Tasks) *enforce* that builds and images meet policy before promotion. OSV and VEX metadata help *continuous integration (CI)* scanners recognize remediated pins so gates and third-party scanners stay aligned.
 
 == Learning objectives
 
@@ -13,7 +13,7 @@ By the end of this module, you will be able to:
 
 * Run the workshop policy Pipeline and explain the fail-then-pass `.rhlw-*` narrative
 * Relate RHACS `roxctl image check` to BUILD policy enforcement (ACS + Lightwell coexistence)
-* Sign and verify an image with cosign keyless (Fulcio / Rekor / TUF)
+* Sign and verify an image with cosign keyless (Fulcio / Rekor / *The Update Framework (TUF)*)
 * Confirm Argo CD syncs the App-of-Apps / sample app after a successful path
 
 == Prerequisites
