@@ -44,6 +44,7 @@ spec:
                   https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
                 tar -C /usr/local/bin -xzf /tmp/oc.tgz oc
               fi
+              export SEED_MOUNT=/seed
               bash /seed/assemble-repo.sh "${WORKDIR}/repo"
               export SEED_DIR="${WORKDIR}"
               bash /seed/seed-student-repos.sh
@@ -62,6 +63,16 @@ spec:
               value: {{ .Values.seed.defaultBranch | quote }}
             - name: STUDENTS_JSON
               value: {{ $students | quote }}
+            - name: SOURCE_MODE
+              value: {{ .Values.seed.source.mode | quote }}
+            - name: SOURCE_REPO_URL
+              value: {{ .Values.seed.source.repoUrl | quote }}
+            - name: SOURCE_REVISION
+              value: {{ .Values.seed.source.revision | quote }}
+            - name: SOURCE_PATH
+              value: {{ .Values.seed.source.path | quote }}
+            - name: SOURCE_GIT_SSL_VERIFY
+              value: {{ .Values.seed.source.gitSslVerify | quote }}
             - name: ADMIN_USER
               valueFrom:
                 secretKeyRef:
@@ -77,6 +88,18 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.gitea.admin.secretName }}
                   key: email
+{{- if .Values.seed.source.gitSecretName }}
+            - name: SOURCE_GIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.seed.source.gitSecretName | quote }}
+                  key: username
+            - name: SOURCE_GIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.seed.source.gitSecretName | quote }}
+                  key: password
+{{- end }}
           volumeMounts:
             - name: seed
               mountPath: /seed

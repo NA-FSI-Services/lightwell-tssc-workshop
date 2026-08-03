@@ -1,9 +1,10 @@
 # spring-boot-lw-poc (student lab repository)
 
-Learner-owned application repository for the Lightwell TSSC workshop.
+Learner-owned application repository for the Lightwell TSSC workshop
+(hosted on in-cluster **Gitea** — not GitHub).
 
 Use this repository for Module 5 pipeline exercises (clone → policy gate → remediate → re-run).
-Do **not** clone or push to the workshop GitOps monorepo.
+Do **not** clone or push to the workshop GitOps monorepo or any GitHub remote for lab work.
 
 ## Module 5 quick path
 

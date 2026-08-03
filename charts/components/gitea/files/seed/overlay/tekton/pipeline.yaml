@@ -1,9 +1,9 @@
-# Tekton Pipeline — hybrid BuildConfig + ACS + SBOM + RHTAS keyless cosign (optional RHDH path).
-# Prefer the Gitea-seeded student repo for Module 5 Ex3; keep remotes on Gitea (not GitHub).
+# Tekton Pipeline — hybrid build (BuildConfig) + ACS + SBOM + RHTAS keyless cosign.
+# No buildah. Image lands in the learner lab namespace ImageStream (Module 5 Ex3 / #99).
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: ${{ values.name }}-build-sign
+  name: spring-boot-lw-poc-build-sign
   labels:
     app.kubernetes.io/part-of: lightwell-tssc-workshop
     lightwell.redhat.com/rhtas-keyless: "true"
@@ -12,16 +12,18 @@ spec:
   params:
     - name: repo-url
       type: string
-      description: Student Gitea clone URL (never GitHub for learner labs)
+      description: Student Gitea clone URL (from demo-userinfo-gitea)
     - name: revision
       type: string
       default: main
     - name: image-url
       type: string
-      description: Learner lab namespace ImageStream tag
+      description: >-
+        Internal registry tag in the learner lab namespace
+        (image-registry.openshift-image-registry.svc:5000/<lab-ns>/spring-boot-lw-poc:latest)
     - name: buildconfig-name
       type: string
-      default: ${{ values.name }}
+      default: spring-boot-lw-poc
     - name: cosign-fulcio-url
       type: string
       default: ""
@@ -31,7 +33,7 @@ spec:
     - name: cosign-tuf-url
       type: string
       default: ""
-      description: TUF root/mirror URL from RHTAS
+      description: TUF root/mirror URL from RHTAS (demo-userinfo-rhtas / tuf Route)
   workspaces:
     - name: source
     - name: sbom
@@ -75,6 +77,7 @@ spec:
         - name: pom-path
           value: pom.xml
 
+    # OpenShift Binary BuildConfig (Dockerfile multi-stage) — replaces buildah
     - name: openshift-build
       runAfter: [lightwell-dep-gate]
       workspaces:
@@ -95,8 +98,11 @@ spec:
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
-              oc start-build "$(params.buildconfig-name)" \
-                --from-dir="$(workspaces.source.path)" --follow --wait
+              BC="$(params.buildconfig-name)"
+              SRC="$(workspaces.source.path)"
+              echo "Starting Binary build ${BC} from ${SRC}"
+              oc start-build "${BC}" --from-dir="${SRC}" --follow --wait
+              echo "Build ${BC} finished"
 
     - name: acs-image-check
       runAfter: [openshift-build]

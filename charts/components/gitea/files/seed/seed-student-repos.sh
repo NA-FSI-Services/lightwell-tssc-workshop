@@ -99,6 +99,11 @@ PY
     echo "Created user ${user}"
     return 0
   fi
+  # Idempotent re-seed: Gitea returns 422 when the user already exists
+  if [[ "${code}" == "422" ]] && grep -qiE 'already exists|user already exists' /tmp/gitea-user-create.json 2>/dev/null; then
+    echo "User ${user} already exists — continuing"
+    return 0
+  fi
   echo "ERROR: create user ${user} failed HTTP ${code}" >&2
   cat /tmp/gitea-user-create.json >&2 || true
   exit 1
@@ -150,7 +155,7 @@ push_seed() {
     export GIT_SSL_NO_VERIFY="${GIT_SSL_NO_VERIFY:-true}"
     # Retry push while Gitea finishes repo creation
     for i in $(seq 1 12); do
-      if git -c http.sslVerify=false push -u origin "${DEFAULT_BRANCH}"; then
+      if git -c http.sslVerify=false push -u --force origin "${DEFAULT_BRANCH}"; then
         echo "Pushed seed to ${owner}/${REPO_NAME}"
         return 0
       fi

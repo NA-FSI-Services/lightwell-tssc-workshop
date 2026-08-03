@@ -71,6 +71,15 @@ Target components (see [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) and project
 
 `keycloak` (workshop SSO for RHTPA), `gitea` (student Git), `rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc`, optional `parasol-app`, plus Showroom content wiring.
 
+## Learner Git vs GitOps monorepo
+
+| Surface | Who uses it | Rule |
+|---------|-------------|------|
+| GitHub monorepo (this repo) | ArgoCD, authors, agents | GitOps + chart sources only |
+| In-cluster Gitea | Learners | All clone / push / PipelineRun `repo-url` for application labs |
+
+When a learner app lives under a monorepo path (example: `charts/components/spring-boot-lw-poc/app`), **environment preparation** must clone that source, isolate the subtree, and seed a Gitea repo with those contents **at repo root** — students must not see the rest of the workshop repository. See [AGENTS.md](../AGENTS.md) (**Learner Git — Gitea first**) and [`charts/components/gitea/README.md`](../charts/components/gitea/README.md).
+
 ## Ansible runner (optional path)
 
 **Use for:** wait-for-ready, secret generation, external API calls, or conditional logic that Helm cannot express cleanly.
@@ -99,6 +108,7 @@ Target components (see [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) and project
 - Do not treat `examples/` as the long-term `gitops_path` for the published catalog item.
 - Do not invent alternate LWN channel names; use Validated / Remediated / OSV (see DEVELOPMENT-PLAN.md).
 - Do not commit registry credentials or customer engagement data (see [AGENTS.md](../AGENTS.md)).
+- Do not send learners to GitHub for application clone/push; use Gitea and path-isolated student repos (see [AGENTS.md](../AGENTS.md) Learner Git).
 
 ## Related
 

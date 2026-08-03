@@ -29,13 +29,34 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 
 - `keycloak` — Workshop IdP for RHTPA (`sso.<domain>/realms/tpa`; enable before `rhtpa`)
 - `gitea` — In-cluster student Git; Module 5 / pipeline labs use learner repos (not the GitOps monorepo)
-- `rhdh` — Developer Hub + `lightwell-java-service` Software Template 
+- `rhdh` — Developer Hub + `lightwell-java-service` Software Template (scaffold may land in Gitea; see learner Git rules)
 - `rhtas` — Trusted Artifact Signer / keyless signing 
 - `rhtpa` — SBOM (and advisory) ingestion/analysis; RHDA consumes its APIs 
 - `rhacs` — Central + pipeline / admission policy gates 
 - `lightwell-repo` — Enterprise artifact manager pattern (validated / remediated / OSV proxy or seeded mirrors) 
 - `spring-boot-lw-poc` — Primary sample app for Maven + LWN labs 
 - `parasol-app` — Optional larger enterprise workload
+
+### Learner Git — Gitea first (do not send students to GitHub)
+
+Students must **not** be directed to clone, fork, or push to GitHub for lab application work. Prefer in-cluster **Gitea** (`charts/components/gitea`) for all learner remotes, PipelineRun `repo-url` values, Software Template outputs, and Showroom copy-paste steps.
+
+| Audience | Git surface |
+|----------|-------------|
+| **Learners** | Gitea only — discover URLs via `demo-userinfo-gitea` (`gitea_url`, `student_repo_url`, credentials) |
+| **Operators / GitOps** | This workshop monorepo on GitHub (ArgoCD sync source) — never presented as the student app remote |
+| **Authors / agents** | May read monorepo paths on GitHub when building charts; seed Jobs isolate learner-facing trees into Gitea |
+
+**Path isolation when the app lives under a monorepo subdirectory** (e.g. `charts/components/spring-boot-lw-poc/app`):
+
+1. Provision-time automation (Gitea seed Job, ansible-runner, or equivalent) clones the **workshop** Git source (GitHub or the synced checkout).
+2. Extracts **only** the intended application subtree (and any files that must sit at repo root for labs, such as `pom.xml`, `Dockerfile`, `.tekton/`).
+3. Creates / updates the student's Gitea repository with **that isolated tree at repository root**.
+4. Does **not** expose charts, AgnosticV, other components, secrets, or the rest of the monorepo in the student remote.
+
+Lab modules, PipelineRuns, and RHDH templates must clone **`student_repo_url`** (or the per-user URL under `student_repos`), never `github.com/NA-FSI-Services/lightwell-tssc-workshop` (or any GitHub app URL) as the learner workflow.
+
+When adding a new learner application source that currently lives at `/some/inner/path` in this repo, update the Gitea seed (or add a prepare Job) to perform isolation — do not ask students to `cd` into a monorepo path or clone GitHub.
 
 ### Canonical LWN endpoints (document even when mirroring)
 
@@ -66,6 +87,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 - Modules must teach: (1) validated vs remediated, (2) enterprise Maven/proxy setup, (3) OSV → `.rhlw-*` pin + source diff, (4) SBOM → RHTPA, (5) pipeline/signing/policy/GitOps.
 - Prefer deterministic seeded artifacts when live LWN membership is unavailable in RHDP.
 - Prefer copy-pasteable `oc` / `tkn` / `mvn` / `syft` paths that match deployed chart names and namespaces.
+- **Learner remotes are Gitea** — do not document GitHub clone/fork/push for student app labs; use `demo-userinfo-gitea` and path-isolated student repos (see **Learner Git** above).
 - Update Showroom image/chart pins per [docs/SHOWROOM-UPDATE-SPEC.md](./docs/SHOWROOM-UPDATE-SPEC.md) when touching Showroom.
 - **Lab visuals (images)** — When authoring or revising AsciiDoc labs, evaluate where a figure would clarify a concept (architecture, UI orientation, before/after, tier comparison). For each useful figure that is not already in-repo:
   1. Open a GitHub issue (`phase-4` + `content`) that explains **how to obtain the asset**: either concrete **screenshot steps** (product URL, click path, what to crop/redact) **or** an **image-generation prompt** for an agent/designer (style, labels, must-include LWN tier names / `.rhlw-*`, must-avoid fictional channel names).

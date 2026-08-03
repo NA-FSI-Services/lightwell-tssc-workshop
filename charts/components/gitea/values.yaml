@@ -60,6 +60,19 @@ seed:
   repoName: spring-boot-lw-poc
   repoDescription: "Lightwell TSSC student lab repository (Module 5 policy pipeline)"
   defaultBranch: main
+  # Isolate learner app from the workshop GitOps monorepo (AGENTS.md Learner Git).
+  # live = clone source.repoUrl and copy source.path to Gitea repo root + .tekton overlay.
+  # embedded = ConfigMap pom/README fallback only (dev without git clone).
+  source:
+    mode: live
+    # Injected by root-app from gitops.repoUrl / gitops.revision (operators only — not students).
+    repoUrl: ""
+    revision: main
+    path: charts/components/spring-boot-lw-poc/app
+    # Optional Secret with username/password (or token as password) for private GitOps clones.
+    # Leave empty for public repos. Never commit real credentials into values.
+    gitSecretName: ""
+    gitSslVerify: true
   resources:
     requests:
       cpu: 100m
@@ -73,9 +86,10 @@ userInfo:
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"
   instructions: >-
     In-cluster Gitea for learner application repos. Module 5 pipelines clone your
-    student repository (not the workshop GitOps monorepo). Open gitea_url, sign in
-    with student_username / student_password from this userinfo, then clone
-    student_repo_url. Edit pom.xml for the remediated .rhlw-* pass path and push.
+    student repository (not the workshop GitOps monorepo or GitHub). Open gitea_url,
+    sign in with student_username / student_password from this userinfo, then clone
+    student_repo_url. The seed Job isolates spring-boot-lw-poc/app and overlays .tekton
+    for BuildConfig + RHTAS cosign. Edit pom.xml for the remediated .rhlw-* pass path and push.
 
 deployer:
   domain: ""

@@ -205,6 +205,12 @@ spec:
         seed:
           repoName: {{ .Values.components.gitea.repoName | quote }}
           defaultBranch: {{ .Values.components.gitea.repoRevision | quote }}
+          # Operator-only clone to isolate learner app path into Gitea (not a student GitHub step)
+          source:
+            mode: live
+            repoUrl: {{ .Values.gitops.repoUrl | quote }}
+            revision: {{ .Values.gitops.revision | quote }}
+            path: charts/components/spring-boot-lw-poc/app
         deployer:
           domain: {{ .Values.deployer.domain | quote }}
           apiUrl: {{ .Values.deployer.apiUrl | quote }}

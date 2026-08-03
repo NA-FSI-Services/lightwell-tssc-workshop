@@ -1,22 +1,24 @@
-# Optional RHDH path — prefer Gitea student remotes (demo-userinfo-gitea), never GitHub.
+# Example PipelineRun — edit repo-url / image-url / Fulcio / Rekor for your claim.
+# repo-url MUST be your Gitea student remote (demo-userinfo-gitea), never GitHub.
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  generateName: ${{ values.name }}-build-sign-
+  generateName: spring-boot-lw-poc-build-sign-
   labels:
     app.kubernetes.io/part-of: lightwell-tssc-workshop
 spec:
   pipelineRef:
-    name: ${{ values.name }}-build-sign
+    name: spring-boot-lw-poc-build-sign
   params:
     - name: repo-url
-      value: https://gitea.<domain>/student/${{ values.name }}.git
+      value: https://gitea.<domain>/student/spring-boot-lw-poc.git
     - name: revision
       value: main
+    # Learner lab namespace ImageStream (not GitOps spring-boot-lw-poc NS — see #100)
     - name: image-url
-      value: image-registry.openshift-image-registry.svc:5000/<lab-namespace>/${{ values.name }}:latest
+      value: image-registry.openshift-image-registry.svc:5000/<lab-namespace>/spring-boot-lw-poc:latest
     - name: buildconfig-name
-      value: ${{ values.name }}
+      value: spring-boot-lw-poc
     - name: cosign-fulcio-url
       value: https://fulcio-server-trusted-artifact-signer.apps.<domain>
     - name: cosign-rekor-url
@@ -35,5 +37,3 @@ spec:
       emptyDir: {}
   taskRunTemplate:
     serviceAccountName: pipeline
-    # Optional local Maven Secret lightwell-maven (LW_*) — does not drive BuildConfig image build.
-    # Link rh-registry-pull (or cluster pull secret) to pipeline SA for cosign-rhel9.
