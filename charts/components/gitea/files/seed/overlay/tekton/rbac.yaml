@@ -1,5 +1,6 @@
-# Apply once per learner lab namespace before PipelineRuns.
-# ImageStream + Binary BuildConfig + pipeline SA (no buildah / no SCC stretch).
+# Apply once in your learner lab namespace before PipelineRuns / builds.
+# Module 5 Ex3 — Gitea-first; do not use GitHub remotes.
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -38,17 +39,19 @@ subjects:
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: ${{ values.name }}
+  name: spring-boot-lw-poc
   labels:
     app.kubernetes.io/part-of: lightwell-tssc-workshop
 spec:
   lookupPolicy:
     local: true
 ---
+# Binary Docker build — pipeline starts with: oc start-build --from-dir=<workspace>
+# Dockerfile is the multi-stage PoC (Maven Central inside image build).
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
-  name: ${{ values.name }}
+  name: spring-boot-lw-poc
   labels:
     app.kubernetes.io/part-of: lightwell-tssc-workshop
 spec:
@@ -63,4 +66,4 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: ${{ values.name }}:latest
+      name: spring-boot-lw-poc:latest

@@ -55,9 +55,9 @@ Two related Pipeline definitions exist:
 |`stackrox` (RHACS chart)
 |clone, then `lightwell-dep-gate`, `acs-image-check`, `syft-sbom-rhtpa`
 
-|`*-build-sign` (RHDH scaffold)
-|Learner project NS
-|Maven, dep-gate, buildah, ACS, SBOM, then `cosign sign` (RHTAS keyless)
+|`*-build-sign` (Gitea `.tekton` / optional RHDH)
+|Learner lab NS
+|clone → dep-gate → OpenShift BuildConfig → ACS → SBOM → `cosign sign` (RHTAS keyless)
 |===
 
 This module uses the *policy gate* Pipeline for the deterministic fail/pass lab, then covers RHTAS signing and Argo CD promotion.
@@ -248,7 +248,9 @@ With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtp
 
 RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived private keys in the workshop.
 
-IMPORTANT: Full scaffolded build+sign needs OpenShift Pipelines Tasks, RHACS Tasks in `stackrox`, registry pull for `registry.redhat.io/rhtas/cosign-rhel9`, and Maven/LWN credentials for the pipeline SA. If those are not ready on your claim, complete the orientation steps below and treat end-to-end sign as instructor-led.
+This exercise uses your **Gitea** student repository (path-isolated app + `.tekton/` overlay). Do **not** clone GitHub for the app remote. Image build uses an OpenShift **BuildConfig** (Dockerfile multi-stage; Maven Central inside the image build). Tekton runs dep-gate → build → ACS → SBOM → cosign. The image stays in your **learner lab namespace** (GitOps `spring-boot-lw-poc` Route image is a later promote — issue #100).
+
+IMPORTANT: Needs OpenShift Pipelines (`git-clone`), RHACS Tasks in `stackrox`, and pull access to `registry.redhat.io/rhtas/cosign-rhel9` for the sign step. `acs-image-check` may *soft-skip* without a Central CI token — that is acceptable for this exercise.
 
 . Inspect the Securesign instance and note Fulcio/Rekor/TUF Routes (also in userinfo ConfigMap `demo-userinfo-rhtas`):
 +
@@ -259,29 +261,104 @@ oc -n trusted-artifact-signer get routes
 oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o yaml
 ----
 
-. From an RHDH-scaffolded `lightwell-java-service` (skeleton under the RHDH chart):
+. Create (or select) a learner lab namespace and clone **your** Gitea repo:
 +
 [source,bash,role=execute]
 ----
-# In the scaffolded repo namespace:
-oc apply -f .tekton/rbac.yaml
-oc apply -f .tekton/pipeline.yaml
-# Edit pipelinerun: image-url + cosign-fulcio-url / cosign-rekor-url from Routes above
-oc create -f .tekton/pipelinerun.yaml
-----
-+
-Use `maven-profile` = `lightwell-remediated-pins` (skeleton default) so `lightwell-dep-gate` sees `.rhlw-*` in POM properties. Profile-only `-P` without updating properties will fail the gate.
+export LAB_NS=student-lab
+oc new-project "${LAB_NS}" 2>/dev/null || oc project "${LAB_NS}"
 
-. After a successful `cosign-sign-keyless` task, verify the signature (from a workstation or debug pod with cosign + TUF root):
+export STUDENT_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_repo_url}')"
+export STUDENT_REPO_REV="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_repo_revision}')"
+git clone "${STUDENT_REPO_URL}" /tmp/spring-boot-lw-poc
+cd /tmp/spring-boot-lw-poc
+git checkout "${STUDENT_REPO_REV}" 2>/dev/null || true
+----
++
+Before the PipelineRun, ensure `pom.xml` **default** properties use the remediated pin (`3.14.0.rhlw-00001`) so `lightwell-dep-gate` passes (same as Exercise 2). Commit and push to Gitea if you still have the vulnerable default.
+
+. Optional — local Maven / LWN Secret (does **not** drive the BuildConfig image build):
 +
 [source,bash,role=execute]
 ----
-# Pattern — substitute image and Fulcio/Rekor/TUF endpoints from your cluster
-# cosign verify \
-#   --fulcio-url="https://fulcio-server-trusted-artifact-signer.apps.<domain>" \
-#   --rekor-url="https://rekor-server-trusted-artifact-signer.apps.<domain>" \
-#   "${IMAGE_URL}"
+# From demo-userinfo / Nexus userinfo on your claim — never commit these values
+# export LIGHTWELL_NEXUS_URL='https://nexus-lightwell-repo.apps.<domain>'
+# export LW_USERNAME='...'
+# export LW_PASSWORD='...'
+
+oc -n "${LAB_NS}" create secret generic lightwell-maven \
+  --from-literal=LW_USERNAME="${LW_USERNAME}" \
+  --from-literal=LW_PASSWORD="${LW_PASSWORD}" \
+  --from-literal=LIGHTWELL_NEXUS_URL="${LIGHTWELL_NEXUS_URL}" \
+  --dry-run=client -o yaml | oc apply -f -
+
+# Local verify (optional):
+# oc -n "${LAB_NS}" run mvn-verify --rm -it --image=registry.access.redhat.com/ubi9/openjdk-17:1.21 \
+#   --env-from=secret/lightwell-maven --restart=Never -- \
+#   bash -lc 'cd /tmp && ...'   # or use Showroom terminal with settings.xml
 ----
+
+. Link the cluster pull secret to the `pipeline` SA (required for `registry.redhat.io/rhtas/cosign-rhel9`):
++
+[source,bash,role=execute]
+----
+# Common on RHDP / OpenShift; adjust secret name if your claim differs
+PULL_SECRET="$(oc -n "${LAB_NS}" get secrets -o name | grep -E 'pull-secret|default-dockercfg' | head -1 | sed 's|.*/||')"
+# Prefer the cluster global pull secret when present:
+oc get secret pull-secret -n openshift-config -o jsonpath='{.data.\.dockerconfigjson}' 2>/dev/null | base64 -d >/tmp/pull.json && \
+  oc -n "${LAB_NS}" create secret generic rh-registry-pull \
+    --from-file=.dockerconfigjson=/tmp/pull.json \
+    --type=kubernetes.io/dockerconfigjson \
+    --dry-run=client -o yaml | oc apply -f - && \
+  rm -f /tmp/pull.json
+
+oc apply -f .tekton/rbac.yaml
+oc -n "${LAB_NS}" secrets link pipeline rh-registry-pull --for=pull 2>/dev/null || \
+  oc -n "${LAB_NS}" secrets link pipeline "${PULL_SECRET}" --for=pull
+----
+
+. Apply the hybrid Pipeline and start a PipelineRun (BuildConfig Binary build — no buildah):
++
+[source,bash,role=execute]
+----
+oc apply -f .tekton/pipeline.yaml
+
+DOMAIN="$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')"
+FULCIO="https://fulcio-server-trusted-artifact-signer.${DOMAIN}"
+REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
+IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boot-lw-poc:latest"
+
+# Edit generateName run — prefer a one-shot create from the example file:
+sed \
+  -e "s|https://gitea.<domain>/student/spring-boot-lw-poc.git|${STUDENT_REPO_URL}|" \
+  -e "s|<lab-namespace>|${LAB_NS}|g" \
+  -e "s|https://fulcio-server-trusted-artifact-signer.apps.<domain>|${FULCIO}|" \
+  -e "s|https://rekor-server-trusted-artifact-signer.apps.<domain>|${REKOR}|" \
+  .tekton/pipelinerun.yaml | oc -n "${LAB_NS}" create -f -
+
+tkn -n "${LAB_NS}" pipelinerun list
+----
++
+Expected graph: `clone` → `lightwell-dep-gate` → `openshift-build` (BuildConfig) → `acs-image-check` (pass or soft-skip) → `syft-sbom-rhtpa` → `cosign-sign-keyless`.
+
+. After a successful `cosign-sign-keyless` task, verify the signature (workstation or debug pod with cosign + TUF). Confirm issuer/identity on your claim — pattern for Kubernetes SA Fulcio:
++
+[source,bash,role=execute]
+----
+export IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boot-lw-poc:latest"
+# If verifying from outside the cluster, use the exposed registry route / mirrored digest instead.
+
+cosign verify \
+  --fulcio-url="https://fulcio-server-trusted-artifact-signer.${DOMAIN}" \
+  --rekor-url="https://rekor-server-trusted-artifact-signer.${DOMAIN}" \
+  --certificate-identity-regexp="^system:serviceaccount:${LAB_NS}:pipeline$" \
+  --certificate-oidc-issuer-regexp="https://kubernetes\.default\.svc.*" \
+  "${IMAGE_URL}"
+----
++
+If verify fails, capture the certificate identity from the sign Task logs / Rekor and adjust the regexp — do not invent alternate issuers without claim evidence.
 
 . Confirm the log line `Signed … (keyless / RHTAS)` on the PipelineRun.
 
@@ -290,6 +367,7 @@ image::module-05-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700
 [TIP]
 ====
 Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF components for RHDP email/Showroom links.
+Optional advanced path: RHDH Software Template `lightwell-java-service` can scaffold a similar tree, but remotes must still target **Gitea**, not GitHub.
 ====
 
 == Exercise 4: GitOps promotion (Argo CD)
@@ -355,7 +433,8 @@ image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 |CycloneDX written; uploaded or manual RHTPA UI
 
 |Sign / verify
-|Keyless `cosign sign` succeeds; `cosign verify` against RHTAS trust
+|Keyless `cosign sign` succeeds; `cosign verify` pattern against RHTAS (confirm identity regexp on claim)
+|Hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image)
 
 |GitOps
 |Argo CD Application Synced + Healthy for promoted app

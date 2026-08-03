@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Build the student Gitea tree: isolate monorepo app path + overlay lab files (.tekton, etc.).
+# Students never see the workshop GitOps monorepo — only the assembled repo root.
+set -euo pipefail
+
+ROOT="${1:-/tmp/gitea-seed/repo}"
+mkdir -p "${ROOT}"
+
+SOURCE_MODE="${SOURCE_MODE:-live}"
+SOURCE_REPO_URL="${SOURCE_REPO_URL:-}"
+SOURCE_REVISION="${SOURCE_REVISION:-main}"
+SOURCE_PATH="${SOURCE_PATH:-charts/components/spring-boot-lw-poc/app}"
+SEED_MOUNT="${SEED_MOUNT:-/seed}"
+
+copy_embedded_fallback() {
+  echo "WARNING: using embedded fallback tree (pom/README only) — set SOURCE_REPO_URL for live isolation" >&2
+  cp "${SEED_MOUNT}/repo-README.md" "${ROOT}/README.md"
+  cp "${SEED_MOUNT}/repo-pom.xml" "${ROOT}/pom.xml"
+  cp "${SEED_MOUNT}/repo-gitignore" "${ROOT}/.gitignore"
+}
+
+isolate_from_git() {
+  if [[ -z "${SOURCE_REPO_URL}" ]]; then
+    echo "ERROR: SOURCE_MODE=live requires SOURCE_REPO_URL (workshop GitOps URL for operators — not a learner step)" >&2
+    exit 1
+  fi
+
+  local clone_dir
+  clone_dir="$(mktemp -d)"
+  echo "Cloning ${SOURCE_REPO_URL} @ ${SOURCE_REVISION} (operator seed only) ..."
+  # Optional Basic auth via SOURCE_GIT_USERNAME / SOURCE_GIT_PASSWORD from a Secret
+  # (never commit credentials). Public repos leave these unset.
+  local url="${SOURCE_REPO_URL}"
+  if [[ -n "${SOURCE_GIT_USERNAME:-}" && -n "${SOURCE_GIT_PASSWORD:-}" ]]; then
+    local hostpath="${SOURCE_REPO_URL#https://}"
+    hostpath="${hostpath#http://}"
+    url="https://${SOURCE_GIT_USERNAME}:${SOURCE_GIT_PASSWORD}@${hostpath}"
+  fi
+
+  GIT_TERMINAL_PROMPT=0 git -c http.sslVerify="${SOURCE_GIT_SSL_VERIFY:-true}" \
+    clone --depth 1 --branch "${SOURCE_REVISION}" "${url}" "${clone_dir}/src" \
+    || GIT_TERMINAL_PROMPT=0 git -c http.sslVerify="${SOURCE_GIT_SSL_VERIFY:-true}" \
+      clone --depth 1 "${url}" "${clone_dir}/src"
+
+  if [[ "${SOURCE_REVISION}" != "main" && "${SOURCE_REVISION}" != "master" ]]; then
+    git -C "${clone_dir}/src" checkout "${SOURCE_REVISION}" 2>/dev/null || true
+  fi
+
+  local src="${clone_dir}/src/${SOURCE_PATH}"
+  if [[ ! -d "${src}" ]]; then
+    echo "ERROR: source path not found in clone: ${SOURCE_PATH}" >&2
+    exit 1
+  fi
+
+  echo "Isolating ${SOURCE_PATH} → student repo root"
+  cp -a "${src}/." "${ROOT}/"
+
+  # Prefer workshop student README when overlay provides one; else keep app README if any.
+  rm -rf "${clone_dir}"
+}
+
+apply_overlay() {
+  # ConfigMap mount is flat keys (see seed-configmap.yaml) — rebuild lab paths here.
+  echo "Applying lab overlay (.tekton + student README)"
+  mkdir -p "${ROOT}/.tekton"
+  if [[ -f "${SEED_MOUNT}/overlay-README.md" ]]; then
+    cp "${SEED_MOUNT}/overlay-README.md" "${ROOT}/README.md"
+  fi
+  if [[ -f "${SEED_MOUNT}/overlay-tekton-pipeline.yaml" ]]; then
+    cp "${SEED_MOUNT}/overlay-tekton-pipeline.yaml" "${ROOT}/.tekton/pipeline.yaml"
+  fi
+  if [[ -f "${SEED_MOUNT}/overlay-tekton-pipelinerun.yaml" ]]; then
+    cp "${SEED_MOUNT}/overlay-tekton-pipelinerun.yaml" "${ROOT}/.tekton/pipelinerun.yaml"
+  fi
+  if [[ -f "${SEED_MOUNT}/overlay-tekton-rbac.yaml" ]]; then
+    cp "${SEED_MOUNT}/overlay-tekton-rbac.yaml" "${ROOT}/.tekton/rbac.yaml"
+  fi
+}
+
+case "${SOURCE_MODE}" in
+  live)
+    isolate_from_git
+    ;;
+  embedded)
+    copy_embedded_fallback
+    ;;
+  *)
+    echo "ERROR: unknown SOURCE_MODE=${SOURCE_MODE} (use live|embedded)" >&2
+    exit 1
+    ;;
+esac
+
+apply_overlay
+
+# Ensure a student-facing README exists
+if [[ ! -f "${ROOT}/README.md" && -f "${SEED_MOUNT}/repo-README.md" ]]; then
+  cp "${SEED_MOUNT}/repo-README.md" "${ROOT}/README.md"
+fi
+
+echo "Assembled student repo at ${ROOT}:"
+find "${ROOT}" -maxdepth 3 -type f | sort | head -80

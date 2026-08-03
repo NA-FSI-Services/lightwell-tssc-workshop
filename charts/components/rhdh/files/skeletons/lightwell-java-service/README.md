@@ -1,49 +1,36 @@
 # ${{ values.name }}
 
-Spring Boot / Java 17 / Maven service scaffolded from the RHDH **lightwell-java-service** Software Template.
+Scaffolded by the Lightwell TSSC RHDH Software Template (**optional** advanced path).
 
-Consumes Lightwell Network **Validated** and **Remediated** (`.rhlw-0000X`) Maven streams via `settings.xml` profiles.
+For Module 5 Ex3, prefer the **Gitea-seeded** `spring-boot-lw-poc` student repository
+from `demo-userinfo-gitea`. If you use this template, push to **Gitea** — do not use
+GitHub as the learner remote.
 
-## Quick start
+## Local Maven (optional)
 
 ```bash
 export LIGHTWELL_NEXUS_URL='https://nexus-lightwell-repo.apps.<domain>'
-# Optional live LWN / Nexus auth (never commit):
-export LW_USERNAME='...'
+export LW_USERNAME='...'   # never commit
 export LW_PASSWORD='...'
-
-# Module 2 — Validated stream
 mvn -s settings.xml -Plightwell-validated clean verify
-
-# Module 3 — Remediated exact-version pin (.rhlw-*)
-mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
 ```
 
-Remediated pin via Maven profile `lightwell-remediated-pins`: `commons-lang3` `3.14.0.rhlw-00001` (resolve from seeded Nexus / LWN Remediated). Default `<properties>` stay on validated `3.14.0` for Module 2.
+Remediated pin via Maven profile `lightwell-remediated-pins`: `commons-lang3`
+`3.14.0.rhlw-00001`. Dep-gate reads **default** POM properties — update those for the
+pipeline pass path.
 
-## Workshop modules
-
-See [docs/MODULES.md](docs/MODULES.md) for Modules 2–5 mapping (Maven, OSV/`.rhlw-*`, SBOM/RHTPA, pipeline signing + policy).
-
-## Pipeline (RHTAS keyless)
+## Pipeline (hybrid BuildConfig + RHTAS)
 
 ```bash
-# Once per namespace: SA + ImageStream for buildah push
+oc new-project <lab-ns> 2>/dev/null || oc project <lab-ns>
+# Link pull secret for registry.redhat.io/rhtas/cosign-rhel9 — see Module 5 Ex3
 oc apply -f .tekton/rbac.yaml
 oc apply -f .tekton/pipeline.yaml
-# Edit .tekton/pipelinerun.yaml: image-url, Fulcio/Rekor hosts, repo-url
+# Edit .tekton/pipelinerun.yaml: Gitea repo-url, lab image-url, Fulcio/Rekor
 oc create -f .tekton/pipelinerun.yaml
 ```
 
-Default `maven-profile` is `lightwell-remediated-pins` so `lightwell-dep-gate` (require-remediated) sees `.rhlw-*` in effective POM properties.
+Graph: clone → `lightwell-dep-gate` → OpenShift Binary BuildConfig → ACS (soft-skip OK) →
+SBOM → cosign keyless. No buildah. Image stays in the learner lab namespace.
 
-Signing uses **cosign keyless** against Red Hat Trusted Artifact Signer (Fulcio/Rekor). Set `cosign-fulcio-url` / `cosign-rekor-url` from `oc -n trusted-artifact-signer get routes` when not using cluster TUF defaults.
-
-Prerequisites that are **not** auto-scaffolded: OpenShift Pipelines Tasks (`git-clone`, `maven`, `buildah`), RHACS Tasks in `stackrox`, pull access to `registry.redhat.io/rhtas/cosign-rhel9`, and Maven Nexus/LWN credentials for the pipeline SA.
-
-## Canonical LWN remotes
-
-- https://packages.redhat.com/lightwell/java/validated
-- https://packages.redhat.com/lightwell/java/remediated
-- https://packages.redhat.com/lightwell/osv/java/remediated
-- https://console.redhat.com/lightwell
+See Showroom Module 5 and [docs/MODULES.md](docs/MODULES.md).
