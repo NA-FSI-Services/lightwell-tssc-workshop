@@ -441,8 +441,7 @@ image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 |CycloneDX written; uploaded or manual RHTPA UI
 
 |Sign / verify
-|Keyless `cosign sign` succeeds; `cosign verify` pattern against RHTAS (confirm identity regexp on claim)
-|Hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image)
+|Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image)
 
 |GitOps
 |Argo CD Application Synced + Healthy for promoted app
