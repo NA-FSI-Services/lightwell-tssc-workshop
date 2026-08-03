@@ -13,7 +13,7 @@ By the end of this module, you will be able to:
 
 * Locate a Java remediated OSV record and extract the `fixed` version (`.rhlw-*`)
 * Recognize production OSV id shape (`RHLW-YYYY-NNNN`) vs workshop demo ids (`LW-DEMO-*`)
-* Use `tools/osv-eval/` helpers (`osv-pin.sh`, `diff-sources.sh`) in Showroom or a GitOps checkout
+* Use `tools/osv-eval/` helpers (`osv-pin.sh`, `diff-sources.sh`) from your Gitea `spring-boot-lw-poc` clone
 * Explain that a remediated source diff is a *scoped backport*, not a major upgrade
 * Pin a dependency in `pom.xml` and rebuild with `mvn -s settings.xml -Plightwell-remediated,…`
 
@@ -21,17 +21,17 @@ By the end of this module, you will be able to:
 
 Complete xref:module-02-maven.adoc[Module 2] so Nexus remotes and `settings.xml` profiles are familiar.
 
-You need either:
+You need:
 
-* This workshop Git checkout (path `tools/osv-eval/` and `charts/components/spring-boot-lw-poc/app/`), **or**
-* In-cluster ConfigMap `lightwell-sample-osv` plus a working copy of the Spring Boot PoC sources
+* Your Gitea **`spring-boot-lw-poc`** clone from Module 2 (`student_repo_url` → `/tmp/spring-boot-lw-poc`), which includes `tools/osv-eval/` at repo root, **and**
+* In-cluster ConfigMap `lightwell-sample-osv` (preferred sample OSV JSON)
 
 == Remediation evaluation loop
 
 [arabic]
 . Inspect an OSV file from the Java remediated OSV repo (or the workshop sample)
 . Read `affected[].ranges[].events[].fixed` to get the target `.rhlw-*` version
-. Compare sources for the base vs remediated artifacts (`diff -r`)
+. Compare sources for the base vs remediated artifacts (`git diff --no-index`)
 . Update `pom.xml` to the remediated pin and rebuild
 
 Canonical OSV remote: `{java-osv-url}`  
@@ -63,10 +63,11 @@ oc -n lightwell-repo get configmap lightwell-sample-osv \
   -o jsonpath='{.data.LW-DEMO-0001\.json}' | jq .
 ----
 
-. Or from the GitOps / content checkout:
+. Or from your Gitea PoC checkout (seeded with `tools/osv-eval/`):
 +
 [source,bash,role=execute]
 ----
+cd /tmp/spring-boot-lw-poc
 jq . tools/osv-eval/samples/LW-DEMO-0001.json
 jq '.affected[0].ranges[0].events' tools/osv-eval/samples/LW-DEMO-0001.json
 ----
@@ -82,6 +83,7 @@ jq '.affected[0].ranges[0].events' tools/osv-eval/samples/LW-DEMO-0001.json
 +
 [source,bash,role=execute]
 ----
+cd /tmp/spring-boot-lw-poc
 chmod +x tools/osv-eval/scripts/*.sh
 ./tools/osv-eval/scripts/osv-pin.sh tools/osv-eval/samples/LW-DEMO-0001.json
 ----
@@ -95,7 +97,7 @@ image::module-03-osv-fixed-pin.png[OSV fixed event to .rhlw pin,width=700]
 [source,bash,role=execute]
 ----
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
-cd charts/components/spring-boot-lw-poc/app
+cd /tmp/spring-boot-lw-poc
 mvn -s settings.xml dependency:get \
   -Dartifact=org.springframework:spring-core:5.3.18.rhlw-00003 \
   -Plightwell-remediated
@@ -107,20 +109,22 @@ The goal is to *see* that remediation is a small, security-scoped change on the 
 
 === Offline / RHDP default (fixtures)
 
-Workshop fixtures under `tools/osv-eval/fixtures/` stand in for `-sources.jar` trees when live jars are unavailable:
+Workshop fixtures under `tools/osv-eval/fixtures/` (in your Gitea `spring-boot-lw-poc` clone) stand in for `-sources.jar` trees when live jars are unavailable:
 
 [source,bash,role=execute]
 ----
+cd /tmp/spring-boot-lw-poc
 ./tools/osv-eval/scripts/diff-sources.sh --fixture
 ----
 
-You should see a `diff -ruN` highlighting a length-check backport in `VulnerableUtil.java` (demo stub, not production Spring Framework sources).
+You should see a `git diff --no-index` highlighting a length-check backport in `VulnerableUtil.java` (demo stub, not production Spring Framework sources). The helper uses `git` because the Showroom terminal image does not ship GNU `diff`.
 
 Manual equivalent:
 
 [source,bash,role=execute]
 ----
-diff -ruN \
+cd /tmp/spring-boot-lw-poc
+git --no-pager diff --no-index -- \
   tools/osv-eval/fixtures/upstream \
   tools/osv-eval/fixtures/remediated
 ----
@@ -133,6 +137,7 @@ When Nexus is seeded with sources (or live LWN membership is available):
 
 [source,bash,role=execute]
 ----
+cd /tmp/spring-boot-lw-poc
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
 # Proxy / live LWN only — never commit these values:
 # export LW_USERNAME=... LW_PASSWORD=...
@@ -151,7 +156,7 @@ The sample OSV advertises a pin for `spring-core:5.3.18.rhlw-00003`. The primary
 +
 [source,bash,role=execute]
 ----
-cd charts/components/spring-boot-lw-poc/app
+cd /tmp/spring-boot-lw-poc
 grep -n 'commons.lang3\|lightwell-remediated' pom.xml
 ----
 
@@ -173,6 +178,7 @@ grep -n 'commons.lang3\|lightwell-remediated' pom.xml
 +
 [source,bash,role=execute]
 ----
+cd /tmp/spring-boot-lw-poc
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
 
 mvn -s settings.xml \
@@ -209,7 +215,7 @@ Full optional appendix: xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFES
 **What you accomplished**
 
 * Extracted `fixed` as `5.3.18.rhlw-00003` from sample OSV `LW-DEMO-0001`
-* Compared upstream vs remediated sources (fixture `diff -r`, optional jar fetch)
+* Compared upstream vs remediated sources (fixture `git diff --no-index`, optional jar fetch)
 * Applied an exact-version `.rhlw-*` pin in the Spring Boot PoC and rebuilt successfully
 
 **Key takeaways**

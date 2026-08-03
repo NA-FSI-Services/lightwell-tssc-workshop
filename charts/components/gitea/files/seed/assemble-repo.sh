@@ -55,6 +55,16 @@ isolate_from_git() {
   echo "Isolating ${SOURCE_PATH} → student repo root"
   cp -a "${src}/." "${ROOT}/"
 
+  # Module 3 OSV helpers/fixtures — keep under tools/ so learners never clone the monorepo.
+  local osv="${clone_dir}/src/tools/osv-eval"
+  if [[ -d "${osv}" ]]; then
+    echo "Including tools/osv-eval for Module 3"
+    mkdir -p "${ROOT}/tools"
+    cp -a "${osv}" "${ROOT}/tools/osv-eval"
+  else
+    echo "WARNING: tools/osv-eval missing from workshop clone — Module 3 fixture helpers will be absent" >&2
+  fi
+
   # Prefer workshop student README when overlay provides one; else keep app README if any.
   rm -rf "${clone_dir}"
 }

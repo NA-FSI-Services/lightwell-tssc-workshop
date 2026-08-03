@@ -23,7 +23,7 @@ capture that password — see [DEV-CLUSTER-WORKSHOP-USER.md](../../../docs/DEV-C
 
 Per seeded student (chart default or bootstrap override):
 
-* App repo: `spring-boot-lw-poc` (`pom.xml` + `.tekton/` at root)
+* App repo: `spring-boot-lw-poc` (`pom.xml`, `.tekton/`, and `tools/osv-eval/` at root for Modules 2–5)
 * GitOps repo: `gitops-spring-boot-lw-poc` (thin Helm chart, **no** `./app`)
 * Promote NS / Argo app: `lw-poc-<username>` (e.g. `lw-poc-user1` on claims)
 
@@ -32,10 +32,11 @@ Per seeded student (chart default or bootstrap override):
 Default `seed.source.mode=live`: the seed Job clones the **workshop GitOps URL**
 (`seed.source.repoUrl`, injected from root-app `gitops.repoUrl`), then:
 
-1. **App repo** — copies `seed.source.path` (default `charts/components/spring-boot-lw-poc/app`) to repo root + overlays `.tekton/`
+1. **App repo** — copies `seed.source.path` (default `charts/components/spring-boot-lw-poc/app`) to repo root, copies `tools/osv-eval/` for Module 3, overlays `.tekton/`
 2. **GitOps repo** (`seed.gitops.enabled`) — copies `seed.gitops.sourcePath` chart tree **excluding `app/`**, overlays README/PROMOTE.md
 
-Students never clone GitHub for lab work — only Gitea remotes from `demo-userinfo-gitea`.
+Students never clone GitHub for lab work — only Gitea remotes from `demo-userinfo-gitea`
+(`student_repo_url` → `https://gitea.<domain>/<user>/spring-boot-lw-poc.git`).
 
 Optional `seed.source.gitSecretName` references a Secret with `username` / `password`
 (or token as password) for private GitOps clones. **Do not commit credentials**; leave

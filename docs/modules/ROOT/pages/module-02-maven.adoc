@@ -197,11 +197,11 @@ image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption exp
 
 === What is the Spring Boot PoC?
 
-The *Spring Boot PoC* (`spring-boot-lw-poc`) is this workshop’s primary learner application: a small **Spring Boot 3 / Java 17 / Maven** greeting API used to practice Lightwell Network **Validated** and **Remediated** consumption. Sources live in the workshop Git repository at:
+The *Spring Boot PoC* (`spring-boot-lw-poc`) is this workshop’s primary learner application: a small **Spring Boot 3 / Java 17 / Maven** greeting API used to practice Lightwell Network **Validated** and **Remediated** consumption.
 
-`charts/components/spring-boot-lw-poc/app/`
+Provision-time automation copies `charts/components/spring-boot-lw-poc/app` (operators only) into your in-cluster **Gitea** repository **`spring-boot-lw-poc`**, with `pom.xml` at the **repository root**. Discover the URL via ConfigMap `demo-userinfo-gitea` (`student_repo_url`). Do **not** clone the workshop GitHub monorepo for lab work.
 
-That tree includes `pom.xml` (dual-stream version properties + `lightwell-remediated-pins`), env-aware `settings.xml`, and a simple `/api/greeting` controller. Later modules reuse the same project for OSV pins, SBOM generation, and pipeline gates.
+That tree includes `pom.xml` (dual-stream version properties + `lightwell-remediated-pins`), env-aware `settings.xml`, and a simple `/api/greeting` controller. Later modules reuse the same Gitea project for OSV pins, SBOM generation, and pipeline gates.
 
 [IMPORTANT]
 ====
@@ -231,23 +231,25 @@ mvn -v | head -2
 
 === Stage the PoC sources and Nexus URL
 
-Same as the settings extract above: clone into `/tmp` and keep Maven’s local repository writable:
+Same as the settings extract above: clone your Gitea app repo into `/tmp` and keep Maven’s local repository writable:
 
 [source,bash,role=execute]
 ----
-rm -rf /tmp/lightwell-tssc-workshop
-git clone --depth 1 --branch main \
-  https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git \
-  /tmp/lightwell-tssc-workshop
+: "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
+: "${STUDENT_USER:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')}"
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
-cd /tmp/lightwell-tssc-workshop/charts/components/spring-boot-lw-poc/app
+rm -rf /tmp/spring-boot-lw-poc
+# Auth form matches Module 5 (repos are public; credentials still work for clone/push)
+git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${STUDENT_REPO_URL#https://}" /tmp/spring-boot-lw-poc
+cd /tmp/spring-boot-lw-poc
 
 export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
 # Writable .m2 (required when /home/lab-user is not writable)
 export MVN_LOCAL='-Dmaven.repo.local=/tmp/m2'
 ----
 
-For ConfigMap-extracted settings that already embed the Nexus URL, you can skip `LIGHTWELL_NEXUS_URL`. Keep using `$MVN_LOCAL` on every `mvn` invocation in this module.
+Confirm `pom.xml` and `settings.xml` are at the clone root (`ls pom.xml settings.xml`). For ConfigMap-extracted settings that already embed the Nexus URL, you can skip `LIGHTWELL_NEXUS_URL`. Keep using `$MVN_LOCAL` on every `mvn` invocation in this module.
 
 === Experiment A — resolve a Validated GAV
 
@@ -279,7 +281,7 @@ Expected outcomes:
 
 You are not changing production pins yet (that is Module 3). First confirm the Remediated remote serves the workshop example artifact, then build with the PoC pin profile.
 
-Stay in the PoC app directory from Exercise 2 (`/tmp/lightwell-tssc-workshop/charts/components/spring-boot-lw-poc/app`) with `LIGHTWELL_NEXUS_URL` and `MVN_LOCAL` still set.
+Stay in the PoC app directory from Exercise 2 (`/tmp/spring-boot-lw-poc`) with `LIGHTWELL_NEXUS_URL` and `MVN_LOCAL` still set.
 
 === Experiment A — resolve a `.rhlw-*` GAV
 
@@ -353,11 +355,12 @@ The Developer Hub Software Template `lightwell-java-service` scaffolds the same 
 
 **Key takeaways**
 
-* Learner UX: `mvn -s settings.xml -Plightwell-validated …`
+* Learner UX: `mvn -s settings.xml -Plightwell-validated …` from the Gitea `spring-boot-lw-poc` clone
 * Seeded RHDP can teach both GAV/remote proofs and real builds without live LWN membership
 * Proxied PoV is the default enterprise story; air-gap uses mirror/proxy, not Satellite
 * Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
 * Source jars accompany binaries; application-context testing stays with the consumer
+* Student remotes are Gitea (`student_repo_url`) — not the workshop GitHub monorepo
 
 **Next**
 

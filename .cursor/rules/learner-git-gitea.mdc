@@ -1,0 +1,17 @@
+---
+description: Learner Git must use Gitea spring-boot-lw-poc — never the workshop GitHub monorepo
+alwaysApply: true
+---
+
+# Learner Git — Gitea only
+
+When authoring or editing Showroom labs, Software Templates, PipelineRuns, or copy-paste learner steps:
+
+- **Never** instruct students to `git clone https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` (or any GitHub fork of this monorepo).
+- **Never** ask learners to `cd charts/components/spring-boot-lw-poc/app` inside a monorepo checkout.
+- **Do** use ConfigMap `demo-userinfo-gitea` fields: `student_repo_url`, `student_username`, `student_password`, `student_gitops_repo_url`.
+- Default learner **application** remote is Gitea repo **`spring-boot-lw-poc`** (`pom.xml` at clone root). Clone destination convention: `/tmp/spring-boot-lw-poc`.
+- The Gitea seed Job isolates monorepo `charts/components/spring-boot-lw-poc/app` (plus `tools/osv-eval/` and `.tekton/` overlay) into that student repo — operators clone GitHub; students do not.
+- GitOps promote uses `student_gitops_repo_url` (`gitops-spring-boot-lw-poc`), not the monorepo.
+
+See `AGENTS.md` (**Learner Git — Gitea first**) and `charts/components/gitea/README.md`.
