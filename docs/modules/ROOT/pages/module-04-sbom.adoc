@@ -126,9 +126,13 @@ Build the PoC, then scan the artifact or `target/` directory.
 ----
 cd /tmp/spring-boot-lw-poc
 
-export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+: "${LIGHTWELL_NEXUS_URL:=https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')}"
+: "${MVN_LOCAL:=-Dmaven.repo.local=/tmp/m2}"
 
-mvn -s settings.xml -Plightwell-validated package -DskipTests
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated package -DskipTests \
+  > /tmp/mvn-package-m4-validated.log 2>&1
+
+grep -E 'BUILD SUCCESS|BUILD FAILURE' /tmp/mvn-package-m4-validated.log
 ls -la target/*.jar
 ----
 

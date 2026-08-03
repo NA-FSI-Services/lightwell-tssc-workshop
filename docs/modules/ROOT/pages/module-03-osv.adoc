@@ -26,6 +26,14 @@ You need:
 * Your Gitea **`spring-boot-lw-poc`** clone from Module 2 (`student_repo_url` → `/tmp/spring-boot-lw-poc`), which includes `tools/osv-eval/` at repo root, **and**
 * In-cluster ConfigMap `lightwell-sample-osv` (preferred sample OSV JSON)
 
+Reuse Module 2’s writable Maven local repo in Showroom (home is often not writable):
+
+[source,bash,role=execute]
+----
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+export MVN_LOCAL='-Dmaven.repo.local=/tmp/m2'
+----
+
 == Remediation evaluation loop
 
 [arabic]
@@ -96,11 +104,17 @@ image::module-03-osv-fixed-pin.png[OSV fixed event to .rhlw pin,width=700]
 +
 [source,bash,role=execute]
 ----
-export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
 cd /tmp/spring-boot-lw-poc
-mvn -s settings.xml dependency:get \
+: "${LIGHTWELL_NEXUS_URL:=https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')}"
+: "${MVN_LOCAL:=-Dmaven.repo.local=/tmp/m2}"
+
+mvn $MVN_LOCAL -s settings.xml dependency:get \
   -Dartifact=org.springframework:spring-core:5.3.18.rhlw-00003 \
-  -Plightwell-remediated
+  -Plightwell-remediated \
+  > /tmp/mvn-dep-get-m3-remediated.log 2>&1
+
+grep -E 'Downloading from lightwell-java-remediated|Downloaded from lightwell-java-remediated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-dep-get-m3-remediated.log
 ----
 
 == Exercise 2: Source diff (upstream vs remediated)
@@ -179,20 +193,28 @@ grep -n 'commons.lang3\|lightwell-remediated' pom.xml
 [source,bash,role=execute]
 ----
 cd /tmp/spring-boot-lw-poc
-export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+: "${LIGHTWELL_NEXUS_URL:=https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')}"
+: "${MVN_LOCAL:=-Dmaven.repo.local=/tmp/m2}"
 
-mvn -s settings.xml \
+mvn $MVN_LOCAL -s settings.xml \
   -Plightwell-remediated,lightwell-remediated-pins \
-  clean verify
+  clean verify \
+  > /tmp/mvn-verify-m3-remediated.log 2>&1
+
+grep -E 'commons-lang3|Downloading from lightwell-java-remediated|Downloaded from lightwell-java-remediated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-verify-m3-remediated.log
 ----
 
 . Verify the resolved version:
 +
 [source,bash,role=execute]
 ----
-mvn -s settings.xml \
+mvn $MVN_LOCAL -s settings.xml \
   -Plightwell-remediated,lightwell-remediated-pins \
-  dependency:tree | egrep 'commons-lang3|BUILD'
+  dependency:tree \
+  > /tmp/mvn-tree-m3-remediated.log 2>&1
+
+grep -E 'commons-lang3|BUILD SUCCESS|BUILD FAILURE' /tmp/mvn-tree-m3-remediated.log
 ----
 +
 You should see `commons-lang3:jar:3.14.0.rhlw-00001` (or your edited pin) and `BUILD SUCCESS`.
