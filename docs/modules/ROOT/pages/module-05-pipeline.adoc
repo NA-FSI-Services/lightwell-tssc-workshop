@@ -345,22 +345,28 @@ tkn -n "${LAB_NS}" pipelinerun list
 +
 Expected graph: `clone` → `lightwell-dep-gate` → `openshift-build` (BuildConfig) → `acs-image-check` (pass or soft-skip) → `syft-sbom-rhtpa` → `cosign-sign-keyless`.
 
-. After a successful `cosign-sign-keyless` task, verify the signature (workstation or debug pod with cosign + TUF). Confirm issuer/identity on your claim — pattern for Kubernetes SA Fulcio:
+. After a successful `cosign-sign-keyless` task, verify the signature (workstation or debug pod with cosign). Initialize TUF first, then verify with the pipeline SA identity confirmed on claim:
 +
 [source,bash,role=execute]
 ----
 export IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boot-lw-poc:latest"
+export TUF="https://tuf-trusted-artifact-signer.${DOMAIN}"
+export REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
 # If verifying from outside the cluster, use the exposed registry route / mirrored digest instead.
 
+cosign initialize --mirror="${TUF}" --root="${TUF}/root.json"
+# Registry auth for in-cluster verify (pipeline SA token):
+#   cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+#     image-registry.openshift-image-registry.svc:5000
 cosign verify \
-  --fulcio-url="https://fulcio-server-trusted-artifact-signer.${DOMAIN}" \
-  --rekor-url="https://rekor-server-trusted-artifact-signer.${DOMAIN}" \
-  --certificate-identity-regexp="^system:serviceaccount:${LAB_NS}:pipeline$" \
-  --certificate-oidc-issuer-regexp="https://kubernetes\.default\.svc.*" \
+  --rekor-url="${REKOR}" \
+  --certificate-identity-regexp="^https://kubernetes.io/namespaces/${LAB_NS}/serviceaccounts/pipeline$" \
+  --certificate-oidc-issuer="https://kubernetes.default.svc" \
+  --allow-http-registry --allow-insecure-registry \
   "${IMAGE_URL}"
 ----
 +
-If verify fails, capture the certificate identity from the sign Task logs / Rekor and adjust the regexp — do not invent alternate issuers without claim evidence.
+Claim-proven on `cluster-qzxrr` (`PipelineRun` `spring-boot-lw-poc-build-sign-s87f2`): Fulcio ClientID / projected SA audience `trusted-artifact-signer`, TUF initialize before sign, certificate identity `https://kubernetes.io/namespaces/<lab-ns>/serviceaccounts/pipeline` with issuer `https://kubernetes.default.svc`. If verify fails on another claim, capture the certificate identity from Rekor and adjust — do not invent alternate issuers without claim evidence.
 
 . Confirm the log line `Signed … (keyless / RHTAS)` on the PipelineRun.
 
