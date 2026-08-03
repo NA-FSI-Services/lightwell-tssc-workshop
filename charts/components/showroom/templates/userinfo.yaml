@@ -24,5 +24,5 @@ data:
   terminal_enabled: {{ .Values.showroom.terminal.enabled | quote }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
-  lab_entry: "Open showroom_url → Workshop home → Modules 1–5 in the left nav; terminal at /terminal/"
+  lab_entry: "Open showroom_url → split-screen Modules 1–5 + Terminal tab (ui-config.yml); direct /terminal/ also works"
 {{- end }}

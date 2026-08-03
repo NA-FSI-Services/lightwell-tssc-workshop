@@ -48,7 +48,7 @@ ConfigMap `demo-userinfo-showroom` exposes:
 
 ## Nookbag / zero-touch
 
-`nookbag.enabled` defaults to **`false`** (UPDATE-SPEC: unsupported for this catalog path). Leave off unless product explicitly requires a bundle.
+`nookbag.enabled` defaults to **`true`** so the ZT UI shell can load repo-root [`ui-config.yml`](../../../ui-config.yml) (split-screen lab + `/terminal/`). Leave LlamaStack / multi-user zero-touch automation out of scope — see [SHOWROOM-UPDATE-SPEC.md](../../../docs/SHOWROOM-UPDATE-SPEC.md).
 
 ## Local validation
 

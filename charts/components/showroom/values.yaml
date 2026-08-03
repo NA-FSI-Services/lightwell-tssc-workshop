@@ -21,10 +21,11 @@ showroom:
     antoraImage: "quay.io/rhpds/antora:v1.0.1"
     nginxImage: "quay.io/rhpds/nginx:1.25"
 
-  # UPDATE-SPEC: zero-touch/nookbag bundles intentionally unsupported for this catalog path
+  # ZT UI shell reads repo-root ui-config.yml for split-screen (lab + /terminal/).
+  # LlamaStack / multi-user zero-touch automation remain out of scope (UPDATE-SPEC).
   nookbag:
-    enabled: false
-    bundleUrl: "https://github.com/rhpds/nookbag/releases/download/nookbag-v0.2.1/nookbag-v0.2.1.zip"
+    enabled: true
+    bundleUrl: "https://github.com/rhpds/nookbag/releases/download/nookbag-v0.4.0/nookbag-v0.4.0.zip"
 
   terminal:
     enabled: true
