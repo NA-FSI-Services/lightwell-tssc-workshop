@@ -117,6 +117,12 @@ image::module-02-maven-profiles.png[Maven Validated and Remediated profiles,widt
 
 === Extract settings from the cluster
 
+[IMPORTANT]
+====
+Showroom terminal home (`/home/lab-user`) is often a root-owned *PersistentVolumeClaim (PVC)*.
+Write lab artifacts under `/tmp` (not `--to=.` while `pwd` is `/home/lab-user`).
+====
+
 . Confirm the artifact manager namespace is present:
 +
 [source,bash,role=execute]
@@ -124,13 +130,13 @@ image::module-02-maven-profiles.png[Maven Validated and Remediated profiles,widt
 oc -n lightwell-repo get configmap lightwell-maven-settings lightwell-channels
 ----
 
-. Extract `settings.xml` into your working directory:
+. Extract `settings.xml` into `/tmp` (writable):
 +
 [source,bash,role=execute]
 ----
 oc -n lightwell-repo extract configmap/lightwell-maven-settings \
-  --keys=settings.xml --to=. --confirm
-head -40 settings.xml
+  --keys=settings.xml --to=/tmp --confirm
+head -40 /tmp/settings.xml
 ----
 
 . Confirm channel mode (`seeded` or `proxy`):
@@ -225,7 +231,7 @@ mvn -v | head -2
 
 === Stage the PoC sources and Nexus URL
 
-The terminal home *PersistentVolumeClaim (PVC)* is often root-owned, so clone into `/tmp` and keep Maven’s local repository writable:
+Same as the settings extract above: clone into `/tmp` and keep Maven’s local repository writable:
 
 [source,bash,role=execute]
 ----
