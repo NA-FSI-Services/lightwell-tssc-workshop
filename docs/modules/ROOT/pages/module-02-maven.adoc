@@ -185,14 +185,7 @@ Stubs intentionally omit classes — they are for GAV / remote proofs, not for c
 The Remediated `commons-lang3` coordinate re-publishes the same ASL 2.0 binary under the `.rhlw-00001` exact-version suffix so you can practice pin flips without live LWN membership.
 ====
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-seed-experiments.png`
-
-Two-column diagram: Experiment A resolution stubs (`spring-core` + `dependency:get`) vs Experiment B compile-capable consumption (`commons-lang3` + `clean verify`), with Validated / Remediated and `.rhlw-*` labels.
-Asset instructions: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/92
-// When ready: image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption experiments,width=700]
-====
+image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption experiments,width=700]
 
 == Exercise 2: Validated stream (resolution + consumption)
 
