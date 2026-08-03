@@ -227,6 +227,8 @@ Before Module 4, confirm workshop *single sign-on (SSO)* is ready (Keycloak *ide
 ----
 oc -n sso get configmap demo-userinfo-keycloak \
   -o jsonpath='{.data.oidc_issuer}{"\n"}{.data.workshop_username}{"\n"}{.data.trustify_roles}{"\n"}'
+# Fresh claims: OIDC wait Job should be Complete before TPA UI login
+oc -n trusted-profile-analyzer get job rhtpa-oidc-wait 2>/dev/null || true
 ----
 
 You should see issuer `…/realms/tpa`, user `tpa-user`, and Trustify roles `chicken-user,chicken-manager,chicken-admin`. Password is in the same ConfigMap key `workshop_password` (Showroom / *Red Hat Demo Platform (RHDP)* userinfo). Module 4 uses these credentials to sign in to the TPA UI—no Keycloak Admin Console steps for learners.
