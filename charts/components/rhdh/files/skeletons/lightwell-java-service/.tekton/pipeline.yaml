@@ -31,7 +31,6 @@ spec:
   workspaces:
     - name: source
     - name: sbom
-      optional: true
   tasks:
     - name: clone
       taskRef:
