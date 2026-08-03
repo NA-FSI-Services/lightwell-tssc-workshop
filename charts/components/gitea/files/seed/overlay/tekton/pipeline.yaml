@@ -145,9 +145,22 @@ spec:
             type: string
           - name: rekor-url
             type: string
+        volumes:
+          # Audience must match Securesign Fulcio OIDC ClientID (trusted-artifact-signer)
+          - name: oidc-token
+            projected:
+              sources:
+                - serviceAccountToken:
+                    path: token
+                    expirationSeconds: 600
+                    audience: trusted-artifact-signer
         steps:
           - name: sign
             image: registry.redhat.io/rhtas/cosign-rhel9:1.3.0
+            volumeMounts:
+              - name: oidc-token
+                mountPath: /var/run/sigstore/cosign
+                readOnly: true
             env:
               - name: IMAGE
                 value: $(params.image)
@@ -158,10 +171,11 @@ spec:
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
-              TOKEN_FILE=/var/run/secrets/kubernetes.io/serviceaccount/token
+              TOKEN_FILE=/var/run/sigstore/cosign/token
               EXTRA=(
                 --identity-token="${TOKEN_FILE}"
                 --oidc-issuer=https://kubernetes.default.svc
+                --oidc-client-id=trusted-artifact-signer
                 --fulcio-auth-flow=token
                 --allow-http-registry
                 --allow-insecure-registry
