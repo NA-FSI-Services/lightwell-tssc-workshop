@@ -12,6 +12,8 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 | `module-01-control-decision.png` | — | Diagram (committed; product support / Hardened Images / Validated / Remediated) |
 | `module-02-direct-vs-proxy.png` | #51 | Diagram (committed) |
 | `module-02-maven-profiles.png` | #52 | Diagram (committed) |
+| `module-02-nexus-repos.png` | #53 | Screenshot (committed) |
+| `module-02-seed-experiments.png` | #92 | Diagram (committed) |
 | `module-03-osv-fixed-pin.png` | #55 | Diagram (committed) |
 | `module-03-source-diff.png` | #56 | Diagram (committed) |
 | `module-03-pom-rebuild.png` | #57 | Diagram (committed) |
