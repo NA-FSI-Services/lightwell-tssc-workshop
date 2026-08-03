@@ -249,31 +249,44 @@ export MVN_LOCAL='-Dmaven.repo.local=/tmp/m2'
 
 Confirm `pom.xml` and `settings.xml` are at the clone root (`ls pom.xml settings.xml`). For ConfigMap-extracted settings that already embed the Nexus URL, you can skip `LIGHTWELL_NEXUS_URL`. Keep using `$MVN_LOCAL` on every `mvn` invocation in this module.
 
+[TIP]
+====
+Maven can print hundreds of lines. In the Showroom split terminal, redirect to a log under `/tmp` and `grep` for the proof lines (`BUILD SUCCESS`, `Downloading from lightwell-java-*`) so the teaching beat fits the buffer.
+====
+
 === Experiment A — resolve a Validated GAV
 
-Prove Nexus serves the seeded Validated coordinate (watch for `Downloading from lightwell-java-validated`):
+Prove Nexus serves the seeded Validated coordinate (look for `Downloading from lightwell-java-validated` in the log):
 
 [source,bash,role=execute]
 ----
 mvn $MVN_LOCAL -s settings.xml dependency:get \
   -Dartifact=org.springframework:spring-core:5.3.18 \
-  -Plightwell-validated
+  -Plightwell-validated \
+  > /tmp/mvn-dep-get-validated.log 2>&1
+
+grep -E 'Downloading from lightwell-java-validated|Downloaded from lightwell-java-validated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-dep-get-validated.log
 ----
 
-Expected: `BUILD SUCCESS` with download from `lightwell-java-validated` (stub JAR is enough for this step).
+Expected: `BUILD SUCCESS` and at least one download line from `lightwell-java-validated` (stub JAR is enough for this step). Full output stays in `/tmp/mvn-dep-get-validated.log` if you need to inspect further.
 
 === Experiment B — build the PoC from Validated
 
 [source,bash,role=execute]
 ----
-mvn $MVN_LOCAL -s settings.xml -Plightwell-validated clean verify
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated clean verify \
+  > /tmp/mvn-verify-validated.log 2>&1
+
+grep -E 'commons-lang3|Downloading from lightwell-java-validated|Downloaded from lightwell-java-validated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-verify-validated.log
 ----
 
-Expected outcomes:
+Expected outcomes (from the `grep` slice):
 
 * `commons-lang3:3.14.0` downloads from `lightwell-java-validated` (compile-capable seed)
-* Other Spring Boot deps may still fall back to Maven Central
 * `BUILD SUCCESS` (tests pass)
+* Other Spring Boot deps may still fall back to Maven Central (visible in the full log if you search for `central`)
 
 == Exercise 3: Remediated stream (resolution + consumption)
 
@@ -287,10 +300,14 @@ Stay in the PoC app directory from Exercise 2 (`/tmp/spring-boot-lw-poc`) with `
 ----
 mvn $MVN_LOCAL -s settings.xml dependency:get \
   -Dartifact=org.springframework:spring-core:5.3.18.rhlw-00003 \
-  -Plightwell-remediated
+  -Plightwell-remediated \
+  > /tmp/mvn-dep-get-remediated.log 2>&1
+
+grep -E 'Downloading from lightwell-java-remediated|Downloaded from lightwell-java-remediated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-dep-get-remediated.log
 ----
 
-Expected: download from `lightwell-java-remediated` (resolution stub).
+Expected: download from `lightwell-java-remediated` (resolution stub) and `BUILD SUCCESS`.
 
 === Experiment B — build with Remediated pins
 
@@ -300,7 +317,11 @@ This combination selects the Remediated *repository* and the POM pin `3.14.0.rhl
 ----
 mvn $MVN_LOCAL -s settings.xml \
   -Plightwell-remediated,lightwell-remediated-pins \
-  clean verify
+  clean verify \
+  > /tmp/mvn-verify-remediated.log 2>&1
+
+grep -E 'commons-lang3|Downloading from lightwell-java-remediated|Downloaded from lightwell-java-remediated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-verify-remediated.log
 ----
 
 Expected: `commons-lang3:3.14.0.rhlw-00001` resolves from Nexus and `BUILD SUCCESS`.
@@ -311,10 +332,14 @@ Optional contrast — fetch the remediated pin from Nexus (exists only under `.r
 ----
 mvn $MVN_LOCAL -s settings.xml dependency:get \
   -Dartifact=org.apache.commons:commons-lang3:3.14.0.rhlw-00001 \
-  -Plightwell-remediated
+  -Plightwell-remediated \
+  > /tmp/mvn-dep-get-commons-lang3-remediated.log 2>&1
+
+grep -E 'Downloading from lightwell-java-remediated|Downloaded from lightwell-java-remediated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-dep-get-commons-lang3-remediated.log
 ----
 
-Expect `Downloaded from lightwell-java-remediated`. The same GAV is absent from Maven Central.
+Expect `Downloaded from lightwell-java-remediated` (or `Downloading from …`) and `BUILD SUCCESS`. The same GAV is absent from Maven Central.
 
 == Direct `packages.redhat.com` pattern (field reference)
 
