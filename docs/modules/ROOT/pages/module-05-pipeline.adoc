@@ -328,6 +328,7 @@ oc apply -f .tekton/pipeline.yaml
 DOMAIN="$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')"
 FULCIO="https://fulcio-server-trusted-artifact-signer.${DOMAIN}"
 REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
+TUF="https://tuf-trusted-artifact-signer.${DOMAIN}"
 IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boot-lw-poc:latest"
 
 # Edit generateName run — prefer a one-shot create from the example file:
@@ -336,6 +337,7 @@ sed \
   -e "s|<lab-namespace>|${LAB_NS}|g" \
   -e "s|https://fulcio-server-trusted-artifact-signer.apps.<domain>|${FULCIO}|" \
   -e "s|https://rekor-server-trusted-artifact-signer.apps.<domain>|${REKOR}|" \
+  -e "s|https://tuf-trusted-artifact-signer.apps.<domain>|${TUF}|" \
   .tekton/pipelinerun.yaml | oc -n "${LAB_NS}" create -f -
 
 tkn -n "${LAB_NS}" pipelinerun list

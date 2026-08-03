@@ -28,6 +28,10 @@ spec:
     - name: cosign-rekor-url
       type: string
       default: ""
+    - name: cosign-tuf-url
+      type: string
+      default: ""
+      description: TUF root/mirror URL from RHTAS
   workspaces:
     - name: source
     - name: sbom
@@ -139,7 +143,10 @@ spec:
             type: string
           - name: rekor-url
             type: string
+          - name: tuf-url
+            type: string
         volumes:
+          # Audience must match Securesign Fulcio OIDC ClientID (trusted-artifact-signer)
           - name: oidc-token
             projected:
               sources:
@@ -161,9 +168,16 @@ spec:
                 value: $(params.fulcio-url)
               - name: REKOR_URL
                 value: $(params.rekor-url)
+              - name: TUF_URL
+                value: $(params.tuf-url)
+              - name: HOME
+                value: /tmp
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
+              if [[ -n "${TUF_URL}" ]]; then
+                cosign initialize --mirror="${TUF_URL}" --root="${TUF_URL}/root.json"
+              fi
               TOKEN_FILE=/var/run/sigstore/cosign/token
               EXTRA=(
                 --identity-token="${TOKEN_FILE}"
@@ -188,3 +202,5 @@ spec:
           value: $(params.cosign-fulcio-url)
         - name: rekor-url
           value: $(params.cosign-rekor-url)
+        - name: tuf-url
+          value: $(params.cosign-tuf-url)

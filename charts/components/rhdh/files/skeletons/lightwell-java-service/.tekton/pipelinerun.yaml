@@ -21,6 +21,8 @@ spec:
       value: https://fulcio-server-trusted-artifact-signer.apps.<domain>
     - name: cosign-rekor-url
       value: https://rekor-server-trusted-artifact-signer.apps.<domain>
+    - name: cosign-tuf-url
+      value: https://tuf-trusted-artifact-signer.apps.<domain>
   workspaces:
     - name: source
       volumeClaimTemplate:
