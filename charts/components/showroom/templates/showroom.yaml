@@ -238,6 +238,9 @@ spec:
           value: {{ .Values.showroom.nookbag.bundleUrl | quote }}
         - name: ZT_UI_ENABLED
           value: "true"
+        # Empty → content image loads ui-config.yml from the cloned workshop repo root
+        - name: SHOWROOM_UI_CONFIG
+          value: ""
         - name: GUID
           value: {{ .Values.showroom.namespace | quote }}
         {{- end }}

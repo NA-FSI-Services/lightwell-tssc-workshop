@@ -29,6 +29,7 @@ REQUIRED_MODULES=(
   module-05-pipeline.adoc
   index.adoc
   appendix-lightwell-concepts.adoc
+  appendix-acronyms.adoc
   rhda-shift-left.adoc
   appendix-osv-manifest-polling.adoc
 )
@@ -42,12 +43,12 @@ has_line() {
   grep -qE "${pattern}" "${file}"
 }
 
-nookbag_disabled_in() {
-  # True if a nookbag: block is followed (within 6 lines) by enabled: false
+nookbag_enabled_in() {
+  # True if a nookbag: block is followed (within 6 lines) by enabled: true
   local file="$1" lineno
   while IFS=: read -r lineno _; do
     [[ -z "${lineno}" ]] && continue
-    if sed -n "${lineno},$((lineno + 6))p" "${file}" | grep -qE '^[[:space:]]+enabled:[[:space:]]*false[[:space:]]*$'; then
+    if sed -n "${lineno},$((lineno + 6))p" "${file}" | grep -qE '^[[:space:]]+enabled:[[:space:]]*true[[:space:]]*$'; then
       return 0
     fi
   done < <(grep -nE '^[[:space:]]*nookbag:[[:space:]]*$' "${file}" || true)
@@ -59,7 +60,7 @@ if [[ "$#" -gt 0 ]]; then
   relevant=0
   for f in "$@"; do
     case "$f" in
-      charts/components/showroom/*|charts/root-app/values.yaml|charts/root-app/templates/applications.yaml|site.yml|site-ci.yml|docs/*|scripts/showroom-check.sh|docs/SHOWROOM-UPDATE-SPEC.md)
+      charts/components/showroom/*|charts/root-app/values.yaml|charts/root-app/templates/applications.yaml|site.yml|site-ci.yml|ui-config.yml|docs/*|scripts/showroom-check.sh|docs/SHOWROOM-UPDATE-SPEC.md)
         relevant=1
         break
         ;;
@@ -74,9 +75,15 @@ fi
 ok "validating Showroom ↔ content contract"
 
 [[ -f "${SITE_YML}" ]] || err "missing ${SITE_YML} (Showroom antoraPlaybook)"
+[[ -f "ui-config.yml" ]] || err "missing ui-config.yml (Showroom split-screen tabs)"
 [[ -d "${SHOWROOM_CHART}" ]] || err "missing ${SHOWROOM_CHART}"
 [[ -f "${SHOWROOM_VALUES}" ]] || err "missing ${SHOWROOM_VALUES}"
 [[ -f "${ROOT_VALUES}" ]] || err "missing ${ROOT_VALUES}"
+
+has_line "ui-config.yml" 'default_mode:[[:space:]]*split' \
+  || err "ui-config.yml: view_switcher.default_mode must be split"
+has_line "ui-config.yml" 'path:[[:space:]]*/terminal/' \
+  || err "ui-config.yml: Terminal tab must use path: /terminal/"
 
 # --- Child chart values ---
 if [[ -f "${SHOWROOM_VALUES}" ]]; then
@@ -88,9 +95,11 @@ if [[ -f "${SHOWROOM_VALUES}" ]]; then
     || err "${SHOWROOM_VALUES}: content.image must be ${EXPECTED_CONTENT_IMAGE} (SHOWROOM-UPDATE-SPEC)"
   grep -qF "${EXPECTED_TERMINAL_IMAGE}" "${SHOWROOM_VALUES}" \
     || err "${SHOWROOM_VALUES}: terminal.image must be ${EXPECTED_TERMINAL_IMAGE} (SHOWROOM-UPDATE-SPEC)"
-  if ! nookbag_disabled_in "${SHOWROOM_VALUES}"; then
-    err "${SHOWROOM_VALUES}: showroom.nookbag.enabled must be false (UPDATE-SPEC)"
+  if ! nookbag_enabled_in "${SHOWROOM_VALUES}"; then
+    err "${SHOWROOM_VALUES}: showroom.nookbag.enabled must be true (ZT UI shell for ui-config.yml split-screen)"
   fi
+  grep -qF "nookbag-v0.4.0" "${SHOWROOM_VALUES}" \
+    || err "${SHOWROOM_VALUES}: nookbag.bundleUrl must be nookbag-v0.4.0+ (ui-config tabs)"
 fi
 
 # --- root-app values (passed into ArgoCD Application) ---
@@ -99,8 +108,8 @@ if [[ -f "${ROOT_VALUES}" ]]; then
     || err "${ROOT_VALUES}: components.showroom.content.antoraPlaybook must be ${EXPECTED_PLAYBOOK}"
   grep -qF "${EXPECTED_CONTENT_IMAGE}" "${ROOT_VALUES}" \
     || err "${ROOT_VALUES}: components.showroom.content.image must be ${EXPECTED_CONTENT_IMAGE}"
-  if ! nookbag_disabled_in "${ROOT_VALUES}"; then
-    err "${ROOT_VALUES}: components.showroom.nookbag.enabled must be false"
+  if ! nookbag_enabled_in "${ROOT_VALUES}"; then
+    err "${ROOT_VALUES}: components.showroom.nookbag.enabled must be true"
   fi
 fi
 
@@ -129,9 +138,10 @@ if command -v helm >/dev/null 2>&1; then
       || err "rendered userinfo missing showroom_url https://showroom.${DEPLOYER_DOMAIN}"
     grep -qE "value:[[:space:]]*\"?${EXPECTED_PLAYBOOK}\"?" "${render}" \
       || err "Deployment must set ANTORA_* env to ${EXPECTED_PLAYBOOK}"
-    if grep -qE 'ZT_BUNDLE|ZT_UI_ENABLED' "${render}"; then
-      err "nookbag env vars present in render but nookbag must be disabled"
-    fi
+    grep -qE 'ZT_UI_ENABLED' "${render}" \
+      || err "ZT_UI_ENABLED must be present when nookbag/ZT UI shell is enabled"
+    grep -qE 'SHOWROOM_UI_CONFIG' "${render}" \
+      || err "SHOWROOM_UI_CONFIG must be present for ui-config.yml split-screen"
     grep -q 'demo.redhat.com/application: "lightwell-tssc-workshop"' "${render}" \
       || err "rendered manifests must label demo.redhat.com/application: lightwell-tssc-workshop"
     ok "helm template assertions OK (domain=${DEPLOYER_DOMAIN})"
@@ -145,8 +155,8 @@ if command -v helm >/dev/null 2>&1; then
   else
     grep -qE "antoraPlaybook:[[:space:]]*\"${EXPECTED_PLAYBOOK}\"" "${root_render}" \
       || err "root-app Application valuesObject missing antoraPlaybook: \"${EXPECTED_PLAYBOOK}\""
-    if ! grep -A5 -E 'nookbag:' "${root_render}" | grep -qE 'enabled:[[:space:]]*false'; then
-      err "root-app Application valuesObject must set nookbag.enabled: false"
+    if ! grep -A5 -E 'nookbag:' "${root_render}" | grep -qE 'enabled:[[:space:]]*true'; then
+      err "root-app Application valuesObject must set nookbag.enabled: true"
     fi
     ok "root-app Showroom Application assertions OK"
   fi

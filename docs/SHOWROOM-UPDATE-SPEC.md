@@ -120,7 +120,9 @@ On cluster:
 These upstream features are intentionally unsupported:
 
 - Multi-user deployments (only single-user mode)
-- Wetty terminal (only showroom terminal)
+- Wetty terminal (only showroom terminal proxied at `/terminal/`)
 - noVNC client
-- Zero-touch/nookbag bundles
+- LlamaStack / zero-touch *automation* playbooks (solve/validate runners)
 - agnosticd.core integration (user data passed directly)
+
+**Supported for this workshop:** repo-root [`ui-config.yml`](../ui-config.yml) plus the nookbag **ZT UI shell** (`nookbag.enabled: true`, bundle `nookbag-v0.4.0+`) so Showroom renders split-screen lab guide + Terminal tab.

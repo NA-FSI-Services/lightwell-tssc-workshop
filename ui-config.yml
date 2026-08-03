@@ -1,0 +1,22 @@
+---
+# RHDP Showroom split-screen layout (lab guide + proxied terminal).
+# Consumed by showroom-content when ZT_UI_ENABLED=true (nookbag UI shell).
+# Terminal is nginx-proxied at /terminal/ → showroom terminal container :7681.
+type: showroom
+
+default_width: 35
+persist_url_state: true
+
+view_switcher:
+  enabled: true
+  default_mode: split
+
+antora:
+  name: modules
+
+tabs:
+  - name: Terminal
+    path: /terminal/
+
+  - name: OpenShift Console
+    url: "https://console-openshift-console.${DOMAIN}"
