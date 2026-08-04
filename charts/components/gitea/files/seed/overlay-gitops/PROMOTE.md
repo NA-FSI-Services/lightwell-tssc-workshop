@@ -7,7 +7,7 @@ After a successful signed build in your **lab** namespace:
 3. Edit `values.yaml`:
    - set `image.digest` to that digest (include the `sha256:` prefix)
    - set `replicas: 1`
-4. Commit and push to **this** Gitea gitops remote (not GitHub).
+4. Commit and push to **this** Gitea gitops remote.
 5. Confirm Argo CD Application Synced/Healthy and open the Route.
 
 Do not put Maven credentials or registry tokens in this repository.

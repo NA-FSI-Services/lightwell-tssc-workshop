@@ -272,7 +272,7 @@ With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtp
 
 RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived private keys in the workshop.
 
-This exercise uses your **Gitea** student repository (path-isolated app + `.tekton/` overlay). Do **not** clone GitHub for the app remote. Image build uses an OpenShift **BuildConfig** (Dockerfile multi-stage; Maven Central inside the image build). Tekton runs dep-gate → build → ACS → SBOM → cosign. The image stays in your **learner lab namespace** — Exercise 4 promotes it into your product namespace via the Gitea **gitops** remote.
+This exercise uses your **Gitea** student repository (path-isolated app + `.tekton/` overlay) from `student_repo_url`. Image build uses an OpenShift **BuildConfig** (Dockerfile multi-stage; Maven Central inside the image build). Tekton runs dep-gate → build → ACS → SBOM → cosign. The image stays in your **learner lab namespace** — Exercise 4 promotes it into your product namespace via the Gitea **gitops** remote.
 
 IMPORTANT: Needs OpenShift Pipelines from chart `pipelines` (`git-clone` and Tekton CRDs), RHACS Tasks in `stackrox`, Job `rhacs-ci-token-mint` for a real `acs-image-check`, and pull access to `registry.redhat.io/rhtas/cosign-rhel9` for the sign step. Soft-skip of `acs-image-check` only if the CI token Secret is empty — confirm the Job first.
 
@@ -399,7 +399,7 @@ image::module-05-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700
 [TIP]
 ====
 Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF components for RHDP email/Showroom links.
-Optional advanced path: RHDH Software Template `lightwell-java-service` can scaffold a similar tree, but remotes must still target **Gitea**, not GitHub.
+Optional advanced path: RHDH Software Template `lightwell-java-service` can scaffold a similar tree; scaffolded remotes must still use your Gitea `student_repo_url`.
 ====
 
 == Exercise 4: GitOps promotion (Argo CD)
@@ -408,12 +408,12 @@ Promotion means: tag the signed lab image into your **product** namespace, commi
 
 [NOTE]
 ====
-You have **two** Gitea remotes (never GitHub):
+You have **two** Gitea remotes (from ConfigMap `demo-userinfo-gitea`):
 
 * `student_repo_url` — application source + `.tekton/` (Exercises 1–3)
 * `student_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD ApplicationSet syncs this into `student_promote_namespace` (`lw-poc-<username>`)
 
-The workshop monorepo Application for `spring-boot-lw-poc` stays **disabled**. Runtime desired state is your Gitea gitops repo.
+Runtime desired state for the promoted app is your Gitea gitops repo (`student_gitops_repo_url`).
 ====
 
 . Discover promote coordinates from userinfo:

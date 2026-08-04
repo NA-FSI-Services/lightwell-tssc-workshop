@@ -1,5 +1,5 @@
 # Example PipelineRun — edit repo-url / image-url / Fulcio / Rekor for your claim.
-# repo-url MUST be your Gitea student remote (demo-userinfo-gitea), never GitHub.
+# repo-url MUST be your Gitea student remote (demo-userinfo-gitea → student_repo_url).
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:

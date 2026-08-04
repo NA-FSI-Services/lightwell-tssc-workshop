@@ -3,8 +3,8 @@
 Scaffolded by the Lightwell TSSC RHDH Software Template (**optional** advanced path).
 
 For Module 5 Ex3, prefer the **Gitea-seeded** `spring-boot-lw-poc` student repository
-from `demo-userinfo-gitea`. If you use this template, push to **Gitea** — do not use
-GitHub as the learner remote.
+from `demo-userinfo-gitea`. If you use this template, push scaffolds to your Gitea
+`student_repo_url` (or the URL the template writes into Gitea).
 
 ## Local Maven (optional)
 

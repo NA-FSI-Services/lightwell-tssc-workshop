@@ -205,7 +205,7 @@ On a machine with Red Hat membership (instructor demo), open {lightwell-console-
 *Image placeholder* — intended file: `docs/modules/ROOT/images/module-01-lightwell-console.png`
 
 Orientation screenshot of the Lightwell console (Validated / Remediated browsing). Redact account PII.
-Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49
+// Asset backlog: workshop issue #49 (screenshot steps for authors)
 // When ready: image::module-01-lightwell-console.png[Lightwell console orientation,width=700]
 ====
 
