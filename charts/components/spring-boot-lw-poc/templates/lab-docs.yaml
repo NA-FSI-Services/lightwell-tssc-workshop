@@ -14,25 +14,28 @@ data:
   COMMANDS.md: |
     # spring-boot-lw-poc — learner commands
 
-    Sources: `charts/components/spring-boot-lw-poc/app`
+    Sources: Gitea `student_repo_url` (`spring-boot-lw-poc`; `pom.xml` at clone root).
+    Do not clone the workshop GitHub monorepo for app labs.
 
     ## Build / test (Validated stream)
 
     ```bash
-    cd charts/components/spring-boot-lw-poc/app
+    # From Showroom terminal after: git clone "${STUDENT_REPO_URL}" /tmp/spring-boot-lw-poc
+    cd /tmp/spring-boot-lw-poc
     export LIGHTWELL_NEXUS_URL=https://nexus-lightwell-repo.{{ .Values.deployer.domain | default "apps.cluster.example.com" }}
     # Optional for live LWN / Nexus auth (never commit):
     # export LW_USERNAME=... LW_PASSWORD=...
-    mvn -s settings.xml -Plightwell-validated clean verify
-    mvn -s settings.xml -Plightwell-validated dependency:tree
-    mvn -s settings.xml -Plightwell-validated spring-boot:run
+    export MVN_LOCAL=-Dmaven.repo.local=/tmp/m2
+    mvn $MVN_LOCAL -s settings.xml -Plightwell-validated clean verify
+    mvn $MVN_LOCAL -s settings.xml -Plightwell-validated dependency:tree
+    mvn $MVN_LOCAL -s settings.xml -Plightwell-validated spring-boot:run
     ```
 
     ## Remediated exact-version pins (`.rhlw-*`)
 
     ```bash
-    mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
-    mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins dependency:tree
+    mvn $MVN_LOCAL -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
+    mvn $MVN_LOCAL -s settings.xml -Plightwell-remediated,lightwell-remediated-pins dependency:tree
     ```
 
     Example pin in `pom.xml` profile `lightwell-remediated-pins`:

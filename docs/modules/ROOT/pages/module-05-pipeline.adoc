@@ -252,6 +252,18 @@ With the token present, re-run the PipelineRun and confirm `acs-image-check` `ch
 if the secret is empty so the dep-gate narrative can continue—treat a skip as a provisioning gap,
 not the happy path.
 
+[TIP]
+====
+On a *fresh* claim, RHACS Scanner V4 may still be loading its vulnerability store when you create the
+pass PipelineRun. `acs-image-check` can then fail with `matcher is not initialized` / `initial load
+… in progress` even though the CI token is present and `lightwell-dep-gate` already passed.
+That is a timing gap, not a bad pin.
+
+Wait a few minutes (or until Central / Scanner pods look Ready), then re-create the pass PipelineRun.
+Treat `gate-status=passed` as the Exercise 2 teaching beat; expect a clean ACS result on the
+Exercise 3 app image once the matcher is ready.
+====
+
 === SBOM handoff
 
 With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtpa` uploads CycloneDX. Otherwise upload the workspace SBOM via the RHTPA UI (Module 4).
@@ -482,11 +494,16 @@ git push "https://${STUDENT_USER}:${STUDENT_PASS}@${GITOPS_REPO_URL#https://}" H
 +
 [source,bash,role=execute]
 ----
+# Force Argo to re-read the Gitea gitops tip if status looks stale after push
+oc -n openshift-gitops annotate applications.argoproj.io/${ARGO_APP} \
+  argocd.argoproj.io/refresh=hard --overwrite
+
 oc -n openshift-gitops wait --for=jsonpath='{.status.sync.status}'=Synced \
   "applications.argoproj.io/${ARGO_APP}" --timeout=180s || true
 oc -n openshift-gitops get applications.argoproj.io "${ARGO_APP}" \
   -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
 
+# Expect replicas=1 and image …@sha256:… after the promote commit syncs
 oc -n "${PROMOTE_NS}" get deploy,pods,route
 ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route spring-boot-lw-poc \
   -o jsonpath='{.spec.host}')"
@@ -497,7 +514,12 @@ image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
 
 [TIP]
 ====
-If the Application stays `Unknown` / clone errors right after seed, wait for the Gitea gitops repo to finish seeding, then `oc -n openshift-gitops annotate applications.argoproj.io/${ARGO_APP} argocd.argoproj.io/refresh=hard --overwrite`.
+Automated sync can lag briefly after `git push` to Gitea — Argo may still show `Synced` /
+`Healthy` on the *previous* revision (`replicas: 0`, empty digest) until it polls again.
+A hard refresh (command above) usually picks up the promote commit within a minute.
+
+If the Application stays `Unknown` / clone errors *right after seed*, wait for the Gitea gitops
+repo to finish seeding, then hard-refresh the same way.
 ====
 
 == End-to-end checklist

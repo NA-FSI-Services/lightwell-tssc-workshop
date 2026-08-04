@@ -138,9 +138,25 @@ ls -la target/*.jar
 
 . Generate CycloneDX JSON with `syft` (preferred — matches pipeline Task `syft-sbom-rhtpa`):
 +
+[NOTE]
+====
+Stock Showroom terminals often ship *without* `syft` on `PATH`, and without `podman` / `docker`.
+Install a pinned binary under `/tmp` (writable home), then use that `syft` for this exercise:
+====
++
 [source,bash,role=execute]
 ----
-# If syft is on PATH:
+# Install syft once per terminal session (Showroom-friendly; uses /tmp)
+mkdir -p /tmp/bin
+curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+  | sh -s -- -b /tmp/bin v1.18.1
+export PATH="/tmp/bin:$PATH"
+syft version
+----
++
+[source,bash,role=execute]
+----
+# If syft is already on PATH (or after the install above):
 syft packages "dir:target" -o cyclonedx-json > sbom.cyclonedx.json
 
 # Or scan the executable/boot JAR explicitly:
@@ -150,9 +166,9 @@ ls -la sbom.cyclonedx.json
 head -c 400 sbom.cyclonedx.json; echo
 ----
 
-. If `syft` is not installed in Showroom, run the published image (same family as the Tekton Task):
+. Optional — if you have `podman` or `docker` on a laptop (not typical in Showroom), run the published image (same family as the Tekton Task):
 +
-[source,bash,role=execute]
+[source,bash]
 ----
 podman run --rm -v "$PWD:/work:z" -w /work \
   ghcr.io/anchore/syft:v1.18.1 \

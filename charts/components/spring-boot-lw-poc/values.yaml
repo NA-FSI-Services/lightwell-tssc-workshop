@@ -55,9 +55,11 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Spring Boot LWN PoC"
   instructions: >-
-    Primary learner app. Build with mvn -s settings.xml -Plightwell-validated clean verify
-    from charts/components/spring-boot-lw-poc/app. Open the Route for /api/greeting and
-    /swagger-ui.html. Use -Plightwell-remediated,lightwell-remediated-pins for .rhlw-* pins.
+    Primary learner app. Clone student_repo_url from demo-userinfo-gitea (Gitea
+    spring-boot-lw-poc; pom.xml at repo root). Build with
+    mvn -s settings.xml -Plightwell-validated clean verify. Open the Route for
+    /api/greeting and /swagger-ui.html. Use
+    -Plightwell-remediated,lightwell-remediated-pins for .rhlw-* pins.
 
 deployer:
   domain: ""
