@@ -23,8 +23,8 @@ without committing secrets.
 | Username | `user1` (`WORKSHOP_USER`, default) |
 | Password | Random alphanumeric (`WORKSHOP_USER_PASSWORD`) if unset |
 | Student list | **Only** this user — do not seed a second Gitea student for QA |
-| App repo | `https://gitea.<domain>/user1/spring-boot-lw-poc.git` |
-| GitOps repo | `https://gitea.<domain>/user1/gitops-spring-boot-lw-poc.git` |
+| App repo | `https://gitea.<domain>/lw-user1/spring-boot-lw-poc.git` |
+| GitOps repo | `https://gitea.<domain>/lw-user1/gitops-spring-boot-lw-poc.git` |
 | Promote NS / Argo app | `lw-poc-user1` |
 
 After Gitea sync, the same credentials appear in ConfigMap `demo-userinfo-gitea`

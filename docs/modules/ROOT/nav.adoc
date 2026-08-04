@@ -3,9 +3,10 @@
 .Labs
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]
-* xref:module-03-osv.adoc[Module 3 — OSV triage + .rhlw-* pins]
-* xref:module-04-sbom.adoc[Module 4 — SBOM + RHTPA]
-* xref:module-05-pipeline.adoc[Module 5 — Sign, policy, GitOps]
+* xref:module-03-scaffold.adoc[Module 3 — Scaffold with Developer Hub]
+* xref:module-04-osv.adoc[Module 4 — OSV triage + .rhlw-* pins]
+* xref:module-05-sbom.adoc[Module 5 — SBOM + RHTPA]
+* xref:module-06-pipeline.adoc[Module 6 — Sign, policy, GitOps]
 
 .Appendix
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)]

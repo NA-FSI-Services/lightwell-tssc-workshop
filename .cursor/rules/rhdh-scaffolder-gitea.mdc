@@ -1,0 +1,13 @@
+---
+description: RHDH scaffolder — publish to learner Gitea org; skeleton from workshop-templates when possible
+globs: charts/components/rhdh/**/*
+alwaysApply: false
+---
+# RHDH Software Template / scaffolder
+
+- `publish:gitea` owner = learner org `lw-<studentUsername>` (Organization required upstream).
+- Repo name fixed: `spring-boot-lw-poc` (matches `student_repo_url`).
+- Prefer `fetch:template` from in-cluster Gitea **`workshop-templates/lightwell-java-service`** (host via `GITEA_HOST_PLACEHOLDER`), not the GitHub monorepo path, once that template repo is seeded.
+- Skeleton `.tekton/pipelinerun.yaml`: `STUDENT_REPO_URL_PLACEHOLDER` — no `lw-user1`.
+- Do not document GitHub as the learner publish or clone target in template output text.
+- Scaffolder credentials (`giteaIntegration`) must be able to create repos under learner orgs (seed script adds `gitea-admin` to org Owners).

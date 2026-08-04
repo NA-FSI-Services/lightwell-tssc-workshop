@@ -1,6 +1,6 @@
 {{- if and .Values.rhdh.enabled .Values.dynamicPlugins.enabled }}
 ---
-# Minimal dynamic plugins config (RHADS enables ArgoCD/Tekton plugins later).
+# Enable scaffolder Gitea publish for Module 3 (issue #120). Other plugins stay on defaults.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,5 +14,7 @@ data:
   dynamic-plugins.yaml: |
     includes:
       - dynamic-plugins.default.yaml
-    plugins: []
+    plugins:
+      - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-gitea-dynamic
+        disabled: false
 {{- end }}

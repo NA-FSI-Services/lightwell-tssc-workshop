@@ -1,17 +1,42 @@
 ---
-description: Learner Git must use Gitea spring-boot-lw-poc — never the workshop GitHub monorepo
+description: Learner Git — workshop-templates + learner orgs; never GitHub for students
 alwaysApply: true
 ---
+# Learner Git — Gitea decision (authoritative)
 
-# Learner Git — Gitea only
+When authoring or editing Showroom labs, Software Templates, PipelineRuns, seed overlays, or learner scripts:
 
-When authoring or editing Showroom labs, Software Templates, PipelineRuns, or copy-paste learner steps:
+## Decision (must follow)
 
-- **Never** instruct students to `git clone https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` (or any GitHub fork of this monorepo).
+1. **Lab / GitOps install starts Gitea** and creates student **user accounts** only (not per-user app repos).
+2. **Operator seed** publishes a **public** org **`workshop-templates`** with **public** repos learners and scripts may clone (monorepo isolation — operators may clone GitHub; students never do).
+3. **Learners** create their own org **`lw-<username>`** and empty repos, then seed from `workshop-templates` (Module 2 / `learner-seed-from-templates.sh`).
+4. **Username-specific URLs** belong in **workshop steps** (ConfigMap `demo-userinfo-gitea`, Showroom `@@LW_USER@@`, `sed` / env substitution) — **never** hardcode `user1`, `lw-user1`, or catalog-only names in seeded trees.
+
+## Hard bans (learner-facing)
+
+- **Never** instruct students to `git clone` / fork / push `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` (or any GitHub fork of this monorepo).
 - **Never** ask learners to `cd charts/components/spring-boot-lw-poc/app` inside a monorepo checkout.
-- **Do** use ConfigMap `demo-userinfo-gitea` fields: `student_repo_url`, `student_username`, `student_password`, `student_gitops_repo_url`.
-- Default learner **application** remote is Gitea repo **`spring-boot-lw-poc`** (`pom.xml` at clone root). Clone destination convention: `/tmp/spring-boot-lw-poc`.
-- The Gitea seed Job isolates monorepo `charts/components/spring-boot-lw-poc/app` (plus `tools/osv-eval/` and `.tekton/` overlay) into that student repo — operators clone GitHub; students do not.
-- GitOps promote uses `student_gitops_repo_url` (`gitops-spring-boot-lw-poc`), not the monorepo.
+- **Never** hardcode `lw-user1`, `user1/spring-boot-lw-poc`, or claim-specific hosts in seed overlays, `.tekton` examples, or Software Template defaults meant for all learners.
+- **Never** put the GitHub monorepo URL in PipelineRun `repo-url`, copy-paste clone steps, or RHDH publish targets aimed at students.
 
-See `AGENTS.md` (**Learner Git — Gitea first**) and `charts/components/gitea/README.md`.
+## Required patterns
+
+| Concern | Pattern |
+|---------|---------|
+| Template org | `workshop-templates` (`template_app_repo_url`, `template_gitops_repo_url`) |
+| Learner org | `lw-<username>` (`student_gitea_org`) |
+| App repo | `lw-<user>/spring-boot-lw-poc` → `student_repo_url` |
+| GitOps repo | `lw-<user>/gitops-spring-boot-lw-poc` → `student_gitops_repo_url` |
+| PipelineRun repo-url | `STUDENT_REPO_URL_PLACEHOLDER` → Module 6 substitutes `student_repo_url` |
+| Clone dest | `/tmp/spring-boot-lw-poc` (`pom.xml` at root) |
+
+Use ConfigMap `demo-userinfo-gitea`: `gitea_url`, `student_gitea_org`, `student_username`, `student_password`, `student_repo_url`, `student_gitops_repo_url`, `template_*`.
+
+RHDH `publish:gitea` **requires** a Gitea Organization — owner is `lw-<username>`, not a normal user account.
+
+## Operator-only (OK)
+
+GitHub monorepo URLs are allowed in: root-app / AgnosticV GitOps, Gitea seed Job `SOURCE_REPO_URL`, Showroom content sync, Chart.yaml `home`, agent docs telling operators what **not** to give students.
+
+See `AGENTS.md` (**Learner Git — Gitea first**), `charts/components/gitea/README.md`, issue #120.

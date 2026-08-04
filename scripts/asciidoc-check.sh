@@ -136,4 +136,8 @@ if [[ "${failed}" -ne 0 ]]; then
 fi
 
 echo "asciidoc-check: OK"
+
+# Gitea learner-Git decision (#120) — also run standalone: scripts/learner-git-check.sh
+"${ROOT}/scripts/learner-git-check.sh"
+
 exit 0

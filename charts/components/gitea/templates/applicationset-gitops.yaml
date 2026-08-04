@@ -30,7 +30,7 @@ spec:
     spec:
       project: {{ .Values.gitopsAppSet.project | quote }}
       source:
-        repoURL: '{{ $giteaUrl }}/{{`{{username}}`}}/{{ .Values.seed.gitops.repoName }}.git'
+        repoURL: '{{ $giteaUrl }}/lw-{{`{{username}}`}}/{{ .Values.seed.gitops.repoName }}.git'
         targetRevision: {{ .Values.seed.defaultBranch | quote }}
         path: .
         helm:

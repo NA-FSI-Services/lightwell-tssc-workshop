@@ -1,0 +1,89 @@
+// Learner Gitea org + repo setup (#120). Include from Module 2 (required) and Module 3 (prereq reminder).
+// Image placeholders → issues #GITEA_ORG_UI #GITEA_REPOS_UI (created with gh; replace numbers after create).
+
+== Exercise: Create your Gitea organization and seed lab repositories
+
+Lab automation starts **Gitea** and creates your **user account** (`student_username` / `student_password` in ConfigMap `demo-userinfo-gitea`).
+You create the **Organization** and **repositories** you will use for the rest of the workshop, then seed them from operator-prepared **templates** (isolated monorepo content — never clone GitHub).
+
+=== Conventions
+
+[cols="1,2",options="header"]
+|===
+|Item |Value
+
+|Your organization
+|`lw-@@LW_USER@@` (`student_gitea_org`)
+
+|Application repo
+|`spring-boot-lw-poc` → `student_repo_url`
+
+|GitOps repo
+|`gitops-spring-boot-lw-poc` → `student_gitops_repo_url`
+
+|Template org (read-only)
+|`workshop-templates`
+|===
+
+=== A. Sign in and create the organization
+
+. Open `gitea_url` from `demo-userinfo-gitea` and sign in as *pass:q[<span class="lw-student-user">student</span>]*
+. Click **+** → **New Organization**
+. Set **Organization Name** exactly to *`lw-@@LW_USER@@`* (must match `student_gitea_org`)
+. Visibility: **Public** → **Create Organization**
+
+// IMAGE PLACEHOLDER — module-02-gitea-new-org.png
+// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/137
+// When ready: image::module-02-gitea-new-org.png[Gitea New Organization form for lw-<username>,width=700]
+
+=== B. Create empty repositories
+
+Under organization *`lw-@@LW_USER@@`*:
+
+. **+** → **New Repository** (or **New Repository** from the org page)
+. Name: *`spring-boot-lw-poc`* — leave **Initialize repository** unchecked (empty repo) → **Create**
+. Repeat for *`gitops-spring-boot-lw-poc`* (also empty / no README)
+
+// IMAGE PLACEHOLDER — module-02-gitea-new-repos.png
+// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/138
+// When ready: image::module-02-gitea-new-repos.png[Empty spring-boot-lw-poc and gitops repos under learner org,width=700]
+
+=== C. Seed from workshop templates
+
+Operator Job `gitea-student-repo-seed` already published prepared trees under `workshop-templates/` (path-isolated from the monorepo). Copy that content into **your** repos:
+
+[source,bash,role=execute]
+----
+export STUDENT_USER='@@LW_USER@@'
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+: "${GITEA_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')}"
+
+oc -n gitea get configmap gitea-student-repo-seed \
+  -o jsonpath='{.data.learner-seed-from-templates\.sh}' > /tmp/learner-seed.sh
+chmod +x /tmp/learner-seed.sh
+/tmp/learner-seed.sh
+----
+
+The script also adds workshop user `gitea-admin` to your org’s **Owners** team so Module 3 RHDH `publish:gitea` can create repositories under *`lw-@@LW_USER@@`*.
+
+Confirm:
+
+[source,bash,role=execute]
+----
+oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_repo_url}{"\n"}{.data.template_app_repo_url}{"\n"}'
+curl -sk -o /dev/null -w "%\{http_code}\n" \
+  "$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')"
+----
+
+Expect HTTP `200` on the app remote (anonymous clone works for public repos). Open `lw-@@LW_USER@@/spring-boot-lw-poc` in Gitea and confirm `pom.xml` is at the repository root.
+
+// IMAGE PLACEHOLDER — module-02-gitea-seeded-app.png
+// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/139
+// When ready: image::module-02-gitea-seeded-app.png[Seeded app repo root showing pom.xml,width=700]
+
+[IMPORTANT]
+====
+Do *not* `git clone` `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` for lab work.
+Templates on in-cluster Gitea are the only prepared source trees for learners.
+====

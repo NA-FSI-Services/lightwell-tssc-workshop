@@ -50,6 +50,10 @@ spec:
               export GITOPS_SOURCE_PATH={{ .Values.seed.gitops.sourcePath | quote }}
               bash /seed/assemble-gitops-repo.sh "${WORKDIR}/gitops-repo"
 {{- end }}
+{{- if .Values.seed.templates.skeleton.enabled }}
+              export SKELETON_PATH={{ .Values.seed.templates.skeleton.sourcePath | quote }}
+              bash /seed/assemble-skeleton.sh "${WORKDIR}/skeleton"
+{{- end }}
               export SEED_DIR="${WORKDIR}"
               bash /seed/seed-student-repos.sh
           env:
@@ -65,6 +69,12 @@ spec:
               value: {{ .Values.seed.repoDescription | quote }}
             - name: DEFAULT_BRANCH
               value: {{ .Values.seed.defaultBranch | quote }}
+            - name: TEMPLATES_ORG
+              value: {{ include "gitea.templatesOrgName" . | quote }}
+            - name: TEMPLATES_ORG_FULL_NAME
+              value: {{ .Values.seed.templates.orgFullName | default "Workshop Templates" | quote }}
+            - name: TEMPLATES_ORG_DESCRIPTION
+              value: {{ .Values.seed.templates.orgDescription | default "" | quote }}
             - name: STUDENTS_JSON
               value: {{ $students | quote }}
             - name: SOURCE_MODE
@@ -84,6 +94,14 @@ spec:
               value: {{ .Values.seed.gitops.repoDescription | quote }}
             - name: GITOPS_SEED_SUBDIR
               value: gitops-repo
+{{- end }}
+{{- if .Values.seed.templates.skeleton.enabled }}
+            - name: SKELETON_REPO_NAME
+              value: {{ .Values.seed.templates.skeleton.repoName | quote }}
+            - name: SKELETON_REPO_DESCRIPTION
+              value: {{ .Values.seed.templates.skeleton.repoDescription | quote }}
+            - name: SKELETON_SEED_SUBDIR
+              value: skeleton
 {{- end }}
             - name: ADMIN_USER
               valueFrom:

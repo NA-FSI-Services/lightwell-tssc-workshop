@@ -1,0 +1,12 @@
+---
+description: Gitea seed overlays — templates org only; no hardcoded learner usernames
+globs: charts/components/gitea/files/seed/**/*
+alwaysApply: false
+---
+# Gitea seed / overlays
+
+- Seed Job may clone the **workshop GitOps URL** (operator). Output must land in public **`workshop-templates`** repos — not auto-created `lw-<user>` app remotes.
+- Learner push path: `learner-seed-from-templates.sh` (after UI org/repo create).
+- Overlays under `overlay/` and `overlay-gitops/` are copied into **template** trees. Do **not** hardcode `lw-user1`, `user1`, or claim hosts.
+- Tekton examples: `repo-url: STUDENT_REPO_URL_PLACEHOLDER` (lab substitutes `student_repo_url`).
+- Keep app content at **repo root** (`pom.xml`, `tools/osv-eval/`, `.tekton/`).

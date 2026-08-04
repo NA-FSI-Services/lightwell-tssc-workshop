@@ -1,9 +1,11 @@
-= Module 5: Pipeline signing, policy, and GitOps promotion
+= Module 6: Pipeline signing, policy, and GitOps promotion
 :source-highlighter: rouge
 :toc:
 :toclevels: 2
 
-Modules 2–4 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
+include::partial$student-username-form.adoc[]
+
+Modules 2–5 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
 
 Lightwell and *Advanced Cluster Security (ACS)* are complementary: Lightwell remediates application dependencies; ACS (and this workshop’s dep-gate / image-check Tasks) *enforce* that builds and images meet policy before promotion. OSV and VEX metadata help *continuous integration (CI)* scanners recognize remediated pins so gates and third-party scanners stay aligned.
 
@@ -18,8 +20,8 @@ By the end of this module, you will be able to:
 
 == Prerequisites
 
-* xref:module-03-osv.adoc[Module 3] — remediated pin story
-* xref:module-04-sbom.adoc[Module 4] — SBOM upload to RHTPA
+* xref:module-04-osv.adoc[Module 4] — remediated pin story
+* xref:module-05-sbom.adoc[Module 5] — SBOM upload to RHTPA
 * Charts synced (or available): `pipelines` (OpenShift Pipelines / Tekton CRDs), `gitea` (student Git), `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
 * Job `rhacs-ci-token-mint` Complete (fills `rhacs-ci-secrets` for `acs-image-check`) — see Exercise 2
 
@@ -74,7 +76,7 @@ oc -n stackrox get configmap rhacs-lightwell-policy-lab \
 
 Expected pin pair for `commons-lang3`: vulnerable `3.14.0`, remediated `3.14.0.rhlw-00001`.
 
-image::module-05-fail-then-pass.png[Pipeline fail then pass on .rhlw pin,width=700]
+image::module-06-fail-then-pass.png[Pipeline fail then pass on .rhlw pin,width=700]
 
 == Exercise 1: Failure path (non-remediated pin)
 
@@ -139,7 +141,7 @@ Showroom `/terminal/` has no global git `user.name` / `user.email`. The block be
 [source,bash,role=execute]
 ----
 : "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
-: "${STUDENT_USER:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')}"
+export STUDENT_USER='@@LW_USER@@'
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${STUDENT_REPO_URL#https://}" /tmp/student-lw-poc
@@ -275,7 +277,7 @@ Exercise 3 app image once the matcher is ready.
 
 === SBOM handoff
 
-With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtpa` uploads CycloneDX. Otherwise upload the workspace SBOM via the RHTPA UI (Module 4).
+With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtpa` uploads CycloneDX. Otherwise upload the workspace SBOM via the RHTPA UI (Module 5).
 
 == Exercise 3: Keyless sign and verify (RHTAS)
 
@@ -366,7 +368,7 @@ IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boo
 
 # Edit generateName run — prefer a one-shot create from the example file:
 sed \
-  -e "s|https://gitea.<domain>/user1/spring-boot-lw-poc.git|${STUDENT_REPO_URL}|" \
+  -e "s|STUDENT_REPO_URL_PLACEHOLDER|${STUDENT_REPO_URL}|" \
   -e "s|<lab-namespace>|${LAB_NS}|g" \
   -e "s|https://fulcio-server-trusted-artifact-signer.apps.<domain>|${FULCIO}|" \
   -e "s|https://rekor-server-trusted-artifact-signer.apps.<domain>|${REKOR}|" \
@@ -449,7 +451,7 @@ oc -n "${LAB_NS}" logs "pipelinerun/${PR}" --all-containers \
   | grep -F 'Signed' | grep -F 'keyless / RHTAS'
 ----
 
-image::module-05-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700]
+image::module-06-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700]
 
 [TIP]
 ====
@@ -482,8 +484,7 @@ export GITOPS_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_gitops_repo_url}')"
 export ARGO_APP="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_argocd_app}')"
-export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea \
-  -o jsonpath='{.data.student_username}')"
+export STUDENT_USER='@@LW_USER@@'
 export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_password}')"
 
@@ -565,7 +566,7 @@ ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route spring-boot-lw-poc \
 curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
 ----
 
-image::module-05-argocd-promote.png[Argo CD GitOps promotion,width=700]
+image::module-06-argocd-promote.png[Argo CD GitOps promotion,width=700]
 
 [TIP]
 ====
@@ -613,7 +614,7 @@ repo to finish seeding, then hard-refresh the same way.
 
 **Key takeaways**
 
-* Pipelines enforce the Module 3 pin story before images ship; ACS policy and Lightwell remediations work together
+* Pipelines enforce the Module 4 pin story before images ship; ACS policy and Lightwell remediations work together
 * OpenShift Pipelines and the RHACS CI token are provisioned by GitOps (`pipelines` chart + Job `rhacs-ci-token-mint`)—learners verify readiness, they do not install Operators by hand
 * Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog; Lightwell artifacts themselves also use RHTAS-class signing / SLSA L3
 * Git remains the source of truth; Argo CD promotes digest pins from your Gitea gitops remote after pipeline gates

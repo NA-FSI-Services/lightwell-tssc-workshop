@@ -3,6 +3,8 @@
 :toc:
 :toclevels: 2
 
+include::partial$student-username-form.adoc[]
+
 Field Lightwell Network delivery almost always puts an *enterprise artifact manager* (Nexus or Artifactory) between developers and `packages.redhat.com`. Customers integrate by pointing existing build tools and repository proxies at Red Hat secured registries; dependency manifests (for example `pom.xml`) plus Maven profiles route requests to *Validated* or *Remediated* repositories.
 
 In this module you wire that pattern on the workshop cluster: extract `settings.xml`, authenticate with env-backed service-account placeholders (never Git), resolve Validated content, and understand how the same profiles work when remotes point *directly* at Lightwell Network.
@@ -16,6 +18,7 @@ By the end of this module, you will be able to:
 * Use `mvn -s settings.xml -Plightwell-validated …` (and Remediated pins) against the workshop Nexus
 * Explain how `LW_USERNAME` / `LW_PASSWORD` (and *Red Hat Demo Platform (RHDP)* secret injection) supply auth without committing secrets
 * Locate the Spring Boot *proof-of-concept (PoC)* sources and run Maven from the Showroom terminal container
+* Create your Gitea organization and seed lab repositories from workshop templates (not GitHub)
 
 == Enterprise consumption patterns
 
@@ -158,7 +161,7 @@ oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}{"\n"}'
 . In a browser (instructor / Showroom link), open the Nexus UI and locate repositories:
 * `lightwell-java-validated`
 * `lightwell-java-remediated`
-* `lightwell-osv-java-remediated` (raw / OSV — used in Module 3)
+* `lightwell-osv-java-remediated` (raw / OSV — used in Module 4)
 
 . Optional: confirm the seed Job finished (seeded mode):
 +
@@ -168,6 +171,9 @@ oc -n lightwell-repo get jobs,pods -l app.kubernetes.io/name=lightwell-repo
 ----
 
 image::module-02-nexus-repos.png[Workshop Nexus Lightwell repositories,width=700]
+
+include::partial$gitea-learner-setup.adoc[]
+
 == Seeded content: two experiments
 
 In *seeded* mode the Job uploads **two kinds** of Maven content into the same Nexus repo names customers would use for live LWN:
@@ -199,7 +205,7 @@ image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption exp
 
 The *Spring Boot PoC* (`spring-boot-lw-poc`) is this workshop’s primary learner application: a small **Spring Boot 3 / Java 17 / Maven** greeting API used to practice Lightwell Network **Validated** and **Remediated** consumption.
 
-Your in-cluster **Gitea** repository **`spring-boot-lw-poc`** already has the PoC at the **repository root** (`pom.xml` at clone root). Discover the URL via ConfigMap `demo-userinfo-gitea` (`student_repo_url`).
+Your in-cluster **Gitea** repository under org *`lw-@@LW_USER@@`* (**`spring-boot-lw-poc`**) has the PoC at the **repository root** (`pom.xml` at clone root) after you complete the Gitea setup exercise above. Discover the URL via ConfigMap `demo-userinfo-gitea` (`student_repo_url`).
 
 That tree includes `pom.xml` (dual-stream version properties + `lightwell-remediated-pins`), env-aware `settings.xml`, and a simple `/api/greeting` controller. Later modules reuse the same Gitea project for OSV pins, SBOM generation, and pipeline gates.
 
@@ -207,7 +213,7 @@ That tree includes `pom.xml` (dual-stream version properties + `lightwell-remedi
 ====
 Module 2 does *not* attach to a running Spring Boot Deployment — you validate Maven remotes from the **Showroom terminal** (`mvn` + `java` + `oc` are already installed there).
 
-A per-student GitOps app may already exist (`lw-poc-<username>` from Gitea) scaled to `replicas: 0` until you publish and promote an image in xref:module-05-pipeline.adoc[Module 5 Exercise 4]. That runtime path is out of scope here.
+A per-student GitOps app may already exist (`lw-poc-<username>` from Gitea) scaled to `replicas: 0` until you publish and promote an image in xref:module-06-pipeline.adoc[Module 6 Exercise 4]. That runtime path is out of scope here.
 ====
 
 === Find and enter the Showroom terminal container
@@ -238,7 +244,7 @@ Same as the settings extract above: clone your Gitea app repo into `/tmp` and ke
 : "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
 
 rm -rf /tmp/spring-boot-lw-poc
-# Student app repos are public — anonymous clone; credentials are for Module 5 push only
+# Student app repos are public — anonymous clone; credentials are for Module 6 push only
 git clone "${STUDENT_REPO_URL}" /tmp/spring-boot-lw-poc
 cd /tmp/spring-boot-lw-poc
 
@@ -290,7 +296,7 @@ Expected outcomes (from the `grep` slice):
 
 == Exercise 3: Remediated stream (resolution + consumption)
 
-You are not changing production pins yet (that is Module 3). First confirm the Remediated remote serves the workshop example artifact, then build with the PoC pin profile.
+You are not changing production pins yet (that is Module 4). First confirm the Remediated remote serves the workshop example artifact, then build with the PoC pin profile.
 
 Stay in the PoC app directory from Exercise 2 (`/tmp/spring-boot-lw-poc`) with `LIGHTWELL_NEXUS_URL` and `MVN_LOCAL` still set.
 
@@ -363,14 +369,15 @@ In the field, prefer *proxied* remotes so developers never embed LWN credentials
 
 Artifactory uses the same remote URLs and `.rhlw-*` naming; this workshop uses Nexus as the RHDP stand-in. See the Lightwell Network “configure Artifactory” documentation for the production mirror of this pattern.
 
-== RHDH golden path (preview)
+== RHDH golden path
 
-The Developer Hub Software Template `lightwell-java-service` scaffolds the same `settings.xml` profiles and Tekton params (`maven-profile`, `LW_*`, `LIGHTWELL_NEXUS_URL`). Scaffolding from RHDH is optional in this module; Modules 3–5 reuse that project for OSV pins, SBOM, and pipeline gates.
+Scaffolding from *Red Hat Developer Hub (RHDH)* is the next module—not an optional preview here. Keep using this Gitea clone (`lw-@@LW_USER@@/spring-boot-lw-poc`) for Module 2 proofs. In xref:module-03-scaffold.adoc[Module 3] you delete and recreate the app repo via Software Template `lightwell-java-service` into the **same** learner organization; Modules 4–6 then continue from that scaffold (same `student_repo_url`).
 
 == Module summary
 
 **What you accomplished**
 
+* Created your Gitea organization `lw-<username>` and seeded app + GitOps repos from `workshop-templates`
 * Mapped direct LWN remotes vs enterprise Nexus proxy / seeded mirrors
 * Extracted workshop `settings.xml` and identified `lightwell-validated` / `lightwell-remediated` profiles
 * Practiced env-based `LW_*` auth (no secrets in Git)
@@ -378,13 +385,13 @@ The Developer Hub Software Template `lightwell-java-service` scaffolds the same 
 
 **Key takeaways**
 
-* Learner UX: `mvn -s settings.xml -Plightwell-validated …` from the Gitea `spring-boot-lw-poc` clone
+* Learner UX: `mvn -s settings.xml -Plightwell-validated …` from the Gitea `lw-<user>/spring-boot-lw-poc` clone
 * Seeded RHDP can teach both GAV/remote proofs and real builds without live LWN membership
 * Proxied PoV is the default enterprise story; air-gap uses mirror/proxy, not Satellite
 * Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
 * Source jars accompany binaries; application-context testing stays with the consumer
-* Student remotes are Gitea (`student_repo_url` from `demo-userinfo-gitea`)
+* Student remotes are Gitea under **your** org (`student_repo_url` from `demo-userinfo-gitea`) — never the workshop GitHub monorepo
 
 **Next**
 
-Module 3 walks the remediation evaluation loop: read OSV `fixed`, pin the `.rhlw-*` version, compare sources, then rebuild.
+xref:module-03-scaffold.adoc[Module 3] opens Developer Hub, scaffolds `lightwell-java-service` into your Gitea org, and re-runs Maven Validated / Remediated proofs on that project.

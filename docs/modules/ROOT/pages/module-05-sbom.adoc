@@ -1,7 +1,9 @@
-= Module 4: SBOM generation and analysis with RHTPA (RHDA)
+= Module 5: SBOM generation and analysis with RHTPA (RHDA)
 :source-highlighter: rouge
 :toc:
 :toclevels: 2
+
+include::partial$student-username-form.adoc[]
 
 Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. Every Lightwell-distributed package is built with *Supply-chain Levels for Software Artifacts (SLSA)* Level 3 integrity and signed; Maven packages include CycloneDX *Software Bills of Materials (SBOMs)* and *Vulnerability Exploitability eXchange (VEX)* advisories (Python wheels use *Software Package Data Exchange (SPDX)*). In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)* (also called *TPA*), and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence—without installing an IDE in Showroom.
 
@@ -20,7 +22,7 @@ By the end of this module, you will be able to:
 == Prerequisites
 
 * xref:module-02-maven.adoc[Module 2] — Maven `settings.xml` / Nexus
-* xref:module-03-osv.adoc[Module 3] — remediated pins context (optional but recommended); end-of-module SSO check
+* xref:module-04-osv.adoc[Module 4] — remediated pins context (optional but recommended); end-of-module SSO check
 * Chart `keycloak` Healthy/Synced (namespace `sso`) — IdP at `https://sso.<domain>/realms/tpa`
 * Chart `rhtpa` Healthy/Synced when you need a live UI (namespace `trusted-profile-analyzer`)
 * On fresh claims, Job `rhtpa-oidc-wait` waits for Keycloak OIDC discovery before treating TPA as ready (no learner restart step)
@@ -64,10 +66,10 @@ echo "OIDC discovery: $(oc -n sso get configmap demo-userinfo-keycloak -o jsonpa
 
 [IMPORTANT]
 ====
-Do **not** open `https://sso.<domain>/admin/` for Module 4. That is the Keycloak *Admin Console* (`master` realm). Workshop user `tpa-user` exists only in realm **`tpa`**. Starting from the TPA UI Route forces the correct *OpenID Connect (OIDC)* redirect.
+Do **not** open `https://sso.<domain>/admin/` for Module 5. That is the Keycloak *Admin Console* (`master` realm). Workshop user `tpa-user` exists only in realm **`tpa`**. Starting from the TPA UI Route forces the correct *OpenID Connect (OIDC)* redirect.
 ====
 
-image::module-04-tpa-sso-signin.png[Keycloak tpa realm sign-in for RHTPA,width=700]
+image::module-05-tpa-sso-signin.png[Keycloak tpa realm sign-in for RHTPA,width=700]
 
 Confirm the page shows realm branding **TPA** (not the Keycloak Admin Console). Username is typically prefilled or entered as `tpa-user`; leave the password blank until you paste `pass=` from the ConfigMap command above, then **Sign In**.
 
@@ -109,7 +111,7 @@ OSV feeds and *VEX* metadata published with Lightwell content let code-scanning 
 
 Full author notes: `docs/rhda-rhtpa-shift-left.md`. Showroom appendix: xref:rhda-shift-left.adoc[RHDA shift-left].
 
-image::module-04-syft-rhtpa-flow.png[syft CycloneDX to RHTPA flow,width=700]
+image::module-05-syft-rhtpa-flow.png[syft CycloneDX to RHTPA flow,width=700]
 
 == Exercise 1: Read RHTPA ingestion hints
 
@@ -141,7 +143,7 @@ If the namespace is not ready yet, continue with SBOM *generation* locally; uplo
 
 Build the PoC, then scan the artifact or `target/` directory.
 
-. From the Spring Boot PoC app directory (Gitea clone from Module 2):
+. From the Spring Boot PoC app directory (Gitea clone from Module 3 scaffold):
 +
 [source,bash,role=execute]
 ----
@@ -269,7 +271,7 @@ curl -sk -X POST \
 . Confirm HTTP **201** (or another success code) and a small JSON body with an SBOM `id`.
 +
 Stock `syft` often emits CycloneDX `specVersion` 1.5/1.6; that is expected even when ingestion metadata says `1.4+`.
-Workshop tokens must include Trustify document scopes (`create:document`, …); the `cli` client and `tpa-user` receive those from the Keycloak realm import. Pipeline Task `syft-sbom-rhtpa` (Module 5) uses the same `POST /api/v3/sbom` pattern. Do not commit tokens or passwords.
+Workshop tokens must include Trustify document scopes (`create:document`, …); the `cli` client and `tpa-user` receive those from the Keycloak realm import. Pipeline Task `syft-sbom-rhtpa` (Module 6) uses the same `POST /api/v3/sbom` pattern. Do not commit tokens or passwords.
 
 [[browse-tpa-ui]]
 === Browse in the TPA UI
@@ -294,9 +296,9 @@ oc -n sso get configmap demo-userinfo-keycloak \
 +
 Confirm the browser URL contains `/realms/tpa/` (not `/admin/`). After a successful sign-in you return to TPA.
 
-. Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 3 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
+. Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 4 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
 
-image::module-04-rhtpa-sbom-ui.png[RHTPA All SBOMs after CycloneDX ingest,width=700]
+image::module-05-rhtpa-sbom-ui.png[RHTPA All SBOMs after CycloneDX ingest,width=700]
 
 Confirm the list shows your ingested SBOM (often named `target` when generated from `dir:target`) with a `type=cyclonedx` label. Open the name link to browse packages such as `commons-lang3` and Spring Boot starters.
 
@@ -338,7 +340,7 @@ Instructor laptop (optional demo):
 
 Details: xref:rhda-shift-left.adoc[RHDA shift-left appendix].
 
-image::module-04-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
+image::module-05-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
 
 == Module summary
 
@@ -354,9 +356,9 @@ image::module-04-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
 * Prefer CycloneDX JSON from `syft` for this workshop (Maven Lightwell packages also ship CycloneDX + VEX; Python uses SPDX)
 * TPA UI/API authorization comes from the workshop Keycloak realm (`chicken-*` + `*:document` scopes)—not from ad-hoc Admin Console edits
 * OSV/VEX help scanners treat Lightwell remediations as fixed—not still-open CVEs
-* Pipeline Task `syft-sbom-rhtpa` automates the same generate-and-API-upload path in Module 5 (`POST /api/v3/sbom`)
+* Pipeline Task `syft-sbom-rhtpa` automates the same generate-and-API-upload path in Module 6 (`POST /api/v3/sbom`)
 * RHDA is optional on a laptop; learners do not need an IDE inside Showroom; do not upload proprietary app source to Red Hat for LWN
 
 **Next**
 
-Module 5 wires Tekton signing (RHTAS), RHACS policy gates, and GitOps promotion around the remediated pin and SBOM story.
+Module 6 wires Tekton signing (RHTAS), RHACS policy gates, and GitOps promotion around the remediated pin and SBOM story.

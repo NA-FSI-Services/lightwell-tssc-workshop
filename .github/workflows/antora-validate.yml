@@ -13,6 +13,9 @@ on:
       - "site-ci.yml"
       - "scripts/asciidoc-check.sh"
       - "scripts/showroom-check.sh"
+      - "scripts/learner-git-check.sh"
+      - "charts/components/gitea/files/seed/**"
+      - "charts/components/rhdh/files/**"
       - "charts/components/showroom/**"
       - "charts/root-app/values.yaml"
       - "charts/root-app/templates/applications.yaml"
@@ -43,6 +46,9 @@ jobs:
       - name: Structural AsciiDoc / Antora checks
         run: ./scripts/asciidoc-check.sh
 
+      - name: Learner Git decision (#120)
+        run: ./scripts/learner-git-check.sh
+
       - name: Showroom ↔ content contract
         run: ./scripts/showroom-check.sh
 
@@ -54,16 +60,17 @@ jobs:
       - name: Generate site (lightweight playbook)
         run: npx --yes antora@3.1.10 site-ci.yml
 
-      - name: Verify Modules 1–5 and start page were generated
+      - name: Verify Modules 1–6 and start page were generated
         run: |
           set -euo pipefail
           required=(
             www/modules/index.html
             www/modules/module-01-overview.html
             www/modules/module-02-maven.html
-            www/modules/module-03-osv.html
-            www/modules/module-04-sbom.html
-            www/modules/module-05-pipeline.html
+            www/modules/module-03-scaffold.html
+            www/modules/module-04-osv.html
+            www/modules/module-05-sbom.html
+            www/modules/module-06-pipeline.html
             www/modules/rhda-shift-left.html
             www/modules/appendix-osv-manifest-polling.html
           )

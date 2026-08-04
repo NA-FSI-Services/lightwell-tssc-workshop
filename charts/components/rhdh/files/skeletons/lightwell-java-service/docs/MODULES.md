@@ -1,24 +1,13 @@
-# Modules 2–5 — using this scaffold
+# Modules 3–6 — using this scaffold
 
-| Module | Focus | What to do in this repo |
-|--------|--------|-------------------------|
-| **2** — Enterprise Maven + artifact manager | Validated vs Remediated remotes | `settings.xml` profiles `lightwell-validated` / `lightwell-remediated`; `LW_USERNAME` / `LW_PASSWORD`; `LIGHTWELL_NEXUS_URL` |
-| **3** — OSV triage + exact-version remediation | `.rhlw-0000X` pins | Enable `lightwell-remediated-pins`; pin `commons-lang3` `3.14.0.rhlw-00001`; compare with OSV `fixed` (e.g. `spring-core` `5.3.18.rhlw-00003` in lightwell-repo sample) |
-| **4** — SBOM + RHTPA (RHDA) | CycloneDX ingest | `syft` → RHTPA in Showroom; optional laptop RHDA (see `docs/rhda-rhtpa-shift-left.md`) |
-| **5** — Pipeline signing, policy, GitOps | RHTAS + RHACS + Argo CD | `.tekton/pipeline.yaml`: `lightwell-dep-gate` (fail without `.rhlw-*`) → `acs-image-check` → `syft-sbom-rhtpa` → keyless `cosign sign`; promote via GitOps |
+This tree is the **canonical learner application** after Showroom Module 3
+(RHDH Software Template → Gitea `spring-boot-lw-poc`).
 
-## Env placeholders (never commit secrets)
+| Module | Focus | Assets here |
+|--------|--------|-------------|
+| 3 | Scaffold + Maven Validated/Remediated | `pom.xml`, `settings.xml` |
+| 4 | OSV triage / `.rhlw-*` pin | `tools/osv-eval/` |
+| 5 | SBOM → RHTPA | build outputs + `syft` |
+| 6 | Pipeline / signing / GitOps | `.tekton/` |
 
-| Variable | Purpose |
-|----------|---------|
-| `LW_USERNAME` | Lightwell Network / Nexus basic auth |
-| `LW_PASSWORD` | Lightwell Network / Nexus token |
-| `LIGHTWELL_NEXUS_URL` | Enterprise artifact manager base (workshop Nexus Route) |
-
-## Related charts
-
-- `charts/components/lightwell-repo` — seeded / proxy channels
-- `charts/components/rhtas` — Fulcio / Rekor keyless stack
-- `charts/components/rhtpa` — SBOM analysis
-- `charts/components/rhacs` — `acs-image-check` Task
-- `charts/components/spring-boot-lw-poc` — reference PoC matching this layout
+Clone URL: ConfigMap `demo-userinfo-gitea` → `student_repo_url` (not GitHub).

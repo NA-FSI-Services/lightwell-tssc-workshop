@@ -26,6 +26,20 @@ spec:
           # Directory mount → /opt/app-root/src/catalog/<key>
           mountPath: {{ printf "%s/catalog" .Values.softwareTemplates.mountPath | quote }}
     {{- end }}
+    {{- if .Values.giteaIntegration.enabled }}
+    extraEnvs:
+      envs:
+        - name: GITEA_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.giteaIntegration.secretName }}
+              key: username
+        - name: GITEA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.giteaIntegration.secretName }}
+              key: password
+    {{- end }}
 
     {{- if .Values.dynamicPlugins.enabled }}
     dynamicPluginsConfigMapName: {{ .Values.dynamicPlugins.configMapName }}

@@ -1,0 +1,222 @@
+= Module 3: Scaffold with Red Hat Developer Hub
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+include::partial$student-username-form.adoc[]
+
+Module 2 used your *learner-owned* Gitea remotes (`lw-@@LW_USER@@/spring-boot-lw-poc`, seeded from `workshop-templates`) to prove enterprise Maven remotes. This module switches to the *developer golden path*: open *Red Hat Developer Hub (RHDH)*, run the Software Template `lightwell-java-service`, and land the same Lightwell Maven dual-stream project in **your** Gitea organization—then re-run Validated and Remediated proofs against workshop Nexus.
+
+After this module, Modules 4–6 continue from the *scaffolded* tree (same `student_repo_url`), not from the Module 2 template seed contents.
+
+[NOTE]
+====
+If you have not finished xref:module-02-maven.adoc[Module 2]'s Gitea organization exercise (org `lw-@@LW_USER@@` + empty/seeded repos), complete that first. Lab charts start Gitea and your user; **you** own the org and repositories.
+====
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Open Developer Hub from ConfigMap `demo-userinfo-rhdh` (`rhdh_url`)
+* Create a service from Software Template `lightwell-java-service`
+* Publish the scaffold to in-cluster *Gitea* under *your* org only (never GitHub / never this workshop monorepo)
+* Confirm `pom.xml`, `settings.xml`, `tools/osv-eval/`, and `.tekton/` at the Gitea repo root
+* Re-run Maven Validated and Remediated resolution/consumption proofs on the scaffold
+
+== Prerequisites
+
+* Complete xref:module-02-maven.adoc[Module 2] (Gitea org + Maven Validated / Remediated proofs)
+* RHDH Application Healthy; Gitea reachable
+* Set *Your Gitea username* above (must match `demo-userinfo-gitea` → `student_username`)
+* ConfigMaps:
+** `demo-userinfo-rhdh` (namespace `rhdh`) — `rhdh_url`, `software_template`
+** `demo-userinfo-gitea` (namespace `gitea`) — `gitea_url`, `student_gitea_org`, `student_username`, `student_password`, `student_repo_url`, `student_repo_name`
+
+== Lab story
+
+[arabic]
+. Confirm the header username is *pass:q[<span class="lw-student-user">student</span>]* (Apply if you changed it)
+. Delete the existing app repo `lw-@@LW_USER@@/spring-boot-lw-poc` in Gitea (Module 2 seed) so Create can publish a fresh repo with the same name
+. In RHDH, Create → `lightwell-java-service` (Gitea owner/org = `lw-@@LW_USER@@`; repo name `spring-boot-lw-poc`)
+. Clone `student_repo_url` and run Validated + Remediated Maven proofs
+
+== Exercise 1 — Discover RHDH and Gitea URLs
+
+In the Showroom terminal:
+
+[source,bash,role=execute]
+----
+oc -n rhdh get configmap demo-userinfo-rhdh -o yaml
+oc -n gitea get configmap demo-userinfo-gitea -o yaml
+
+export RHDH_URL="$(oc -n rhdh get configmap demo-userinfo-rhdh -o jsonpath='{.data.rhdh_url}')"
+export GITEA_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')"
+export GITEA_ORG="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_gitea_org}')"
+export STUDENT_USER='@@LW_USER@@'
+export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')"
+export STUDENT_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')"
+export STUDENT_REPO_NAME="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_name}')"
+
+echo "RHDH:     $\{RHDH_URL}"
+echo "Gitea:    $\{GITEA_URL}"
+echo "Org:      $\{GITEA_ORG}"
+echo "User:     $\{STUDENT_USER}"
+echo "Repo:     $\{STUDENT_REPO_NAME}"
+echo "App URL:  $\{STUDENT_REPO_URL}"
+----
+
+Open the printed RHDH and Gitea URLs in the browser. Sign in to Gitea as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from the ConfigMap when prompted.
+
+[IMPORTANT]
+====
+Learner remotes are *Gitea only*. Do *not* clone or push to `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` for this lab.
+====
+
+== Exercise 2 — Delete the seeded app repo
+
+Module 2 left a seeded app repo at `student_repo_url` (`lw-<username>/spring-boot-lw-poc`). The Software Template *creates* a new Gitea repository; it does not force-push over an existing one.
+
+In the *Gitea UI*:
+
+. Open organization *`lw-@@LW_USER@@`* → repository *`spring-boot-lw-poc`*
+. *Settings* → *Danger Zone* → *Delete This Repository*
+. Type the repository name to confirm and delete
+
+// IMAGE PLACEHOLDER — module-03-gitea-delete-repo.png
+// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/140
+// When ready: image::module-03-gitea-delete-repo.png[Gitea Danger Zone delete spring-boot-lw-poc,width=700]
+
+Or from the Showroom terminal (API delete; uses your student credentials):
+
+[source,bash,role=execute]
+----
+: "${GITEA_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')}"
+: "${GITEA_ORG:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_gitea_org}')}"
+export STUDENT_USER='@@LW_USER@@'
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+: "${STUDENT_REPO_NAME:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_name}')}"
+
+curl -sk -o /dev/null -w "%\{http_code}\n" -u "$\{STUDENT_USER}:$\{STUDENT_PASS}" \
+  -X DELETE "$\{GITEA_URL}/api/v1/repos/$\{GITEA_ORG}/$\{STUDENT_REPO_NAME}"
+----
+
+Expect HTTP `204`. A `404` means the repo is already gone—continue.
+
+[NOTE]
+====
+Do *not* delete `gitops-spring-boot-lw-poc` (`student_gitops_repo_url`). That thin Helm chart is for xref:module-06-pipeline.adoc[Module 6] promote.
+====
+
+== Exercise 3 — Scaffold from Developer Hub
+
+. In RHDH, open *Create* → Software Template *Lightwell Java Service* (`lightwell-java-service`)
+. Fill the form:
+** *Name* — e.g. `spring-boot-lw-poc` (Kubernetes-safe; lowercase)
+** *Gitea organization* — *`lw-@@LW_USER@@`* (your learner org from Module 2; required for `publish:gitea`)
+** *Gitea student username* — *pass:q[<span class="lw-student-user">student</span>]* (for documentation / catalog metadata alignment)
+** *Repository name* — leave as *`spring-boot-lw-poc`*
+** Optional: leave Maven / Lightwell defaults (`lightwell-validated` active profile)
+. Review → *Create*
+
+// IMAGE PLACEHOLDER — module-03-rhdh-scaffold-form.png
+// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/141
+// When ready: image::module-03-rhdh-scaffold-form.png[RHDH lightwell-java-service publish form,width=700]
+
+When the scaffolder finishes, the *Repository* link should point at:
+
+`https://gitea.<domain>/lw-@@LW_USER@@/spring-boot-lw-poc`
+
+That URL must match `student_repo_url` in `demo-userinfo-gitea`.
+
+== Exercise 4 — Clone the scaffold and prove Maven streams
+
+[source,bash,role=execute]
+----
+: "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
+
+rm -rf /tmp/spring-boot-lw-poc
+git clone "$\{STUDENT_REPO_URL}" /tmp/spring-boot-lw-poc
+cd /tmp/spring-boot-lw-poc
+
+ls -la pom.xml settings.xml
+ls tools/osv-eval && ls .tekton
+
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+export MVN_LOCAL='-Dmaven.repo.local=/tmp/m2'
+----
+
+Confirm the scaffold includes lab assets at repo root: `pom.xml`, `settings.xml`, `tools/osv-eval/`, `.tekton/`.
+
+=== Validated resolution + consumption
+
+[source,bash,role=execute]
+----
+mvn $MVN_LOCAL -s settings.xml dependency:get \
+  -Dartifact=org.springframework:spring-core:5.3.18 \
+  -Plightwell-validated \
+  > /tmp/mvn-scaffold-validated-get.log 2>&1
+
+grep -E 'Downloading from lightwell-java-validated|Downloaded from lightwell-java-validated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-scaffold-validated-get.log
+
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated clean verify \
+  > /tmp/mvn-scaffold-validated-verify.log 2>&1
+
+grep -E 'Downloading from lightwell-java-validated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-scaffold-validated-verify.log | tail -20
+----
+
+=== Remediated resolution + consumption
+
+[source,bash,role=execute]
+----
+mvn $MVN_LOCAL -s settings.xml dependency:get \
+  -Dartifact=org.springframework:spring-core:5.3.18.rhlw-00003 \
+  -Plightwell-remediated \
+  > /tmp/mvn-scaffold-remediated-get.log 2>&1
+
+grep -E 'Downloading from lightwell-java-remediated|Downloaded from lightwell-java-remediated|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-scaffold-remediated-get.log
+
+mvn $MVN_LOCAL -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify \
+  > /tmp/mvn-scaffold-remediated-verify.log 2>&1
+
+grep -E 'Downloading from lightwell-java-remediated|\.rhlw-|BUILD SUCCESS|BUILD FAILURE' \
+  /tmp/mvn-scaffold-remediated-verify.log | tail -30
+----
+
+Teaching proofs match Module 2: repository ids `lightwell-java-validated` / `lightwell-java-remediated`, and Remediated coordinates carrying `.rhlw-*`.
+
+== Relationship to Module 2
+
+|===
+|Path |When you use it |Canonical for later labs?
+
+|Template seed → `lw-<user>/spring-boot-lw-poc` (Module 2)
+|Maven / Nexus exercises *before* this module
+|No — replaced in Exercise 2–3
+
+|RHDH scaffold → same `student_repo_url` (org `lw-<user>`)
+|This module + Modules 4–6
+|Yes
+|===
+
+== Module summary
+
+**What you accomplished**
+
+* Opened Developer Hub and ran Software Template `lightwell-java-service`
+* Deleted the Module 2 app repo, then published a fresh scaffold into `lw-<username>/spring-boot-lw-poc`
+* Verified scaffold layout (`tools/osv-eval/`, `.tekton/`) and Maven Validated / Remediated proofs against workshop Nexus
+
+**Key takeaways**
+
+* Golden path is RHDH → *your* Gitea org (`lw-<username>`); GitHub is not a learner remote
+* `publish:gitea` requires an Organization — that is why Module 2 has you create `lw-<username>`
+* `repoName` stays `spring-boot-lw-poc` so `student_repo_url` and Modules 4–6 stay stable
+* Scaffold parity includes OSV helpers and Tekton overlays needed after this module
+
+**Next**
+
+xref:module-04-osv.adoc[Module 4] runs the remediation evaluation loop (`OSV` `fixed` → `.rhlw-*` pin → source diff → rebuild) on this scaffolded repository.

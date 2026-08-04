@@ -30,11 +30,17 @@ Root App-of-Apps places this chart at sync wave **`30`** (after operators / ligh
 | Auth | `${env.LW_USERNAME}` / `${env.LW_PASSWORD}` (never commit secrets) |
 | Dual streams + pin | `pom.xml` profiles; `commons-lang3` `3.14.0.rhlw-00001` |
 | RHTAS keyless | `.tekton/pipeline.yaml` → `cosign sign` (Fulcio/Rekor params) |
-| Modules 2–5 | Skeleton `docs/MODULES.md` + template output text |
+| Modules 2–6 | Skeleton `docs/MODULES.md` + template output text |
 
-Scaffolder steps: `fetch:template` (skeleton on `main`) → `publish:github` → `catalog:register`.
+Scaffolder steps: `fetch:template` from Gitea `workshop-templates/lightwell-java-service`
+→ `publish:gitea` → `catalog:register`.
 
-**Requires** RHDH GitHub integration (or equivalent) for `publish:github`. Configure a GitHub App / PAT in Developer Hub before learners run Create.
+**Requires** in-cluster Gitea integration (`integrations.gitea` + dynamic plugin
+`scaffolder-backend-module-gitea`) and scaffolder credentials (Secret `rhdh-gitea-scaffolder`).
+Learners delete the Module 2 app repo `lw-<username>/spring-boot-lw-poc` first, then Create
+publishes into the **same** learner organization (Showroom Module 3). Upstream `publish:gitea`
+requires a Gitea Organization — learners create `lw-<username>` in Module 2; the seed Job only
+prepares `workshop-templates/` content and student user accounts.
 
 Skeleton URL (after merge to `main`):
 

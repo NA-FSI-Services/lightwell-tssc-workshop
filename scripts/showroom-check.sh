@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Showroom ↔ content contract (issue #19).
-# Validates Helm values / chart templates stay aligned with site.yml and Modules 1–5.
+# Validates Helm values / chart templates stay aligned with site.yml and Modules 1–6.
 #
 # Usage:
 #   scripts/showroom-check.sh
@@ -24,9 +24,10 @@ EXPECTED_REPO="https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
 REQUIRED_MODULES=(
   module-01-overview.adoc
   module-02-maven.adoc
-  module-03-osv.adoc
-  module-04-sbom.adoc
-  module-05-pipeline.adoc
+  module-03-scaffold.adoc
+  module-04-osv.adoc
+  module-05-sbom.adoc
+  module-06-pipeline.adoc
   index.adoc
   appendix-lightwell-concepts.adoc
   appendix-acronyms.adoc

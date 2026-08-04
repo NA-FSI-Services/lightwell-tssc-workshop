@@ -57,18 +57,28 @@ softwareTemplates:
   configMapName: rhdh-software-templates
   # Mounted under extraFiles.mountPath
   mountPath: /opt/app-root/src
-  # Scaffolder fetch:template URL (must be reachable from RHDH; tracks main after merge)
-  skeletonUrl: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/main/charts/components/rhdh/files/skeletons/lightwell-java-service
+  # Prefer Gitea workshop-templates after seed (see catalog lightwell-java-service.yaml).
+  # Kept for docs / fallbacks — fetch:template URL is substituted via GITEA_HOST_PLACEHOLDER.
+  skeletonUrl: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-java-service
+
+# publish:gitea — Module 3 learner path (AGENTS.md). Credentials must create repos
+# under each learner org (lw-<username>). Workshop uses Gitea admin by default.
+giteaIntegration:
+  enabled: true
+  secretName: rhdh-gitea-scaffolder
+  username: gitea-admin
+  # Align default with charts/components/gitea values; override in shared envs
+  password: "workshop-gitea-admin-changeme"
 
 # RHDP userinfo ConfigMap
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Developer Hub"
   instructions: >-
-    Open Developer Hub (rhdh_url). Create → lightwell-java-service to scaffold a
-    Spring Boot / Maven service with Lightwell Validated/Remediated profiles,
-    LW_USERNAME/LW_PASSWORD placeholders, .rhlw-* pins, and RHTAS keyless Tekton
-    signing. Requires GitHub integration for publish:github.
+    Open Developer Hub (rhdh_url). Create → lightwell-java-service to scaffold into
+    Gitea as lw-<student_username>/spring-boot-lw-poc (delete the Module 2 app repo
+    first — Showroom Module 3). Learner creates org lw-<username> in Module 2.
+    Requires integrations.gitea + scaffolder-backend-module-gitea.
 
 # Injected by root-app / field content workload
 deployer:

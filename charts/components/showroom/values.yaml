@@ -1,5 +1,5 @@
 # Showroom — RHDP split-screen lab guide + terminal (issue #19)
-# Content: site.yml → docs/modules/ROOT (Modules 1–5). Images per docs/SHOWROOM-UPDATE-SPEC.md.
+# Content: site.yml → docs/modules/ROOT (Modules 1–6). Images per docs/SHOWROOM-UPDATE-SPEC.md.
 showroom:
   enabled: true
   namespace: showroom
@@ -59,5 +59,5 @@ userInfo:
   enabled: true
   title: "Lightwell Software Supply Chain Security Workshop"
   instructions: >-
-    Open Showroom for Modules 1–5 (split-screen guide + terminal).
+    Open Showroom for Modules 1–6 (split-screen guide + terminal).
     Use the terminal pane for oc / tkn / mvn / syft. Never commit LW_USERNAME / LW_PASSWORD.

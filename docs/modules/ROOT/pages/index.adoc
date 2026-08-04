@@ -7,6 +7,7 @@ Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwel
 
 . *Validated* vs *Remediated* repository tiers (exact-version `.rhlw-*` pins; bit-for-bit Validated vs security-only Remediated)
 . Enterprise Maven consumption via an artifact manager proxy (not Satellite)
+. *Red Hat Developer Hub (RHDH)* Software Template scaffold into in-cluster Gitea
 . *Open Source Vulnerabilities (OSV)*–driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)
 . *Software Bill of Materials (SBOM)* / *Vulnerability Exploitability eXchange (VEX)* analysis with *Red Hat Trusted Profile Analyzer (RHTPA)* (optional *Red Hat Dependency Analytics (RHDA)* on a laptop)
 . Pipeline signing (*Red Hat Trusted Artifact Signer (RHTAS)*), policy gates (*Red Hat Advanced Cluster Security (RHACS)*), and GitOps promotion
@@ -20,19 +21,22 @@ Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwel
 |Remediation gap; Validated vs Remediated; coexistence; *Supply-chain Levels for Software Artifacts (SLSA)* / SBOM / VEX / OSV
 
 |xref:module-02-maven.adoc[2 — Maven integration]
-|`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth; mirror / air-gap note
+|`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth; mirror / air-gap note (seeded Gitea PoC)
 
-|xref:module-03-osv.adoc[3 — Exact-version remediation]
-|Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild
+|xref:module-03-scaffold.adoc[3 — Scaffold with Developer Hub]
+|RHDH `lightwell-java-service` → Gitea `spring-boot-lw-poc`; Maven Validated / Remediated proofs on the scaffold
 
-|xref:module-04-sbom.adoc[4 — SBOM + RHTPA]
+|xref:module-04-osv.adoc[4 — Exact-version remediation]
+|Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild (continues from Module 3 scaffold)
+
+|xref:module-05-sbom.adoc[5 — SBOM + RHTPA]
 |CycloneDX via `syft`; RHTPA ingest; VEX / scanner narrative; RHDA callout
 
-|xref:module-05-pipeline.adoc[5 — Pipeline + GitOps]
+|xref:module-06-pipeline.adoc[6 — Pipeline + GitOps]
 |Keyless signing (RHTAS), RHACS gates, Argo CD promotion
 |===
 
-No additional hands-on modules are required for the FAQ concept coverage—enrichments live in Modules 1–5 plus the concepts appendix.
+No additional hands-on modules are required for the FAQ concept coverage—enrichments live in Modules 1–6 plus the concepts appendix.
 
 == Before you start
 
@@ -42,6 +46,6 @@ No additional hands-on modules are required for the FAQ concept coverage—enric
 * Canonical console (membership / browsing): {lightwell-console-url}
 * RHDP claim emails / portal expose `showroom_url` from ConfigMap `demo-userinfo-showroom` (namespace `showroom`).
 
-Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-05-pipeline.adoc[Module 5] using the left-hand nav.
+Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-06-pipeline.adoc[Module 6] using the left-hand nav.
 
 Optional appendices (not required for the core path): xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:appendix-acronyms.adoc[Acronym glossary], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].
