@@ -423,7 +423,31 @@ cosign verify \
 +
 Claim-proven on `cluster-qzxrr` (`PipelineRun` `spring-boot-lw-poc-build-sign-s87f2`): Fulcio ClientID / projected SA audience `trusted-artifact-signer`, TUF initialize before sign, certificate identity `https://kubernetes.io/namespaces/<lab-ns>/serviceaccounts/pipeline` with issuer `https://kubernetes.default.svc`. If verify fails on another claim, capture the certificate identity from Rekor and adjust — do not invent alternate issuers without claim evidence.
 
-. Confirm the log line `Signed … (keyless / RHTAS)` on the PipelineRun.
+. Confirm the log line `Signed … (keyless / RHTAS)` on the PipelineRun:
++
+[source,bash,role=execute]
+----
+: "${LAB_NS:=student-lab}"
+
+PR="$(oc -n "${LAB_NS}" get pipelinerun \
+  --sort-by=.metadata.creationTimestamp \
+  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+  | grep 'build-sign' | tail -1)"
+
+echo "PipelineRun=${PR}"
+tkn -n "${LAB_NS}" pipelinerun logs "${PR}" \
+  | grep -F 'Signed' | grep -F 'keyless / RHTAS'
+----
++
+Expect a line like `Signed image-registry…/spring-boot-lw-poc:latest (keyless / RHTAS)`.
++
+If `tkn` is unavailable:
++
+[source,bash,role=execute]
+----
+oc -n "${LAB_NS}" logs "pipelinerun/${PR}" --all-containers \
+  | grep -F 'Signed' | grep -F 'keyless / RHTAS'
+----
 
 image::module-05-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700]
 
