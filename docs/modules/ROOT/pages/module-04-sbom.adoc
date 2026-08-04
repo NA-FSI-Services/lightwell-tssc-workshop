@@ -29,26 +29,47 @@ By the end of this module, you will be able to:
 
 GitOps imports the `tpa` realm with Trustify **chicken-*** roles and **read|create|delete:document** client scopes. Learners do *not* create roles in the Keycloak Admin Console.
 
-. Read workshop credentials from *Red Hat Demo Platform (RHDP)* userinfo:
+. Recover workshop username, password, and OIDC issuer from userinfo:
 +
 [source,bash,role=execute]
 ----
 oc -n sso get configmap demo-userinfo-keycloak \
-  -o jsonpath='issuer={.data.oidc_issuer}{"\n"}user={.data.workshop_username}{"\n"}roles={.data.trustify_roles}{"\n"}scopes={.data.trustify_client_scopes}{"\n"}'
-# Password (workshop demo — override in shared envs):
-oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.workshop_password}{"\n"}'
+  -o jsonpath='issuer={.data.oidc_issuer}{"\n"}user={.data.workshop_username}{"\n"}pass={.data.workshop_password}{"\n"}roles={.data.trustify_roles}{"\n"}'
+----
++
+Expect `issuer=…/realms/tpa`, `user=tpa-user`, and a non-empty `pass=` value (chart default is `workshop-tpa-user-changeme` unless RHDP overrode it).
+
+. Discover the **browser URL you will open to sign in** — that is the **TPA UI Route**, not the Keycloak `/admin/` console:
++
+[source,bash,role=execute]
+----
+# Preferred: RHTPA ingestion userinfo (same host learners use in Exercise 3)
+oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
+  -o jsonpath='tpa_ui={.data.server_url}{"\n"}'
+
+# Equivalent Route (host only — prefix with https://)
+oc -n trusted-profile-analyzer get route -o custom-columns=NAME:.metadata.name,HOST:.spec.host
+----
++
+Open `tpa_ui` / `https://<HOST>` in your browser. Keycloak redirects you to the IdP; the address bar must contain **`/realms/tpa/`** (page title like “Sign in to tpa”). Sign in with `user` / `pass` from the previous step. You will repeat this in Exercise 3 when uploading the SBOM.
+
+. Optional — confirm the IdP issuer and SSO Route separately (diagnostics only; do **not** log in at `/admin/`):
++
+[source,bash,role=execute]
+----
+oc -n sso get route sso -o jsonpath='sso_host={.spec.host}{"\n"}'
+# Issuer must end with /realms/tpa (already printed as issuer= above)
+echo "OIDC discovery: $(oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.oidc_issuer}')/.well-known/openid-configuration"
 ----
 
-. Open the issuer host (Route `sso` in namespace `sso`) and confirm the realm path ends with `/realms/tpa`. You will complete browser sign-in in Exercise 3 against the TPA UI (*OpenID Connect (OIDC)* redirect to this *identity provider (IdP)*).
-
-[NOTE]
+[IMPORTANT]
 ====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-tpa-sso-signin.png`
-
-Keycloak login page for realm `tpa` (username field ready for `tpa-user`). Redact any non-workshop banners.
-// Asset backlog: workshop issue #94 (screenshot steps for authors)
-// When ready: image::module-04-tpa-sso-signin.png[Keycloak tpa realm sign-in for RHTPA,width=700]
+Do **not** open `https://sso.<domain>/admin/` for Module 4. That is the Keycloak *Admin Console* (`master` realm). Workshop user `tpa-user` exists only in realm **`tpa`**. Starting from the TPA UI Route forces the correct *OpenID Connect (OIDC)* redirect.
 ====
+
+image::module-04-tpa-sso-signin.png[Keycloak tpa realm sign-in for RHTPA,width=700]
+
+Confirm the page shows realm branding **TPA** (not the Keycloak Admin Console). Username is typically prefilled or entered as `tpa-user`; leave the password blank until you paste `pass=` from the ConfigMap command above, then **Sign In**.
 
 [TIP]
 ====
@@ -193,9 +214,23 @@ Seeded Lightwell artifact SBOMs also exist under the Nexus raw repo path `sbom/j
 
 == Exercise 3: Ingest and browse in RHTPA
 
-. Open the TPA UI using `server_url` from Exercise 1 (or the `server-*` Route host).
+. Open the TPA UI from Exercise 0 / Exercise 1 (`server_url` / Route host). Re-print if needed:
++
+[source,bash,role=execute]
+----
+oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
+  -o jsonpath='{.data.server_url}{"\n"}'
+----
 
-. Sign in with workshop SSO credentials from Exercise 0 (`tpa-user` / `workshop_password` in `demo-userinfo-keycloak`). The browser redirects to Keycloak realm `tpa`, then back to TPA.
+. Sign in when Keycloak redirects you. Re-print credentials if you closed the terminal:
++
+[source,bash,role=execute]
+----
+oc -n sso get configmap demo-userinfo-keycloak \
+  -o jsonpath='user={.data.workshop_username}{"\n"}pass={.data.workshop_password}{"\n"}'
+----
++
+Confirm the browser URL contains `/realms/tpa/` (not `/admin/`). After a successful sign-in you return to TPA.
 
 . Upload `sbom.cyclonedx.json` through the UI (SBOMs / upload — labels vary slightly by TPA version). Stock `syft` often emits CycloneDX `specVersion` 1.5/1.6; that is expected even when ingestion metadata says `1.4+`.
 
