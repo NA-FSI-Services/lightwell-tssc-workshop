@@ -378,7 +378,20 @@ tkn -n "${LAB_NS}" pipelinerun list
 +
 Expected graph: `clone` → `lightwell-dep-gate` → `openshift-build` (BuildConfig) → `acs-image-check` (expect pass/fail with CI token from `rhacs-ci-token-mint`) → `syft-sbom-rhtpa` → `cosign-sign-keyless`.
 
-. After a successful `cosign-sign-keyless` task, verify the signature (workstation or debug pod with cosign). Initialize TUF first, then verify with the pipeline SA identity confirmed on claim:
+. After a successful `cosign-sign-keyless` task, verify the signature from Showroom (or a workstation with cosign). Stock Showroom terminals often ship *without* `cosign` on `PATH` — install a pinned binary under `/tmp` first:
++
+[source,bash,role=execute]
+----
+# Install cosign once per terminal session (Showroom-friendly; uses /tmp)
+mkdir -p /tmp/bin
+curl -sSfL -o /tmp/bin/cosign \
+  https://github.com/sigstore/cosign/releases/download/v2.4.3/cosign-linux-amd64
+chmod +x /tmp/bin/cosign
+export PATH="/tmp/bin:$PATH"
+cosign version
+----
++
+Initialize TUF, then verify with the pipeline SA identity confirmed on claim:
 +
 [source,bash,role=execute]
 ----
@@ -388,9 +401,11 @@ export REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
 # If verifying from outside the cluster, use the exposed registry route / mirrored digest instead.
 
 cosign initialize --mirror="${TUF}" --root="${TUF}/root.json"
-# Registry auth for in-cluster verify (pipeline SA token):
-#   cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-#     image-registry.openshift-image-registry.svc:5000
+
+# Registry auth for in-cluster verify (Showroom SA / pipeline token):
+cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  image-registry.openshift-image-registry.svc:5000
+
 cosign verify \
   --rekor-url="${REKOR}" \
   --certificate-identity-regexp="^https://kubernetes.io/namespaces/${LAB_NS}/serviceaccounts/pipeline$" \
