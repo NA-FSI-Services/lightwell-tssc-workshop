@@ -48,7 +48,7 @@ ConfigMap `demo-userinfo-showroom` exposes:
 
 ## Nookbag / zero-touch
 
-`nookbag.enabled` defaults to **`true`** so the ZT UI shell can load repo-root [`ui-config.yml`](../../../ui-config.yml) (split-screen lab + `/terminal/`). Leave LlamaStack / multi-user zero-touch automation out of scope — see [SHOWROOM-UPDATE-SPEC.md](../../../docs/SHOWROOM-UPDATE-SPEC.md).
+`nookbag.enabled` defaults to **`true`** so the ZT UI shell can load repo-root [`ui-config.yml`](../../../ui-config.yml) (split-screen lab + Terminal). Product UIs (**SSO / RHTPA / Nexus**) use `external: true` so they open in a new browser tab — OpenShift Console and Nexus refuse iframe embedding (`X-Frame-Options`). Leave LlamaStack / multi-user zero-touch automation out of scope — see [SHOWROOM-UPDATE-SPEC.md](../../../docs/SHOWROOM-UPDATE-SPEC.md).
 
 ## Local validation
 
