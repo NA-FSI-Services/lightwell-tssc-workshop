@@ -51,6 +51,23 @@ Enter the workshop learner username from ConfigMap `demo-userinfo-gitea` → `st
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
+  // Rewrite a previously applied username without touching English prose like
+  // "student username". Only workshop patterns: lw-<user>, 'user', "user".
+  function rewritePrevUser(text, last, user) {
+    if (!last || last === user) return text;
+    var esc = escapeRegExp(last);
+    return text
+      .split('lw-' + last).join('lw-' + user)
+      .replace(new RegExp("'" + esc + "'", 'g'), "'" + user + "'")
+      .replace(new RegExp('"' + esc + '"', 'g'), '"' + user + '"');
+  }
+
+  function rewriteNodeValue(text, last, user) {
+    if (!text) return text;
+    if (text.indexOf(TOKEN) !== -1) return text.split(TOKEN).join(user);
+    return rewritePrevUser(text, last, user);
+  }
+
   function apply(user, announce) {
     user = sanitize(user);
     input.value = user;
@@ -70,32 +87,30 @@ Enter the workshop learner username from ConfigMap `demo-userinfo-gitea` → `st
 
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
     var node;
-    var lastRe = (last && last !== user)
-      ? new RegExp('(^|[^A-Za-z0-9._-])(' + escapeRegExp(last) + ')(?=[^A-Za-z0-9._-]|$)', 'g')
-      : null;
-
     while ((node = walker.nextNode())) {
       var text = node.nodeValue;
       if (!text) continue;
       var p = node.parentElement;
       if (p && (p.tagName === 'SCRIPT' || p.tagName === 'STYLE')) continue;
-      if (p && p.closest && p.closest('#lw-user-form')) continue;
-      // Keep the banner's literal token documentation intact
-      if (p && p.closest && p.closest('.lw-user-banner') && text.indexOf(TOKEN) !== -1) continue;
+      if (p && p.closest && (p.closest('#lw-user-form') || p.closest('.lw-user-banner'))) continue;
 
-      var next = text;
-      if (next.indexOf(TOKEN) !== -1) {
-        next = next.split(TOKEN).join(user);
-      } else if (lastRe) {
-        next = next.replace(lastRe, function (_m, pre) { return pre + user; });
-      }
+      var next = rewriteNodeValue(text, last, user);
       if (next !== text) node.nodeValue = next;
     }
+
+    // Bare AsciiDoc links put the token in href as well as link text
+    root.querySelectorAll('a[href]').forEach(function (a) {
+      if (a.closest && (a.closest('#lw-user-form') || a.closest('.lw-user-banner'))) return;
+      var href = a.getAttribute('href');
+      if (!href) return;
+      var nextHref = rewriteNodeValue(href, last, user);
+      if (nextHref !== href) a.setAttribute('href', nextHref);
+    });
 
     try { localStorage.setItem(LAST_KEY, user); } catch (e) { /* ignore */ }
 
     if (announce && status) {
-      // ASCII quotes only — curly/smart quotes break this inline <script>
+      // ASCII quotes only - curly/smart quotes break this inline <script>
       status.textContent = 'Applied as "' + user + '" (saved for other modules).';
     }
   }
