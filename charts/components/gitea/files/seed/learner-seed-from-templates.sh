@@ -103,7 +103,8 @@ mirror_push() {
   local dest="${WORKDIR}/${owner}-${repo}"
   rm -rf "${dest}"
   echo "Cloning template ${template_url} ..."
-  GIT_SSL_NO_VERIFY=true git -c http.sslVerify=false clone --depth 1 \
+  # Full clone required: Gitea rejects "shallow update not allowed" from --depth 1 pushes.
+  GIT_SSL_NO_VERIFY=true git -c http.sslVerify=false clone \
     "${template_url}" "${dest}"
   (
     cd "${dest}"
