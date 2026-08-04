@@ -125,4 +125,4 @@ These upstream features are intentionally unsupported:
 - LlamaStack / zero-touch *automation* playbooks (solve/validate runners)
 - agnosticd.core integration (user data passed directly)
 
-**Supported for this workshop:** repo-root [`ui-config.yml`](../ui-config.yml) plus the nookbag **ZT UI shell** (`nookbag.enabled: true`, bundle `nookbag-v0.4.0+`) so Showroom renders split-screen lab guide + Terminal tab. Product links (**SSO Account Console / RHTPA / Nexus / OpenShift Console**) use `external: false` (embedded). SSO must target `/realms/tpa/account/` — bare `/realms/tpa` returns realm JSON, not a login page. Some products still set `X-Frame-Options` and may refuse the iframe.
+**Supported for this workshop:** repo-root [`ui-config.yml`](../ui-config.yml) plus the nookbag **ZT UI shell** (`nookbag.enabled: true`, bundle `nookbag-v0.4.0+`) so Showroom renders split-screen lab guide + Terminal tab. **RHTPA** embeds (`external: false`); **SSO Account Console / Nexus / OpenShift Console** use `external: true` because they set `X-Frame-Options`. SSO must target `/realms/tpa/account/` — bare `/realms/tpa` returns realm JSON, not a login page.

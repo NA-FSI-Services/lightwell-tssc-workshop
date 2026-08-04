@@ -95,14 +95,17 @@ grep -qF 'nexus-lightwell-repo.${DOMAIN}' ui-config.yml \
   || err "ui-config.yml: Nexus tab must use nexus-lightwell-repo.\${DOMAIN}"
 grep -qF 'console-openshift-console.${DOMAIN}' ui-config.yml \
   || err "ui-config.yml: OpenShift Console tab must use console-openshift-console.\${DOMAIN}"
-# Product tabs embed in Showroom (external: false). Count false under named product tabs.
+# RHTPA embeds; SSO / Nexus / Console open externally (iframe-blocked).
 awk '
-  /- name:[[:space:]]*(SSO \(Keycloak\)|RHTPA|Nexus|OpenShift Console)/ { want=1; next }
-  want && /external:[[:space:]]*false/ { n++; want=0 }
-  want && /^- name:/ { want=0 }
-  END { exit(n >= 4 ? 0 : 1) }
+  /- name:[[:space:]]*RHTPA/ { want_rhtpa=1; next }
+  want_rhtpa && /external:[[:space:]]*false/ { rhtpa_ok=1; want_rhtpa=0 }
+  want_rhtpa && /^- name:/ { want_rhtpa=0 }
+  /- name:[[:space:]]*(SSO \(Keycloak\)|Nexus|OpenShift Console)/ { want_ext=1; next }
+  want_ext && /external:[[:space:]]*true/ { ext_n++; want_ext=0 }
+  want_ext && /^- name:/ { want_ext=0 }
+  END { exit((rhtpa_ok && ext_n >= 3) ? 0 : 1) }
 ' ui-config.yml \
-  || err "ui-config.yml: SSO/RHTPA/Nexus/Console tabs must set external: false"
+  || err "ui-config.yml: RHTPA must be external: false; SSO/Nexus/Console must be external: true"
 
 # --- Child chart values ---
 if [[ -f "${SHOWROOM_VALUES}" ]]; then
