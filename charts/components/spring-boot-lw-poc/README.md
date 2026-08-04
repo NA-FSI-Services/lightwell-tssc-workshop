@@ -18,19 +18,24 @@ spring-boot-lw-poc/
 
 ## Learner commands
 
+Students use the **Gitea** app remote (`demo-userinfo-gitea` → `student_repo_url`), not a
+monorepo checkout. Operators still author sources under `./app` in this chart.
+
 ```bash
-cd charts/components/spring-boot-lw-poc/app
+# Learner (Showroom): clone Gitea spring-boot-lw-poc — pom.xml at repo root
+cd /tmp/spring-boot-lw-poc
 export LIGHTWELL_NEXUS_URL=https://nexus-lightwell-repo.apps.<domain>
-mvn -s settings.xml -Plightwell-validated clean verify
-mvn -s settings.xml -Plightwell-validated dependency:tree
-mvn -s settings.xml -Plightwell-validated spring-boot:run
+export MVN_LOCAL=-Dmaven.repo.local=/tmp/m2
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated clean verify
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated dependency:tree
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated spring-boot:run
 
 # Remediated exact-version pin (needs LWN / seeded Nexus for .rhlw-* artifact)
-mvn -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
+mvn $MVN_LOCAL -s settings.xml -Plightwell-remediated,lightwell-remediated-pins clean verify
 
 # SBOM for RHTPA
-mvn -s settings.xml -Plightwell-validated -DskipTests package
-syft packages dir:. -o cyclonedx-json > sbom.cdx.json
+mvn $MVN_LOCAL -s settings.xml -Plightwell-validated -DskipTests package
+syft packages dir:target -o cyclonedx-json > sbom.cyclonedx.json
 ```
 
 Endpoints (after Route is up): `/api/greeting`, `/api/healthz`, `/swagger-ui.html`.
