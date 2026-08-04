@@ -25,7 +25,7 @@ By the end of this module, you will be able to:
 
 == Your student Git repository
 
-Pipeline labs clone **your** application repository on the in-cluster Gitea — not the workshop GitOps monorepo.
+Pipeline labs clone **your** application repository on the in-cluster Gitea (`student_repo_url` from ConfigMap `demo-userinfo-gitea`).
 
 [source,bash,role=execute]
 ----
@@ -210,7 +210,7 @@ EOF
 +
 [IMPORTANT]
 ====
-Push the remediated pin to **your** Gitea repository before creating the pass PipelineRun. Do not point `repo-url` at the workshop GitOps monorepo.
+Push the remediated pin to **your** Gitea application repository (`student_repo_url`) before creating the pass PipelineRun. Set PipelineRun `repo-url` to that same URL.
 ====
 
 . Verify results:
