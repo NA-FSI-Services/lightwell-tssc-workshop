@@ -131,6 +131,11 @@ If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-dep-ga
 
 . Clone **your** student repository, set the *default* properties pin (the gate reads `<properties>`, not only the profile block), commit, and push:
 +
+[TIP]
+====
+Showroom `/terminal/` has no global git `user.name` / `user.email`. The block below sets them *locally* for this clone (same pattern as Exercise 4). If a prior `git commit` failed with “Author identity unknown”, run the `git config` lines, then commit and push again.
+====
++
 [source,bash,role=execute]
 ----
 : "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
@@ -151,6 +156,10 @@ cd /tmp/student-lw-poc
 +
 [source,bash,role=execute]
 ----
+# Showroom terminals have no git identity — set a local one for this repo only
+git config user.email "${STUDENT_USER}@workshop.local"
+git config user.name "${STUDENT_USER}"
+
 git add pom.xml
 git commit -m "Pin commons-lang3 to remediated .rhlw-00001"
 git push origin main
