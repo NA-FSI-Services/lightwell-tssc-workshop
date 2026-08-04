@@ -46,7 +46,7 @@ oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.workshop_pass
 *Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-tpa-sso-signin.png`
 
 Keycloak login page for realm `tpa` (username field ready for `tpa-user`). Redact any non-workshop banners.
-Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/94
+// Asset backlog: workshop issue #94 (screenshot steps for authors)
 // When ready: image::module-04-tpa-sso-signin.png[Keycloak tpa realm sign-in for RHTPA,width=700]
 ====
 
@@ -206,7 +206,7 @@ Seeded Lightwell artifact SBOMs also exist under the Nexus raw repo path `sbom/j
 *Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-rhtpa-sbom-ui.png`
 
 RHTPA UI after SBOM upload or package browse. Redact account PII.
-Asset instructions (screenshot steps): https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/60
+// Asset backlog: workshop issue #60 (screenshot steps for authors)
 // When ready: image::module-04-rhtpa-sbom-ui.png[RHTPA SBOM browse UI,width=700]
 ====
 

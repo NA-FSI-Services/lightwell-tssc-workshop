@@ -15,7 +15,6 @@ data:
     # spring-boot-lw-poc — learner commands
 
     Sources: Gitea `student_repo_url` (`spring-boot-lw-poc`; `pom.xml` at clone root).
-    Do not clone the workshop GitHub monorepo for app labs.
 
     ## Build / test (Validated stream)
 

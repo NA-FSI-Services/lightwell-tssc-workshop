@@ -60,7 +60,7 @@ seed:
   backoffLimit: 6
   ttlSecondsAfterFinished: 86400
   # Application repo pushed for each student (pom.xml at repo root for Modules 2–5).
-  # Learners clone student_repo_url — never the GitHub workshop monorepo.
+  # Learners clone student_repo_url from demo-userinfo-gitea.
   repoName: spring-boot-lw-poc
   repoDescription: "Lightwell TSSC student lab repository (Modules 2–5; pom.xml + tools/osv-eval at root)"
   defaultBranch: main
@@ -105,10 +105,10 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"
   instructions: >-
-    In-cluster Gitea for learner app + GitOps remotes (not the workshop monorepo or GitHub).
-    Use student_repo_url for Module 5 pipeline labs (.tekton / pom). Use
-    student_gitops_repo_url for Exercise 4 promote into student_promote_namespace
-    (digest + replicas). Credentials: student_username / student_password.
+    In-cluster Gitea for learner app + GitOps remotes. Use student_repo_url for
+    Module 5 pipeline labs (.tekton / pom). Use student_gitops_repo_url for
+    Exercise 4 promote into student_promote_namespace (digest + replicas).
+    Credentials: student_username / student_password.
 
 deployer:
   domain: ""

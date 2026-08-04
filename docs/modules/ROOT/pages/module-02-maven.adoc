@@ -199,7 +199,7 @@ image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption exp
 
 The *Spring Boot PoC* (`spring-boot-lw-poc`) is this workshop’s primary learner application: a small **Spring Boot 3 / Java 17 / Maven** greeting API used to practice Lightwell Network **Validated** and **Remediated** consumption.
 
-Provision-time automation copies `charts/components/spring-boot-lw-poc/app` (operators only) into your in-cluster **Gitea** repository **`spring-boot-lw-poc`**, with `pom.xml` at the **repository root**. Discover the URL via ConfigMap `demo-userinfo-gitea` (`student_repo_url`). Do **not** clone the workshop GitHub monorepo for lab work.
+Your in-cluster **Gitea** repository **`spring-boot-lw-poc`** already has the PoC at the **repository root** (`pom.xml` at clone root). Discover the URL via ConfigMap `demo-userinfo-gitea` (`student_repo_url`).
 
 That tree includes `pom.xml` (dual-stream version properties + `lightwell-remediated-pins`), env-aware `settings.xml`, and a simple `/api/greeting` controller. Later modules reuse the same Gitea project for OSV pins, SBOM generation, and pipeline gates.
 
@@ -383,7 +383,7 @@ The Developer Hub Software Template `lightwell-java-service` scaffolds the same 
 * Proxied PoV is the default enterprise story; air-gap uses mirror/proxy, not Satellite
 * Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
 * Source jars accompany binaries; application-context testing stays with the consumer
-* Student remotes are Gitea (`student_repo_url`) — not the workshop GitHub monorepo
+* Student remotes are Gitea (`student_repo_url` from `demo-userinfo-gitea`)
 
 **Next**
 
