@@ -84,25 +84,25 @@ has_line "ui-config.yml" 'default_mode:[[:space:]]*split' \
   || err "ui-config.yml: view_switcher.default_mode must be split"
 has_line "ui-config.yml" 'path:[[:space:]]*/terminal/' \
   || err "ui-config.yml: Terminal tab must use path: /terminal/"
-grep -qF 'sso.${DOMAIN}' ui-config.yml \
-  || err "ui-config.yml: SSO (Keycloak) tab must use https://sso.\${DOMAIN}/..."
+grep -qF 'sso.${DOMAIN}/realms/tpa/account/' ui-config.yml \
+  || err "ui-config.yml: SSO tab must use https://sso.\${DOMAIN}/realms/tpa/account/ (not bare /realms/tpa JSON)"
+if grep -qE 'url:.*"https://sso\.\$\{DOMAIN\}/realms/tpa"' ui-config.yml; then
+  err "ui-config.yml: SSO must not use bare /realms/tpa (returns realm JSON, not login)"
+fi
 grep -qF 'server-trusted-profile-analyzer.${DOMAIN}' ui-config.yml \
   || err "ui-config.yml: RHTPA tab must use server-trusted-profile-analyzer.\${DOMAIN}"
 grep -qF 'nexus-lightwell-repo.${DOMAIN}' ui-config.yml \
   || err "ui-config.yml: Nexus tab must use nexus-lightwell-repo.\${DOMAIN}"
 grep -qF 'console-openshift-console.${DOMAIN}' ui-config.yml \
   || err "ui-config.yml: OpenShift Console tab must use console-openshift-console.\${DOMAIN}"
-# OpenShift Console must never be iframe-embedded (X-Frame-Options: DENY)
+# Product tabs embed in Showroom (external: false). Count false under named product tabs.
 awk '
-  /- name:[[:space:]]*OpenShift Console/ { in_console=1; next }
-  in_console && /^- name:/ { in_console=0 }
-  in_console && /external:[[:space:]]*true/ { found=1 }
-  END { exit(found ? 0 : 1) }
+  /- name:[[:space:]]*(SSO \(Keycloak\)|RHTPA|Nexus|OpenShift Console)/ { want=1; next }
+  want && /external:[[:space:]]*false/ { n++; want=0 }
+  want && /^- name:/ { want=0 }
+  END { exit(n >= 4 ? 0 : 1) }
 ' ui-config.yml \
-  || err "ui-config.yml: OpenShift Console tab must set external: true"
-grep -cE 'external:[[:space:]]*true' ui-config.yml | awk \
-  '{ if ($1 < 4) exit 1 }' \
-  || err "ui-config.yml: SSO/RHTPA/Nexus/Console tabs must set external: true (open outside iframe)"
+  || err "ui-config.yml: SSO/RHTPA/Nexus/Console tabs must set external: false"
 
 # --- Child chart values ---
 if [[ -f "${SHOWROOM_VALUES}" ]]; then
