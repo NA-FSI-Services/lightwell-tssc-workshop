@@ -15,7 +15,7 @@
 set -euo pipefail
 
 cm_get() {
-  oc -n gitea get configmap demo-userinfo-gitea -o jsonpath="{$1}" 2>/dev/null || true
+  oc -n gitea get configmap demo-userinfo-gitea -o jsonpath="$1" 2>/dev/null || true
 }
 
 : "${GITEA_URL:=$(cm_get '{.data.gitea_url}')}"

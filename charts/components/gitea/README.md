@@ -13,6 +13,7 @@ everywhere (see [AGENTS.md](../../../AGENTS.md)).
 | Deployment + PVC + Route `gitea.<domain>` | Gitea (SQLite) |
 | Job `gitea-student-repo-seed` | Create admin + student **users**; push **template** trees only |
 | ConfigMap script `learner-seed-from-templates.sh` | Learner copies templates → their org repos (Module 2) |
+| ConfigMap script `learner-ensure-gitea-user.sh` | Learner ensures Gitea login user exists (via `gitea-admin`) |
 | ApplicationSet `lightwell-student-gitops-sb` | Per-student Argo Apps from learner gitops remotes |
 | ConfigMap `demo-userinfo-gitea` | RHDP userinfo (expected URLs, templates, credentials) |
 
@@ -25,7 +26,7 @@ capture that password — see [DEV-CLUSTER-WORKSHOP-USER.md](../../../docs/DEV-C
 ### Learner model (#120)
 
 1. Lab scripts / charts **start Gitea** and create the student user.
-2. In Showroom Module 2, each learner creates organization **`lw-<username>`** and empty repos **`spring-boot-lw-poc`** + **`gitops-spring-boot-lw-poc`**.
+2. In Showroom Module 2, learners discover `gitea_url` via `oc`, run `learner-ensure-gitea-user.sh` if needed, then create organization **`lw-<username>`** and empty repos **`spring-boot-lw-poc`** + **`gitops-spring-boot-lw-poc`**.
 3. Learner runs `learner-seed-from-templates.sh` to push operator-prepared content from **`workshop-templates/`** (monorepo isolation) into those repos.
 4. Module 3 RHDH `publish:gitea` targets the same learner org (Organizations required upstream).
 

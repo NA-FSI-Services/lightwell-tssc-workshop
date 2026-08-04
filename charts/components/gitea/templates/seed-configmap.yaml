@@ -15,6 +15,8 @@ data:
 {{ .Files.Get "files/seed/seed-student-repos.sh" | indent 4 }}
   learner-seed-from-templates.sh: |
 {{ .Files.Get "files/seed/learner-seed-from-templates.sh" | indent 4 }}
+  learner-ensure-gitea-user.sh: |
+{{ .Files.Get "files/seed/learner-ensure-gitea-user.sh" | indent 4 }}
   assemble-repo.sh: |
 {{ .Files.Get "files/seed/assemble-repo.sh" | indent 4 }}
   assemble-gitops-repo.sh: |
