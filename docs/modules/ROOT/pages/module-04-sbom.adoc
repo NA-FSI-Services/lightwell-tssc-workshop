@@ -296,14 +296,9 @@ Confirm the browser URL contains `/realms/tpa/` (not `/admin/`). After a success
 
 . Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 3 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-rhtpa-sbom-ui.png`
+image::module-04-rhtpa-sbom-ui.png[RHTPA All SBOMs after CycloneDX ingest,width=700]
 
-RHTPA UI after SBOM upload or package browse. Redact account PII.
-// Asset backlog: workshop issue #60 (screenshot steps for authors)
-// When ready: image::module-04-rhtpa-sbom-ui.png[RHTPA SBOM browse UI,width=700]
-====
+Confirm the list shows your ingested SBOM (often named `target` when generated from `dir:target`) with a `type=cyclonedx` label. Open the name link to browse packages such as `commons-lang3` and Spring Boot starters.
 
 === Aside: Upload through the TPA UI (laptop)
 
