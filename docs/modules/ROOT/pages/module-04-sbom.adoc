@@ -282,7 +282,7 @@ oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
   -o jsonpath='{.data.server_url}{"\n"}'
 ----
 +
-You can also use the Showroom **RHTPA** tab (opens in a new browser tab).
+You can also use the Showroom **RHTPA** tab.
 
 . Sign in when Keycloak redirects you. Re-print credentials if you closed the terminal:
 +
