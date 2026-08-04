@@ -1,6 +1,9 @@
 {{- if and .Values.rhdh.enabled .Values.dynamicPlugins.enabled }}
 ---
-# Enable scaffolder Gitea publish for Module 3 (issue #120). Other plugins stay on defaults.
+# Dynamic plugins overlay. RHDH 1.10 hub image does NOT ship
+# backstage-plugin-scaffolder-backend-module-gitea-dynamic locally — enabling that
+# path crashes install-dynamic-plugins. Keep plugins empty until an OCI/npm package
+# is wired for publish:gitea (Module 3). Defaults still load via includes.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,13 +11,13 @@ metadata:
   namespace: {{ .Values.rhdh.namespace }}
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
+    rhdh.redhat.com/ext-config-sync: "true"
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.rhdh.syncWaves.config | quote }}
+    rhdh.redhat.com/backstage-name: {{ .Values.rhdh.name | quote }}
 data:
   dynamic-plugins.yaml: |
     includes:
       - dynamic-plugins.default.yaml
-    plugins:
-      - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-gitea-dynamic
-        disabled: false
+    plugins: []
 {{- end }}
