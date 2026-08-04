@@ -78,6 +78,7 @@ Enter the workshop learner username from ConfigMap `demo-userinfo-gitea` → `st
       var text = node.nodeValue;
       if (!text) continue;
       var p = node.parentElement;
+      if (p && (p.tagName === 'SCRIPT' || p.tagName === 'STYLE')) continue;
       if (p && p.closest && p.closest('#lw-user-form')) continue;
       // Keep the banner's literal token documentation intact
       if (p && p.closest && p.closest('.lw-user-banner') && text.indexOf(TOKEN) !== -1) continue;
@@ -94,7 +95,8 @@ Enter the workshop learner username from ConfigMap `demo-userinfo-gitea` → `st
     try { localStorage.setItem(LAST_KEY, user); } catch (e) { /* ignore */ }
 
     if (announce && status) {
-      status.textContent = 'Applied as “‘ + user + '” (saved for other modules).';
+      // ASCII quotes only — curly/smart quotes break this inline <script>
+      status.textContent = 'Applied as "' + user + '" (saved for other modules).';
     }
   }
 
