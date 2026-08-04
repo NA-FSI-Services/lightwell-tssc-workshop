@@ -33,7 +33,7 @@ tabs:
   - name: Nexus
     url: "https://nexus-lightwell-repo.${DOMAIN}"
     external: true
-  
-    - name: OpenShift Console
+
+  - name: OpenShift Console
     url: "https://console-openshift-console.${DOMAIN}"
     external: true
