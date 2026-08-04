@@ -20,8 +20,8 @@ data:
     # Lightwell RHACS / pipeline policy lab (issue #13)
 
     ## Student git (required)
-    PipelineRuns clone the **learner** repository on in-cluster Gitea — not the
-    workshop GitOps monorepo. Discover your URL:
+    PipelineRuns clone **your** application repository on in-cluster Gitea.
+    Discover your URL:
 
       oc -n gitea get configmap demo-userinfo-gitea \
         -o jsonpath='{.data.student_repo_url}{"\n"}'
