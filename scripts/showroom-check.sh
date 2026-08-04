@@ -84,6 +84,18 @@ has_line "ui-config.yml" 'default_mode:[[:space:]]*split' \
   || err "ui-config.yml: view_switcher.default_mode must be split"
 has_line "ui-config.yml" 'path:[[:space:]]*/terminal/' \
   || err "ui-config.yml: Terminal tab must use path: /terminal/"
+if grep -qiE 'name:[[:space:]]*OpenShift Console' ui-config.yml; then
+  err "ui-config.yml: remove OpenShift Console tab (iframe blocked by X-Frame-Options)"
+fi
+grep -qF 'sso.${DOMAIN}' ui-config.yml \
+  || err "ui-config.yml: SSO (Keycloak) tab must use https://sso.\${DOMAIN}/..."
+grep -qF 'server-trusted-profile-analyzer.${DOMAIN}' ui-config.yml \
+  || err "ui-config.yml: RHTPA tab must use server-trusted-profile-analyzer.\${DOMAIN}"
+grep -qF 'nexus-lightwell-repo.${DOMAIN}' ui-config.yml \
+  || err "ui-config.yml: Nexus tab must use nexus-lightwell-repo.\${DOMAIN}"
+grep -cE 'external:[[:space:]]*true' ui-config.yml | awk \
+  '{ if ($1 < 3) exit 1 }' \
+  || err "ui-config.yml: SSO/RHTPA/Nexus tabs must set external: true (open outside iframe)"
 
 # --- Child chart values ---
 if [[ -f "${SHOWROOM_VALUES}" ]]; then

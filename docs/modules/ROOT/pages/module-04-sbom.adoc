@@ -13,7 +13,7 @@ By the end of this module, you will be able to:
 
 * Produce a CycloneDX JSON SBOM from the Spring Boot PoC (JAR or `target/` tree) with `syft`
 * Locate RHTPA upload/browse guidance from ConfigMap `rhtpa-ingestion-info`
-* Ingest the SBOM via TPA UI or REST API (`POST /api/v3/sbom`), then browse in the UI
+* Ingest the SBOM via REST API (`POST /api/v3/sbom`) from Showroom, then browse it in the TPA UI
 * Explain how *VEX* / OSV feeds help CI scanners recognize Lightwell-patched CVEs
 * Explain RHDA vs RHTPA roles and when instructors demo RHDA on a laptop
 
@@ -214,48 +214,11 @@ Seeded Lightwell artifact SBOMs also exist under the Nexus raw repo path `sbom/j
 
 == Exercise 3: Ingest and browse in RHTPA
 
-. Open the TPA UI from Exercise 0 / Exercise 1 (`server_url` / Route host). Re-print if needed:
-+
-[source,bash,role=execute]
-----
-oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
-  -o jsonpath='{.data.server_url}{"\n"}'
-----
+Ingest from the Showroom terminal with the Trustify REST API (no browser file picker). Then open the TPA UI only to browse what you uploaded.
 
-. Sign in when Keycloak redirects you. Re-print credentials if you closed the terminal:
-+
-[source,bash,role=execute]
-----
-oc -n sso get configmap demo-userinfo-keycloak \
-  -o jsonpath='user={.data.workshop_username}{"\n"}pass={.data.workshop_password}{"\n"}'
-----
-+
-Confirm the browser URL contains `/realms/tpa/` (not `/admin/`). After a successful sign-in you return to TPA.
+=== Ingest via API (Showroom)
 
-. Upload `sbom.cyclonedx.json` through the UI (SBOMs / upload — labels vary slightly by TPA version), **or** use the non-UI API path below when the file lives only in the Showroom terminal. Stock `syft` often emits CycloneDX `specVersion` 1.5/1.6; that is expected even when ingestion metadata says `1.4+`.
-+
-[TIP]
-====
-The TPA browser *file picker* only sees files on the machine running the browser — not the Showroom `/terminal/` filesystem where Exercise 2 wrote `sbom.cyclonedx.json`.
-
-* **Showroom (recommended):** use the **API upload** subsection below from the same terminal (no file download needed).
-* **UI upload:** generate the SBOM on your laptop (same `syft` commands), or otherwise place `sbom.cyclonedx.json` on the machine whose browser is open to TPA.
-====
-
-. Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 3 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
-
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-rhtpa-sbom-ui.png`
-
-RHTPA UI after SBOM upload or package browse. Redact account PII.
-// Asset backlog: workshop issue #60 (screenshot steps for authors)
-// When ready: image::module-04-rhtpa-sbom-ui.png[RHTPA SBOM browse UI,width=700]
-====
-
-=== Non-UI: API upload (Showroom-friendly)
-
-Yes — you can ingest without the TPA upload dialog. Trustify 3 accepts:
+Trustify 3 accepts:
 
 [source,text]
 ----
@@ -264,13 +227,17 @@ Content-Type: application/octet-stream
 Authorization: Bearer <OIDC access token>
 ----
 
-From the Showroom terminal (same directory as `sbom.cyclonedx.json`), recover OIDC + TPA URLs and POST the file:
-
+. Stay in the Exercise 2 workspace that contains `sbom.cyclonedx.json` (or `cd` back to it). Confirm the file is present:
++
 [source,bash,role=execute]
 ----
-# Run from the directory that contains sbom.cyclonedx.json (Exercise 2)
-test -f sbom.cyclonedx.json || { echo "missing sbom.cyclonedx.json — cd to the Exercise 2 workspace first"; exit 1; }
+test -f sbom.cyclonedx.json && ls -la sbom.cyclonedx.json
+----
 
+. Recover OIDC issuer, workshop credentials, CLI client secret, and TPA base URL from the cluster, then POST the SBOM:
++
+[source,bash,role=execute]
+----
 export OIDC_ISSUER="$(oc -n sso get configmap demo-userinfo-keycloak \
   -o jsonpath='{.data.oidc_issuer}')"
 export RHTPA_URL="$(oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
@@ -299,9 +266,52 @@ curl -sk -X POST \
   "${RHTPA_URL%/}/api/v3/sbom"
 ----
 
-Expected: HTTP **201** (or another success code) and a small JSON body with an SBOM `id`. Then open the TPA UI (steps above) and browse — you still need the UI for the browse exercise, just not for the file picker.
+. Confirm HTTP **201** (or another success code) and a small JSON body with an SBOM `id`.
++
+Stock `syft` often emits CycloneDX `specVersion` 1.5/1.6; that is expected even when ingestion metadata says `1.4+`.
+Workshop tokens must include Trustify document scopes (`create:document`, …); the `cli` client and `tpa-user` receive those from the Keycloak realm import. Pipeline Task `syft-sbom-rhtpa` (Module 5) uses the same `POST /api/v3/sbom` pattern. Do not commit tokens or passwords.
 
-Workshop tokens must include Trustify document scopes (`create:document`, …); the `cli` client and `tpa-user` receive those from the Keycloak realm import. Pipeline Task `syft-sbom-rhtpa` (Module 5) uses the same `POST /api/v3/sbom` pattern (Bearer from Secret `rhtpa-upload-token` when present). Do not commit tokens or passwords.
+[[browse-tpa-ui]]
+=== Browse in the TPA UI
+
+. Open the TPA UI (`server_url` / Route host from Exercise 0 / Exercise 1). Re-print if needed:
++
+[source,bash,role=execute]
+----
+oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
+  -o jsonpath='{.data.server_url}{"\n"}'
+----
++
+You can also use the Showroom **RHTPA** tab (opens in a new browser tab).
+
+. Sign in when Keycloak redirects you. Re-print credentials if you closed the terminal:
++
+[source,bash,role=execute]
+----
+oc -n sso get configmap demo-userinfo-keycloak \
+  -o jsonpath='user={.data.workshop_username}{"\n"}pass={.data.workshop_password}{"\n"}'
+----
++
+Confirm the browser URL contains `/realms/tpa/` (not `/admin/`). After a successful sign-in you return to TPA.
+
+. Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 3 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-04-rhtpa-sbom-ui.png`
+
+RHTPA UI after SBOM upload or package browse. Redact account PII.
+// Asset backlog: workshop issue #60 (screenshot steps for authors)
+// When ready: image::module-04-rhtpa-sbom-ui.png[RHTPA SBOM browse UI,width=700]
+====
+
+=== Aside: Upload through the TPA UI (laptop)
+
+Use this only when `sbom.cyclonedx.json` is on the same machine as the browser (for example a laptop clone + local `syft`). The TPA *file picker* cannot see files inside the Showroom `/terminal/` filesystem.
+
+. Open the TPA UI and sign in (same steps as <<browse-tpa-ui>>).
+. Choose SBOMs / upload (labels vary slightly by TPA version) and select `sbom.cyclonedx.json`.
+. Confirm the SBOM appears in the list, then continue with the browse steps above.
 
 == Exercise 4: RHDA callout (laptop — not required in Showroom)
 

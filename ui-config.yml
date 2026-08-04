@@ -2,6 +2,10 @@
 # RHDP Showroom split-screen layout (lab guide + proxied terminal).
 # Consumed by showroom-content when ZT_UI_ENABLED=true (nookbag UI shell).
 # Terminal is nginx-proxied at /terminal/ → showroom terminal container :7681.
+#
+# External product UIs use external: true so they open in a new browser tab.
+# Embedding OpenShift Console / Nexus / Keycloak in the Showroom iframe fails
+# (X-Frame-Options DENY / SAMEORIGIN). Keep Terminal as the only in-pane tab.
 type: showroom
 
 default_width: 35
@@ -18,5 +22,14 @@ tabs:
   - name: Terminal
     path: /terminal/
 
-  - name: OpenShift Console
-    url: "https://console-openshift-console.${DOMAIN}"
+  - name: SSO (Keycloak)
+    url: "https://sso.${DOMAIN}/realms/tpa"
+    external: true
+
+  - name: RHTPA
+    url: "https://server-trusted-profile-analyzer.${DOMAIN}"
+    external: true
+
+  - name: Nexus
+    url: "https://nexus-lightwell-repo.${DOMAIN}"
+    external: true

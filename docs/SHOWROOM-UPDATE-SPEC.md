@@ -125,4 +125,4 @@ These upstream features are intentionally unsupported:
 - LlamaStack / zero-touch *automation* playbooks (solve/validate runners)
 - agnosticd.core integration (user data passed directly)
 
-**Supported for this workshop:** repo-root [`ui-config.yml`](../ui-config.yml) plus the nookbag **ZT UI shell** (`nookbag.enabled: true`, bundle `nookbag-v0.4.0+`) so Showroom renders split-screen lab guide + Terminal tab.
+**Supported for this workshop:** repo-root [`ui-config.yml`](../ui-config.yml) plus the nookbag **ZT UI shell** (`nookbag.enabled: true`, bundle `nookbag-v0.4.0+`) so Showroom renders split-screen lab guide + Terminal tab. Product links (**SSO / RHTPA / Nexus**) use `external: true` (new browser tab) because those UIs — and OpenShift Console — refuse Showroom iframe embedding.
