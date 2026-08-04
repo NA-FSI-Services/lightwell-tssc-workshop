@@ -3,9 +3,8 @@
 # Consumed by showroom-content when ZT_UI_ENABLED=true (nookbag UI shell).
 # Terminal is nginx-proxied at /terminal/ → showroom terminal container :7681.
 #
-# Product UIs are embedded (external: false). Some backends still send
-# X-Frame-Options DENY/SAMEORIGIN (Console, Nexus, Keycloak); if a tab shows
-# “refused to connect”, open the same URL from the lab guide or Terminal curl.
+# RHTPA embeds in-pane (no X-Frame-Options). SSO / Nexus / OpenShift Console
+# refuse iframes (SAMEORIGIN / DENY) — open them with external: true.
 #
 # SSO must NOT use /realms/tpa alone — that returns realm JSON metadata.
 # Use the Account Console path so learners see a login UI.
@@ -27,7 +26,7 @@ tabs:
 
   - name: SSO (Keycloak)
     url: "https://sso.${DOMAIN}/realms/tpa/account/"
-    external: false
+    external: true
 
   - name: RHTPA
     url: "https://server-trusted-profile-analyzer.${DOMAIN}"
@@ -35,8 +34,8 @@ tabs:
 
   - name: Nexus
     url: "https://nexus-lightwell-repo.${DOMAIN}"
-    external: false
+    external: true
 
   - name: OpenShift Console
     url: "https://console-openshift-console.${DOMAIN}"
-    external: false
+    external: true
