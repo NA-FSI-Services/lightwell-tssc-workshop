@@ -24,5 +24,5 @@ data:
   terminal_enabled: {{ .Values.showroom.terminal.enabled | quote }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
-  lab_entry: "Open showroom_url → split-screen Modules 1–5 + Terminal; SSO/RHTPA/Nexus tabs open externally (ui-config.yml); direct /terminal/ also works"
+  lab_entry: "Open showroom_url → split-screen Modules 1–5 + Terminal; SSO/RHTPA/Nexus/Console tabs open externally (ui-config.yml); direct /terminal/ also works"
 {{- end }}
