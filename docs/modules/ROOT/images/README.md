@@ -18,7 +18,7 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 | `module-03-source-diff.png` | #56 | Diagram (committed) |
 | `module-03-pom-rebuild.png` | #57 | Diagram (committed) |
 | `module-04-syft-rhtpa-flow.png` | #59 | Diagram (committed) |
-| `module-04-tpa-sso-signin.png` | #94 | Screenshot (placeholder) |
+| `module-04-tpa-sso-signin.png` | #94 | Screenshot (committed) |
 | `module-04-rhtpa-sbom-ui.png` | #60 | Screenshot (placeholder) |
 | `module-04-rhtpa-vs-rhda.png` | #61 | Diagram (committed) |
 | `module-05-fail-then-pass.png` | #63 | Diagram (committed) |
