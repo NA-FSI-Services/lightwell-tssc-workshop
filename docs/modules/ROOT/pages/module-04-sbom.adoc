@@ -13,7 +13,7 @@ By the end of this module, you will be able to:
 
 * Produce a CycloneDX JSON SBOM from the Spring Boot PoC (JAR or `target/` tree) with `syft`
 * Locate RHTPA upload/browse guidance from ConfigMap `rhtpa-ingestion-info`
-* Upload or query the SBOM in the RHTPA UI (and know the optional API path)
+* Ingest the SBOM via TPA UI or REST API (`POST /api/v3/sbom`), then browse in the UI
 * Explain how *VEX* / OSV feeds help CI scanners recognize Lightwell-patched CVEs
 * Explain RHDA vs RHTPA roles and when instructors demo RHDA on a laptop
 
@@ -232,7 +232,15 @@ oc -n sso get configmap demo-userinfo-keycloak \
 +
 Confirm the browser URL contains `/realms/tpa/` (not `/admin/`). After a successful sign-in you return to TPA.
 
-. Upload `sbom.cyclonedx.json` through the UI (SBOMs / upload — labels vary slightly by TPA version). Stock `syft` often emits CycloneDX `specVersion` 1.5/1.6; that is expected even when ingestion metadata says `1.4+`.
+. Upload `sbom.cyclonedx.json` through the UI (SBOMs / upload — labels vary slightly by TPA version), **or** use the non-UI API path below when the file lives only in the Showroom terminal. Stock `syft` often emits CycloneDX `specVersion` 1.5/1.6; that is expected even when ingestion metadata says `1.4+`.
++
+[TIP]
+====
+The TPA browser *file picker* only sees files on the machine running the browser — not the Showroom `/terminal/` filesystem where Exercise 2 wrote `sbom.cyclonedx.json`.
+
+* **Showroom (recommended):** use the **API upload** subsection below from the same terminal (no file download needed).
+* **UI upload:** generate the SBOM on your laptop (same `syft` commands), or otherwise place `sbom.cyclonedx.json` on the machine whose browser is open to TPA.
+====
 
 . Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 3 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
 
@@ -245,34 +253,55 @@ RHTPA UI after SBOM upload or package browse. Redact account PII.
 // When ready: image::module-04-rhtpa-sbom-ui.png[RHTPA SBOM browse UI,width=700]
 ====
 
-=== Optional: API upload path
+=== Non-UI: API upload (Showroom-friendly)
 
-Pipeline Task `syft-sbom-rhtpa` (namespace `stackrox` / RHACS chart hooks) attempts Trustify 3 first:
+Yes — you can ingest without the TPA upload dialog. Trustify 3 accepts:
 
 [source,text]
 ----
 POST {RHTPA_BASE}/api/v3/sbom
 Content-Type: application/octet-stream
-Authorization: Bearer <token from Secret rhtpa-upload-token when present>
+Authorization: Bearer <OIDC access token>
 ----
 
-Legacy bombastic-style `POST …/api/v2/sbom` with `Content-Type: application/json` is tried only if v3 fails. Tokens must include Trustify document scopes (`create:document`, …) — the workshop `cli` client and `tpa-user` receive those from the Keycloak realm import.
+From the Showroom terminal (same directory as `sbom.cyclonedx.json`), recover OIDC + TPA URLs and POST the file:
 
-If automated upload fails, the Task still writes the SBOM workspace file for *manual* UI upload—the same file you produced in Exercise 2.
+[source,bash,role=execute]
+----
+# Run from the directory that contains sbom.cyclonedx.json (Exercise 2)
+test -f sbom.cyclonedx.json || { echo "missing sbom.cyclonedx.json — cd to the Exercise 2 workspace first"; exit 1; }
 
-[source,bash]
+export OIDC_ISSUER="$(oc -n sso get configmap demo-userinfo-keycloak \
+  -o jsonpath='{.data.oidc_issuer}')"
+export RHTPA_URL="$(oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
+  -o jsonpath='{.data.server_url}')"
+export TPA_USER="$(oc -n sso get configmap demo-userinfo-keycloak \
+  -o jsonpath='{.data.workshop_username}')"
+export TPA_PASS="$(oc -n sso get configmap demo-userinfo-keycloak \
+  -o jsonpath='{.data.workshop_password}')"
+export CLI_SECRET="$(oc -n trusted-profile-analyzer get secret tpa-realm-cli-clients \
+  -o jsonpath='{.data.cli}' | base64 -d)"
+
+TOKEN="$(curl -sk -X POST "${OIDC_ISSUER}/protocol/openid-connect/token" \
+  -d grant_type=password \
+  -d client_id=cli \
+  -d client_secret="${CLI_SECRET}" \
+  -d username="${TPA_USER}" \
+  -d password="${TPA_PASS}" \
+  -d scope=openid \
+  | jq -r .access_token)"
+
+curl -sk -X POST \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @sbom.cyclonedx.json \
+  -w '\nHTTP %{http_code}\n' \
+  "${RHTPA_URL%/}/api/v3/sbom"
 ----
-# Pattern only — password-grant against Keycloak cli client; never commit tokens
-# TOKEN=$(curl -sS -X POST "${OIDC_ISSUER}/protocol/openid-connect/token" \
-#   -d grant_type=password -d client_id=cli -d client_secret="$CLI_SECRET" \
-#   -d username=tpa-user -d password="$WORKSHOP_PASSWORD" -d scope=openid \
-#   | jq -r .access_token)
-# curl -fsS -X POST \
-#   -H "Authorization: Bearer $TOKEN" \
-#   -H "Content-Type: application/octet-stream" \
-#   --data-binary @sbom.cyclonedx.json \
-#   "${RHTPA_URL%/}/api/v3/sbom"
-----
+
+Expected: HTTP **201** (or another success code) and a small JSON body with an SBOM `id`. Then open the TPA UI (steps above) and browse — you still need the UI for the browse exercise, just not for the file picker.
+
+Workshop tokens must include Trustify document scopes (`create:document`, …); the `cli` client and `tpa-user` receive those from the Keycloak realm import. Pipeline Task `syft-sbom-rhtpa` (Module 5) uses the same `POST /api/v3/sbom` pattern (Bearer from Secret `rhtpa-upload-token` when present). Do not commit tokens or passwords.
 
 == Exercise 4: RHDA callout (laptop — not required in Showroom)
 
@@ -312,7 +341,7 @@ image::module-04-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
 
 * Confirmed Keycloak `tpa` SSO credentials and Trustify authorization scopes/roles
 * Generated a CycloneDX SBOM from the Spring Boot PoC with `syft`
-* Located RHTPA ingestion metadata and uploaded/browsed the SBOM in TPA
+* Located RHTPA ingestion metadata and ingested/browsed the SBOM (UI and/or API)
 * Distinguished RHTPA (cluster system of record) from RHDA (laptop shift-left)
 
 **Key takeaways**
@@ -320,7 +349,7 @@ image::module-04-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
 * Prefer CycloneDX JSON from `syft` for this workshop (Maven Lightwell packages also ship CycloneDX + VEX; Python uses SPDX)
 * TPA UI/API authorization comes from the workshop Keycloak realm (`chicken-*` + `*:document` scopes)—not from ad-hoc Admin Console edits
 * OSV/VEX help scanners treat Lightwell remediations as fixed—not still-open CVEs
-* Pipeline Task `syft-sbom-rhtpa` automates the same generate-and-upload path in Module 5 (optional `POST /api/v3/sbom`)
+* Pipeline Task `syft-sbom-rhtpa` automates the same generate-and-API-upload path in Module 5 (`POST /api/v3/sbom`)
 * RHDA is optional on a laptop; learners do not need an IDE inside Showroom; do not upload proprietary app source to Red Hat for LWN
 
 **Next**
