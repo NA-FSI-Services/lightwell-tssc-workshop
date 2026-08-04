@@ -378,16 +378,18 @@ tkn -n "${LAB_NS}" pipelinerun list
 +
 Expected graph: `clone` → `lightwell-dep-gate` → `openshift-build` (BuildConfig) → `acs-image-check` (expect pass/fail with CI token from `rhacs-ci-token-mint`) → `syft-sbom-rhtpa` → `cosign-sign-keyless`.
 
-. After a successful `cosign-sign-keyless` task, verify the signature from Showroom (or a workstation with cosign). Stock Showroom terminals often ship *without* `cosign` on `PATH` — install a pinned binary under `/tmp` first:
+. After a successful `cosign-sign-keyless` task, verify the signature from Showroom (or a workstation with cosign). Stock Showroom terminals often ship *without* `cosign` on `PATH`, and `/home/lab-user` is often **not writable** (cosign needs `~/.sigstore` and `~/.docker`). Install under `/tmp` and set `HOME=/tmp/lab-home`:
 +
 [source,bash,role=execute]
 ----
 # Install cosign once per terminal session (Showroom-friendly; uses /tmp)
-mkdir -p /tmp/bin
+mkdir -p /tmp/bin /tmp/lab-home
 curl -sSfL -o /tmp/bin/cosign \
   https://github.com/sigstore/cosign/releases/download/v2.4.3/cosign-linux-amd64
 chmod +x /tmp/bin/cosign
 export PATH="/tmp/bin:$PATH"
+# Showroom /home/lab-user is often not writable — cosign needs ~/.sigstore and ~/.docker
+export HOME=/tmp/lab-home
 cosign version
 ----
 +
@@ -395,6 +397,11 @@ Initialize TUF, then verify with the pipeline SA identity confirmed on claim:
 +
 [source,bash,role=execute]
 ----
+# Reuse writable HOME from the install step (or set again if you opened a new shell)
+mkdir -p /tmp/lab-home
+export HOME=/tmp/lab-home
+export PATH="/tmp/bin:$PATH"
+
 export IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boot-lw-poc:latest"
 export TUF="https://tuf-trusted-artifact-signer.${DOMAIN}"
 export REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
