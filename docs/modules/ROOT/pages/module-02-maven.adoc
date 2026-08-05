@@ -369,9 +369,11 @@ In the field, prefer *proxied* remotes so developers never embed LWN credentials
 
 Artifactory uses the same remote URLs and `.rhlw-*` naming; this workshop uses Nexus as the RHDP stand-in. See the Lightwell Network “configure Artifactory” documentation for the production mirror of this pattern.
 
-== RHDH golden path
+== Looking ahead: Developer Hub
 
-Scaffolding from *Red Hat Developer Hub (RHDH)* is the next module—not an optional preview here. Keep using this Gitea clone (`lw-@@LW_USER@@/spring-boot-lw-poc`) for Module 2 proofs. In xref:module-03-scaffold.adoc[Module 3] you delete and recreate the app repo via Software Template `lightwell-java-service` into the **same** learner organization; Modules 4–6 then continue from that scaffold (same `student_repo_url`).
+You just proved that *Validated* and *Remediated* are concrete Maven behaviors: the same `settings.xml` profiles, the same GAV story, and a project under *your* Gitea org (`lw-@@LW_USER@@/spring-boot-lw-poc`).
+
+xref:module-03-scaffold.adoc[Module 3] answers the next enterprise question: *how do new services get that layout without hand-copying a PoC?* You will open *Red Hat Developer Hub (RHDH)*, run Software Template `lightwell-java-service`, and land a fresh service in the **same** organization—with the dual-stream Maven setup you practiced here already baked in. Keep this clone for Module 2 exercises; in Module 3 you replace the app repo via the template, then re-run Validated / Remediated proofs to confirm the golden path produces what you just learned by hand.
 
 == Module summary
 

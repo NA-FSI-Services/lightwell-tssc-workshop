@@ -98,7 +98,7 @@ Confirm:
 ----
 oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_repo_url}{"\n"}{.data.template_app_repo_url}{"\n"}'
-curl -sk -o /dev/null -w "%\{http_code}\n" \
+curl -sk -o /dev/null -w "%{http_code}\n" \
   "$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')"
 ----
 
@@ -107,9 +107,3 @@ Expect HTTP `200` on the app remote (anonymous clone works for public repos). Op
 // IMAGE PLACEHOLDER — module-02-gitea-seeded-app.png
 // Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/139
 // When ready: image::module-02-gitea-seeded-app.png[Seeded app repo root showing pom.xml,width=700]
-
-[IMPORTANT]
-====
-Do *not* `git clone` `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` for lab work.
-Templates on in-cluster Gitea are the only prepared source trees for learners.
-====

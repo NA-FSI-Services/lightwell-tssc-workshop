@@ -43,12 +43,15 @@ By the end of this module, you will be able to:
 
 == Exercise 1 — Discover RHDH and Gitea URLs
 
-In the Showroom terminal:
+In the Showroom terminal, read the fields you need (not the whole ConfigMap YAML):
 
 [source,bash,role=execute]
 ----
-oc -n rhdh get configmap demo-userinfo-rhdh -o yaml
-oc -n gitea get configmap demo-userinfo-gitea -o yaml
+oc -n rhdh get configmap demo-userinfo-rhdh \
+  -o jsonpath='rhdh_url={.data.rhdh_url}{"\n"}software_template={.data.software_template}{"\n"}'
+
+oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='gitea_url={.data.gitea_url}{"\n"}student_gitea_org={.data.student_gitea_org}{"\n"}student_username={.data.student_username}{"\n"}student_repo_url={.data.student_repo_url}{"\n"}'
 
 export RHDH_URL="$(oc -n rhdh get configmap demo-userinfo-rhdh -o jsonpath='{.data.rhdh_url}')"
 export GITEA_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')"
@@ -58,20 +61,17 @@ export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath
 export STUDENT_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')"
 export STUDENT_REPO_NAME="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_name}')"
 
-echo "RHDH:     $\{RHDH_URL}"
-echo "Gitea:    $\{GITEA_URL}"
-echo "Org:      $\{GITEA_ORG}"
-echo "User:     $\{STUDENT_USER}"
-echo "Repo:     $\{STUDENT_REPO_NAME}"
-echo "App URL:  $\{STUDENT_REPO_URL}"
+echo "RHDH:     ${RHDH_URL}"
+echo "Gitea:    ${GITEA_URL}"
+echo "Org:      ${GITEA_ORG}"
+echo "User:     ${STUDENT_USER}"
+echo "Repo:     ${STUDENT_REPO_NAME}"
+echo "App URL:  ${STUDENT_REPO_URL}"
 ----
 
-Open the printed RHDH and Gitea URLs in the browser. Sign in to Gitea as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from the ConfigMap when prompted.
+Expect lines like `RHDH: https://backstage-developer-hub-rhdh.apps.<cluster>/` and `Gitea: https://gitea.apps.<cluster>/` (real hosts from your claim — not placeholders).
 
-[IMPORTANT]
-====
-Learner remotes are *Gitea only*. Do *not* clone or push to `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` for this lab.
-====
+Open the printed RHDH and Gitea URLs in the browser. Sign in to Gitea as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from `demo-userinfo-gitea` when prompted.
 
 == Exercise 2 — Delete the seeded app repo
 
@@ -97,8 +97,8 @@ export STUDENT_USER='@@LW_USER@@'
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 : "${STUDENT_REPO_NAME:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_name}')}"
 
-curl -sk -o /dev/null -w "%\{http_code}\n" -u "$\{STUDENT_USER}:$\{STUDENT_PASS}" \
-  -X DELETE "$\{GITEA_URL}/api/v1/repos/$\{GITEA_ORG}/$\{STUDENT_REPO_NAME}"
+curl -sk -o /dev/null -w "%{http_code}\n" -u "${STUDENT_USER}:${STUDENT_PASS}" \
+  -X DELETE "${GITEA_URL}/api/v1/repos/${GITEA_ORG}/${STUDENT_REPO_NAME}"
 ----
 
 Expect HTTP `204`. A `404` means the repo is already gone—continue.
@@ -136,7 +136,7 @@ That URL must match `student_repo_url` in `demo-userinfo-gitea`.
 : "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
 
 rm -rf /tmp/spring-boot-lw-poc
-git clone "$\{STUDENT_REPO_URL}" /tmp/spring-boot-lw-poc
+git clone "${STUDENT_REPO_URL}" /tmp/spring-boot-lw-poc
 cd /tmp/spring-boot-lw-poc
 
 ls -la pom.xml settings.xml
