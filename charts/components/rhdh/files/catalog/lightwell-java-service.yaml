@@ -112,8 +112,8 @@ spec:
       name: Fetch Lightwell Java skeleton
       action: fetch:template
       input:
-        # In-cluster Gitea template (seeded by gitea-student-repo-seed) — not the GitHub monorepo.
-        url: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-java-service
+        # GiteaUrlReader requires .../src/branch/<ref> (plain owner/repo yields commits/undefined).
+        url: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-java-service/src/branch/main
         values:
           name: ${{ parameters.name }}
           description: ${{ parameters.description }}
