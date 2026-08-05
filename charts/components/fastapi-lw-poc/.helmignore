@@ -1,0 +1,10 @@
+# Patterns to ignore when packaging the chart (Python build / venv under app/)
+.git/
+*.tgz
+app/.venv/
+app/venv/
+app/__pycache__/
+.idea/
+*.iml
+sbom.cdx.json
+sbom.spdx.json

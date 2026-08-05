@@ -1,0 +1,9 @@
+apiVersion: v2
+name: fastapi-lw-poc
+description: FastAPI / Python PoC for Lightwell Validated + Remediated PyPI labs (Modules 7–9)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/NA-FSI-Services/lightwell-tssc-workshop

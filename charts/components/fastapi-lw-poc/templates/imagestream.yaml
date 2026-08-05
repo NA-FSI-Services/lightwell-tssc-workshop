@@ -1,0 +1,15 @@
+{{- if .Values.fastapiLwPoc.enabled }}
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ .Values.fastapiLwPoc.name }}
+  namespace: {{ .Values.fastapiLwPoc.namespace }}
+  labels:
+    {{- include "fastapi-lw-poc.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.fastapiLwPoc.syncWaves.config | quote }}
+spec:
+  lookupPolicy:
+    local: true
+{{- end }}

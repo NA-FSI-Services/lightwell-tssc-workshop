@@ -1,0 +1,11 @@
+{{- if .Values.fastapiLwPoc.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.fastapiLwPoc.namespace }}
+  labels:
+    {{- include "fastapi-lw-poc.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.fastapiLwPoc.syncWaves.namespace | quote }}
+{{- end }}

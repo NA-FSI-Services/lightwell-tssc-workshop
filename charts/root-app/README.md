@@ -12,7 +12,7 @@ Master Helm chart for the workshop GitOps sync path (`gitops_path: charts/root-a
 | `15` | `gitea` | Student Git (seeded learner repos for Module 5) |
 | `20` | `lightwell-repo` | Artifact manager (validated / remediated / OSV) (#7) |
 | `30` | `rhdh` | Developer Hub (+ `lightwell-java-service` placeholder; full template in #12) |
-| `40` | `spring-boot-lw-poc`, `parasol-app` | Sample apps (`spring-boot-lw-poc` #24 primary; `parasol-app` #8 optional) |
+| `40` | `spring-boot-lw-poc`, `fastapi-lw-poc`, `parasol-app` | Sample apps (`spring-boot-lw-poc` #24 primary; `fastapi-lw-poc` #146 Python; `parasol-app` #8 optional) |
 | `50` | `showroom` | Lab guide (last) |
 
 Ordering is set via `argocd.argoproj.io/sync-wave` on each Application and documented in [values.yaml](values.yaml). Prefer operators → config → apps → showroom when adding components.
@@ -30,6 +30,7 @@ Ordering is set via `argocd.argoproj.io/sync-wave` on each Application and docum
 | `components.lightwellRepo` | `charts/components/lightwell-repo` | disabled |
 | `components.rhdh` | `charts/components/rhdh` | disabled |
 | `components.springBootLwPoc` | `charts/components/spring-boot-lw-poc` | disabled |
+| `components.fastapiLwPoc` | `charts/components/fastapi-lw-poc` | disabled (Modules 7–9; #146) |
 | `components.parasolApp` | `charts/components/parasol-app` | disabled (optional) |
 | `components.showroom` | `charts/components/showroom` | **enabled** (wave 50; Modules 1–5 via `site.yml`) |
 
