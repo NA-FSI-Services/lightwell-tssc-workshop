@@ -9,6 +9,10 @@
 {{- $gitopsName := .Values.seed.gitops.repoName | default "gitops-spring-boot-lw-poc" }}
 {{- $gitopsUrl := include "gitea.studentGitopsRepoUrl" (list . $primaryUser) }}
 {{- $promoteNs := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $primaryUser }}
+{{- $pythonRepoName := .Values.seed.python.repoName | default "fastapi-lw-poc" }}
+{{- $pythonRepoUrl := include "gitea.studentPythonAppRepoUrl" (list . $primaryUser) }}
+{{- $pythonGitopsName := .Values.seed.python.gitops.repoName | default "gitops-fastapi-lw-poc" }}
+{{- $pythonGitopsUrl := include "gitea.studentPythonGitopsRepoUrl" (list . $primaryUser) }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -37,20 +41,28 @@ data:
   student_gitops_repo_name: {{ $gitopsName | quote }}
   student_promote_namespace: {{ $promoteNs | quote }}
   student_argocd_app: {{ printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $primaryUser | quote }}
+  # Python track (#147) — Module 7+; parallel keys (do not overwrite Java student_repo_url).
+  student_python_repo_url: {{ $pythonRepoUrl | quote }}
+  student_python_repo_name: {{ $pythonRepoName | quote }}
+  student_python_requirements_path: "requirements.txt"
+  student_python_gitops_repo_url: {{ $pythonGitopsUrl | quote }}
+  student_python_gitops_repo_name: {{ $pythonGitopsName | quote }}
   # Operator-prepared templates (monorepo isolation) — source for learner-seed-from-templates.sh
   template_gitea_org: {{ $templatesOrg | quote }}
   template_app_repo_url: {{ include "gitea.templateAppRepoUrl" . | quote }}
   template_gitops_repo_url: {{ include "gitea.templateGitopsRepoUrl" . | quote }}
+  template_python_app_repo_url: {{ include "gitea.templatePythonAppRepoUrl" . | quote }}
+  template_python_gitops_repo_url: {{ include "gitea.templatePythonGitopsRepoUrl" . | quote }}
 {{- if .Values.seed.templates.skeleton.enabled }}
   template_skeleton_repo_url: {{ include "gitea.templateSkeletonRepoUrl" . | quote }}
 {{- end }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
 {{- if gt (len .Values.students) 1 }}
-  # Additional students (username|org|app_repo|gitops_repo|promote_ns)
+  # Additional students (username|org|app_repo|gitops_repo|promote_ns|python_app|python_gitops)
   student_repos: |
 {{- range .Values.students }}
-    {{ .username }}={{ include "gitea.learnerOrgName" .username }}|{{ include "gitea.studentAppRepoUrl" (list $ .username) }}|{{ include "gitea.studentGitopsRepoUrl" (list $ .username) }}|{{ printf "%s-%s" ($.Values.gitopsAppSet.namespacePrefix | default "lw-poc") .username }}
+    {{ .username }}={{ include "gitea.learnerOrgName" .username }}|{{ include "gitea.studentAppRepoUrl" (list $ .username) }}|{{ include "gitea.studentGitopsRepoUrl" (list $ .username) }}|{{ printf "%s-%s" ($.Values.gitopsAppSet.namespacePrefix | default "lw-poc") .username }}|{{ include "gitea.studentPythonAppRepoUrl" (list $ .username) }}|{{ include "gitea.studentPythonGitopsRepoUrl" (list $ .username) }}
 {{- end }}
 {{- end }}
 {{- end }}

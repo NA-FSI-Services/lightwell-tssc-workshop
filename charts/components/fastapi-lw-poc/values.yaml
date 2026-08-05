@@ -53,8 +53,8 @@ userInfo:
   title: "Lightwell TSSC Workshop — FastAPI LWN PoC"
   instructions: >-
     Python learner app (Modules 7–9). Clone the Gitea FastAPI remote
-    (requirements.txt at repo root; URLs from demo-userinfo-gitea once #147
-    seeds templates). Install with pip against lightwell-repo Validated index
+    (requirements.txt at repo root; student_python_repo_url from
+    demo-userinfo-gitea). Install with pip against lightwell-repo Validated index
     for httpx==0.27.2; FastAPI/uvicorn come from public PyPI. Open the Route
     for /api/greeting and /docs.
 

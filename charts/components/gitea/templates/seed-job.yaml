@@ -45,15 +45,30 @@ spec:
                 tar -C /usr/local/bin -xzf /tmp/oc.tgz oc
               fi
               export SEED_MOUNT=/seed
+              # Java app + gitops templates
               bash /seed/assemble-repo.sh "${WORKDIR}/repo"
 {{- if .Values.seed.gitops.enabled }}
               export GITOPS_SOURCE_PATH={{ .Values.seed.gitops.sourcePath | quote }}
+              export OVERLAY_GITOPS_PREFIX=overlay-gitops
               bash /seed/assemble-gitops-repo.sh "${WORKDIR}/gitops-repo"
 {{- end }}
 {{- if .Values.seed.templates.skeleton.enabled }}
               export SKELETON_PATH={{ .Values.seed.templates.skeleton.sourcePath | quote }}
               bash /seed/assemble-skeleton.sh "${WORKDIR}/skeleton"
 {{- end }}
+              # Python FastAPI app + gitops templates (#147) — always alongside Java when live.
+              # Reuses one monorepo clone path via assemble scripts (each clones; acceptable for seed Job).
+              if [[ "${SOURCE_MODE:-live}" == "live" ]]; then
+                export SOURCE_PATH={{ .Values.seed.python.sourcePath | quote }}
+                export INCLUDE_OSV_EVAL=false
+                export OVERLAY_PREFIX=overlay-python
+                bash /seed/assemble-repo.sh "${WORKDIR}/python-repo"
+                export GITOPS_SOURCE_PATH={{ .Values.seed.python.gitops.sourcePath | quote }}
+                export OVERLAY_GITOPS_PREFIX=overlay-python-gitops
+                bash /seed/assemble-gitops-repo.sh "${WORKDIR}/python-gitops-repo"
+              else
+                echo "WARNING: SOURCE_MODE=${SOURCE_MODE} — skipping Python templates (require live monorepo isolation)" >&2
+              fi
               export SEED_DIR="${WORKDIR}"
               bash /seed/seed-student-repos.sh
           env:
@@ -103,6 +118,18 @@ spec:
             - name: SKELETON_SEED_SUBDIR
               value: skeleton
 {{- end }}
+            - name: PYTHON_REPO_NAME
+              value: {{ .Values.seed.python.repoName | quote }}
+            - name: PYTHON_REPO_DESCRIPTION
+              value: {{ .Values.seed.python.repoDescription | quote }}
+            - name: PYTHON_SEED_SUBDIR
+              value: python-repo
+            - name: PYTHON_GITOPS_REPO_NAME
+              value: {{ .Values.seed.python.gitops.repoName | quote }}
+            - name: PYTHON_GITOPS_REPO_DESCRIPTION
+              value: {{ .Values.seed.python.gitops.repoDescription | quote }}
+            - name: PYTHON_GITOPS_SEED_SUBDIR
+              value: python-gitops-repo
             - name: ADMIN_USER
               valueFrom:
                 secretKeyRef:

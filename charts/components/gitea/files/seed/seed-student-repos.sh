@@ -26,6 +26,14 @@ SKELETON_REPO_NAME="${SKELETON_REPO_NAME:-}"
 SKELETON_REPO_DESCRIPTION="${SKELETON_REPO_DESCRIPTION:-RHDH Software Template skeleton (Module 3)}"
 SKELETON_SEED_SUBDIR="${SKELETON_SEED_SUBDIR:-skeleton}"
 
+# Python track (#147) — optional; set when assemble produced python-repo / python-gitops-repo
+PYTHON_REPO_NAME="${PYTHON_REPO_NAME:-}"
+PYTHON_REPO_DESCRIPTION="${PYTHON_REPO_DESCRIPTION:-Lightwell TSSC student FastAPI lab repository (Modules 7–9)}"
+PYTHON_SEED_SUBDIR="${PYTHON_SEED_SUBDIR:-python-repo}"
+PYTHON_GITOPS_REPO_NAME="${PYTHON_GITOPS_REPO_NAME:-}"
+PYTHON_GITOPS_REPO_DESCRIPTION="${PYTHON_GITOPS_REPO_DESCRIPTION:-Lightwell TSSC student FastAPI GitOps chart (Module 9)}"
+PYTHON_GITOPS_SEED_SUBDIR="${PYTHON_GITOPS_SEED_SUBDIR:-python-gitops-repo}"
+
 API="${GITEA_URL%/}/api/v1"
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "${WORKDIR}"' EXIT
@@ -263,6 +271,20 @@ if [[ -n "${SKELETON_REPO_NAME}" && -d "${SEED_DIR}/${SKELETON_SEED_SUBDIR}" ]];
   push_seed_tree "${TEMPLATES_ORG}" "${SKELETON_REPO_NAME}" "${SKELETON_SEED_SUBDIR}" \
     "Operator template: RHDH lightwell-java-service skeleton (Module 3 fetch:template)"
   echo "TEMPLATE_SKELETON_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${SKELETON_REPO_NAME}.git"
+fi
+
+if [[ -n "${PYTHON_REPO_NAME}" && -d "${SEED_DIR}/${PYTHON_SEED_SUBDIR}" ]]; then
+  ensure_org_repo "${TEMPLATES_ORG}" "${PYTHON_REPO_NAME}" "${PYTHON_REPO_DESCRIPTION} (template)"
+  push_seed_tree "${TEMPLATES_ORG}" "${PYTHON_REPO_NAME}" "${PYTHON_SEED_SUBDIR}" \
+    "Operator template: Lightwell FastAPI tree for learner seed (Modules 7–9)"
+  echo "TEMPLATE_PYTHON_APP_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${PYTHON_REPO_NAME}.git"
+fi
+
+if [[ -n "${PYTHON_GITOPS_REPO_NAME}" && -d "${SEED_DIR}/${PYTHON_GITOPS_SEED_SUBDIR}" ]]; then
+  ensure_org_repo "${TEMPLATES_ORG}" "${PYTHON_GITOPS_REPO_NAME}" "${PYTHON_GITOPS_REPO_DESCRIPTION} (template)"
+  push_seed_tree "${TEMPLATES_ORG}" "${PYTHON_GITOPS_REPO_NAME}" "${PYTHON_GITOPS_SEED_SUBDIR}" \
+    "Operator template: Lightwell FastAPI GitOps chart for learner seed (Module 9)"
+  echo "TEMPLATE_PYTHON_GITOPS_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${PYTHON_GITOPS_REPO_NAME}.git"
 fi
 
 echo "gitea-student-repo-seed: complete (users + templates; learner orgs not created)"

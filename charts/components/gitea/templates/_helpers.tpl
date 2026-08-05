@@ -63,6 +63,33 @@ https://{{ include "gitea.routeHost" . }}
 {{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
 {{- end -}}
 
+{{/* Python track (#147) — parallel keys; do not overwrite Java student_repo_url. */}}
+{{- define "gitea.studentPythonAppRepoUrl" -}}
+{{- $root := index . 0 -}}
+{{- $user := index . 1 -}}
+{{- $org := include "gitea.learnerOrgName" $user -}}
+{{- $repo := $root.Values.seed.python.repoName | default "fastapi-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" $root) $org $repo -}}
+{{- end -}}
+
+{{- define "gitea.studentPythonGitopsRepoUrl" -}}
+{{- $root := index . 0 -}}
+{{- $user := index . 1 -}}
+{{- $org := include "gitea.learnerOrgName" $user -}}
+{{- $repo := $root.Values.seed.python.gitops.repoName | default "gitops-fastapi-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" $root) $org $repo -}}
+{{- end -}}
+
+{{- define "gitea.templatePythonAppRepoUrl" -}}
+{{- $repo := .Values.seed.python.repoName | default "fastapi-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
+{{- end -}}
+
+{{- define "gitea.templatePythonGitopsRepoUrl" -}}
+{{- $repo := .Values.seed.python.gitops.repoName | default "gitops-fastapi-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
+{{- end -}}
+
 {{- define "gitea.primaryStudentRepoUrl" -}}
 {{- include "gitea.studentAppRepoUrl" (list . (include "gitea.primaryStudent" .)) -}}
 {{- end -}}
