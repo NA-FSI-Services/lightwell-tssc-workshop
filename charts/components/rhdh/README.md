@@ -67,6 +67,10 @@ https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/main/charts/comp
 | `softwareTemplates.enabled` | `true` | Mount Template catalog entity |
 | `deployer.domain` | `""` | Injected by root-app; used for `baseUrl` / userinfo |
 
+Auth (workshop): `app-config-rhdh` sets `auth.environment: development`, guest provider with
+`dangerouslyAllowOutsideDevelopment: true`, and `signInPage: guest` so learners use **Guest**
+only (no GitHub OAuth — that button otherwise 404s with `Unknown auth provider 'github'`).
+
 Canonical LWN remotes:
 
 - `https://packages.redhat.com/lightwell/java/validated`

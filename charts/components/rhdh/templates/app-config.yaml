@@ -22,6 +22,15 @@ data:
         origin: {{ $baseUrl | quote }}
     organization:
       name: Lightwell TSSC Workshop
+    # Workshop IdP is not configured — Guest only (no GitHub OAuth).
+    # Without signInPage: guest the UI offers a broken GitHub button
+    # (Unknown auth provider 'github').
+    auth:
+      environment: development
+      providers:
+        guest:
+          dangerouslyAllowOutsideDevelopment: true
+    signInPage: guest
 {{- if .Values.giteaIntegration.enabled }}
     integrations:
       gitea:

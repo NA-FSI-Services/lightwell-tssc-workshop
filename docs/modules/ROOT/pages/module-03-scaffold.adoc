@@ -71,7 +71,10 @@ echo "App URL:  ${STUDENT_REPO_URL}"
 
 Expect lines like `RHDH: https://backstage-developer-hub-rhdh.apps.<cluster>/` and `Gitea: https://gitea.apps.<cluster>/` (real hosts from your claim — not placeholders).
 
-Open the printed RHDH and Gitea URLs in the browser. Sign in to Gitea as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from `demo-userinfo-gitea` when prompted.
+Open the printed RHDH and Gitea URLs in the browser.
+
+* *RHDH* — choose *Guest* (workshop auth; do not use GitHub — that provider is not configured).
+* *Gitea* — sign in as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from `demo-userinfo-gitea` when prompted.
 
 == Exercise 2 — Delete the seeded app repo
 
