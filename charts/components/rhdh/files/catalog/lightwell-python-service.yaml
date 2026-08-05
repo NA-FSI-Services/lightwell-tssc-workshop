@@ -13,9 +13,9 @@ metadata:
   title: Lightwell Python Service
   description: >-
     FastAPI / Python microservice golden path with Lightwell Network Validated
-    and optional Remediated PyPI indexes, pip.conf helpers, and a stub Tekton
-    pipeline for Modules 7–9. Publishes to workshop Gitea as
-    lw-<student_username>/fastapi-lw-poc.
+    and optional Remediated PyPI indexes, pip.conf helpers, and a hybrid Tekton
+    pipeline (dep-gate → BuildConfig → ACS → SBOM → cosign) for Modules 7–9.
+    Publishes to workshop Gitea as lw-<student_username>/fastapi-lw-poc.
   tags:
     - lightwell
     - python
@@ -156,8 +156,12 @@ spec:
           Use `pip-remediated.conf` and install `lw-workshop-pypi==1.0.0.rhlw-00001`.
 
           **Module 9 — Sign / policy / GitOps**
-          Apply `.tekton/` stub; full Tasks land with issue #149. Optional promote
-          via `student_python_gitops_repo_url`.
+          Ensure `requirements.txt` includes `lw-workshop-pypi==1.0.0.rhlw-00001`
+          (Module 8). Apply `.tekton/rbac.yaml` + `pipeline.yaml`, then `sed`
+          `STUDENT_REPO_URL_PLACEHOLDER` from `student_python_repo_url` into
+          `pipelinerun.yaml` and create the PipelineRun. Promote digest via
+          `student_python_gitops_repo_url` / `student_python_argocd_app`
+          (`lw-fastapi-<username>`).
 
           Canonical remotes:
           - https://packages.redhat.com/lightwell/python/validated

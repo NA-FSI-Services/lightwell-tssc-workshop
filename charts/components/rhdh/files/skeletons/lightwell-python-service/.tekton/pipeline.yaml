@@ -1,4 +1,4 @@
-# Stub Pipeline — Module 9 / #149 will replace tasks with pip build, ACS, SBOM, cosign.
+# ${{ values.name }} — hybrid BuildConfig + ACS + SBOM + RHTAS keyless cosign (Module 9 / #149).
 # Prefer Gitea student remotes (demo-userinfo-gitea → student_python_repo_url).
 apiVersion: tekton.dev/v1
 kind: Pipeline
@@ -6,12 +6,10 @@ metadata:
   name: ${{ values.name }}-build-sign
   labels:
     app.kubernetes.io/part-of: lightwell-tssc-workshop
+    lightwell.redhat.com/rhtas-keyless: "true"
+    lightwell.redhat.com/build-strategy: openshift-buildconfig
     lightwell.redhat.com/language: python
-    lightwell.redhat.com/pipeline-stub: "true"
 spec:
-  description: >-
-    Stub for Modules 7–9. Full Python Tasks (sign, policy, promote) land in
-    workshop issue #149 — do not treat this as the golden-path pipeline yet.
   params:
     - name: repo-url
       type: string
@@ -21,11 +19,23 @@ spec:
       default: main
     - name: image-url
       type: string
-      description: >-
-        Internal registry tag in the learner lab namespace
-        (image-registry.openshift-image-registry.svc:5000/<lab-ns>/${{ values.name }}:latest)
+      description: Learner lab namespace ImageStream tag
+    - name: buildconfig-name
+      type: string
+      default: ${{ values.name }}
+    - name: cosign-fulcio-url
+      type: string
+      default: ""
+    - name: cosign-rekor-url
+      type: string
+      default: ""
+    - name: cosign-tuf-url
+      type: string
+      default: ""
+      description: TUF root/mirror URL from RHTAS
   workspaces:
     - name: source
+    - name: sbom
   tasks:
     - name: clone
       taskRef:
@@ -46,21 +56,154 @@ spec:
         - name: REVISION
           value: $(params.revision)
 
-    - name: stub-note
+    - name: lightwell-python-dep-gate
       runAfter: [clone]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: lightwell-python-dep-gate
+          - name: namespace
+            value: stackrox
       workspaces:
         - name: source
           workspace: source
+      params:
+        - name: mode
+          value: require-remediated
+        - name: requirements-path
+          value: requirements.txt
+
+    - name: openshift-build
+      runAfter: [lightwell-python-dep-gate]
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: buildconfig-name
+          value: $(params.buildconfig-name)
       taskSpec:
+        params:
+          - name: buildconfig-name
+            type: string
         workspaces:
           - name: source
         steps:
-          - name: remind
-            image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          - name: start-build
+            image: registry.redhat.io/openshift4/ose-cli:latest
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
-              echo "${{ values.name }} stub: cloned sources under $(workspaces.source.path)"
-              echo "Replace this Pipeline with Module 9 Tasks when issue #149 lands."
-              test -f "$(workspaces.source.path)/requirements.txt"
-              echo "OK: requirements.txt present at repo root"
+              BC="$(params.buildconfig-name)"
+              SRC="$(workspaces.source.path)"
+              echo "Starting Binary build ${BC} from ${SRC}"
+              oc start-build "${BC}" --from-dir="${SRC}" --follow --wait
+              echo "Build ${BC} finished"
+
+    - name: acs-image-check
+      runAfter: [openshift-build]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: acs-image-check
+          - name: namespace
+            value: stackrox
+      params:
+        - name: image
+          value: $(params.image-url)
+
+    - name: syft-sbom-rhtpa
+      runAfter: [acs-image-check]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: syft-sbom-rhtpa
+          - name: namespace
+            value: stackrox
+      workspaces:
+        - name: source
+          workspace: source
+        - name: sbom
+          workspace: sbom
+      params:
+        - name: image
+          value: $(params.image-url)
+
+    - name: cosign-sign-keyless
+      runAfter: [syft-sbom-rhtpa]
+      taskSpec:
+        params:
+          - name: image
+            type: string
+          - name: fulcio-url
+            type: string
+          - name: rekor-url
+            type: string
+          - name: tuf-url
+            type: string
+        volumes:
+          - name: oidc-token
+            projected:
+              sources:
+                - serviceAccountToken:
+                    path: token
+                    expirationSeconds: 600
+                    audience: trusted-artifact-signer
+        steps:
+          - name: sign
+            image: registry.redhat.io/rhtas/cosign-rhel9:1.3.0
+            volumeMounts:
+              - name: oidc-token
+                mountPath: /var/run/sigstore/cosign
+                readOnly: true
+            env:
+              - name: IMAGE
+                value: $(params.image)
+              - name: FULCIO_URL
+                value: $(params.fulcio-url)
+              - name: REKOR_URL
+                value: $(params.rekor-url)
+              - name: TUF_URL
+                value: $(params.tuf-url)
+              - name: HOME
+                value: /tmp
+            script: |
+              #!/usr/bin/env bash
+              set -euo pipefail
+              if [[ -n "${TUF_URL}" ]]; then
+                cosign initialize --mirror="${TUF_URL}" --root="${TUF_URL}/root.json"
+              fi
+              TOKEN_FILE=/var/run/sigstore/cosign/token
+              EXTRA=(
+                --identity-token="${TOKEN_FILE}"
+                --oidc-issuer=https://kubernetes.default.svc
+                --oidc-client-id=trusted-artifact-signer
+                --fulcio-auth-flow=token
+                --allow-http-registry
+                --allow-insecure-registry
+              )
+              if [[ -n "${FULCIO_URL}" ]]; then
+                EXTRA+=(--fulcio-url="${FULCIO_URL}")
+              fi
+              if [[ -n "${REKOR_URL}" ]]; then
+                EXTRA+=(--rekor-url="${REKOR_URL}")
+              fi
+              cosign sign --yes "${EXTRA[@]}" "${IMAGE}"
+              echo "Signed ${IMAGE} (keyless / RHTAS)"
+      params:
+        - name: image
+          value: $(params.image-url)
+        - name: fulcio-url
+          value: $(params.cosign-fulcio-url)
+        - name: rekor-url
+          value: $(params.cosign-rekor-url)
+        - name: tuf-url
+          value: $(params.cosign-tuf-url)

@@ -55,7 +55,7 @@ Default `seed.source.mode=live`: the seed Job clones the **workshop GitOps URL**
 
 1. **Java app template** — copies `seed.source.path` to `workshop-templates/spring-boot-lw-poc`, includes `tools/osv-eval/`, overlays `.tekton/`
 2. **Java GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`
-3. **Python app template** (#147) — copies `seed.python.sourcePath` to `workshop-templates/fastapi-lw-poc`, overlays stub `.tekton/`
+3. **Python app template** (#147 / #149) — copies `seed.python.sourcePath` to `workshop-templates/fastapi-lw-poc`, overlays full `.tekton/` (build-sign)
 4. **Python GitOps template** — copies `seed.python.gitops.sourcePath` **excluding `app/`** to `workshop-templates/gitops-fastapi-lw-poc`
 5. **RHDH skeletons** — copies `seed.templates.skeleton` / `skeletonPython` source paths to `workshop-templates/lightwell-java-service` and `workshop-templates/lightwell-python-service`
 
@@ -77,6 +77,17 @@ template only (offline chart tests). GitOps + Python seed require `live` mode.
 4. ApplicationSet-managed Argo Application syncs → Healthy Route
 
 Monorepo `components.springBootLwPoc` stays **disabled** (runtime SoT is Gitea).
+
+## Module 9 promote (#149)
+
+Same pattern for FastAPI:
+
+1. `fastapi-lw-poc-build-sign` builds/signs into the **lab** NS
+2. Student `oc tag`s into `lw-fastapi-<user>` ImageStream
+3. Student commits `image.digest` + `replicas: 1` to `student_python_gitops_repo_url`
+4. ApplicationSet `lightwell-student-gitops-fastapi` syncs Argo app `lw-fastapi-<user>`
+
+Monorepo `components.fastapiLwPoc` stays **disabled** until the Python track is the runtime SoT.
 
 ## Sync waves (inside chart)
 
@@ -102,6 +113,8 @@ Root-app Application wave: **`15`** (after TSSC operators, before RHDH / sample 
 | `seed.python.gitops.repoName` | `gitops-fastapi-lw-poc` | Python thin chart template |
 | `gitopsAppSet.enabled` | `true` | ApplicationSet in `openshift-gitops` (Java) |
 | `gitopsAppSet.namespacePrefix` | `lw-poc` | Product NS = `lw-poc-<username>` |
+| `gitopsAppSetPython.enabled` | `true` | ApplicationSet for FastAPI gitops (#149) |
+| `gitopsAppSetPython.namespacePrefix` | `lw-fastapi` | Product NS = `lw-fastapi-<username>` |
 | `seed.source.mode` | `live` | `live` isolate from GitOps repo; `embedded` Java app fallback |
 | `seed.source.repoUrl` | `""` | Injected by root-app from `gitops.repoUrl` |
 | `seed.source.path` | `charts/components/spring-boot-lw-poc/app` | Java app subtree |

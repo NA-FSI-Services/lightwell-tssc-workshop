@@ -1,0 +1,83 @@
+# Apply once in your learner lab namespace before PipelineRuns / builds.
+# Module 9 — use Gitea student remotes from demo-userinfo-gitea (student_python_repo_url).
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-edit
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-system-image-builder
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-builder
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-system-image-puller
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-puller
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: fastapi-lw-poc
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+spec:
+  lookupPolicy:
+    local: true
+---
+# Binary Docker build — pipeline starts with: oc start-build --from-dir=<workspace>
+# Dockerfile is the FastAPI UBI9 multi-stage image (pip install in image build).
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: fastapi-lw-poc
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+spec:
+  successfulBuildsHistoryLimit: 3
+  failedBuildsHistoryLimit: 3
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  source:
+    type: Binary
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fastapi-lw-poc:latest

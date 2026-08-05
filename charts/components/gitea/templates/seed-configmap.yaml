@@ -53,6 +53,8 @@ data:
 {{ .Files.Get "files/seed/overlay-python/tekton/pipeline.yaml" | indent 4 }}
   overlay-python-tekton-pipelinerun.yaml: |
 {{ .Files.Get "files/seed/overlay-python/tekton/pipelinerun.yaml" | indent 4 }}
+  overlay-python-tekton-rbac.yaml: |
+{{ .Files.Get "files/seed/overlay-python/tekton/rbac.yaml" | indent 4 }}
   overlay-python-gitops-README.md: |
 {{ .Files.Get "files/seed/overlay-python-gitops/README.md" | indent 4 }}
   overlay-python-gitops-PROMOTE.md: |

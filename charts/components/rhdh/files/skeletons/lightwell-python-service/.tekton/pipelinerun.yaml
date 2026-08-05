@@ -1,4 +1,4 @@
-# Stub PipelineRun — edit repo-url / image-url for your claim.
+# Example PipelineRun — edit repo-url / image-url / Fulcio / Rekor for your claim.
 # repo-url: Module 9 substitutes STUDENT_REPO_URL for STUDENT_REPO_URL_PLACEHOLDER
 # (never hardcode lw-<user>; use demo-userinfo-gitea → student_python_repo_url).
 apiVersion: tekton.dev/v1
@@ -18,6 +18,14 @@ spec:
       value: main
     - name: image-url
       value: image-registry.openshift-image-registry.svc:5000/<lab-namespace>/${{ values.name }}:latest
+    - name: buildconfig-name
+      value: ${{ values.name }}
+    - name: cosign-fulcio-url
+      value: https://fulcio-server-trusted-artifact-signer.apps.<domain>
+    - name: cosign-rekor-url
+      value: https://rekor-server-trusted-artifact-signer.apps.<domain>
+    - name: cosign-tuf-url
+      value: https://tuf-trusted-artifact-signer.apps.<domain>
   workspaces:
     - name: source
       volumeClaimTemplate:
@@ -25,6 +33,8 @@ spec:
           accessModes: [ReadWriteOnce]
           resources:
             requests:
-              storage: 1Gi
+              storage: 2Gi
+    - name: sbom
+      emptyDir: {}
   taskRunTemplate:
     serviceAccountName: pipeline

@@ -17,8 +17,10 @@ data:
   central_endpoint: {{ $endpoint | quote }}
   task_name: {{ .Values.pipelineHooks.taskName | quote }}
   dep_gate_task: {{ .Values.pipelineHooks.depGate.taskName | quote }}
+  python_dep_gate_task: {{ .Values.pipelineHooks.pythonDepGate.taskName | quote }}
   sbom_task: {{ .Values.pipelineHooks.sbom.taskName | quote }}
   pipeline_name: {{ .Values.pipelineHooks.pipeline.name | quote }}
+  python_pipeline_name: {{ .Values.pipelineHooks.pythonPipeline.name | quote }}
   task_namespace: {{ .Values.rhacs.namespace | quote }}
   secret_name: {{ .Values.pipelineHooks.secretName | quote }}
   example_pipeline_task: |
@@ -46,13 +48,40 @@ data:
           value: {{ .Values.pipelineHooks.insecureSkipTlsVerify | quote }}
         - name: fail-on-skipped
           value: {{ .Values.pipelineHooks.failOnSkipped | quote }}
+  example_python_pipeline_task: |
+    - name: lightwell-python-dep-gate
+      taskRef:
+        name: {{ .Values.pipelineHooks.pythonDepGate.taskName }}
+      params:
+        - name: mode
+          value: require-remediated
+        - name: requirements-path
+          value: requirements.txt
+      workspaces:
+        - name: source
+          workspace: source
+    - name: acs-policy-check
+      runAfter: [lightwell-python-dep-gate]
+      taskRef:
+        name: {{ .Values.pipelineHooks.taskName }}
+      params:
+        - name: image
+          value: $(params.image)
+        - name: rox-secret-name
+          value: {{ .Values.pipelineHooks.secretName }}
+        - name: insecure-skip-tls-verify
+          value: {{ .Values.pipelineHooks.insecureSkipTlsVerify | quote }}
+        - name: fail-on-skipped
+          value: {{ .Values.pipelineHooks.failOnSkipped | quote }}
   cli_example: |
     roxctl image check \
       --insecure-skip-tls-verify \
       -e {{ $endpoint }} \
       --image {{ .Values.pipelineHooks.exampleImage }}
   policy_note: >-
-    Use Pipeline {{ .Values.pipelineHooks.pipeline.name }} for the fail/success lab.
-    See ConfigMap rhacs-lightwell-policy-lab. Prefer OSV-friendly Fixable Critical
-    BUILD policies in Central plus Maven .rhlw-* dep-gate for deterministic demos.
+    Use Pipeline {{ .Values.pipelineHooks.pipeline.name }} for the Java fail/success lab
+    (ConfigMap rhacs-lightwell-policy-lab). Use Pipeline
+    {{ .Values.pipelineHooks.pythonPipeline.name }} for the Python fail/success lab
+    (ConfigMap rhacs-lightwell-python-policy-lab). Prefer OSV-friendly Fixable Critical
+    BUILD policies in Central plus .rhlw-* dep-gates for deterministic demos.
 {{- end }}

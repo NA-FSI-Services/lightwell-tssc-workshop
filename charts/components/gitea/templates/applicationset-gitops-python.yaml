@@ -1,0 +1,60 @@
+{{- if and .Values.gitea.enabled .Values.gitopsAppSetPython.enabled }}
+{{- $giteaUrl := include "gitea.url" . }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: {{ .Values.gitopsAppSetPython.name }}
+  namespace: {{ .Values.gitopsAppSetPython.argocdNamespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gitops-applicationset-python
+    lightwell.redhat.com/language: python
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.applicationset | quote }}
+spec:
+  generators:
+    - list:
+        elements:
+{{- range .Values.students }}
+          - username: {{ .username | quote }}
+{{- end }}
+  template:
+    metadata:
+      name: '{{ .Values.gitopsAppSetPython.appNamePrefix }}-{{`{{username}}`}}'
+      namespace: {{ .Values.gitopsAppSetPython.argocdNamespace }}
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+      labels:
+        {{- include "gitea.labels" . | nindent 8 }}
+        lightwell.workshop/student: '{{`{{username}}`}}'
+        lightwell.redhat.com/language: python
+    spec:
+      project: {{ .Values.gitopsAppSetPython.project | quote }}
+      source:
+        repoURL: '{{ $giteaUrl }}/lw-{{`{{username}}`}}/{{ .Values.seed.python.gitops.repoName }}.git'
+        targetRevision: {{ .Values.seed.defaultBranch | quote }}
+        path: .
+        helm:
+          values: |
+            fastapiLwPoc:
+              enabled: true
+              namespace: {{ .Values.gitopsAppSetPython.namespacePrefix }}-{{`{{username}}`}}
+              name: fastapi-lw-poc
+            labDocs:
+              enabled: false
+            userInfo:
+              enabled: false
+            deployer:
+              domain: {{ .Values.deployer.domain | quote }}
+              apiUrl: {{ .Values.deployer.apiUrl | quote }}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .Values.gitopsAppSetPython.namespacePrefix }}-{{`{{username}}`}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+{{- end }}
