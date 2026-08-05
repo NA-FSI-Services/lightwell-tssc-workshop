@@ -14,11 +14,11 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 | `module-02-maven-profiles.png` | #52 | Diagram (committed) |
 | `module-02-nexus-repos.png` | #53 | Screenshot (committed) |
 | `module-02-seed-experiments.png` | #92 | Diagram (committed) |
-| `module-02-gitea-new-org.png` | #137 | Screenshot (placeholder in `gitea-learner-setup.adoc`) |
-| `module-02-gitea-new-repos.png` | #138 | Screenshot (placeholder in `gitea-learner-setup.adoc`) |
-| `module-02-gitea-seeded-app.png` | #139 | Screenshot (placeholder in `gitea-learner-setup.adoc`) |
-| `module-03-gitea-delete-repo.png` | #140 | Screenshot (placeholder in Module 3 Ex2) |
-| `module-03-rhdh-scaffold-form.png` | #141 | Screenshot (placeholder in Module 3 Ex3) |
+| `module-02-gitea-new-org.png` | #137 | Screenshot (committed) |
+| `module-02-gitea-new-repos.png` | #138 | Screenshot (committed) |
+| `module-02-gitea-seeded-app.png` | #139 | Screenshot (committed) |
+| `module-03-gitea-delete-repo.png` | #140 | Screenshot (committed) |
+| `module-03-rhdh-scaffold-form.png` | #141 | Screenshot (committed) |
 | `module-04-osv-fixed-pin.png` | #55 | Diagram (committed) |
 | `module-04-source-diff.png` | #56 | Diagram (committed) |
 | `module-04-pom-rebuild.png` | #57 | Diagram (committed) |

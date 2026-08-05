@@ -86,14 +86,7 @@ In the *Gitea UI*:
 . *Settings* → *Danger Zone* → *Delete This Repository*
 . Type the repository name to confirm and delete
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-gitea-delete-repo.png`
-
-Gitea repository **Settings** → **Danger Zone** with **Delete This Repository** for `spring-boot-lw-poc` (before confirm).
-Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/140
-// When ready: image::module-03-gitea-delete-repo.png[Gitea Danger Zone delete spring-boot-lw-poc,width=700]
-====
+image::module-03-gitea-delete-repo.png[Gitea Danger Zone delete spring-boot-lw-poc,width=700]
 
 Or from the Showroom terminal (API delete; uses your student credentials):
 
@@ -127,14 +120,7 @@ Do *not* delete `gitops-spring-boot-lw-poc` (`student_gitops_repo_url`). That th
 ** Optional: leave Maven / Lightwell defaults (`lightwell-validated` active profile)
 . Review → *Create*
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-03-rhdh-scaffold-form.png`
-
-RHDH scaffolder **Publication (Gitea)** step for *Lightwell Java Service*: organization `lw-<username>`, repository `spring-boot-lw-poc`, student username filled.
-Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/141
-// When ready: image::module-03-rhdh-scaffold-form.png[RHDH lightwell-java-service publish form,width=700]
-====
+image::module-03-rhdh-scaffold-form.png[RHDH lightwell-java-service publish form,width=700]
 
 When the scaffolder finishes, the *Repository* link should point at:
 
