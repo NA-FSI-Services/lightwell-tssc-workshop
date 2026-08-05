@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Build the student Gitea tree: isolate monorepo app path + overlay lab files (.tekton, etc.).
+# Build a student Gitea app tree: isolate monorepo app path + overlay lab files (.tekton, etc.).
 # Students never see the workshop GitOps monorepo — only the assembled repo root.
+#
+# Env:
+#   SOURCE_MODE, SOURCE_REPO_URL, SOURCE_REVISION, SOURCE_PATH
+#   INCLUDE_OSV_EVAL=true|false (default true — Java Module 3 helpers)
+#   OVERLAY_PREFIX=overlay|overlay-python (ConfigMap key prefix; default overlay)
 set -euo pipefail
 
 ROOT="${1:-/tmp/gitea-seed/repo}"
@@ -11,6 +16,8 @@ SOURCE_REPO_URL="${SOURCE_REPO_URL:-}"
 SOURCE_REVISION="${SOURCE_REVISION:-main}"
 SOURCE_PATH="${SOURCE_PATH:-charts/components/spring-boot-lw-poc/app}"
 SEED_MOUNT="${SEED_MOUNT:-/seed}"
+INCLUDE_OSV_EVAL="${INCLUDE_OSV_EVAL:-true}"
+OVERLAY_PREFIX="${OVERLAY_PREFIX:-overlay}"
 
 copy_embedded_fallback() {
   echo "WARNING: using embedded fallback tree (pom/README only) — set SOURCE_REPO_URL for live isolation" >&2
@@ -55,14 +62,16 @@ isolate_from_git() {
   echo "Isolating ${SOURCE_PATH} → student repo root"
   cp -a "${src}/." "${ROOT}/"
 
-  # Module 3 OSV helpers/fixtures — keep under tools/ so learners never clone the monorepo.
-  local osv="${clone_dir}/src/tools/osv-eval"
-  if [[ -d "${osv}" ]]; then
-    echo "Including tools/osv-eval for Module 3"
-    mkdir -p "${ROOT}/tools"
-    cp -a "${osv}" "${ROOT}/tools/osv-eval"
-  else
-    echo "WARNING: tools/osv-eval missing from workshop clone — Module 3 fixture helpers will be absent" >&2
+  # Module 3 OSV helpers/fixtures — Java only; keep under tools/ so learners never clone the monorepo.
+  if [[ "${INCLUDE_OSV_EVAL}" == "true" ]]; then
+    local osv="${clone_dir}/src/tools/osv-eval"
+    if [[ -d "${osv}" ]]; then
+      echo "Including tools/osv-eval for Module 3"
+      mkdir -p "${ROOT}/tools"
+      cp -a "${osv}" "${ROOT}/tools/osv-eval"
+    else
+      echo "WARNING: tools/osv-eval missing from workshop clone — Module 3 fixture helpers will be absent" >&2
+    fi
   fi
 
   # Prefer workshop student README when overlay provides one; else keep app README if any.
@@ -71,19 +80,19 @@ isolate_from_git() {
 
 apply_overlay() {
   # ConfigMap mount is flat keys (see seed-configmap.yaml) — rebuild lab paths here.
-  echo "Applying lab overlay (.tekton + student README)"
+  echo "Applying lab overlay (${OVERLAY_PREFIX}: .tekton + student README)"
   mkdir -p "${ROOT}/.tekton"
-  if [[ -f "${SEED_MOUNT}/overlay-README.md" ]]; then
-    cp "${SEED_MOUNT}/overlay-README.md" "${ROOT}/README.md"
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-README.md" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-README.md" "${ROOT}/README.md"
   fi
-  if [[ -f "${SEED_MOUNT}/overlay-tekton-pipeline.yaml" ]]; then
-    cp "${SEED_MOUNT}/overlay-tekton-pipeline.yaml" "${ROOT}/.tekton/pipeline.yaml"
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-pipeline.yaml" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-pipeline.yaml" "${ROOT}/.tekton/pipeline.yaml"
   fi
-  if [[ -f "${SEED_MOUNT}/overlay-tekton-pipelinerun.yaml" ]]; then
-    cp "${SEED_MOUNT}/overlay-tekton-pipelinerun.yaml" "${ROOT}/.tekton/pipelinerun.yaml"
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-pipelinerun.yaml" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-pipelinerun.yaml" "${ROOT}/.tekton/pipelinerun.yaml"
   fi
-  if [[ -f "${SEED_MOUNT}/overlay-tekton-rbac.yaml" ]]; then
-    cp "${SEED_MOUNT}/overlay-tekton-rbac.yaml" "${ROOT}/.tekton/rbac.yaml"
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-rbac.yaml" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-rbac.yaml" "${ROOT}/.tekton/rbac.yaml"
   fi
 }
 
@@ -92,6 +101,10 @@ case "${SOURCE_MODE}" in
     isolate_from_git
     ;;
   embedded)
+    if [[ "${OVERLAY_PREFIX}" != "overlay" ]]; then
+      echo "ERROR: embedded fallback is Java-only; Python seed requires SOURCE_MODE=live" >&2
+      exit 1
+    fi
     copy_embedded_fallback
     ;;
   *)

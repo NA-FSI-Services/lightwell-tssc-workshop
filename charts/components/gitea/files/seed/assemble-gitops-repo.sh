@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Assemble student GitOps chart repo: monorepo spring-boot-lw-poc chart minus ./app (#100 S1).
+# Assemble student GitOps chart repo: monorepo chart minus ./app (#100 S1 / #147).
+#
+# Env:
+#   SOURCE_MODE, SOURCE_REPO_URL, SOURCE_REVISION, GITOPS_SOURCE_PATH
+#   OVERLAY_GITOPS_PREFIX=overlay-gitops|overlay-python-gitops (default overlay-gitops)
 set -euo pipefail
 
 ROOT="${1:-/tmp/gitea-seed/gitops-repo}"
@@ -10,6 +14,7 @@ SOURCE_REPO_URL="${SOURCE_REPO_URL:-}"
 SOURCE_REVISION="${SOURCE_REVISION:-main}"
 GITOPS_SOURCE_PATH="${GITOPS_SOURCE_PATH:-charts/components/spring-boot-lw-poc}"
 SEED_MOUNT="${SEED_MOUNT:-/seed}"
+OVERLAY_GITOPS_PREFIX="${OVERLAY_GITOPS_PREFIX:-overlay-gitops}"
 
 isolate_gitops_chart() {
   if [[ -z "${SOURCE_REPO_URL}" ]]; then
@@ -40,17 +45,17 @@ isolate_gitops_chart() {
 
   echo "Isolating ${GITOPS_SOURCE_PATH} (excluding app/) → gitops repo root"
   cp -a "${src}/." "${ROOT}/"
-  # Never expose Maven app sources on the gitops remote (S1)
+  # Never expose app sources on the gitops remote (S1)
   rm -rf "${ROOT}/app"
   rm -rf "${clone_dir}"
 }
 
 apply_gitops_overlay() {
-  if [[ -f "${SEED_MOUNT}/overlay-gitops-README.md" ]]; then
-    cp "${SEED_MOUNT}/overlay-gitops-README.md" "${ROOT}/README.md"
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-README.md" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-README.md" "${ROOT}/README.md"
   fi
-  if [[ -f "${SEED_MOUNT}/overlay-gitops-PROMOTE.md" ]]; then
-    cp "${SEED_MOUNT}/overlay-gitops-PROMOTE.md" "${ROOT}/PROMOTE.md"
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-PROMOTE.md" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-PROMOTE.md" "${ROOT}/PROMOTE.md"
   fi
 }
 

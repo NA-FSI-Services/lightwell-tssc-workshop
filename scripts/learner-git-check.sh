@@ -15,6 +15,8 @@ SCAN_PATHS=(
   docs/modules
   charts/components/gitea/files/seed/overlay
   charts/components/gitea/files/seed/overlay-gitops
+  charts/components/gitea/files/seed/overlay-python
+  charts/components/gitea/files/seed/overlay-python-gitops
   charts/components/gitea/files/seed/repo
   charts/components/rhdh/files/skeletons
   charts/components/rhdh/files/catalog
@@ -25,6 +27,7 @@ HARDCODE_PATTERNS=(
   'lw-user1'
   'gitea\.[^/]+/user1/'
   '/user1/spring-boot-lw-poc'
+  '/user1/fastapi-lw-poc'
 )
 
 # GitHub monorepo as a clone/repo-url target in learner-facing files
@@ -57,6 +60,7 @@ done < <(rg -n -e "${GITHUB_MONOREPO}" "${SCAN_PATHS[@]}" 2>/dev/null || true)
 # PipelineRun overlays must use placeholder
 for f in \
   charts/components/gitea/files/seed/overlay/tekton/pipelinerun.yaml \
+  charts/components/gitea/files/seed/overlay-python/tekton/pipelinerun.yaml \
   charts/components/rhdh/files/skeletons/lightwell-java-service/.tekton/pipelinerun.yaml
 do
   [[ -f "$f" ]] || continue

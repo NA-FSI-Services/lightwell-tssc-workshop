@@ -33,7 +33,12 @@ Workshop labs and most client FastAPI estates still standardize on `pip install 
 
 ## Learner commands
 
-Students use the **Gitea** FastAPI remote (seeded from `workshop-templates` in [#147](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/147)), not a monorepo checkout. Operators still author sources under `./app` in this chart.
+Students use the **Gitea** FastAPI remote (seeded from `workshop-templates` via
+[#147](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/147)),
+not a monorepo checkout. Discover `student_python_repo_url` /
+`template_python_app_repo_url` from ConfigMap `demo-userinfo-gitea`; Module 7
+runs `learner-seed-python-from-templates.sh`. Operators still author sources
+under `./app` in this chart.
 
 ```bash
 # Learner (Showroom): clone Gitea fastapi-lw-poc — requirements.txt at repo root

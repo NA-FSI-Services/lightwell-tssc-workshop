@@ -1,0 +1,66 @@
+# Stub Pipeline — Module 9 / #149 will replace tasks with pip build, ACS, SBOM, cosign.
+# Learners substitute repo-url from demo-userinfo-gitea (student_python_repo_url).
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: fastapi-lw-poc-build-sign
+  labels:
+    app.kubernetes.io/part-of: lightwell-tssc-workshop
+    lightwell.redhat.com/language: python
+    lightwell.redhat.com/pipeline-stub: "true"
+spec:
+  description: >-
+    Stub for Modules 7–9. Full Python Tasks (sign, policy, promote) land in
+    workshop issue #149 — do not treat this as the golden-path pipeline yet.
+  params:
+    - name: repo-url
+      type: string
+      description: Student Gitea FastAPI clone URL (student_python_repo_url)
+    - name: revision
+      type: string
+      default: main
+    - name: image-url
+      type: string
+      description: >-
+        Internal registry tag in the learner lab namespace
+        (image-registry.openshift-image-registry.svc:5000/<lab-ns>/fastapi-lw-poc:latest)
+  workspaces:
+    - name: source
+  tasks:
+    - name: clone
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: URL
+          value: $(params.repo-url)
+        - name: REVISION
+          value: $(params.revision)
+
+    - name: stub-note
+      runAfter: [clone]
+      workspaces:
+        - name: source
+          workspace: source
+      taskSpec:
+        workspaces:
+          - name: source
+        steps:
+          - name: remind
+            image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+            script: |
+              #!/usr/bin/env bash
+              set -euo pipefail
+              echo "fastapi-lw-poc stub: cloned sources under $(workspaces.source.path)"
+              echo "Replace this Pipeline with Module 9 Tasks when issue #149 lands."
+              test -f "$(workspaces.source.path)/requirements.txt"
+              echo "OK: requirements.txt present at repo root"

@@ -96,6 +96,16 @@ seed:
     repoName: gitops-spring-boot-lw-poc
     repoDescription: "Lightwell TSSC student GitOps chart (Module 6 Ex4 promote)"
     sourcePath: charts/components/spring-boot-lw-poc
+  # Python track (#147) — always seeded alongside Java when seed.enabled (even if
+  # root-app keeps fastapiLwPoc.enabled=false). Learners create repos in Module 7.
+  python:
+    repoName: fastapi-lw-poc
+    repoDescription: "Lightwell TSSC student FastAPI lab repository (Modules 7–9; requirements.txt at root)"
+    sourcePath: charts/components/fastapi-lw-poc/app
+    gitops:
+      repoName: gitops-fastapi-lw-poc
+      repoDescription: "Lightwell TSSC student FastAPI GitOps chart (Module 9 promote)"
+      sourcePath: charts/components/fastapi-lw-poc
   resources:
     requests:
       cpu: 100m
@@ -121,8 +131,10 @@ userInfo:
     Lab charts start Gitea and create your user. In Module 2, create organization
     lw-<student_username> and repos spring-boot-lw-poc + gitops-spring-boot-lw-poc,
     then seed from workshop-templates (see Showroom). student_repo_url is the
-    expected app remote after that setup. Credentials: student_username /
-    student_password. Never clone the workshop GitHub monorepo.
+    expected Java app remote after that setup. For Modules 7–9, create
+    fastapi-lw-poc + gitops-fastapi-lw-poc under the same org and run
+    learner-seed-python-from-templates.sh (student_python_repo_url). Credentials:
+    student_username / student_password. Never clone the workshop GitHub monorepo.
 
 deployer:
   domain: ""
