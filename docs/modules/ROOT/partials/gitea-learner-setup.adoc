@@ -1,5 +1,5 @@
 // Learner Gitea org + repo setup (#120). Include from Module 2 (required) and Module 3 (prereq reminder).
-// Image placeholders → issues #GITEA_ORG_UI #GITEA_REPOS_UI (created with gh; replace numbers after create).
+// Image placeholders → issues #137–#139 (visible NOTE blocks in this partial).
 
 == Exercise: Create your Gitea organization and seed lab repositories
 
@@ -58,9 +58,14 @@ The script prints **Open:** `<gitea_url>`. Open that URL in your browser and sig
 . Set **Organization Name** exactly to *`lw-@@LW_USER@@`* (must match `student_gitea_org`)
 . Visibility: **Public** → **Create Organization**
 
-// IMAGE PLACEHOLDER — module-02-gitea-new-org.png
-// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/137
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-gitea-new-org.png`
+
+Gitea **New Organization** form with Organization Name set to `lw-<username>` (for example `lw-@@LW_USER@@`).
+Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/137
 // When ready: image::module-02-gitea-new-org.png[Gitea New Organization form for lw-<username>,width=700]
+====
 
 === B. Create empty repositories
 
@@ -70,9 +75,14 @@ Under organization *`lw-@@LW_USER@@`*:
 . Name: *`spring-boot-lw-poc`* — leave **Initialize repository** unchecked (empty repo) → **Create**
 . Repeat for *`gitops-spring-boot-lw-poc`* (also empty / no README)
 
-// IMAGE PLACEHOLDER — module-02-gitea-new-repos.png
-// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/138
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-gitea-new-repos.png`
+
+Org repositories list for `lw-<username>` showing empty public repos `spring-boot-lw-poc` and `gitops-spring-boot-lw-poc`.
+Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/138
 // When ready: image::module-02-gitea-new-repos.png[Empty spring-boot-lw-poc and gitops repos under learner org,width=700]
+====
 
 === C. Seed from workshop templates
 
@@ -104,6 +114,11 @@ curl -sk -o /dev/null -w "%{http_code}\n" \
 
 Expect HTTP `200` on the app remote (anonymous clone works for public repos). Open `lw-@@LW_USER@@/spring-boot-lw-poc` in Gitea and confirm `pom.xml` is at the repository root.
 
-// IMAGE PLACEHOLDER — module-02-gitea-seeded-app.png
-// Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/139
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-02-gitea-seeded-app.png`
+
+Gitea file browser at repo root with `pom.xml` visible (ideally also `settings.xml`, `tools/`, `.tekton/`).
+Asset backlog: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/139
 // When ready: image::module-02-gitea-seeded-app.png[Seeded app repo root showing pom.xml,width=700]
+====
