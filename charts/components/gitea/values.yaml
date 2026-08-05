@@ -130,6 +130,15 @@ gitopsAppSet:
   appNamePrefix: lw-poc
   namespacePrefix: lw-poc
 
+# Python twin (#149) — Module 9 digest promote (coexists with Java lw-poc-<user>).
+gitopsAppSetPython:
+  enabled: true
+  name: lightwell-student-gitops-fastapi
+  argocdNamespace: openshift-gitops
+  project: default
+  appNamePrefix: lw-fastapi
+  namespacePrefix: lw-fastapi
+
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"

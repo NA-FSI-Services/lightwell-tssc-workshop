@@ -19,15 +19,18 @@ Root App-of-Apps places this chart at sync wave **`10`**.
 **Prerequisite:** enable `components.pipelines` (wave **8**) so Tekton CRDs exist before
 wave-`4` Tasks/Pipeline in this chart sync. See [`charts/components/pipelines`](../pipelines/).
 
-## Pipeline policy gates (issue #13)
+## Pipeline policy gates (issues #13 / #149)
 
 | Artifact | Purpose |
 |----------|---------|
 | Task `lightwell-dep-gate` | Fail when default Maven pin lacks `.rhlw-*` (OSV-friendly / deterministic) |
+| Task `lightwell-python-dep-gate` | Fail when `requirements.txt` lacks `lw-workshop-pypi==*.rhlw-*` |
 | Task `acs-image-check` | `roxctl image check` against Central BUILD policies (Clair/OSV-class) |
 | Task `syft-sbom-rhtpa` | syft CycloneDX SBOM (distroless ENTRYPOINT) + UBI publish/upload to RHTPA |
-| Pipeline `lightwell-build-policy-gate` | clone → dep-gate → ACS check → SBOM |
-| ConfigMap `rhacs-lightwell-policy-lab` | Fail / success lab narrative |
+| Pipeline `lightwell-build-policy-gate` | clone → Maven dep-gate → ACS check → SBOM |
+| Pipeline `lightwell-python-build-policy-gate` | clone → Python dep-gate → ACS check → SBOM |
+| ConfigMap `rhacs-lightwell-policy-lab` | Java fail / success lab narrative |
+| ConfigMap `rhacs-lightwell-python-policy-lab` | Python fail / success lab narrative |
 | ConfigMap `rhacs-lightwell-central-policy` | Importable Fixable Critical BUILD policy JSON |
 
 ### Failure path (non-remediated)
@@ -46,6 +49,19 @@ EOF
 2. Re-run the Pipeline — dep-gate passes.
 3. Populate CI secrets; import Central Fixable Critical policy for real `roxctl` fails/passes on scanned images.
 4. Confirm SBOM in RHTPA UI (or `upload-status=uploaded` when `rhtpa-url` + token are set).
+
+### Python failure / success (`lw-workshop-pypi`)
+
+```bash
+# Default fastapi-lw-poc requirements.txt has Validated httpx only (no marker pin)
+oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
+  -o jsonpath='{.data.fail_pipelinerun\.yaml}' | oc create -f -
+# Expect Task lightwell-python-dep-gate to fail
+```
+
+1. Add `lw-workshop-pypi==1.0.0.rhlw-00001` to `requirements.txt` in the student FastAPI repo and push.
+2. Re-run Pipeline `lightwell-python-build-policy-gate` — python-dep-gate passes.
+3. Full build → sign → GitOps promote uses learner `.tekton/fastapi-lw-poc-build-sign` (Module 9).
 
 ### CI secrets
 
@@ -79,9 +95,11 @@ Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 | Key | Default | Notes |
 |-----|---------|-------|
 | `rhacs.namespace` | `stackrox` | Central + SecuredCluster + gate Tasks |
-| `pipelineHooks.depGate.remediatedVersion` | `3.14.0.rhlw-00001` | Success pin |
+| `pipelineHooks.depGate.remediatedVersion` | `3.14.0.rhlw-00001` | Java success pin |
+| `pipelineHooks.pythonDepGate.remediatedVersion` | `1.0.0.rhlw-00001` | Python success pin |
 | `pipelineHooks.labRepoUrl` | `""` | Student Gitea URL (root-app injects when `gitea` enabled) |
 | `pipelineHooks.pipeline.defaultPomPath` | `pom.xml` | Student repo root (not the GitOps monorepo) |
+| `pipelineHooks.pythonPipeline.defaultRequirementsPath` | `requirements.txt` | FastAPI student repo root |
 | `pipelineHooks.sbom.rhtpaUrl` | `""` | Set when RHTPA Route known |
 | `pipelineHooks.ciTokenJob.enabled` | `true` | Mint CI token into `rhacs-ci-secrets` after Central Ready |
 | `pipelineHooks.failOnSkipped` | `"false"` | Set `"true"` to fail ACS task without secrets |

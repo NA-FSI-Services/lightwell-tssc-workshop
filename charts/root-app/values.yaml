@@ -78,6 +78,9 @@ components:
     repoName: spring-boot-lw-poc
     repoRevision: main
     pomPath: pom.xml
+    # Python twin (#149) — used for RHACS python policy lab ConfigMap examples
+    pythonRepoName: fastapi-lw-poc
+    requirementsPath: requirements.txt
     # When non-empty, overrides charts/components/gitea default students list.
     # Dev-cluster bootstrap sets a single user1 + generated password (see
     # docs/DEV-CLUSTER-WORKSHOP-USER.md). Leave empty for chart defaults.

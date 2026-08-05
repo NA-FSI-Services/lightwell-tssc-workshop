@@ -28,15 +28,20 @@ PIP_CONFIG_FILE=$PWD/pip.conf pip install -r requirements.txt
 ```bash
 oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip-remediated.conf --to=.
 PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0.rhlw-00001
+# Also add lw-workshop-pypi==1.0.0.rhlw-00001 to requirements.txt for Module 9 dep-gate
 ```
 
-## Pipeline stub (Module 9)
+## Pipeline (Module 9)
 
 ```bash
-# Edit .tekton/pipelinerun.yaml: Gitea repo-url (student_python_repo_url), lab image-url
+STUDENT_PYTHON_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_repo_url}')"
+
+# Edit .tekton/pipelinerun.yaml: lab image-url + RHTAS Fulcio/Rekor/TUF URLs
 oc apply -f .tekton/rbac.yaml -f .tekton/pipeline.yaml
-oc create -f .tekton/pipelinerun.yaml
+sed "s|STUDENT_REPO_URL_PLACEHOLDER|${STUDENT_PYTHON_REPO_URL}|g" \
+  .tekton/pipelinerun.yaml | oc create -f -
 ```
 
-Full Python Tasks (sign / policy / promote) land with workshop issue #149.
-See Showroom Module 7+ and [docs/MODULES.md](docs/MODULES.md).
+Digest promote: `student_python_gitops_repo_url` / `student_python_argocd_app`
+(see companion gitops remote `PROMOTE.md`). Showroom Module 9 (#152) has the full lab.

@@ -1,0 +1,105 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.pythonPipeline.enabled }}
+---
+# End-to-end Python policy gate: PyPI pin check → RHACS image check → SBOM (RHTPA).
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: {{ .Values.pipelineHooks.pythonPipeline.name }}
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pipeline-hooks
+    lightwell.redhat.com/policy-gate: "true"
+    lightwell.redhat.com/language: python
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+spec:
+  description: >-
+    Demonstrate failure when lw-workshop-pypi .rhlw-* is absent and success after
+    the pin is added, with RHACS roxctl image check and CycloneDX SBOM toward RHTPA.
+  params:
+    - name: repo-url
+      type: string
+      description: Student Gitea FastAPI repo URL (demo-userinfo-gitea student_python_repo_url)
+    - name: revision
+      type: string
+      default: main
+    - name: image
+      type: string
+      description: Image reference for roxctl image check + syft
+    - name: dep-gate-mode
+      type: string
+      default: require-remediated
+      description: require-remediated (fail path lab) or allow-validated
+    - name: requirements-path
+      type: string
+      default: {{ .Values.pipelineHooks.pythonPipeline.defaultRequirementsPath | quote }}
+      description: Path to requirements.txt inside the cloned repo
+    - name: rhtpa-url
+      type: string
+      default: {{ .Values.pipelineHooks.sbom.rhtpaUrl | quote }}
+  workspaces:
+    - name: source
+    - name: sbom
+  tasks:
+    - name: clone
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: URL
+          value: $(params.repo-url)
+        - name: REVISION
+          value: $(params.revision)
+
+    - name: lightwell-python-dep-gate
+      runAfter: [clone]
+      taskRef:
+        name: {{ .Values.pipelineHooks.pythonDepGate.taskName }}
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: mode
+          value: $(params.dep-gate-mode)
+        - name: requirements-path
+          value: $(params.requirements-path)
+
+    - name: acs-image-check
+      runAfter: [lightwell-python-dep-gate]
+      taskRef:
+        name: {{ .Values.pipelineHooks.taskName }}
+      params:
+        - name: image
+          value: $(params.image)
+        - name: rox-secret-name
+          value: {{ .Values.pipelineHooks.secretName | quote }}
+        - name: insecure-skip-tls-verify
+          value: {{ .Values.pipelineHooks.insecureSkipTlsVerify | quote }}
+        - name: fail-on-skipped
+          value: {{ .Values.pipelineHooks.failOnSkipped | quote }}
+
+    - name: syft-sbom-rhtpa
+      runAfter: [acs-image-check]
+      taskRef:
+        name: {{ .Values.pipelineHooks.sbom.taskName }}
+      workspaces:
+        - name: source
+          workspace: source
+        - name: sbom
+          workspace: sbom
+      params:
+        - name: image
+          value: $(params.image)
+        - name: rhtpa-url
+          value: $(params.rhtpa-url)
+{{- end }}

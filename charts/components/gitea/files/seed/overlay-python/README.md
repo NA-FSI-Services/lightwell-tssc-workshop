@@ -13,7 +13,7 @@ pipeline / GitOps). Discover your remote from ConfigMap `demo-userinfo-gitea`
 |------|---------|
 | `requirements.txt` / `main.py` / `Dockerfile` | App sources at repository root |
 | `pip.conf` / `pip-remediated.conf` | Lightwell Validated / Remediated PyPI indexes |
-| `.tekton/` | Stub pipeline for Module 9 (Tasks fleshed out in workshop #149) |
+| `.tekton/` | Hybrid pipeline: python-dep-gate → BuildConfig → ACS → SBOM → cosign |
 | `README.md` | This file |
 
 ## Clone path
@@ -22,5 +22,24 @@ pipeline / GitOps). Discover your remote from ConfigMap `demo-userinfo-gitea`
 # requirements.txt must be at repo root (never a monorepo subdirectory)
 cd /tmp/fastapi-lw-poc
 ```
+
+## Module 9 — build / sign (claim)
+
+```bash
+# Discover your Gitea remote
+STUDENT_PYTHON_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_repo_url}')"
+
+# Policy gate expects the Remediated marker pin (Module 8) in requirements.txt:
+#   lw-workshop-pypi==1.0.0.rhlw-00001
+
+oc apply -f .tekton/rbac.yaml -f .tekton/pipeline.yaml
+sed "s|STUDENT_REPO_URL_PLACEHOLDER|${STUDENT_PYTHON_REPO_URL}|g" \
+  .tekton/pipelinerun.yaml | oc create -f -
+```
+
+Also set `<lab-namespace>` and RHTAS Fulcio/Rekor/TUF URLs in the PipelineRun
+(from `demo-userinfo-rhtas` / cluster domain). Digest promote uses
+`student_python_gitops_repo_url` — see the companion gitops remote `PROMOTE.md`.
 
 Never clone the workshop GitHub monorepo for lab work.

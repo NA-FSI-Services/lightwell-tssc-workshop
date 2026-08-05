@@ -1,0 +1,112 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.pythonDepGate.enabled }}
+---
+# Build-time PyPI pin gate — .rhlw-* narrative for Modules 8–9 (issue #149).
+# Complements Maven lightwell-dep-gate; watches requirements.txt for lw-workshop-pypi.
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ .Values.pipelineHooks.pythonDepGate.taskName }}
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pipeline-hooks
+    lightwell.redhat.com/gate: python-dep-pin
+    lightwell.redhat.com/language: python
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+spec:
+  description: >-
+    Fail the pipeline when requirements.txt lacks the Lightwell Remediated
+    workshop marker pin (lw-workshop-pypi==*.rhlw-0000X) for Module 9 policy labs.
+  params:
+    - name: requirements-path
+      type: string
+      default: requirements.txt
+      description: Path to requirements.txt in the source workspace
+    - name: mode
+      type: string
+      default: {{ .Values.pipelineHooks.pythonDepGate.defaultMode | quote }}
+      description: >-
+        require-remediated = fail without .rhlw-* on watched package;
+        allow-validated = informational only (exit 0)
+    - name: watched-package
+      type: string
+      default: {{ .Values.pipelineHooks.pythonDepGate.watchedPackage | quote }}
+      description: PyPI package name to inspect (e.g. lw-workshop-pypi)
+    - name: vulnerable-version
+      type: string
+      default: {{ .Values.pipelineHooks.pythonDepGate.vulnerableVersion | quote }}
+      description: Lab narrative for the fail path (often empty = pin absent)
+    - name: remediated-version
+      type: string
+      default: {{ .Values.pipelineHooks.pythonDepGate.remediatedVersion | quote }}
+  workspaces:
+    - name: source
+      description: Checkout containing requirements.txt
+  results:
+    - name: gate-status
+      description: passed | failed | skipped
+    - name: resolved-version
+      description: Version string detected for the watched package
+  steps:
+    - name: check-pins
+      image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: REQ_PATH
+          value: $(params.requirements-path)
+        - name: MODE
+          value: $(params.mode)
+        - name: PACKAGE
+          value: $(params.watched-package)
+        - name: VULN_VER
+          value: $(params.vulnerable-version)
+        - name: REM_VER
+          value: $(params.remediated-version)
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        echo "=== Lightwell Python dependency gate (PyPI / .rhlw-* narrative) ==="
+        echo "mode=${MODE} package=${PACKAGE}"
+        echo "vulnerable=${VULN_VER:-<absent>} remediated=${REM_VER}"
+
+        if [[ ! -f "${REQ_PATH}" ]]; then
+          echo "ERROR: ${REQ_PATH} not found"
+          echo -n "failed" > "$(results.gate-status.path)"
+          echo -n "missing-requirements" > "$(results.resolved-version.path)"
+          exit 1
+        fi
+
+        # Match package==version or package===version (ignore comments / extras).
+        resolved="$(grep -E "^[[:space:]]*${PACKAGE}(==|===)" "${REQ_PATH}" \
+          | head -1 \
+          | sed -E "s/^[[:space:]]*${PACKAGE}(==|===)//; s/[[:space:]]*(#.*)?$//; s/[[:space:]]+$//" \
+          || true)"
+
+        echo "resolved-version=${resolved:-absent}"
+        echo -n "${resolved:-absent}" > "$(results.resolved-version.path)"
+
+        if [[ "${MODE}" == "allow-validated" ]]; then
+          echo "INFO: allow-validated mode — gate is informational only"
+          echo -n "skipped" > "$(results.gate-status.path)"
+          exit 0
+        fi
+
+        if [[ -n "${resolved}" && "${resolved}" == *".rhlw-"* ]]; then
+          echo "PASS: ${PACKAGE} pin is remediated (${resolved})"
+          echo "Exact-version .rhlw-0000X matches Lightwell Remediated PyPI marker."
+          echo -n "passed" > "$(results.gate-status.path)"
+          exit 0
+        fi
+
+        echo "FAIL: non-remediated / missing pin for ${PACKAGE}"
+        echo "  Found:    ${resolved:-absent}"
+        echo "  Required: ${PACKAGE}==${REM_VER}  (exact-version .rhlw-0000X)"
+        echo ""
+        echo "Lab path:"
+        echo "  1) Default requirements.txt has Validated httpx only → gate fails (this run)"
+        echo "  2) Add ${PACKAGE}==${REM_VER} to requirements.txt, commit, and push"
+        echo "  3) Re-run pipeline → python-dep-gate + roxctl image check + SBOM to RHTPA"
+        echo -n "failed" > "$(results.gate-status.path)"
+        exit 1
+{{- end }}
