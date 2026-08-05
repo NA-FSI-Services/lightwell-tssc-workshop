@@ -47,8 +47,8 @@ The workshop must simulate the same technical story used in Lightwell Network in
 | **Validated** (Java) | Upstream-parity rebuilds of current libraries; no app code changes | `https://packages.redhat.com/lightwell/java/validated` | Trust upstream for active development |
 | **Remediated** (Java) | Exact-version backports for pinned production deps | `https://packages.redhat.com/lightwell/java/remediated` | Fix CVEs without risky major upgrades |
 | **OSV (Java)** | Machine-readable fixed-vuln records for remediated stream | `https://packages.redhat.com/lightwell/osv/java/remediated` | Discover *what* was fixed and *which* `.rhlw-*` version to pin |
-| **Validated** (Python / PyPI) | Upstream-parity rebuilds for `pip` / enterprise PyPI proxy | Confirm canonical URL when wiring [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145); document even when mirroring | Modules 7–9 Validated consumption |
-| **Remediated** (Python / PyPI) | Exact-version remediations when LWN maturity allows | Confirm canonical URL in #145; **seed/gate** if live unavailable | Module 8 — do not block Java catalog |
+| **Validated** (Python / PyPI) | Upstream-parity rebuilds for `pip` / enterprise PyPI proxy | `https://packages.redhat.com/lightwell/python/validated` | Modules 7–9 Validated consumption |
+| **Remediated** (Python / PyPI) | Exact-version remediations when LWN maturity allows | `https://packages.redhat.com/lightwell/python/remediated`; **seed/gate** via `channels.pypiRemediated.enabled` if live unavailable | Module 8 — do not block Java catalog |
 
 Remediated artifact versions append a sequential Lightwell suffix, for example `5.3.18.rhlw-00003` (not a custom `-lw01` naming scheme).
 
@@ -193,7 +193,7 @@ lifespan:
 
 Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11)–[#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13), [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)–[#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26); Python track charts: [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145)–[#149](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/149) (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144))
 
-1. **Artifact manager channels** matching LWN: Java `validated` / `remediated` / `osv/remediated`, plus **PyPI Validated** (+ gated Remediated) — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX; PyPI seed/proxy in #145)
+1. **Artifact manager channels** matching LWN: Java `validated` / `remediated` / `osv/remediated`, plus **PyPI Validated** (+ gated Remediated) — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX; PyPI hosts `httpx` Validated + gated `.rhlw-*` marker — [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145))
 2. **Spring Boot PoC** with Maven profiles, dual streams, and `.rhlw-*` pins
 3. **Student Git (Gitea)** — learners clone/push only in-cluster Gitea; never GitHub for app labs. Seed Jobs isolate monorepo app paths into template remotes under `workshop-templates`; learners create `lw-<username>` and seed (Module 2 Java; Module 7 Python). ApplicationSet syncs gitops remotes into runtime namespaces ([`charts/components/gitea`](./charts/components/gitea/), [AGENTS.md](./AGENTS.md) Learner Git; Python templates #147)
 4. **RHDH golden paths**: `lightwell-java-service` (Modules 2–6) and `lightwell-python-service` (Modules 7–9, #148) — `publish:gitea` into learner orgs; fetch templates from `workshop-templates` (not GitHub)

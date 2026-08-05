@@ -20,12 +20,23 @@ data:
   channel_validated: {{ .Values.channels.validated.name | quote }}
   channel_remediated: {{ .Values.channels.remediated.name | quote }}
   channel_osv: {{ .Values.channels.osv.name | quote }}
+  channel_pypi_validated: {{ .Values.channels.pypiValidated.name | quote }}
+  channel_pypi_remediated: {{ .Values.channels.pypiRemediated.name | quote }}
+  pypi_validated_enabled: {{ .Values.channels.pypiValidated.enabled | quote }}
+  pypi_remediated_enabled: {{ .Values.channels.pypiRemediated.enabled | quote }}
   canonical_validated: {{ .Values.channels.validated.remoteUrl | quote }}
   canonical_remediated: {{ .Values.channels.remediated.remoteUrl | quote }}
   canonical_osv: {{ .Values.channels.osv.remoteUrl | quote }}
+  canonical_pypi_validated: {{ .Values.channels.pypiValidated.remoteUrl | quote }}
+  canonical_pypi_remediated: {{ .Values.channels.pypiRemediated.remoteUrl | quote }}
+  pypi_index_validated: {{ printf "%s/repository/%s/simple" $nexusUrl .Values.channels.pypiValidated.name | quote }}
+  pypi_index_remediated: {{ printf "%s/repository/%s/simple" $nexusUrl .Values.channels.pypiRemediated.name | quote }}
+  pypi_seed_package: {{ printf "%s==%s" .Values.pypiSeed.package .Values.pypiSeed.version | quote }}
+  pypi_seed_remediated: {{ printf "%s==%s" .Values.pypiSeed.remediatedPackage .Values.pypiSeed.remediatedVersion | quote }}
   version_suffix_example: {{ .Values.sampleOsv.remediatedVersion | quote }}
   credentials_secret: {{ .Values.credentials.secretName | quote }}
   maven_settings_configmap: {{ .Values.mavenSettings.configMapName | quote }}
+  pip_settings_configmap: {{ .Values.pipSettings.configMapName | quote }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
 {{- end }}

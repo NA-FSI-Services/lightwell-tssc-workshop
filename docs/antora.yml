@@ -13,5 +13,9 @@ asciidoc:
     java-validated-url: https://packages.redhat.com/lightwell/java/validated
     java-remediated-url: https://packages.redhat.com/lightwell/java/remediated
     java-osv-url: https://packages.redhat.com/lightwell/osv/java/remediated
+    python-validated-url: https://packages.redhat.com/lightwell/python/validated
+    python-remediated-url: https://packages.redhat.com/lightwell/python/remediated
+    python-validated-simple-url: https://packages.redhat.com/lightwell/python/validated/simple
+    python-remediated-simple-url: https://packages.redhat.com/lightwell/python/remediated/simple
     # Default Gitea learner username (header form overrides in browser; #120)
     student_username: student

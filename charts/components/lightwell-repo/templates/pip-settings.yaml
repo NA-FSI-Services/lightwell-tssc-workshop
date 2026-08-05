@@ -1,0 +1,54 @@
+{{- if and .Values.lightwellRepo.enabled .Values.pipSettings.enabled }}
+{{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
+---
+# pip.conf — Lightwell Python Validated (+ gated Remediated) index URLs (Modules 7–9).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.pipSettings.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  pip.conf: |
+    # Learner UX (Validated — Module 7):
+    #   oc -n lightwell-repo extract configmap/{{ .Values.pipSettings.configMapName }} --keys=pip.conf --to=.
+    #   PIP_CONFIG_FILE=$PWD/pip.conf pip install {{ .Values.pypiSeed.package }}=={{ .Values.pypiSeed.version }}
+    # Or:
+    #   pip install --index-url {{ $nexusUrl }}/repository/{{ .Values.channels.pypiValidated.name }}/simple \
+    #     --trusted-host {{ include "lightwell-repo.nexusHost" . }} {{ .Values.pypiSeed.package }}=={{ .Values.pypiSeed.version }}
+    #
+    # Canonical remotes (document even when seeded):
+    #   {{ .Values.channels.pypiValidated.remoteUrl }}/simple
+    #   {{ .Values.channels.pypiRemediated.remoteUrl }}/simple
+    [global]
+    index-url = {{ $nexusUrl }}/repository/{{ .Values.channels.pypiValidated.name }}/simple
+    trusted-host = {{ include "lightwell-repo.nexusHost" . }}
+  pip-remediated.conf: |
+    # Learner UX (Remediated — Module 8 when channels.pypiRemediated.enabled):
+    #   PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install {{ .Values.pypiSeed.remediatedPackage }}=={{ .Values.pypiSeed.remediatedVersion }}
+    [global]
+    index-url = {{ $nexusUrl }}/repository/{{ .Values.channels.pypiRemediated.name }}/simple
+    trusted-host = {{ include "lightwell-repo.nexusHost" . }}
+  README: |
+    Python / PyPI learner index URLs (Nexus enterprise manager stand-in).
+
+    Validated (default for Module 7):
+      {{ $nexusUrl }}/repository/{{ .Values.channels.pypiValidated.name }}/simple
+      Seeded package: {{ .Values.pypiSeed.package }}=={{ .Values.pypiSeed.version }}
+
+    Remediated (gated — channels.pypiRemediated.enabled={{ .Values.channels.pypiRemediated.enabled }}):
+      {{ $nexusUrl }}/repository/{{ .Values.channels.pypiRemediated.name }}/simple
+      Seeded marker: {{ .Values.pypiSeed.remediatedPackage }}=={{ .Values.pypiSeed.remediatedVersion }}
+
+    Canonical Lightwell remotes (proxy mode / documentation):
+      {{ .Values.channels.pypiValidated.remoteUrl }}
+      {{ .Values.channels.pypiValidated.remoteUrl }}/simple
+      {{ .Values.channels.pypiRemediated.remoteUrl }}
+      {{ .Values.channels.pypiRemediated.remoteUrl }}/simple
+
+    Tier names are only Validated and Remediated (no fictional channel aliases).
+    Remediated versions use the .rhlw-0000X suffix (e.g. {{ .Values.pypiSeed.remediatedVersion }}).
+{{- end }}

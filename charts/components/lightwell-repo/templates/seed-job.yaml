@@ -58,6 +58,32 @@ spec:
               value: {{ .Values.channels.remediated.remoteUrl | quote }}
             - name: OSV_REMOTE
               value: {{ .Values.channels.osv.remoteUrl | quote }}
+            - name: PYPI_VALIDATED_ENABLED
+              value: {{ .Values.channels.pypiValidated.enabled | quote }}
+            - name: PYPI_REMEDIATED_ENABLED
+              value: {{ .Values.channels.pypiRemediated.enabled | quote }}
+            - name: PYPI_VALIDATED_REPO
+              value: {{ .Values.channels.pypiValidated.name | quote }}
+            - name: PYPI_REMEDIATED_REPO
+              value: {{ .Values.channels.pypiRemediated.name | quote }}
+            - name: PYPI_VALIDATED_HOSTED
+              value: {{ .Values.channels.pypiValidated.hostedName | quote }}
+            - name: PYPI_REMEDIATED_HOSTED
+              value: {{ .Values.channels.pypiRemediated.hostedName | quote }}
+            - name: PYPI_VALIDATED_REMOTE
+              value: {{ .Values.channels.pypiValidated.remoteUrl | quote }}
+            - name: PYPI_REMEDIATED_REMOTE
+              value: {{ .Values.channels.pypiRemediated.remoteUrl | quote }}
+            - name: PYPI_SEED_PACKAGE
+              value: {{ .Values.pypiSeed.package | quote }}
+            - name: PYPI_SEED_VERSION
+              value: {{ .Values.pypiSeed.version | quote }}
+            - name: PYPI_SEED_WHEEL_URL
+              value: {{ .Values.pypiSeed.wheelUrl | quote }}
+            - name: PYPI_REMEDIATED_PACKAGE
+              value: {{ .Values.pypiSeed.remediatedPackage | quote }}
+            - name: PYPI_REMEDIATED_VERSION
+              value: {{ .Values.pypiSeed.remediatedVersion | quote }}
             - name: NEXUS_ADMIN_USER
               valueFrom:
                 secretKeyRef:

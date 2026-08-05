@@ -29,6 +29,8 @@ data:
 {{ .Files.Get "files/seed/LW-DEMO-0001.json" | indent 4 }}
   workshop-stub.jar.b64: |
 {{ .Files.Get "files/seed/workshop-stub.jar.b64" | indent 4 }}
+  lw_workshop_pypi-1.0.0.rhlw-00001-py3-none-any.whl.b64: |
+{{ .Files.Get "files/seed/lw_workshop_pypi-1.0.0.rhlw-00001-py3-none-any.whl.b64" | indent 4 }}
   README: |
     Seeded-mirror mode (lightwellRepo.mode=seeded) uploads these files into Nexus hosted repos.
 
@@ -47,5 +49,14 @@ data:
       sbom/java/validated/.../5.3.18.cdx.json
       sbom/java/remediated/.../5.3.18.rhlw-00003.cdx.json
 
+    PyPI Validated (wheel fetched at seed time when channels.pypiValidated.enabled):
+      {{ .Values.pypiSeed.package }}=={{ .Values.pypiSeed.version }}
+      repo: {{ .Values.channels.pypiValidated.name }}
+
+    PyPI Remediated (gated — channels.pypiRemediated.enabled={{ .Values.channels.pypiRemediated.enabled }}):
+      {{ .Values.pypiSeed.remediatedPackage }}=={{ .Values.pypiSeed.remediatedVersion }}
+      repo: {{ .Values.channels.pypiRemediated.name }}
+
     Live proxy mode uses packages.redhat.com remotes with LW_USERNAME / LW_PASSWORD instead.
+    Set channels.pypiRemediated.enabled=false if live Remediated PyPI is unavailable.
 {{- end }}

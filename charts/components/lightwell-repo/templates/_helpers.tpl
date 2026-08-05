@@ -22,6 +22,8 @@ app.kubernetes.io/part-of: lightwell-tssc-workshop
 {{- define "lightwell-repo.nexusUrl" -}}
 {{- if .Values.mavenSettings.nexusUrl -}}
 {{- .Values.mavenSettings.nexusUrl -}}
+{{- else if .Values.pipSettings.nexusUrl -}}
+{{- .Values.pipSettings.nexusUrl -}}
 {{- else -}}
 https://{{ include "lightwell-repo.nexusHost" . }}
 {{- end -}}

@@ -82,7 +82,8 @@ When adding a new learner application source that currently lives at `/some/inne
 - Java validated: `https://packages.redhat.com/lightwell/java/validated`
 - Java remediated: `https://packages.redhat.com/lightwell/java/remediated`
 - Java OSV remediated: `https://packages.redhat.com/lightwell/osv/java/remediated`
-- Python / PyPI validated + remediated: confirm canonical URLs when implementing [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145); document in chart README and Antora attrs even when using seeded mirrors
+- Python / PyPI validated: `https://packages.redhat.com/lightwell/python/validated` (pip simple: `…/simple`)
+- Python / PyPI remediated: `https://packages.redhat.com/lightwell/python/remediated` (pip simple: `…/simple`; gate via `channels.pypiRemediated.enabled` when live unavailable — see [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145))
 - Console: `https://console.redhat.com/lightwell`
 
 ## Coding standards

@@ -97,6 +97,30 @@ create_raw_proxy() {
     -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":false,\"writePolicy\":\"ALLOW\"},\"proxy\":{\"remoteUrl\":\"${url}\",\"contentMaxAge\":1440,\"metadataMaxAge\":1440},\"negativeCache\":{\"enabled\":true,\"timeToLive\":1440},\"httpClient\":{\"blocked\":false,\"autoBlock\":true,\"authentication\":{\"type\":\"username\",\"username\":\"${LW_USERNAME}\",\"password\":\"${LW_PASSWORD}\"}},\"raw\":{\"contentDisposition\":\"ATTACHMENT\"}}"
 }
 
+create_pypi_hosted() {
+  local name="$1"
+  log "PyPI hosted repo: ${name}"
+  curl_ok -H 'Content-Type: application/json' \
+    -X POST "${NEXUS_SVC}/service/rest/v1/repositories/pypi/hosted" \
+    -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":true,\"writePolicy\":\"ALLOW\"}}"
+}
+
+create_pypi_proxy() {
+  local name="$1" url="$2"
+  log "PyPI proxy repo: ${name} -> ${url}"
+  curl_ok -H 'Content-Type: application/json' \
+    -X POST "${NEXUS_SVC}/service/rest/v1/repositories/pypi/proxy" \
+    -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":true},\"proxy\":{\"remoteUrl\":\"${url}\",\"contentMaxAge\":1440,\"metadataMaxAge\":1440},\"negativeCache\":{\"enabled\":true,\"timeToLive\":1440},\"httpClient\":{\"blocked\":false,\"autoBlock\":true,\"authentication\":{\"type\":\"username\",\"username\":\"${LW_USERNAME}\",\"password\":\"${LW_PASSWORD}\"}}}"
+}
+
+upload_pypi() {
+  local repo="$1" wheel="$2"
+  log "Upload PyPI wheel $(basename "${wheel}") -> ${repo}"
+  curl_ok -H 'accept: application/json' \
+    -F "pypi.asset=@${wheel}" \
+    "${NEXUS_SVC}/service/rest/v1/components?repository=${repo}"
+}
+
 upload_maven() {
   local repo="$1" group_id="$2" artifact_id="$3" version="$4" pom="$5" jar="$6"
   log "Upload Maven ${group_id}:${artifact_id}:${version} -> ${repo}"
@@ -129,6 +153,92 @@ prepare_stub_jar() {
     log "ERROR: missing workshop-stub.jar(.b64) in ${SEED_DIR}"
     exit 1
   fi
+}
+
+# Deterministic PyPI Validated wheel (httpx) for Module 7 pip install proof / FastAPI sample.
+# Fetched at seed time (same pattern as commons-lang3) — not embedded in the ConfigMap.
+prepare_pypi_validated_wheel() {
+  local out="$1"
+  local pkg="${PYPI_SEED_PACKAGE:-httpx}"
+  local ver="${PYPI_SEED_VERSION:-0.27.2}"
+  # Default: content-addressed files.pythonhosted.org URL for httpx-0.27.2 (override via env)
+  local url="${PYPI_SEED_WHEEL_URL:-https://files.pythonhosted.org/packages/56/95/9377bcb415797e44274b51d46e3249eba641711cf3348050f76ee7b15ffc/httpx-0.27.2-py3-none-any.whl}"
+  local min_bytes="${PYPI_SEED_MIN_BYTES:-20000}"
+  log "Fetching PyPI Validated seed wheel ${pkg}==${ver} from ${url}"
+  if curl -fsSL --retry 3 --retry-delay 2 -o "${out}" "${url}"; then
+    local size
+    size="$(wc -c < "${out}" | tr -d ' ')"
+    if [[ "${size}" -ge "${min_bytes}" ]]; then
+      log "PyPI seed wheel ready (${size} bytes)"
+      return 0
+    fi
+    log "WARN: downloaded wheel too small (${size} bytes); expected >= ${min_bytes}"
+  else
+    log "WARN: download failed for ${url}"
+  fi
+  log "ERROR: PyPI Validated seed wheel required for Module 7 pip install"
+  exit 1
+}
+
+# Minimal workshop marker wheel with .rhlw-0000X version (Remediated proof; not a live backport).
+# Prefer embedded seed payload; fall back to zip/python3 build if missing.
+prepare_pypi_remediated_wheel() {
+  local out="$1"
+  local pkg="${PYPI_REMEDIATED_PACKAGE:-lw-workshop-pypi}"
+  local ver="${PYPI_REMEDIATED_VERSION:-1.0.0.rhlw-00001}"
+  local norm
+  norm="$(echo "${pkg}" | tr '-' '_')"
+  local wheel_name="${norm}-${ver}-py3-none-any.whl"
+  if [[ -f "${SEED_DIR}/${wheel_name}" ]]; then
+    cp "${SEED_DIR}/${wheel_name}" "${out}"
+    log "Using embedded Remediated marker wheel ${pkg}==${ver}"
+    return 0
+  fi
+  if [[ -f "${SEED_DIR}/${wheel_name}.b64" ]]; then
+    base64 -d < "${SEED_DIR}/${wheel_name}.b64" > "${out}"
+    log "Decoded Remediated marker wheel ${pkg}==${ver}"
+    return 0
+  fi
+  local work
+  work="$(mktemp -d)"
+  mkdir -p "${work}/${norm}" "${work}/${norm}-${ver}.dist-info"
+  printf '%s\n' '"""Workshop Lightwell PyPI Remediated marker (seeded mirror)."""' \
+    "__version__ = \"${ver}\"" > "${work}/${norm}/__init__.py"
+  cat > "${work}/${norm}-${ver}.dist-info/METADATA" <<EOF
+Metadata-Version: 2.1
+Name: ${pkg}
+Version: ${ver}
+Summary: Workshop seeded Lightwell PyPI Remediated marker (.rhlw-0000X)
+EOF
+  cat > "${work}/${norm}-${ver}.dist-info/WHEEL" <<EOF
+Wheel-Version: 1.0
+Generator: lightwell-repo-seed
+Root-Is-Purelib: true
+Tag: py3-none-any
+EOF
+  printf '%s\n' \
+    "${norm}/__init__.py,," \
+    "${norm}-${ver}.dist-info/METADATA,," \
+    "${norm}-${ver}.dist-info/WHEEL,," \
+    "${norm}-${ver}.dist-info/RECORD,," > "${work}/${norm}-${ver}.dist-info/RECORD"
+  if command -v zip >/dev/null 2>&1; then
+    (cd "${work}" && zip -q -r "${wheel_name}" "${norm}" "${norm}-${ver}.dist-info")
+    cp "${work}/${wheel_name}" "${out}"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 - <<PY
+import zipfile, pathlib
+root = pathlib.Path("${work}")
+out = pathlib.Path("${out}")
+with zipfile.ZipFile(out, "w") as zf:
+    for p in root.rglob("*"):
+        if p.is_file():
+            zf.write(p, p.relative_to(root).as_posix())
+PY
+  else
+    log "ERROR: missing ${wheel_name}(.b64) in ${SEED_DIR} and no zip/python3 to build it"
+    exit 1
+  fi
+  log "Built Remediated marker wheel ${pkg}==${ver}"
 }
 
 # Compile-capable Apache Commons Lang (ASL 2.0) for Spring Boot PoC clean verify.
@@ -203,7 +313,19 @@ seed_content() {
   upload_raw "${osv_repo}" "sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json" \
     "${SEED_DIR}/spring-core-5.3.18.rhlw-00003.cdx.json"
 
-  log "Seeded Maven (stubs + compile-capable commons-lang3) + OSV (${OSV_PATH}) + CycloneDX SBOMs"
+  # Python / PyPI — Validated always (when channel enabled); Remediated gated
+  if [[ "${PYPI_VALIDATED_ENABLED:-true}" == "true" ]]; then
+    local pypi_validated="${PYPI_VALIDATED_REPO:-lightwell-python-validated}"
+    prepare_pypi_validated_wheel "${work}/pypi-validated.whl"
+    upload_pypi "${pypi_validated}" "${work}/pypi-validated.whl"
+  fi
+  if [[ "${PYPI_REMEDIATED_ENABLED:-true}" == "true" ]]; then
+    local pypi_remediated="${PYPI_REMEDIATED_REPO:-lightwell-python-remediated}"
+    prepare_pypi_remediated_wheel "${work}/pypi-remediated.whl"
+    upload_pypi "${pypi_remediated}" "${work}/pypi-remediated.whl"
+  fi
+
+  log "Seeded Maven (stubs + compile-capable commons-lang3) + OSV (${OSV_PATH}) + CycloneDX SBOMs + PyPI"
 }
 
 create_repos() {
@@ -216,6 +338,17 @@ create_repos() {
       "${REMEDIATED_REMOTE:-https://packages.redhat.com/lightwell/java/remediated}/"
     create_raw_proxy "${OSV_REPO:-lightwell-osv-java-remediated}" \
       "${OSV_REMOTE:-https://packages.redhat.com/lightwell/osv/java/remediated}/"
+    if [[ "${PYPI_VALIDATED_ENABLED:-true}" == "true" ]]; then
+      create_pypi_proxy "${PYPI_VALIDATED_REPO:-lightwell-python-validated}" \
+        "${PYPI_VALIDATED_REMOTE:-https://packages.redhat.com/lightwell/python/validated}/"
+    fi
+    # Gate: skip Remediated PyPI proxy when membership / live stream is unavailable
+    if [[ "${PYPI_REMEDIATED_ENABLED:-true}" == "true" ]]; then
+      create_pypi_proxy "${PYPI_REMEDIATED_REPO:-lightwell-python-remediated}" \
+        "${PYPI_REMEDIATED_REMOTE:-https://packages.redhat.com/lightwell/python/remediated}/"
+    else
+      log "Skipping PyPI Remediated proxy (channels.pypiRemediated.enabled=false)"
+    fi
     log "Proxy repos created — live LWN content (credentials from Secret)"
   else
     create_maven_hosted "${VALIDATED_REPO:-lightwell-java-validated}"
@@ -225,6 +358,16 @@ create_repos() {
     create_maven_hosted "${VALIDATED_HOSTED:-lightwell-java-validated-hosted}"
     create_maven_hosted "${REMEDIATED_HOSTED:-lightwell-java-remediated-hosted}"
     create_raw_hosted "${OSV_HOSTED:-lightwell-osv-java-remediated-hosted}"
+    if [[ "${PYPI_VALIDATED_ENABLED:-true}" == "true" ]]; then
+      create_pypi_hosted "${PYPI_VALIDATED_REPO:-lightwell-python-validated}"
+      create_pypi_hosted "${PYPI_VALIDATED_HOSTED:-lightwell-python-validated-hosted}"
+    fi
+    if [[ "${PYPI_REMEDIATED_ENABLED:-true}" == "true" ]]; then
+      create_pypi_hosted "${PYPI_REMEDIATED_REPO:-lightwell-python-remediated}"
+      create_pypi_hosted "${PYPI_REMEDIATED_HOSTED:-lightwell-python-remediated-hosted}"
+    else
+      log "Skipping PyPI Remediated hosted (channels.pypiRemediated.enabled=false)"
+    fi
   fi
 }
 
