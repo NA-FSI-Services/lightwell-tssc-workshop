@@ -1,5 +1,6 @@
 {{- if .Values.rhdh.enabled }}
 {{- $baseUrl := include "rhdh.baseUrl" . }}
+{{- $giteaHost := printf "gitea.%s" .Values.deployer.domain }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -21,6 +22,23 @@ data:
         origin: {{ $baseUrl | quote }}
     organization:
       name: Lightwell TSSC Workshop
+    # Workshop IdP is not configured — Guest only (no GitHub OAuth).
+    # Without signInPage: guest the UI offers a broken GitHub button
+    # (Unknown auth provider 'github').
+    auth:
+      environment: development
+      providers:
+        guest:
+          dangerouslyAllowOutsideDevelopment: true
+    signInPage: guest
+{{- if .Values.giteaIntegration.enabled }}
+    integrations:
+      gitea:
+        - host: {{ $giteaHost | quote }}
+          baseUrl: {{ printf "https://%s" $giteaHost | quote }}
+          username: ${GITEA_USERNAME}
+          password: ${GITEA_PASSWORD}
+{{- end }}
     catalog:
       locations:
 {{- if .Values.softwareTemplates.enabled }}
@@ -31,9 +49,4 @@ data:
             - allow: [Template]
 {{- end }}
 {{- end }}
-        # Optional: also load Template from git (file mount above is the workshop default)
-        # - type: url
-        #   target: https://raw.githubusercontent.com/NA-FSI-Services/lightwell-tssc-workshop/main/charts/components/rhdh/files/catalog/lightwell-java-service.yaml
-        #   rules:
-        #     - allow: [Template]
 {{- end }}

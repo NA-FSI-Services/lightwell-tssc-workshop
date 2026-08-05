@@ -16,6 +16,10 @@ spec:
     path: {{ .Values.gitops.path | quote }}
     helm:
       valuesObject:
+        # Pin child Applications to the same revision as the root app (not chart default "main")
+        gitops:
+          repoUrl: {{ .Values.gitops.repoUrl | quote }}
+          revision: {{ .Values.gitops.revision | quote }}
         deployer:
           domain: {{ required "deployer.domain is required" .Values.deployer.domain | quote }}
           apiUrl: {{ required "deployer.apiUrl is required" .Values.deployer.apiUrl | quote }}

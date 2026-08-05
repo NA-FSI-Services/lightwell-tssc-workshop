@@ -1,4 +1,4 @@
-# RHDA shift-left against RHTPA (Module 4)
+# RHDA shift-left against RHTPA (Module 5)
 
 Red Hat **Dependency Analytics (RHDA)** is the IDE front-end for software composition analysis. In this workshop, **Trusted Profile Analyzer (RHTPA)** remains the SBOM / advisory system of record; RHDA consumes TPA intelligence so developers see risks on manifests (for Java, `pom.xml`) before pipeline gates fire.
 
@@ -8,7 +8,7 @@ This workshop does **not** deploy VS Code, JetBrains IDEs, or a full IDE stack i
 
 1. Generate or upload a CycloneDX SBOM (`syft` → RHTPA UI/API) — in-cluster / Showroom path.
 2. Optionally, on an instructor or demo laptop, open the same Maven project in an IDE with RHDA pointed at the workshop TPA (or the public RHDA backend) so inline analysis mirrors TPA data.
-3. Tie findings back to Lightwell remediated pins (`.rhlw-*`) and Module 3 / 5 gates.
+3. Tie findings back to Lightwell remediated pins (`.rhlw-*`) and Module 4 / 5 gates.
 
 Official product guide: [Configuring VS Code for Dependency Analytics (RHTPA Quick Start)](https://docs.redhat.com/en/documentation/red_hat_trusted_profile_analyzer/2/html/quick_start_guide/configuring-visual-studio-code-to-use-dependency-analytics_qsg).
 
@@ -22,7 +22,7 @@ Official product guide: [Configuring VS Code for Dependency Analytics (RHTPA Qui
 | Analyze `pom.xml` with RHDA | Not in Showroom browser | Open `pom.xml` after Backend URL is set |
 | Full IDE / LSP stack in OpenShift | **Out of scope** (not planned) | N/A |
 
-**Showroom learners** complete Module 4 with TPA UI + CLI/`syft` and treat RHDA as a “shift-left on your workstation” callout.  
+**Showroom learners** complete Module 5 with TPA UI + CLI/`syft` and treat RHDA as a “shift-left on your workstation” callout.  
 **Instructors** may live-demo RHDA on a laptop against the catalog item’s TPA Route when SSO and network allow.
 
 ## Laptop setup (instructor / demo only)
@@ -60,6 +60,6 @@ Optional: a scaffold may later ship `.vscode/extensions.json` *recommending* RHD
 ## Related
 
 - Chart: [`charts/components/rhtpa`](../charts/components/rhtpa/)
-- Showroom page (AsciiDoc): [`docs/modules/ROOT/pages/rhda-shift-left.adoc`](./modules/ROOT/pages/rhda-shift-left.adoc) — linked from Module 4 when authored ([#17](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/17))
+- Showroom page (AsciiDoc): [`docs/modules/ROOT/pages/rhda-shift-left.adoc`](./modules/ROOT/pages/rhda-shift-left.adoc) — linked from Module 5 when authored ([#17](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/17))
 - Pipeline SBOM gate: [#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13)
-- [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) — Module 4
+- [DEVELOPMENT-PLAN.md](../DEVELOPMENT-PLAN.md) — Module 5

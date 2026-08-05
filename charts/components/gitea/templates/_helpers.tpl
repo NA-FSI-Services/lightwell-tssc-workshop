@@ -18,11 +18,51 @@ app.kubernetes.io/part-of: lightwell-tssc-workshop
 https://{{ include "gitea.routeHost" . }}
 {{- end -}}
 
+{{/* Operator-prepared template org (monorepo isolation). Learners do not edit these. */}}
+{{- define "gitea.templatesOrgName" -}}
+{{- .Values.seed.templates.org | default "workshop-templates" -}}
+{{- end -}}
+
+{{/* Learner-owned org convention: lw-<username> (created by the student in Module 2). */}}
+{{- define "gitea.learnerOrgName" -}}
+{{- $user := . -}}
+{{- printf "lw-%s" $user -}}
+{{- end -}}
+
 {{- define "gitea.primaryStudent" -}}
 {{- $s := index .Values.students 0 -}}
 {{- $s.username -}}
 {{- end -}}
 
+{{- define "gitea.studentAppRepoUrl" -}}
+{{- $root := index . 0 -}}
+{{- $user := index . 1 -}}
+{{- $org := include "gitea.learnerOrgName" $user -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" $root) $org $root.Values.seed.repoName -}}
+{{- end -}}
+
+{{- define "gitea.studentGitopsRepoUrl" -}}
+{{- $root := index . 0 -}}
+{{- $user := index . 1 -}}
+{{- $org := include "gitea.learnerOrgName" $user -}}
+{{- $repo := $root.Values.seed.gitops.repoName | default "gitops-spring-boot-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" $root) $org $repo -}}
+{{- end -}}
+
+{{- define "gitea.templateAppRepoUrl" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) .Values.seed.repoName -}}
+{{- end -}}
+
+{{- define "gitea.templateGitopsRepoUrl" -}}
+{{- $repo := .Values.seed.gitops.repoName | default "gitops-spring-boot-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
+{{- end -}}
+
+{{- define "gitea.templateSkeletonRepoUrl" -}}
+{{- $repo := .Values.seed.templates.skeleton.repoName | default "lightwell-java-service" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
+{{- end -}}
+
 {{- define "gitea.primaryStudentRepoUrl" -}}
-{{ include "gitea.url" . }}/{{ include "gitea.primaryStudent" . }}/{{ .Values.seed.repoName }}.git
+{{- include "gitea.studentAppRepoUrl" (list . (include "gitea.primaryStudent" .)) -}}
 {{- end -}}

@@ -1,6 +1,6 @@
 # charts/components/gitea — Student Git (Gitea)
 
-In-cluster **Gitea** for learner application **and** GitOps repositories. Module 5
+In-cluster **Gitea** for learner application **and** GitOps repositories. Module 6
 pipelines and lab instructions clone **student** remotes here — not the workshop
 GitOps monorepo (`NA-FSI-Services/lightwell-tssc-workshop`). **Do not** send
 students to GitHub for lab clone/push; prefer `demo-userinfo-gitea` remotes
@@ -11,9 +11,11 @@ everywhere (see [AGENTS.md](../../../AGENTS.md)).
 | Resource | Purpose |
 |----------|---------|
 | Deployment + PVC + Route `gitea.<domain>` | Gitea (SQLite) |
-| Job `gitea-student-repo-seed` | Create admin + students; push app + gitops seeds |
-| ApplicationSet `lightwell-student-gitops-sb` | Per-student Argo Apps from public Gitea gitops remotes |
-| ConfigMap `demo-userinfo-gitea` | RHDP userinfo (app + gitops URLs, promote NS, credentials) |
+| Job `gitea-student-repo-seed` | Create admin + student **users**; push **template** trees only |
+| ConfigMap script `learner-seed-from-templates.sh` | Learner copies templates → their org repos (Module 2) |
+| ConfigMap script `learner-ensure-gitea-user.sh` | Learner ensures Gitea login user exists (via `gitea-admin`) |
+| ApplicationSet `lightwell-student-gitops-sb` | Per-student Argo Apps from learner gitops remotes |
+| ConfigMap `demo-userinfo-gitea` | RHDP userinfo (expected URLs, templates, credentials) |
 
 Default student in the **chart**: `student` / workshop password placeholder.
 
@@ -21,31 +23,43 @@ Default student in the **chart**: `student` / workshop password placeholder.
 (printed by `dev-cluster-bootstrap.sh` / `dev-cluster-workshop-user.sh`). Agents must
 capture that password — see [DEV-CLUSTER-WORKSHOP-USER.md](../../../docs/DEV-CLUSTER-WORKSHOP-USER.md).
 
-Per seeded student (chart default or bootstrap override):
+### Learner model (#120)
 
-* App repo: `spring-boot-lw-poc` (`pom.xml`, `.tekton/`, and `tools/osv-eval/` at root for Modules 2–5)
-* GitOps repo: `gitops-spring-boot-lw-poc` (thin Helm chart, **no** `./app`)
-* Promote NS / Argo app: `lw-poc-<username>` (e.g. `lw-poc-user1` on claims)
+1. Lab scripts / charts **start Gitea** and create the student user.
+2. In Showroom Module 2, learners discover `gitea_url` via `oc`, run `learner-ensure-gitea-user.sh` if needed, then create organization **`lw-<username>`** and empty repos **`spring-boot-lw-poc`** + **`gitops-spring-boot-lw-poc`**.
+3. Learner runs `learner-seed-from-templates.sh` to push operator-prepared content from **`workshop-templates/`** (monorepo isolation) into those repos.
+4. Module 3 RHDH `publish:gitea` targets the same learner org (Organizations required upstream).
 
-## Path isolation (monorepo → student remotes)
+| Item | Value |
+|------|--------|
+| Learner org | `lw-<username>` (`student_gitea_org`) |
+| App repo | `lw-<user>/spring-boot-lw-poc` |
+| GitOps repo | `lw-<user>/gitops-spring-boot-lw-poc` |
+| Template org | `workshop-templates` |
+| App template | `workshop-templates/spring-boot-lw-poc` |
+| GitOps template | `workshop-templates/gitops-spring-boot-lw-poc` |
+| RHDH skeleton template | `workshop-templates/lightwell-java-service` (`fetch:template`) |
+| Promote NS / Argo app | `lw-poc-<username>` |
+
+## Path isolation (monorepo → template remotes)
 
 Default `seed.source.mode=live`: the seed Job clones the **workshop GitOps URL**
 (`seed.source.repoUrl`, injected from root-app `gitops.repoUrl`), then:
 
-1. **App repo** — copies `seed.source.path` (default `charts/components/spring-boot-lw-poc/app`) to repo root, copies `tools/osv-eval/` for Module 3, overlays `.tekton/`
-2. **GitOps repo** (`seed.gitops.enabled`) — copies `seed.gitops.sourcePath` chart tree **excluding `app/`**, overlays README/PROMOTE.md
+1. **App template** — copies `seed.source.path` to `workshop-templates/spring-boot-lw-poc`, includes `tools/osv-eval/`, overlays `.tekton/`
+2. **GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`
 
-Students never clone GitHub for lab work — only Gitea remotes from `demo-userinfo-gitea`
-(`student_repo_url` → `https://gitea.<domain>/<user>/spring-boot-lw-poc.git`).
+Students never clone GitHub — only Gitea templates + their own org remotes
+(`student_repo_url` → `https://gitea.<domain>/lw-<username>/spring-boot-lw-poc.git`).
 
 Optional `seed.source.gitSecretName` references a Secret with `username` / `password`
 (or token as password) for private GitOps clones. **Do not commit credentials**; leave
 empty for the public development repo.
 
 `SOURCE_MODE=embedded` keeps the legacy ConfigMap pom/README fallback for the **app**
-repo only (offline chart tests). GitOps seed requires `live` mode.
+template only (offline chart tests). GitOps seed requires `live` mode.
 
-## Module 5 Ex4 promote (#100)
+## Module 6 Ex4 promote (#100)
 
 1. Pipeline builds/signs into **lab** NS (`student-lab`)
 2. Student `oc tag`s into `lw-poc-<user>` ImageStream
@@ -66,9 +80,12 @@ Root-app Application wave: **`15`** (after TSSC operators, before RHDH / sample 
 |-----|---------|-------|
 | `gitea.namespace` | `gitea` | |
 | `students` | one `student` entry | Expand for multi-user claims |
-| `seed.repoName` | `spring-boot-lw-poc` | Seeded app repo name |
+| `seed.templates.org` | `workshop-templates` | Operator-prepared content |
+| `seed.templates.skeleton.enabled` | `true` | Seed RHDH `fetch:template` repo |
+| `seed.templates.skeleton.repoName` | `lightwell-java-service` | Under templates org |
+| `seed.repoName` | `spring-boot-lw-poc` | Learner + template app name |
 | `seed.gitops.enabled` | `true` | Second remote per student |
-| `seed.gitops.repoName` | `gitops-spring-boot-lw-poc` | Thin chart remote |
+| `seed.gitops.repoName` | `gitops-spring-boot-lw-poc` | Learner + template gitops name |
 | `gitopsAppSet.enabled` | `true` | ApplicationSet in `openshift-gitops` |
 | `gitopsAppSet.namespacePrefix` | `lw-poc` | Product NS = `lw-poc-<username>` |
 | `seed.source.mode` | `live` | `live` isolate from GitOps repo; `embedded` app fallback |
@@ -88,12 +105,5 @@ helm template gitea charts/components/gitea \
 ## Enable from root-app
 
 ```bash
-helm template lightwell charts/root-app \
-  --set components.gitea.enabled=true \
-  --set deployer.domain=apps.cluster.example.com
+# components.gitea.enabled: true (see charts/root-app/values.yaml)
 ```
-
-## Related
-
-- Module 5 Showroom: `docs/modules/ROOT/pages/module-05-pipeline.adoc`
-- RHACS policy lab ConfigMap uses `pipelineHooks.labRepoUrl` from root-app when Gitea is enabled

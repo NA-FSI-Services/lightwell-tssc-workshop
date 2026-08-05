@@ -10,7 +10,7 @@ spec:
     name: ${{ values.name }}-build-sign
   params:
     - name: repo-url
-      value: https://gitea.<domain>/student/${{ values.name }}.git
+      value: STUDENT_REPO_URL_PLACEHOLDER
     - name: revision
       value: main
     - name: image-url

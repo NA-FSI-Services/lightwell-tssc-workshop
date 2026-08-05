@@ -1,0 +1,14 @@
+---
+description: Showroom AsciiDoc — Gitea learner remotes, no GitHub clone steps
+globs: docs/modules/**/*.adoc
+alwaysApply: false
+---
+# Showroom labs — learner Git
+
+- Clone / push / PipelineRun `repo-url` → Gitea only (`student_repo_url`, `template_*`, `@@LW_USER@@` / `lw-@@LW_USER@@`).
+- Ban learner steps that clone the workshop GitHub monorepo (a one-line “do not clone GitHub” warning is OK).
+- Org/repo setup belongs in Module 2 (`partials/gitea-learner-setup.adoc`); later modules assume `lw-<user>` exists.
+- Tables use AsciiDoc `|===`, not Markdown pipes.
+- Figures: IMAGE PLACEHOLDER + GitHub issue (screenshot steps or image-gen prompt); no invented binaries / customer PII.
+- Username tokens: `@@LW_USER@@` (not `__LW_USER__` — AsciiDoc italics).
+- Pipeline examples: substitute `STUDENT_REPO_URL_PLACEHOLDER` from `demo-userinfo-gitea`, never bake `lw-user1`.

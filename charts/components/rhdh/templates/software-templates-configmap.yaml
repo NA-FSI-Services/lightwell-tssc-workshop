@@ -1,4 +1,5 @@
 {{- if and .Values.rhdh.enabled .Values.softwareTemplates.enabled }}
+{{- $giteaHost := printf "gitea.%s" .Values.deployer.domain }}
 ---
 # Catalog entities mounted into the Backstage pod (file locations in app-config).
 apiVersion: v1
@@ -12,5 +13,5 @@ metadata:
     argocd.argoproj.io/sync-wave: {{ .Values.rhdh.syncWaves.config | quote }}
 data:
   lightwell-java-service.yaml: |
-{{ .Files.Get "files/catalog/lightwell-java-service.yaml" | indent 4 }}
+{{ .Files.Get "files/catalog/lightwell-java-service.yaml" | replace "GITEA_HOST_PLACEHOLDER" $giteaHost | indent 4 }}
 {{- end }}

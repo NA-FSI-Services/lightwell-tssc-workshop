@@ -59,10 +59,23 @@ seed:
   imagePullPolicy: IfNotPresent
   backoffLimit: 6
   ttlSecondsAfterFinished: 86400
-  # Application repo pushed for each student (pom.xml at repo root for Modules 2–5).
-  # Learners clone student_repo_url from demo-userinfo-gitea.
+  # Operator prepares *template* remotes only. Learners create org lw-<username> + repos
+  # in Showroom Module 2, then seed from templates (AGENTS.md / #120).
+  templates:
+    org: workshop-templates
+    orgFullName: Workshop Templates
+    orgDescription: >-
+      Operator-prepared app and GitOps trees isolated from the workshop monorepo.
+      Learners clone these into their own lw-<username> organization — never GitHub.
+    # RHDH fetch:template source (Module 3) — public; not a learner push target.
+    skeleton:
+      enabled: true
+      repoName: lightwell-java-service
+      repoDescription: "RHDH Software Template skeleton (fetch:template; Module 3)"
+      sourcePath: charts/components/rhdh/files/skeletons/lightwell-java-service
+  # Learner repo names (under lw-<username> after Module 2 setup).
   repoName: spring-boot-lw-poc
-  repoDescription: "Lightwell TSSC student lab repository (Modules 2–5; pom.xml + tools/osv-eval at root)"
+  repoDescription: "Lightwell TSSC student lab repository (Modules 2–6; pom.xml + tools/osv-eval at root)"
   defaultBranch: main
   # Isolate learner app from the workshop GitOps monorepo (AGENTS.md Learner Git).
   # live = clone source.repoUrl, copy source.path to Gitea repo root, include tools/osv-eval, + .tekton overlay.
@@ -77,11 +90,11 @@ seed:
     # Leave empty for public repos. Never commit real credentials into values.
     gitSecretName: ""
     gitSslVerify: true
-  # Second Gitea remote per student: thin Helm chart (minus ./app) for Module 5 Ex4 promote (#100).
+  # Second template remote: thin Helm chart (minus ./app) for Module 6 Ex4 promote (#100).
   gitops:
     enabled: true
     repoName: gitops-spring-boot-lw-poc
-    repoDescription: "Lightwell TSSC student GitOps chart (Module 5 Ex4 promote)"
+    repoDescription: "Lightwell TSSC student GitOps chart (Module 6 Ex4 promote)"
     sourcePath: charts/components/spring-boot-lw-poc
   resources:
     requests:
@@ -91,8 +104,8 @@ seed:
       cpu: 500m
       memory: 512Mi
 
-# Per-student Argo CD Applications pointing at public Gitea gitops remotes (#100 X1/G1/C1).
-# Monorepo spring-boot-lw-poc Application stays disabled (M1) — Gitea is runtime SoT.
+# Per-student Argo CD Applications pointing at learner gitops remotes (#100).
+# Remotes exist after Module 2 learner setup; Argo retries until Healthy.
 gitopsAppSet:
   enabled: true
   name: lightwell-student-gitops-sb
@@ -105,10 +118,11 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"
   instructions: >-
-    In-cluster Gitea for learner app + GitOps remotes. Use student_repo_url for
-    Module 5 pipeline labs (.tekton / pom). Use student_gitops_repo_url for
-    Exercise 4 promote into student_promote_namespace (digest + replicas).
-    Credentials: student_username / student_password.
+    Lab charts start Gitea and create your user. In Module 2, create organization
+    lw-<student_username> and repos spring-boot-lw-poc + gitops-spring-boot-lw-poc,
+    then seed from workshop-templates (see Showroom). student_repo_url is the
+    expected app remote after that setup. Credentials: student_username /
+    student_password. Never clone the workshop GitHub monorepo.
 
 deployer:
   domain: ""

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Create workshop admin (if needed), student users, and seed application + gitops repos.
+# Operator seed: admin + student *users*, plus prepared *template* remotes only.
+# Learners create org lw-<username> and repos in Showroom Module 2, then run
+# learner-seed-from-templates.sh to copy template content into their remotes.
 set -euo pipefail
 
 : "${GITEA_URL:?}"
@@ -13,11 +15,16 @@ set -euo pipefail
 : "${DEFAULT_BRANCH:?}"
 : "${STUDENTS_JSON:?}"
 : "${SEED_DIR:=/seed}"
+: "${TEMPLATES_ORG:=workshop-templates}"
+: "${TEMPLATES_ORG_FULL_NAME:=Workshop Templates}"
+: "${TEMPLATES_ORG_DESCRIPTION:=Operator-prepared Lightwell TSSC template remotes}"
 
-# Optional second repo (Module 5 Ex4 / #100) — thin Helm chart without ./app
 GITOPS_REPO_NAME="${GITOPS_REPO_NAME:-}"
-GITOPS_REPO_DESCRIPTION="${GITOPS_REPO_DESCRIPTION:-Lightwell TSSC student GitOps chart (Module 5 promote)}"
+GITOPS_REPO_DESCRIPTION="${GITOPS_REPO_DESCRIPTION:-Lightwell TSSC student GitOps chart (Module 6 promote)}"
 GITOPS_SEED_SUBDIR="${GITOPS_SEED_SUBDIR:-gitops-repo}"
+SKELETON_REPO_NAME="${SKELETON_REPO_NAME:-}"
+SKELETON_REPO_DESCRIPTION="${SKELETON_REPO_DESCRIPTION:-RHDH Software Template skeleton (Module 3)}"
+SKELETON_SEED_SUBDIR="${SKELETON_SEED_SUBDIR:-skeleton}"
 
 API="${GITEA_URL%/}/api/v1"
 WORKDIR="$(mktemp -d)"
@@ -47,6 +54,10 @@ auth_header() {
   printf 'Authorization: Basic %s' "$(printf '%s:%s' "$1" "$2" | base64 -w0 2>/dev/null || printf '%s:%s' "$1" "$2" | base64)"
 }
 
+admin_auth() {
+  auth_header "${ADMIN_USER}" "${ADMIN_PASSWORD}"
+}
+
 gitea_cli() {
   local cmd
   printf -v cmd '%q ' "$@"
@@ -72,7 +83,7 @@ ensure_user() {
 
   local code
   code="$(curl -sS -o /tmp/gitea-user.json -w '%{http_code}' \
-    -H "$(auth_header "${ADMIN_USER}" "${ADMIN_PASSWORD}")" \
+    -H "$(admin_auth)" \
     "${API}/admin/users/${user}" || true)"
   if [[ "${code}" == "200" ]]; then
     echo "User ${user} already exists"
@@ -93,7 +104,7 @@ PY
 )"
   code="$(curl -sS -o /tmp/gitea-user-create.json -w '%{http_code}' \
     -X POST \
-    -H "$(auth_header "${ADMIN_USER}" "${ADMIN_PASSWORD}")" \
+    -H "$(admin_auth)" \
     -H 'Content-Type: application/json' \
     -d "${payload}" \
     "${API}/admin/users")"
@@ -110,66 +121,105 @@ PY
   exit 1
 }
 
-ensure_user "${ADMIN_USER}" "${ADMIN_PASSWORD}" "${ADMIN_EMAIL}" "Gitea Admin" "true"
+ensure_org() {
+  local org="$1" full_name="$2" description="$3"
+  local code
+  code="$(curl -sS -o /tmp/gitea-org.json -w '%{http_code}' \
+    -H "$(admin_auth)" \
+    "${API}/orgs/${org}" || true)"
+  if [[ "${code}" == "200" ]]; then
+    echo "Org ${org} already exists"
+    return 0
+  fi
+  local payload
+  payload="$(python3 - <<PY
+import json
+print(json.dumps({
+  "username": "${org}",
+  "full_name": "${full_name}",
+  "description": "${description}",
+  "visibility": "public",
+}))
+PY
+)"
+  code="$(curl -sS -o /tmp/gitea-org-create.json -w '%{http_code}' \
+    -X POST \
+    -H "$(admin_auth)" \
+    -H 'Content-Type: application/json' \
+    -d "${payload}" \
+    "${API}/orgs")"
+  if [[ "${code}" == "201" ]]; then
+    echo "Created org ${org}"
+    return 0
+  fi
+  if [[ "${code}" == "422" ]] && grep -qiE 'already exists|has been taken' /tmp/gitea-org-create.json 2>/dev/null; then
+    echo "Org ${org} already exists — continuing"
+    return 0
+  fi
+  echo "ERROR: create org ${org} failed HTTP ${code}" >&2
+  cat /tmp/gitea-org-create.json >&2 || true
+  exit 1
+}
 
-ensure_repo() {
-  local owner="$1" pass="$2" repo_name="$3" repo_desc="$4"
+ensure_org_repo() {
+  local org="$1" repo_name="$2" repo_desc="$3"
   local code
   code="$(curl -sS -o /tmp/gitea-repo.json -w '%{http_code}' \
-    -H "$(auth_header "${owner}" "${pass}")" \
-    -H 'Content-Type: application/json' \
-    "${API}/repos/${owner}/${repo_name}" || true)"
+    -H "$(admin_auth)" \
+    "${API}/repos/${org}/${repo_name}" || true)"
   if [[ "${code}" == "200" ]]; then
-    echo "Repo ${owner}/${repo_name} already exists"
+    echo "Repo ${org}/${repo_name} already exists"
     return 0
   fi
   code="$(curl -sS -o /tmp/gitea-repo-create.json -w '%{http_code}' \
     -X POST \
-    -H "$(auth_header "${owner}" "${pass}")" \
+    -H "$(admin_auth)" \
     -H 'Content-Type: application/json' \
     -d "$(printf '{"name":"%s","description":"%s","private":false,"auto_init":false,"default_branch":"%s"}' \
       "${repo_name}" "${repo_desc}" "${DEFAULT_BRANCH}")" \
-    "${API}/user/repos")"
+    "${API}/orgs/${org}/repos")"
   if [[ "${code}" != "201" ]]; then
-    echo "ERROR: create repo ${owner}/${repo_name} failed HTTP ${code}" >&2
+    echo "ERROR: create repo ${org}/${repo_name} failed HTTP ${code}" >&2
     cat /tmp/gitea-repo-create.json >&2 || true
     exit 1
   fi
-  echo "Created repo ${owner}/${repo_name}"
+  echo "Created repo ${org}/${repo_name}"
 }
 
 push_seed_tree() {
-  local owner="$1" pass="$2" repo_name="$3" seed_subdir="$4" commit_msg="$5"
+  local org="$1" repo_name="$2" seed_subdir="$3" commit_msg="$4"
   local src="${SEED_DIR}/${seed_subdir}"
   if [[ ! -d "${src}" ]]; then
     echo "ERROR: seed tree missing: ${src}" >&2
     exit 1
   fi
-  local repo_dir="${WORKDIR}/${owner}-${repo_name}"
+  local repo_dir="${WORKDIR}/${org}-${repo_name}"
   rm -rf "${repo_dir}"
   mkdir -p "${repo_dir}"
   cp -a "${src}/." "${repo_dir}/"
   (
     cd "${repo_dir}"
     git init -b "${DEFAULT_BRANCH}"
-    git config user.email "${owner}@workshop.local"
-    git config user.name "${owner}"
+    git config user.email "${ADMIN_USER}@workshop.local"
+    git config user.name "${ADMIN_USER}"
     git add .
     git commit -m "${commit_msg}"
-    git remote add origin "https://${owner}:${pass}@${GITEA_URL#https://}/${owner}/${repo_name}.git"
+    git remote add origin "https://${ADMIN_USER}:${ADMIN_PASSWORD}@${GITEA_URL#https://}/${org}/${repo_name}.git"
     export GIT_TERMINAL_PROMPT=0
     export GIT_SSL_NO_VERIFY="${GIT_SSL_NO_VERIFY:-true}"
     for i in $(seq 1 12); do
       if git -c http.sslVerify=false push -u --force origin "${DEFAULT_BRANCH}"; then
-        echo "Pushed seed to ${owner}/${repo_name}"
+        echo "Pushed template to ${org}/${repo_name}"
         return 0
       fi
       sleep 5
     done
-    echo "ERROR: git push failed for ${owner}/${repo_name}" >&2
+    echo "ERROR: git push failed for ${org}/${repo_name}" >&2
     exit 1
   )
 }
+
+ensure_user "${ADMIN_USER}" "${ADMIN_PASSWORD}" "${ADMIN_EMAIL}" "Gitea Admin" "true"
 
 if ! command -v python3 >/dev/null 2>&1; then
   echo "ERROR: python3 required to parse STUDENTS_JSON" >&2
@@ -191,17 +241,28 @@ PY
 while IFS=$'\t' read -r user pass email full_name; do
   [[ -z "${user}" ]] && continue
   ensure_user "${user}" "${pass}" "${email}" "${full_name}" "false"
-  ensure_repo "${user}" "${pass}" "${REPO_NAME}" "${REPO_DESCRIPTION}"
-  push_seed_tree "${user}" "${pass}" "${REPO_NAME}" "repo" \
-    "Seed student lab repository for Lightwell Module 5"
-  echo "STUDENT_REPO_URL=${GITEA_URL%/}/${user}/${REPO_NAME}.git"
-
-  if [[ -n "${GITOPS_REPO_NAME}" ]]; then
-    ensure_repo "${user}" "${pass}" "${GITOPS_REPO_NAME}" "${GITOPS_REPO_DESCRIPTION}"
-    push_seed_tree "${user}" "${pass}" "${GITOPS_REPO_NAME}" "${GITOPS_SEED_SUBDIR}" \
-      "Seed student GitOps chart for Lightwell Module 5 Ex4"
-    echo "STUDENT_GITOPS_REPO_URL=${GITEA_URL%/}/${user}/${GITOPS_REPO_NAME}.git"
-  fi
+  echo "Learner ${user} ready — org lw-${user} + repos are created by the student in Module 2"
 done <"${WORKDIR}/students.tsv"
 
-echo "gitea-student-repo-seed: complete"
+# Prepared file systems from monorepo isolation → template remotes only
+ensure_org "${TEMPLATES_ORG}" "${TEMPLATES_ORG_FULL_NAME}" "${TEMPLATES_ORG_DESCRIPTION}"
+ensure_org_repo "${TEMPLATES_ORG}" "${REPO_NAME}" "${REPO_DESCRIPTION} (template)"
+push_seed_tree "${TEMPLATES_ORG}" "${REPO_NAME}" "repo" \
+  "Operator template: Lightwell app tree for learner seed (Modules 2–6)"
+echo "TEMPLATE_APP_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${REPO_NAME}.git"
+
+if [[ -n "${GITOPS_REPO_NAME}" ]]; then
+  ensure_org_repo "${TEMPLATES_ORG}" "${GITOPS_REPO_NAME}" "${GITOPS_REPO_DESCRIPTION} (template)"
+  push_seed_tree "${TEMPLATES_ORG}" "${GITOPS_REPO_NAME}" "${GITOPS_SEED_SUBDIR}" \
+    "Operator template: Lightwell GitOps chart for learner seed (Module 6)"
+  echo "TEMPLATE_GITOPS_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${GITOPS_REPO_NAME}.git"
+fi
+
+if [[ -n "${SKELETON_REPO_NAME}" && -d "${SEED_DIR}/${SKELETON_SEED_SUBDIR}" ]]; then
+  ensure_org_repo "${TEMPLATES_ORG}" "${SKELETON_REPO_NAME}" "${SKELETON_REPO_DESCRIPTION} (template)"
+  push_seed_tree "${TEMPLATES_ORG}" "${SKELETON_REPO_NAME}" "${SKELETON_SEED_SUBDIR}" \
+    "Operator template: RHDH lightwell-java-service skeleton (Module 3 fetch:template)"
+  echo "TEMPLATE_SKELETON_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${SKELETON_REPO_NAME}.git"
+fi
+
+echo "gitea-student-repo-seed: complete (users + templates; learner orgs not created)"

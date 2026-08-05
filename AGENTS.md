@@ -42,11 +42,21 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 
 Students must **not** be directed to clone, fork, or push to GitHub for lab application work. Prefer in-cluster **Gitea** (`charts/components/gitea`) for all learner remotes, PipelineRun `repo-url` values, Software Template outputs, and Showroom copy-paste steps.
 
-**Hard ban for Showroom / learner instructions:** never paste `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` (or any GitHub clone of this monorepo) into Modules 1–5, Software Templates, or PipelineRun examples aimed at students. That URL is for **operators / GitOps / seed Jobs only**. If a lab needs application sources, point learners at the seeded Gitea remote (default app repo name **`spring-boot-lw-poc`**, URL from `demo-userinfo-gitea` → `student_repo_url`).
+#### Decision (install vs learner steps) — issue #120
+
+| Phase | Who | What |
+|-------|-----|------|
+| **Install / seed Job** | Operator | Start Gitea; create student **users**; publish public org **`workshop-templates`** with public template repos (app, gitops, RHDH skeleton) isolated from the monorepo |
+| **Module 2** | Learner | Create org **`lw-<username>`** + empty repos; run `learner-seed-from-templates.sh` (from ConfigMap) to copy templates into their remotes |
+| **Modules 3–6** | Learner | Use `student_repo_url` / placeholders (`STUDENT_REPO_URL_PLACEHOLDER`); RHDH publishes into **`lw-<username>`** |
+
+**Hard bans for Showroom / learner instructions:** never paste `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` (or any GitHub clone of this monorepo) into Modules 1–6, Software Templates, or PipelineRun examples aimed at students. That URL is for **operators / GitOps / seed Jobs only**. If a lab needs application sources, point learners at **their** Gitea remotes (`lw-<username>/spring-boot-lw-poc`, URL from `demo-userinfo-gitea` → `student_repo_url`), seeded from in-cluster `workshop-templates` (never GitHub).
+
+**Never hardcode** `lw-user1` / `user1` in seeded `.tekton` overlays or shared lab YAML — use `STUDENT_REPO_URL_PLACEHOLDER` and Showroom / `oc` substitution from `demo-userinfo-gitea`.
 
 | Audience | Git surface |
 |----------|-------------|
-| **Learners** | Gitea only — discover URLs via `demo-userinfo-gitea` (`gitea_url`, `student_repo_url`, `student_gitops_repo_url`, credentials). App work clones **`student_repo_url`** (repo `spring-boot-lw-poc`, contents at **repo root**). |
+| **Learners** | Gitea only — charts start Gitea + user accounts; learners **create** org `lw-<username>` and repos, then seed from `workshop-templates` (Module 2). Discover URLs via `demo-userinfo-gitea` (`gitea_url`, `student_gitea_org`, `student_repo_url`, `student_gitops_repo_url`, `template_*`, credentials). App work clones **`student_repo_url`** (contents at **repo root**). |
 | **Operators / GitOps** | This workshop monorepo on GitHub (ArgoCD sync source for platform charts) — never presented as the student app or student runtime remote |
 | **Authors / agents** | May read monorepo paths on GitHub when building charts; seed Jobs isolate learner-facing trees into Gitea |
 
@@ -54,9 +64,12 @@ Students must **not** be directed to clone, fork, or push to GitHub for lab appl
 
 1. Provision-time automation (Gitea seed Job, ansible-runner, or equivalent) clones the **workshop** Git source (GitHub or the synced checkout).
 2. Extracts **only** the intended application subtree (and any files that must sit at repo root for labs, such as `pom.xml`, `Dockerfile`, `.tekton/`, and Module 3 `tools/osv-eval/` when needed).
-3. Creates / updates the student's Gitea **application** repository **`spring-boot-lw-poc`** with **that isolated tree at repository root** (not nested under `charts/components/...`).
-4. Optionally seeds a separate Gitea **gitops** repository (`gitops-spring-boot-lw-poc`) with the thin Helm chart (same component path **minus** `./app`) for Argo CD runtime promote (Module 5 Ex4).
-5. Does **not** expose AgnosticV, other components, secrets, or the rest of the monorepo in student remotes.
+3. Creates / updates **template** remotes under Gitea org **`workshop-templates`** with **that isolated tree at repository root** (not nested under `charts/components/...`). Learners do **not** receive auto-created app repos.
+4. Optionally prepares a separate **gitops** template (`workshop-templates/gitops-spring-boot-lw-poc`) with the thin Helm chart (same component path **minus** `./app`) for Argo CD runtime promote (Module 6 Ex4).
+5. Learners create org **`lw-<username>`** + empty repos, then run `learner-seed-from-templates.sh` (Showroom Module 2) to push template content into their remotes. RHDH `publish:gitea` later targets that learner Organization. Prefer RHDH `fetch:template` from **`workshop-templates/lightwell-java-service`** (not GitHub) once seeded.
+6. Does **not** expose AgnosticV, other components, secrets, or the rest of the monorepo in student remotes.
+
+**Agent enforcement:** Cursor rules under `.cursor/rules/` (`learner-git-gitea.mdc`, `showroom-learner-git.mdc`, `gitea-seed-overlays.mdc`, `rhdh-scaffolder-gitea.mdc`). Local check: `./scripts/learner-git-check.sh`.
 
 Lab modules, PipelineRuns, and RHDH templates must clone **`student_repo_url`** (or the per-user URL under `student_repos`) for app work, and **`student_gitops_repo_url`** for digest promote — never `github.com/NA-FSI-Services/lightwell-tssc-workshop` (or any GitHub app URL) as the learner workflow. Do **not** ask students to `cd charts/components/spring-boot-lw-poc/app` inside a monorepo checkout.
 
@@ -91,7 +104,7 @@ When adding a new learner application source that currently lives at `/some/inne
 - Modules must teach: (1) validated vs remediated, (2) enterprise Maven/proxy setup, (3) OSV → `.rhlw-*` pin + source diff, (4) SBOM → RHTPA, (5) pipeline/signing/policy/GitOps.
 - Prefer deterministic seeded artifacts when live LWN membership is unavailable in RHDP.
 - Prefer copy-pasteable `oc` / `tkn` / `mvn` / `syft` paths that match deployed chart names and namespaces.
-- **Learner remotes are Gitea** — do not document GitHub clone/fork/push for student app labs; use `demo-userinfo-gitea` and path-isolated student repos (see **Learner Git** above). Never stage Module 2–5 PoC work from a `git clone` of this monorepo; use Gitea `spring-boot-lw-poc` (`student_repo_url`) with `pom.xml` at clone root.
+- **Learner remotes are Gitea** — do not document GitHub clone/fork/push for student app labs; use `demo-userinfo-gitea` and path-isolated templates → learner orgs (see **Learner Git** above). Never stage Module 2–6 PoC work from a `git clone` of this monorepo; use Gitea `lw-<username>/spring-boot-lw-poc` (`student_repo_url`) with `pom.xml` at clone root.
 - Update Showroom image/chart pins per [docs/SHOWROOM-UPDATE-SPEC.md](./docs/SHOWROOM-UPDATE-SPEC.md) when touching Showroom.
 - **Lab visuals (images)** — When authoring or revising AsciiDoc labs, evaluate where a figure would clarify a concept (architecture, UI orientation, before/after, tier comparison). For each useful figure that is not already in-repo:
   1. Open a GitHub issue (`phase-4` + `content`) that explains **how to obtain the asset**: either concrete **screenshot steps** (product URL, click path, what to crop/redact) **or** an **image-generation prompt** for an agent/designer (style, labels, must-include LWN tier names / `.rhlw-*`, must-avoid fictional channel names).

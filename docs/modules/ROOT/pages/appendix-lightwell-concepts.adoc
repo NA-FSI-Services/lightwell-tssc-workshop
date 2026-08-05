@@ -2,7 +2,7 @@
 :toc:
 :toclevels: 2
 
-Optional reference for instructors and learners. Distills technical concepts that appear in field Lightwell enablement into workshop language. It does *not* replace Modules 1–5, and it omits commercial SKUs, pricing, competitor comparisons, and associate-only sales guidance.
+Optional reference for instructors and learners. Distills technical concepts that appear in field Lightwell enablement into workshop language. It does *not* replace Modules 1–6, and it omits commercial SKUs, pricing, competitor comparisons, and associate-only sales guidance.
 
 Hands-on work stays in the core modules. Use this page when a learner asks “what does Validated mean?” or “does Lightwell go through Satellite?”
 
@@ -38,10 +38,10 @@ Hands-on work stays in the core modules. Use this page when a learner asks “wh
 |Only after upstream accepts, merges, and releases the fix; otherwise it stays Remediated.
 
 |How do I find status?
-|Console for Validated browse ({lightwell-console-url}). OSV metadata for Remediated CVE ↔ `.rhlw-*` mapping (Module 3).
+|Console for Validated browse ({lightwell-console-url}). OSV metadata for Remediated CVE ↔ `.rhlw-*` mapping (Module 4).
 
 |Are sources available?
-|Yes—source archives ship beside binaries in the same repos (Module 3 source diff).
+|Yes—source archives ship beside binaries in the same repos (Module 4 source diff).
 
 |How are new packages noticed?
 |Poll the OSV feed (optional xref:appendix-osv-manifest-polling.adoc[PULP_MANIFEST] automation).
@@ -87,7 +87,7 @@ Acronym expansions: xref:appendix-acronyms.adoc[Acronym glossary]. First teachin
 |SLSA L3, cryptographic signing (RHTAS-class), CycloneDX + VEX for Maven, SPDX for Python wheels.
 
 |CI scanners (Snyk-class tools)?
-|Consume OSV/VEX so Lightwell-patched CVEs are recognized as remediated (Module 4 / 5 narrative).
+|Consume OSV/VEX so Lightwell-patched CVEs are recognized as remediated (Module 5 narrative).
 
 |Proprietary source to Red Hat?
 |No—manifests and SBOMs, not application source trees.
@@ -100,7 +100,7 @@ Acronym expansions: xref:appendix-acronyms.adoc[Acronym glossary]. First teachin
 |Question |Workshop answer
 
 |vs RHEL / OpenShift / ACS?
-|Complementary. Platform products cover OS/platform; Lightwell covers third-party app deps. Module 5 gates use ACS with remediated pins.
+|Complementary. Platform products cover OS/platform; Lightwell covers third-party app deps. Module 6 gates use ACS with remediated pins.
 
 |vs Hardened Images?
 |Hardened Images address container *foundations*; Validated/Remediated address *application* dependencies.
@@ -118,6 +118,6 @@ The following FAQ topics stay *out* of the Showroom hands-on path (no new Module
 * International sales / export / federated clearinghouse policy
 * Full Python PyPI remediations lab (validated-only secondary; do not block the catalog)
 * Live air-gap sync Job beyond the seeded/proxy modes already in Module 2
-* Embargo contract enforcement (Module 3 mentions the concept only)
+* Embargo contract enforcement (Module 4 mentions the concept only)
 
 Return to xref:index.adoc[Workshop home] or continue with xref:module-01-overview.adoc[Module 1].

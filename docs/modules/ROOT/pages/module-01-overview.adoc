@@ -27,13 +27,13 @@ Modern applications pull hundreds of open source components. When a critical *Co
 * *Doing nothing* leaves production exposed
 * *Lightwell Remediated* keeps the *same upstream version line* and publishes a rebuilt artifact with a sequential `.rhlw-0000X` suffix that carries the security fix (and no unrelated feature changes)
 
-AI accelerates both discovery of issues and the need for a repeatable remediation loop—read the OSV record, pin the remediated version, then rebuild—which you practice in Module 3.
+AI accelerates both discovery of issues and the need for a repeatable remediation loop—read the OSV record, pin the remediated version, then rebuild—which you practice in Module 4.
 
 image::module-01-osv-pin-rebuild-loop.png[Remediation evaluation loop,width=700]
 
 === Scope (what this workshop covers)
 
-At launch, Lightwell covers *Java (Maven)* and *Python (PyPI)*. This *Red Hat Demo Platform (RHDP)* catalog focuses on the *Java / Maven* golden path. Python is a validated-oriented secondary story and is *not* required to complete Modules 2–5. Do not promise unannounced ecosystems (npm, .NET, Go, and so on) in field conversations until they are officially available.
+At launch, Lightwell covers *Java (Maven)* and *Python (PyPI)*. This *Red Hat Demo Platform (RHDP)* catalog focuses on the *Java / Maven* golden path. Python is a validated-oriented secondary story and is *not* required to complete Modules 2–6. Do not promise unannounced ecosystems (npm, .NET, Go, and so on) in field conversations until they are officially available.
 
 Lightwell remediates *application-layer* libraries. Patched content can run on Red Hat and non–Red Hat stacks (for example OpenJDK on another Linux distribution)—it is not limited to *Red Hat Enterprise Linux (RHEL)*-only runtimes.
 
@@ -74,7 +74,7 @@ When additional CVEs are fixed on the *same* baseline, the qualifier increments 
 How to tell which tier you are looking at:
 
 * *Validated* package browse — Lightwell console ({lightwell-console-url})
-* *Remediated* CVE ↔ version mapping — published *OSV* metadata beside the artifacts (Module 3)
+* *Remediated* CVE ↔ version mapping — published *OSV* metadata beside the artifacts (Module 4)
 
 === Choosing the right control (decision aid)
 
@@ -106,10 +106,10 @@ IBM *Library Support for Open Source (LSOS)* extends EOL lifecycle for selected 
 
 Artifacts are expected to ship with supply-chain metadata:
 
-* *SBOM* (Software Bill of Materials) — inventory of components in an artifact; CycloneDX for Maven packages, *Software Package Data Exchange (SPDX)* for Python wheels (this workshop generates app SBOMs with `syft` and uploads them to *Red Hat Trusted Profile Analyzer (RHTPA)* in Module 4)
+* *SBOM* (Software Bill of Materials) — inventory of components in an artifact; CycloneDX for Maven packages, *Software Package Data Exchange (SPDX)* for Python wheels (this workshop generates app SBOMs with `syft` and uploads them to *Red Hat Trusted Profile Analyzer (RHTPA)* in Module 5)
 * *VEX* (Vulnerability Exploitability eXchange) — machine-readable exploitability / remediation status scanners can consume so Lightwell-patched CVEs are not treated as unpatched
-* *SLSA* (Supply-chain Levels for Software Artifacts) *Level 3* — build integrity; artifacts cryptographically signed (Sigstore family; *Red Hat Trusted Artifact Signer (RHTAS)* in Module 5)
-* *OSV* (Open Source Vulnerabilities) — fixed-version events for remediated Java (Module 3 toolkit under `tools/osv-eval/`)
+* *SLSA* (Supply-chain Levels for Software Artifacts) *Level 3* — build integrity; artifacts cryptographically signed (Sigstore family; *Red Hat Trusted Artifact Signer (RHTAS)* in Module 6)
+* *OSV* (Open Source Vulnerabilities) — fixed-version events for remediated Java (Module 4 toolkit under `tools/osv-eval/`)
 
 Lightwell application libraries are *not* delivered through Red Hat Satellite content views—build tools and repository managers consume `packages.redhat.com` (or an enterprise proxy/mirror).
 
@@ -162,7 +162,7 @@ oc -n lightwell-repo get configmap lightwell-sample-osv \
 { "fixed": "5.3.18.rhlw-00003" }
 ----
 
-Remediated versions use Lightwell’s published `.rhlw-#####` qualifier (here `5.3.18.rhlw-00003`). That string comes from the OSV `fixed` event—not from an internal nickname or a patch-style suffix borrowed from other Red Hat or vendor builds. In Module 3 you will pin this exact value so Maven, Nexus, and supply-chain metadata stay aligned.
+Remediated versions use Lightwell’s published `.rhlw-#####` qualifier (here `5.3.18.rhlw-00003`). That string comes from the OSV `fixed` event—not from an internal nickname or a patch-style suffix borrowed from other Red Hat or vendor builds. In Module 4 you will pin this exact value so Maven, Nexus, and supply-chain metadata stay aligned.
 
 == Exercise 3: Map the workshop story to TSSC tools
 
@@ -175,14 +175,17 @@ You will not configure every product in this module. Use this checklist so the l
 |Enterprise Maven proxy (Validated / Remediated)
 |Module 2 — Nexus `lightwell-repo` + `settings.xml`
 
+|RHDH Software Template → Gitea scaffold
+|Module 3 — `lightwell-java-service` (canonical app for Modules 4–6)
+
 |Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild
-|Module 3 — `tools/osv-eval/` + Spring Boot PoC
+|Module 4 — `tools/osv-eval/` + Spring Boot PoC
 
 |SBOM system of record
-|Module 4 — RHTPA (+ optional laptop RHDA)
+|Module 5 — RHTPA (+ optional laptop RHDA)
 
 |Keyless signing + policy + GitOps
-|Module 5 — RHTAS, RHACS, Argo CD
+|Module 6 — RHTAS, RHACS, Argo CD
 |===
 
 . Optional: open the OpenShift console and note Routes for components that are already Healthy (names vary by sync):
@@ -219,7 +222,7 @@ Learners without membership still complete RHDP labs using the seeded Nexus / Co
 * Distinguished *Validated* (bit-for-bit upstream) vs *Remediated* (security-only `.rhlw-*`) and Java *OSV*
 * Placed Lightwell next to platform products, Hardened Images, and (conceptually) LSOS
 * Inspected workshop channel metadata and a sample OSV `fixed` event that names a `.rhlw-*` pin
-* Connected the overview to Modules 2–5 (Maven, OSV loop, RHTPA/RHDA, TSSC pipelines)
+* Connected the overview to Modules 2–6 (Maven, RHDH scaffold, OSV loop, RHTPA/RHDA, TSSC pipelines)
 
 **Key takeaways**
 

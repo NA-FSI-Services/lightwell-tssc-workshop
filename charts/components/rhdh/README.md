@@ -30,11 +30,19 @@ Root App-of-Apps places this chart at sync wave **`30`** (after operators / ligh
 | Auth | `${env.LW_USERNAME}` / `${env.LW_PASSWORD}` (never commit secrets) |
 | Dual streams + pin | `pom.xml` profiles; `commons-lang3` `3.14.0.rhlw-00001` |
 | RHTAS keyless | `.tekton/pipeline.yaml` → `cosign sign` (Fulcio/Rekor params) |
-| Modules 2–5 | Skeleton `docs/MODULES.md` + template output text |
+| Modules 2–6 | Skeleton `docs/MODULES.md` + template output text |
 
-Scaffolder steps: `fetch:template` (skeleton on `main`) → `publish:github` → `catalog:register`.
+Scaffolder steps: `fetch:template` from Gitea `workshop-templates/lightwell-java-service`
+→ `publish:gitea` → `catalog:register`.
 
-**Requires** RHDH GitHub integration (or equivalent) for `publish:github`. Configure a GitHub App / PAT in Developer Hub before learners run Create.
+**Requires** in-cluster Gitea integration (`integrations.gitea`) plus the
+`publish:gitea` dynamic plugin (`dynamicPlugins.giteaScaffolder` → GitHub Release
+asset built by `scripts/package-rhdh-gitea-scaffolder-plugin.sh`) and scaffolder
+credentials (Secret `rhdh-gitea-scaffolder`).
+Learners delete the Module 2 app repo `lw-<username>/spring-boot-lw-poc` first, then Create
+publishes into the **same** learner organization (Showroom Module 3). Upstream `publish:gitea`
+requires a Gitea Organization — learners create `lw-<username>` in Module 2; the seed Job only
+prepares `workshop-templates/` content and student user accounts.
 
 Skeleton URL (after merge to `main`):
 
@@ -60,6 +68,10 @@ https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/main/charts/comp
 | `operator.channel` | `fast` | Or `fast-1.10` for z-stream only |
 | `softwareTemplates.enabled` | `true` | Mount Template catalog entity |
 | `deployer.domain` | `""` | Injected by root-app; used for `baseUrl` / userinfo |
+
+Auth (workshop): `app-config-rhdh` sets `auth.environment: development`, guest provider with
+`dangerouslyAllowOutsideDevelopment: true`, and `signInPage: guest` so learners use **Guest**
+only (no GitHub OAuth — that button otherwise 404s with `Unknown auth provider 'github'`).
 
 Canonical LWN remotes:
 

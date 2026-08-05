@@ -16,10 +16,10 @@ External base URL for Developer Hub (route host pattern used by the Operator).
 {{- if .Values.appConfig.baseUrl -}}
 {{- .Values.appConfig.baseUrl -}}
 {{- else if .Values.deployer.domain -}}
-{{- /* deployer.domain is already the apps wildcard domain (e.g. apps.cluster.example.com) */ -}}
-https://{{ .Values.rhdh.name }}-{{ .Values.rhdh.namespace }}.{{ .Values.deployer.domain }}
+{{- /* RHDH Operator Route host: backstage-<cr-name>-<namespace>.<apps-domain> */ -}}
+https://backstage-{{ .Values.rhdh.name }}-{{ .Values.rhdh.namespace }}.{{ .Values.deployer.domain }}
 {{- else -}}
-https://{{ .Values.rhdh.name }}-{{ .Values.rhdh.namespace }}.apps.cluster.example.com
+https://backstage-{{ .Values.rhdh.name }}-{{ .Values.rhdh.namespace }}.apps.cluster.example.com
 {{- end -}}
 {{- end -}}
 

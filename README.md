@@ -99,6 +99,7 @@ This repo uses [pre-commit](https://pre-commit.com) (see [`.pre-commit-config.ya
 |------|------|--------|
 | `helm lint` | Changes under `charts/` | [`scripts/helm-lint.sh`](./scripts/helm-lint.sh) |
 | AsciiDoc structural check | Changes under `docs/`, `site.yml`, `site-ci.yml` | [`scripts/asciidoc-check.sh`](./scripts/asciidoc-check.sh) |
+| Learner Git decision | Showroom / seed overlays / RHDH catalog | [`scripts/learner-git-check.sh`](./scripts/learner-git-check.sh) |
 
 ```bash
 # After clone (once)
@@ -124,7 +125,8 @@ Ensure `helm` is on your `PATH` for chart commits.
 ```bash
 # Same checks as CI
 ./scripts/helm-validate.sh
-./scripts/asciidoc-check.sh
+./scripts/asciidoc-check.sh          # includes learner-git-check.sh
+./scripts/learner-git-check.sh       # Gitea templates / no hardcoded lw-user1
 npx --yes antora@3.1.10 site-ci.yml   # optional local Antora generate
 ```
 

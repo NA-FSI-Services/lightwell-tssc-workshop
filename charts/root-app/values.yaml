@@ -93,9 +93,9 @@ components:
     chartPath: lightwell-repo
 
   # --- Wave 30: Developer Hub ---
-  # Chart: charts/components/rhdh (#3). Enable when cluster is ready to sync.
+  # Chart: charts/components/rhdh (#3 / #120). Enabled with lab stack for Module 3 scaffold.
   rhdh:
-    enabled: false
+    enabled: true
     namespace: rhdh
     syncWave: "30"
 
@@ -116,14 +116,14 @@ components:
     syncWave: "40"
     chartPath: parasol-app
 
-  # --- Wave 50: Showroom lab guide (Modules 1–5 via site.yml) ---
+  # --- Wave 50: Showroom lab guide (Modules 1–6 via site.yml) ---
   showroom:
     enabled: true
     namespace: showroom
     name: showroom
     syncWave: "50"
     content:
-      # Antora: site.yml → docs/modules/ROOT (Modules 1–5); chart charts/components/showroom (#19)
+      # Antora: site.yml → docs/modules/ROOT (Modules 1–6); chart charts/components/showroom (#19)
       repoUrl: "https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git"
       repoRef: "main"
       antoraPlaybook: "site.yml"

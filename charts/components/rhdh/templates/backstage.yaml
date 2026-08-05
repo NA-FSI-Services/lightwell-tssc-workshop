@@ -26,11 +26,18 @@ spec:
           # Directory mount → /opt/app-root/src/catalog/<key>
           mountPath: {{ printf "%s/catalog" .Values.softwareTemplates.mountPath | quote }}
     {{- end }}
+    {{- if .Values.giteaIntegration.enabled }}
+    # v1alpha5 extraEnvs.envs is name/value only (no valueFrom). Inject Secret keys as env vars.
+    extraEnvs:
+      secrets:
+        - name: {{ .Values.giteaIntegration.secretName }}
+    {{- end }}
 
     {{- if .Values.dynamicPlugins.enabled }}
     dynamicPluginsConfigMapName: {{ .Values.dynamicPlugins.configMapName }}
     {{- end }}
-    replicas: {{ .Values.rhdh.replicas }}
+    # Note: v1alpha5 (RHDH Operator 1.10+) removed application.replicas;
+    # override replica count via spec.deployment.patch if needed.
     route:
       enabled: {{ .Values.rhdh.route.enabled }}
   database:

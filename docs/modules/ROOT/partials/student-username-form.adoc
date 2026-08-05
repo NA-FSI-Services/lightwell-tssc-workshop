@@ -1,0 +1,141 @@
+////
+Workshop-wide Gitea username form (issue #120).
+Include near the top of Modules 2–6:
+
+  include::partial$student-username-form.adoc[]
+
+Default value: student (chart / catalog default). Dev-cluster often uses user1 —
+learners set that here once; it persists in localStorage across modules.
+
+Token replaced in page text and code listings: @@LW_USER@@
+Do not put the token inside ConfigMap *key* names (keep student_username literal).
+Optional prose marker: pass:q[<span class="lw-student-user">student</span>]
+////
+
+[.lw-user-banner]
+****
+*Your Gitea username*
+
+Enter the workshop learner username from ConfigMap `demo-userinfo-gitea` → `student_username`
+(catalog default *student*; dev-cluster bootstrap often *user1*). Click *Apply* to rewrite
+`+@@LW_USER@@+` placeholders on this page (saved for other modules in this browser).
+
+++++
+<div id="lw-user-form" class="lw-user-form" style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin:0.5rem 0 0;">
+  <label for="lw-student-username" style="font-weight:600;">Username</label>
+  <input id="lw-student-username" type="text" value="student" autocomplete="username"
+    style="min-width:10rem;padding:0.25rem 0.5rem;font-family:inherit;font-size:0.95rem;"
+    aria-label="Gitea student username">
+  <button type="button" id="lw-apply-username"
+    style="padding:0.35rem 0.85rem;cursor:pointer;font-weight:600;">Apply</button>
+  <span id="lw-user-status" style="font-size:0.85rem;opacity:0.85;"></span>
+</div>
+<script>
+(function () {
+  var TOKEN = '@@LW_USER@@';
+  var STORAGE_KEY = 'lw-student-username';
+  var LAST_KEY = 'lw-student-username-last';
+  var DEFAULT_USER = 'student';
+  var input = document.getElementById('lw-student-username');
+  var button = document.getElementById('lw-apply-username');
+  var status = document.getElementById('lw-user-status');
+  if (!input || !button) return;
+
+  function sanitize(v) {
+    v = (v || '').trim();
+    if (!v) return DEFAULT_USER;
+    return v.replace(/[^a-zA-Z0-9._-]/g, '') || DEFAULT_USER;
+  }
+
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // Rewrite a previously applied username without touching English prose like
+  // "student username". Only workshop patterns: lw-<user>, 'user', "user".
+  function rewritePrevUser(text, last, user) {
+    if (!last || last === user) return text;
+    var esc = escapeRegExp(last);
+    return text
+      .split('lw-' + last).join('lw-' + user)
+      .replace(new RegExp("'" + esc + "'", 'g'), "'" + user + "'")
+      .replace(new RegExp('"' + esc + '"', 'g'), '"' + user + '"');
+  }
+
+  function rewriteNodeValue(text, last, user) {
+    if (!text) return text;
+    if (text.indexOf(TOKEN) !== -1) return text.split(TOKEN).join(user);
+    return rewritePrevUser(text, last, user);
+  }
+
+  function apply(user, announce) {
+    user = sanitize(user);
+    input.value = user;
+
+    var last = DEFAULT_USER;
+    try {
+      last = localStorage.getItem(LAST_KEY) || DEFAULT_USER;
+      localStorage.setItem(STORAGE_KEY, user);
+    } catch (e) { /* private mode */ }
+
+    var root = document.querySelector('article.doc') || document.querySelector('article') ||
+      document.querySelector('main') || document.body;
+
+    document.querySelectorAll('.lw-student-user').forEach(function (el) {
+      el.textContent = user;
+    });
+
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      var text = node.nodeValue;
+      if (!text) continue;
+      var p = node.parentElement;
+      if (p && (p.tagName === 'SCRIPT' || p.tagName === 'STYLE')) continue;
+      if (p && p.closest && (p.closest('#lw-user-form') || p.closest('.lw-user-banner'))) continue;
+
+      var next = rewriteNodeValue(text, last, user);
+      if (next !== text) node.nodeValue = next;
+    }
+
+    // Bare AsciiDoc links put the token in href as well as link text
+    root.querySelectorAll('a[href]').forEach(function (a) {
+      if (a.closest && (a.closest('#lw-user-form') || a.closest('.lw-user-banner'))) return;
+      var href = a.getAttribute('href');
+      if (!href) return;
+      var nextHref = rewriteNodeValue(href, last, user);
+      if (nextHref !== href) a.setAttribute('href', nextHref);
+    });
+
+    try { localStorage.setItem(LAST_KEY, user); } catch (e) { /* ignore */ }
+
+    if (announce && status) {
+      // ASCII quotes only - curly/smart quotes break this inline <script>
+      status.textContent = 'Applied as "' + user + '" (saved for other modules).';
+    }
+  }
+
+  var initial = DEFAULT_USER;
+  try {
+    initial = localStorage.getItem(STORAGE_KEY) || DEFAULT_USER;
+  } catch (e) { /* ignore */ }
+  input.value = initial;
+
+  function runInitial() { apply(input.value, false); }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInitial);
+  } else {
+    setTimeout(runInitial, 0);
+  }
+
+  button.addEventListener('click', function () { apply(input.value, true); });
+  input.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      apply(input.value, true);
+    }
+  });
+})();
+</script>
+++++
+****
