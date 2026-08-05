@@ -67,6 +67,22 @@ channels:
     description: "Lightwell Network Java OSV (remediated) — machine-readable fixed-vuln records"
     remoteUrl: "https://packages.redhat.com/lightwell/osv/java/remediated"
     hostedName: lightwell-osv-java-remediated-hosted
+  # Python / PyPI (Modules 7–9) — same Validated / Remediated tier names as Java
+  pypiValidated:
+    enabled: true
+    name: lightwell-python-validated
+    type: pypi
+    description: "Lightwell Network Python Validated — upstream-parity rebuilds for pip"
+    remoteUrl: "https://packages.redhat.com/lightwell/python/validated"
+    hostedName: lightwell-python-validated-hosted
+  # Gate: disable in proxy mode if membership lacks Remediated PyPI (seeded mode is local-only)
+  pypiRemediated:
+    enabled: true
+    name: lightwell-python-remediated
+    type: pypi
+    description: "Lightwell Network Python Remediated — exact-version .rhlw-0000X backports"
+    remoteUrl: "https://packages.redhat.com/lightwell/python/remediated"
+    hostedName: lightwell-python-remediated-hosted
   # Optional enterprise virtual aggregator (Maven points here in proxied PoV delivery)
   virtualLibsRelease:
     enabled: true
@@ -88,6 +104,24 @@ mavenSettings:
   configMapName: lightwell-maven-settings
   # When empty, derived from Nexus Route host
   nexusUrl: ""
+
+# Python learner UX — pip.conf index URLs for Validated (+ gated Remediated)
+pipSettings:
+  enabled: true
+  configMapName: lightwell-pip-settings
+  # When empty, derived from Nexus Route host (same helper as Maven)
+  nexusUrl: ""
+
+# Deterministic PyPI seed package (fetched at seed time; usable by FastAPI sample)
+pypiSeed:
+  # Real wheel from public PyPI for Validated hosted repo (Module 7 pip install proof)
+  package: httpx
+  version: "0.27.2"
+  # Content-addressed files.pythonhosted.org URL (override if cluster cannot reach PyPI)
+  wheelUrl: "https://files.pythonhosted.org/packages/56/95/9377bcb415797e44274b51d46e3249eba641711cf3348050f76ee7b15ffc/httpx-0.27.2-py3-none-any.whl"
+  # Workshop marker wheel for Remediated hosted (proves .rhlw-0000X; not a live LWN backport)
+  remediatedPackage: lw-workshop-pypi
+  remediatedVersion: "1.0.0.rhlw-00001"
 
 # Sample OSV JSON demonstrating .rhlw-0000X fixed version (seeded / lab beat)
 sampleOsv:
@@ -136,11 +170,13 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Artifact Manager (LWN)"
   instructions: >-
-    Nexus presents Lightwell Validated / Remediated / OSV channels. Default mode is
-    seeded (Job lightwell-repo-seed uploads spring-core resolution stubs, compile-capable
-    commons-lang3 for PoC builds, OSV at osv/java/remediated/, and CycloneDX SBOMs).
-    For live proxy, set lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD into
-    Secret lightwell-network-credentials. Maven: ConfigMap lightwell-maven-settings.
+    Nexus presents Lightwell Validated / Remediated / OSV (Java) and PyPI Validated /
+    Remediated (Python) channels. Default mode is seeded (Job lightwell-repo-seed uploads
+    spring-core stubs, commons-lang3, OSV/CycloneDX, plus httpx for PyPI Validated and a
+    gated .rhlw-* workshop wheel for PyPI Remediated). For live proxy, set
+    lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD; set
+    channels.pypiRemediated.enabled=false if Remediated PyPI is unavailable.
+    Maven: ConfigMap lightwell-maven-settings. Python: ConfigMap lightwell-pip-settings.
 
 # Injected by root-app / field content workload
 deployer:

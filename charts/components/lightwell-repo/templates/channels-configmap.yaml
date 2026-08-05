@@ -35,6 +35,24 @@ data:
         type: {{ .Values.channels.osv.type }}
         description: {{ .Values.channels.osv.description | quote }}
         canonicalRemote: {{ .Values.channels.osv.remoteUrl | quote }}
+      pypiValidated:
+        enabled: {{ .Values.channels.pypiValidated.enabled }}
+        repoKey: {{ .Values.channels.pypiValidated.name }}
+        hostedKey: {{ .Values.channels.pypiValidated.hostedName }}
+        type: {{ .Values.channels.pypiValidated.type }}
+        description: {{ .Values.channels.pypiValidated.description | quote }}
+        canonicalRemote: {{ .Values.channels.pypiValidated.remoteUrl | quote }}
+        pipSimple: {{ printf "%s/simple" .Values.channels.pypiValidated.remoteUrl | quote }}
+      pypiRemediated:
+        enabled: {{ .Values.channels.pypiRemediated.enabled }}
+        repoKey: {{ .Values.channels.pypiRemediated.name }}
+        hostedKey: {{ .Values.channels.pypiRemediated.hostedName }}
+        type: {{ .Values.channels.pypiRemediated.type }}
+        description: {{ .Values.channels.pypiRemediated.description | quote }}
+        canonicalRemote: {{ .Values.channels.pypiRemediated.remoteUrl | quote }}
+        pipSimple: {{ printf "%s/simple" .Values.channels.pypiRemediated.remoteUrl | quote }}
+        versionSuffix: ".rhlw-0000X"
+        gateNote: "Set enabled=false in proxy mode if live Remediated PyPI is unavailable; seeded mode uses a local .rhlw-* marker wheel."
 {{- if .Values.channels.virtualLibsRelease.enabled }}
       virtual:
         repoKey: {{ .Values.channels.virtualLibsRelease.name }}
