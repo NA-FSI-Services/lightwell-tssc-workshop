@@ -384,6 +384,44 @@ spec:
       - CreateNamespace=true
 {{- end }}
 
+{{- if .Values.components.fastapiLwPoc.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-fastapi-lw-poc
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "root-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.components.fastapiLwPoc.syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: {{ .Values.gitops.basePath }}/components/{{ .Values.components.fastapiLwPoc.chartPath }}
+    helm:
+      valuesObject:
+        fastapiLwPoc:
+          enabled: {{ .Values.components.fastapiLwPoc.enabled }}
+          namespace: {{ .Values.components.fastapiLwPoc.namespace }}
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.components.fastapiLwPoc.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}
+
 {{- if .Values.components.parasolApp.enabled }}
 ---
 apiVersion: argoproj.io/v1alpha1

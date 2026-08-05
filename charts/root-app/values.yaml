@@ -8,7 +8,7 @@
 #   15  — Student Git (Gitea): gitea
 #   20  — Artifact manager / LWN pattern: lightwell-repo
 #   30  — Developer Hub: rhdh
-#   40  — Sample apps: spring-boot-lw-poc, parasol-app
+#   40  — Sample apps: spring-boot-lw-poc, fastapi-lw-poc, parasol-app
 #   50  — Showroom lab guide
 #
 # Child charts live under charts/components/<name>/ (Phase 1 issues).
@@ -107,6 +107,14 @@ components:
     namespace: spring-boot-lw-poc
     syncWave: "40"
     chartPath: spring-boot-lw-poc
+
+  # Chart: charts/components/fastapi-lw-poc (#146). Keep off until Python Modules 7–9
+  # track is ready; Gitea Python templates land in #147.
+  fastapiLwPoc:
+    enabled: false
+    namespace: fastapi-lw-poc
+    syncWave: "40"
+    chartPath: fastapi-lw-poc
 
   # Chart: charts/components/parasol-app (#8). Optional; keep off for critical path.
   parasolApp:

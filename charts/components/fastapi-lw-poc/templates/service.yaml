@@ -1,0 +1,20 @@
+{{- if .Values.fastapiLwPoc.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.fastapiLwPoc.name }}
+  namespace: {{ .Values.fastapiLwPoc.namespace }}
+  labels:
+    {{- include "fastapi-lw-poc.labels" . | nindent 4 }}
+    app: {{ .Values.fastapiLwPoc.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.fastapiLwPoc.syncWaves.workload | quote }}
+spec:
+  selector:
+    app: {{ .Values.fastapiLwPoc.name }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+{{- end }}

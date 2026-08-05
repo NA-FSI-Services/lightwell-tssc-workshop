@@ -24,7 +24,7 @@ charts/
     ├── rhacs/                # Advanced Cluster Security + roxctl hooks (#6)
     ├── lightwell-repo/       # Nexus LWN Maven + PyPI validated / remediated / OSV (#7, #145)
     ├── spring-boot-lw-poc/   # Primary Spring Boot / LWN Maven PoC (#24)
-    ├── fastapi-lw-poc/       # FastAPI / LWN PyPI PoC — Modules 7–9 (#146; not yet scaffolded)
+    ├── fastapi-lw-poc/       # FastAPI / LWN PyPI PoC — Modules 7–9 (#146)
     ├── showroom/             # RHDP Showroom UI + terminal (Modules 1–6+; #19)
     └── parasol-app/          # Optional multi-tier Parasol scaffold (#8)
 ```
