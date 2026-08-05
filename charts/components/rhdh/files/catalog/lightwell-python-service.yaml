@@ -1,0 +1,164 @@
+# Software Template — lightwell-python-service (issue #148)
+# Skeleton: workshop-templates/lightwell-python-service (Gitea; seeded from
+#   charts/components/rhdh/files/skeletons/lightwell-python-service by gitea seed Job)
+# Publish target: in-cluster Gitea only (AGENTS.md Learner Git). Host substituted at install:
+#   GITEA_HOST_PLACEHOLDER → gitea.<deployer.domain>
+# Learner org lw-<studentUsername> (created in Module 2) + repo fastapi-lw-poc.
+# Upstream publish:gitea requires a Gitea Organization (not a normal user).
+# Flow: Module 7 learner seed first, then delete fastapi-lw-poc and re-scaffold (Java Module 2→3).
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: lightwell-python-service
+  title: Lightwell Python Service
+  description: >-
+    FastAPI / Python microservice golden path with Lightwell Network Validated
+    and optional Remediated PyPI indexes, pip.conf helpers, and a stub Tekton
+    pipeline for Modules 7–9. Publishes to workshop Gitea as
+    lw-<student_username>/fastapi-lw-poc.
+  tags:
+    - lightwell
+    - python
+    - fastapi
+    - pypi
+    - gitea
+    - recommended
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+spec:
+  owner: group:default/lightwell-workshop
+  type: service
+  parameters:
+    - title: Service information
+      required:
+        - name
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Kubernetes-safe service name (also ImageStream / Pipeline name)
+          pattern: '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'
+          default: fastapi-lw-poc
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          default: FastAPI service using Lightwell Network PyPI streams
+        owner:
+          title: Owner
+          type: string
+          default: group:default/lightwell-workshop
+        system:
+          title: System
+          type: string
+          default: lightwell-tssc-workshop
+    - title: Lightwell Network
+      properties:
+        lwnProfile:
+          title: Default LIGHTWELL_STREAM / pip index preference
+          type: string
+          default: lightwell-validated
+          enum:
+            - lightwell-validated
+            - lightwell-remediated
+          enumNames:
+            - Validated (pip.conf → lightwell-python-validated)
+            - Remediated (use pip-remediated.conf when channel enabled)
+    - title: Publication (Gitea)
+      required:
+        - studentUsername
+      properties:
+        studentUsername:
+          title: Gitea student username
+          type: string
+          description: >-
+            Paste student_username from ConfigMap demo-userinfo-gitea.
+            Publishes under organization lw-<this value> (create that org in Module 2).
+          pattern: '^[a-zA-Z0-9]([a-zA-Z0-9._-]{0,38}[a-zA-Z0-9])?$'
+        repoOwner:
+          title: Gitea organization
+          type: string
+          description: >-
+            Must be lw-<student_username> (your Module 2 organization).
+            Upstream publish:gitea creates repositories under Organizations only.
+          pattern: '^lw-[a-zA-Z0-9]([a-zA-Z0-9._-]{0,38}[a-zA-Z0-9])?$'
+          default: lw-student
+        repoName:
+          title: Repository name
+          type: string
+          const: fastapi-lw-poc
+          default: fastapi-lw-poc
+          description: Fixed so student_python_repo_url stays stable for Modules 7–9
+        defaultBranch:
+          title: Default branch
+          type: string
+          default: main
+  steps:
+    - id: fetch-base
+      name: Fetch Lightwell Python skeleton
+      action: fetch:template
+      input:
+        # GiteaUrlReader requires .../src/branch/<ref> (plain owner/repo yields commits/undefined).
+        url: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-python-service/src/branch/main
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          system: ${{ parameters.system }}
+          lwnProfile: ${{ parameters.lwnProfile }}
+          repoOwner: ${{ parameters.repoOwner }}
+          repoName: fastapi-lw-poc
+
+    - id: publish
+      name: Publish to Gitea
+      action: publish:gitea
+      input:
+        description: ${{ parameters.description }}
+        repoUrl: GITEA_HOST_PLACEHOLDER?owner=${{ parameters.repoOwner }}&repo=fastapi-lw-poc
+        defaultBranch: ${{ parameters.defaultBranch }}
+        repoVisibility: public
+
+    - id: register
+      name: Register in Software Catalog
+      action: catalog:register
+      input:
+        # Use catalogInfoUrl — Gitea resolveUrl drops the branch when catalogInfoPath
+        # starts with "/" (produces .../src/branch/catalog-info.yaml → 400).
+        catalogInfoUrl: ${{ steps.publish.output.repoContentsUrl }}catalog-info.yaml
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+    text:
+      - title: Modules 7–9 next steps
+        content: |
+          Scaffolded **${{ parameters.name }}** to Gitea
+          `https://GITEA_HOST_PLACEHOLDER/${{ parameters.repoOwner }}/fastapi-lw-poc`
+          (must match demo-userinfo-gitea → student_python_repo_url).
+
+          **Before scaffold** — Module 7 learner seed first
+          (`learner-seed-python-from-templates.sh`), then delete
+          `lw-<username>/fastapi-lw-poc` so publish:gitea can recreate it
+          (same pattern as Module 3 for Java).
+
+          **Module 7 — PyPI Validated on the scaffold**
+          ```bash
+          export LIGHTWELL_NEXUS_URL='https://nexus-lightwell-repo.apps.<domain>'
+          oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip.conf --to=.
+          PIP_CONFIG_FILE=$PWD/pip.conf pip install -r requirements.txt
+          ```
+
+          **Module 8 — Remediated (when gated on)**
+          Use `pip-remediated.conf` and install `lw-workshop-pypi==1.0.0.rhlw-00001`.
+
+          **Module 9 — Sign / policy / GitOps**
+          Apply `.tekton/` stub; full Tasks land with issue #149. Optional promote
+          via `student_python_gitops_repo_url`.
+
+          Canonical remotes:
+          - https://packages.redhat.com/lightwell/python/validated
+          - https://packages.redhat.com/lightwell/python/remediated

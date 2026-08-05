@@ -6,8 +6,10 @@ alwaysApply: false
 # RHDH Software Template / scaffolder
 
 - `publish:gitea` owner = learner org `lw-<studentUsername>` (Organization required upstream).
-- Repo name fixed: `spring-boot-lw-poc` (matches `student_repo_url`).
-- Prefer `fetch:template` from in-cluster Gitea **`workshop-templates/lightwell-java-service`** (host via `GITEA_HOST_PLACEHOLDER`), not the GitHub monorepo path, once that template repo is seeded.
+- Java repo name fixed: `spring-boot-lw-poc` (matches `student_repo_url`).
+- Python repo name fixed: `fastapi-lw-poc` (matches `student_python_repo_url`).
+- Prefer `fetch:template` from in-cluster Gitea **`workshop-templates/lightwell-java-service`** or **`workshop-templates/lightwell-python-service`** (host via `GITEA_HOST_PLACEHOLDER`), not the GitHub monorepo path, once those template repos are seeded.
 - Skeleton `.tekton/pipelinerun.yaml`: `STUDENT_REPO_URL_PLACEHOLDER` — no `lw-user1`.
 - Do not document GitHub as the learner publish or clone target in template output text.
 - Scaffolder credentials (`giteaIntegration`) must be able to create repos under learner orgs (seed script adds `gitea-admin` to org Owners).
+- Python flow mirrors Java Module 2→3: learner seed first, then delete app repo and re-scaffold with `lightwell-python-service`.

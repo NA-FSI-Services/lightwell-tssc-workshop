@@ -14,4 +14,6 @@ metadata:
 data:
   lightwell-java-service.yaml: |
 {{ .Files.Get "files/catalog/lightwell-java-service.yaml" | replace "GITEA_HOST_PLACEHOLDER" $giteaHost | indent 4 }}
+  lightwell-python-service.yaml: |
+{{ .Files.Get "files/catalog/lightwell-python-service.yaml" | replace "GITEA_HOST_PLACEHOLDER" $giteaHost | indent 4 }}
 {{- end }}
