@@ -14,7 +14,7 @@ flowchart TD
   boot[scripts/dev-cluster-bootstrap.sh]
   htpasswd[scripts/dev-cluster-htpasswd.sh]
   loginAdmin[scripts/dev-cluster-login.sh password]
-  labs[Walk Showroom Modules 1-5]
+  labs[Walk Showroom Modules 1-6]
   order --> fill --> loginToken --> boot --> htpasswd --> loginAdmin --> labs
 ```
 
@@ -149,7 +149,7 @@ Expect `mode=seeded`, a `fixed: 5.3.18.rhlw-00003` event, and the Nexus/Showroom
 | Control plane | 1 | 16 | 32 GB |
 | Workers | 2 | 16 | 64 GB each |
 
-~**32 vCPU / ~128 GiB** aggregate **worker** capacity before enabling RHACS / RHTPA / RHDH / heavy Tekton. Scale via the claim’s AWS console when provided. Avoid SNO for full Modules 1–5.
+~**32 vCPU / ~128 GiB** aggregate **worker** capacity before enabling RHACS / RHTPA / RHDH / heavy Tekton. Scale via the claim’s AWS console when provided. Avoid SNO for full Modules 1–6 (and 7–9 when the Python track is enabled).
 
 ## Prerequisites when ordering
 
@@ -168,13 +168,14 @@ Bootstrap enables **Showroom + lightwellRepo**. Root-app chart defaults keep oth
 | Order | Wave | Component | Lab focus |
 |------:|------|-----------|-----------|
 | ✓ | 50 | `showroom` | Modules prose + terminal (**bootstrap default**) |
-| ✓ | 20 | `lightwellRepo` | Modules 1–3 ConfigMaps / Nexus (**bootstrap default**) |
-| ✓ | 15 | `gitea` | Module 5 student Git — **single `user1`** (**bootstrap default**; see [WORKSHOP-USER](./DEV-CLUSTER-WORKSHOP-USER.md)) |
+| ✓ | 20 | `lightwellRepo` | Modules 1–4 ConfigMaps / Nexus (**bootstrap default**; PyPI for 7–9 via [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145)) |
+| ✓ | 15 | `gitea` | Module 6 / Module 9 student Git — **single `user1`** (**bootstrap default**; see [WORKSHOP-USER](./DEV-CLUSTER-WORKSHOP-USER.md)) |
 | 4 | 40 | `springBootLwPoc` | Monorepo Maven PoC only — keep **off** when Gitea gitops ApplicationSet is SoT |
 | 5 | 5 | `keycloak` | SSO for RHTPA (`sso.<domain>/realms/tpa`) |
 | 6 | 8 | `pipelines` | OpenShift Pipelines / Tekton (before `rhacs` Tasks) |
-| 7 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 4–5 (enable `keycloak` before `rhtpa`) |
-| 8 | 30 | `rhdh` | Software Template |
+| 7 | 10 | `rhtas`, `rhtpa`, `rhacs` | Modules 5–6 (enable `keycloak` before `rhtpa`) |
+| 8 | 30 | `rhdh` | Software Templates (Java + Python when #148 lands) |
+| — | 40 | `fastapiLwPoc` | Modules 7–9 FastAPI chart (#146) — keep **off** until track ready |
 | — | 40 | `parasolApp` | Keep **off** |
 
 Override via PR to `main`, or temporary Helm values on the Argo Application. Prefer `ANTORA_PLAYBOOK=site-ci.yml` when the stock Antora image lacks Mermaid/tabs — see [`SHOWROOM-UPDATE-SPEC.md`](./SHOWROOM-UPDATE-SPEC.md).
@@ -191,8 +192,9 @@ If Machine API is unavailable, scale workers via `AWS_CONSOLE_URL` toward the si
 - [ ] ClusterRoleBinding `showroom-lab-cluster-admin` exists
 - [ ] Showroom terminal can `oc -n lightwell-repo get configmap lightwell-channels`
 - [ ] Module 2 Maven Validated / Remediated against workshop Nexus
-- [ ] Module 3 OSV → `.rhlw-*` path
-- [ ] Modules 4–5 only after `rhtpa` / `rhacs` / `rhtas` Healthy
+- [ ] Module 4 OSV → `.rhlw-*` path
+- [ ] Modules 5–6 only after `rhtpa` / `rhacs` / `rhtas` Healthy
+- [ ] Modules 7–9 only after PyPI seed (#145) + FastAPI chart (#146) + Gitea Python templates (#147) — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)
 
 ### Showroom-only fallback
 

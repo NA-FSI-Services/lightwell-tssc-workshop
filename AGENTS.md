@@ -22,20 +22,21 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 | Labs | AsciiDoc in `docs/modules/`; Showroom-compatible; one module per lab story beat |
 | AgnosticV | Document drafts in-repo; do not invent catalog IDs—use `published.lightwell-tssc-workshop.prod` |
 | OCP target | OpenShift 4.20-class CNV pool; multi-node sizing validated in `agnosticv/README.md` (1×16/32 CP + 2×16/64 workers) for RHDH + RHTAS + RHTPA + RHACS + Pipelines |
-| Primary app | Spring Boot / Java 17 / Maven PoC with dual LWN streams; Parasol optional |
-| Python | Validated-only secondary path; do not block the catalog on remediated PyPI |
+| Primary app | Spring Boot / Java 17 / Maven PoC with dual LWN streams (Modules 1–6); Parasol optional |
+| Python | Post-Java critical path Modules 7–9 (FastAPI, epic #144); design for Remediated PyPI but **seed/gate** — do not block the Java catalog if live remediated is unavailable |
 
 ### Component ownership (do not collapse)
 
 - `keycloak` — Workshop IdP for RHTPA (`sso.<domain>/realms/tpa`; enable before `rhtpa`)
-- `pipelines` — OpenShift Pipelines (Tekton) Operator; enable before `rhacs` Module 5 Tasks / student `.tekton`
-- `gitea` — In-cluster student Git; Module 5 / pipeline labs use learner repos (not the GitOps monorepo)
-- `rhdh` — Developer Hub + `lightwell-java-service` Software Template (scaffold may land in Gitea; see learner Git rules)
+- `pipelines` — OpenShift Pipelines (Tekton) Operator; enable before `rhacs` Module 6 / Module 9 Tasks / student `.tekton`
+- `gitea` — In-cluster student Git; Module 6 / Module 9 pipeline labs use learner repos (not the GitOps monorepo)
+- `rhdh` — Developer Hub + `lightwell-java-service` (and `lightwell-python-service` for Modules 7–9; #148); scaffold may land in Gitea
 - `rhtas` — Trusted Artifact Signer / keyless signing 
 - `rhtpa` — SBOM (and advisory) ingestion/analysis; RHDA consumes its APIs 
 - `rhacs` — Central + pipeline / admission policy gates 
-- `lightwell-repo` — Enterprise artifact manager pattern (validated / remediated / OSV proxy or seeded mirrors) 
-- `spring-boot-lw-poc` — Primary sample app for Maven + LWN labs 
+- `lightwell-repo` — Enterprise artifact manager (Maven + PyPI validated / remediated / Java OSV proxy or seeded mirrors; PyPI in #145) 
+- `spring-boot-lw-poc` — Primary Java sample app for Maven + LWN labs 
+- `fastapi-lw-poc` — Python FastAPI sample for Modules 7–9 (#146)
 - `parasol-app` — Optional larger enterprise workload
 
 ### Learner Git — Gitea first (do not send students to GitHub)
@@ -47,10 +48,11 @@ Students must **not** be directed to clone, fork, or push to GitHub for lab appl
 | Phase | Who | What |
 |-------|-----|------|
 | **Install / seed Job** | Operator | Start Gitea; create student **users**; publish public org **`workshop-templates`** with public template repos (app, gitops, RHDH skeleton) isolated from the monorepo |
-| **Module 2** | Learner | Create org **`lw-<username>`** + empty repos; run `learner-seed-from-templates.sh` (from ConfigMap) to copy templates into their remotes |
+| **Module 2** | Learner | Create org **`lw-<username>`** + empty Java repos; run `learner-seed-from-templates.sh` (from ConfigMap) to copy templates into their remotes |
 | **Modules 3–6** | Learner | Use `student_repo_url` / placeholders (`STUDENT_REPO_URL_PLACEHOLDER`); RHDH publishes into **`lw-<username>`** |
+| **Modules 7–9** | Learner | Same org; Python app/gitops remotes from `workshop-templates` (seed #147); RHDH `lightwell-python-service` when available (#148) |
 
-**Hard bans for Showroom / learner instructions:** never paste `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` (or any GitHub clone of this monorepo) into Modules 1–6, Software Templates, or PipelineRun examples aimed at students. That URL is for **operators / GitOps / seed Jobs only**. If a lab needs application sources, point learners at **their** Gitea remotes (`lw-<username>/spring-boot-lw-poc`, URL from `demo-userinfo-gitea` → `student_repo_url`), seeded from in-cluster `workshop-templates` (never GitHub).
+**Hard bans for Showroom / learner instructions:** never paste `https://github.com/NA-FSI-Services/lightwell-tssc-workshop.git` (or any GitHub clone of this monorepo) into Modules 1–9, Software Templates, or PipelineRun examples aimed at students. That URL is for **operators / GitOps / seed Jobs only**. If a lab needs application sources, point learners at **their** Gitea remotes (`lw-<username>/spring-boot-lw-poc` or the Python FastAPI remote, URLs from `demo-userinfo-gitea`), seeded from in-cluster `workshop-templates` (never GitHub).
 
 **Never hardcode** `lw-user1` / `user1` in seeded `.tekton` overlays or shared lab YAML — use `STUDENT_REPO_URL_PLACEHOLDER` and Showroom / `oc` substitution from `demo-userinfo-gitea`.
 
@@ -60,13 +62,13 @@ Students must **not** be directed to clone, fork, or push to GitHub for lab appl
 | **Operators / GitOps** | This workshop monorepo on GitHub (ArgoCD sync source for platform charts) — never presented as the student app or student runtime remote |
 | **Authors / agents** | May read monorepo paths on GitHub when building charts; seed Jobs isolate learner-facing trees into Gitea |
 
-**Path isolation when the app lives under a monorepo subdirectory** (e.g. `charts/components/spring-boot-lw-poc/app`):
+**Path isolation when the app lives under a monorepo subdirectory** (e.g. `charts/components/spring-boot-lw-poc/app`, or `charts/components/fastapi-lw-poc/app` when added):
 
 1. Provision-time automation (Gitea seed Job, ansible-runner, or equivalent) clones the **workshop** Git source (GitHub or the synced checkout).
-2. Extracts **only** the intended application subtree (and any files that must sit at repo root for labs, such as `pom.xml`, `Dockerfile`, `.tekton/`, and Module 3 `tools/osv-eval/` when needed).
+2. Extracts **only** the intended application subtree (and any files that must sit at repo root for labs, such as `pom.xml` / `requirements.txt` / `pyproject.toml`, `Dockerfile`, `.tekton/`, and Module 4 `tools/osv-eval/` when needed).
 3. Creates / updates **template** remotes under Gitea org **`workshop-templates`** with **that isolated tree at repository root** (not nested under `charts/components/...`). Learners do **not** receive auto-created app repos.
-4. Optionally prepares a separate **gitops** template (`workshop-templates/gitops-spring-boot-lw-poc`) with the thin Helm chart (same component path **minus** `./app`) for Argo CD runtime promote (Module 6 Ex4).
-5. Learners create org **`lw-<username>`** + empty repos, then run `learner-seed-from-templates.sh` (Showroom Module 2) to push template content into their remotes. RHDH `publish:gitea` later targets that learner Organization. Prefer RHDH `fetch:template` from **`workshop-templates/lightwell-java-service`** (not GitHub) once seeded.
+4. Optionally prepares a separate **gitops** template (`workshop-templates/gitops-spring-boot-lw-poc`, and the Python gitops twin from #147) with the thin Helm chart (same component path **minus** `./app`) for Argo CD runtime promote (Module 6 / Module 9).
+5. Learners create org **`lw-<username>`** + empty repos, then run `learner-seed-from-templates.sh` (Showroom Module 2 / Module 7) to push template content into their remotes. RHDH `publish:gitea` later targets that learner Organization. Prefer RHDH `fetch:template` from **`workshop-templates/lightwell-java-service`** or **`workshop-templates/lightwell-python-service`** (not GitHub) once seeded.
 6. Does **not** expose AgnosticV, other components, secrets, or the rest of the monorepo in student remotes.
 
 **Agent enforcement:** Cursor rules under `.cursor/rules/` (`learner-git-gitea.mdc`, `showroom-learner-git.mdc`, `gitea-seed-overlays.mdc`, `rhdh-scaffolder-gitea.mdc`). Local check: `./scripts/learner-git-check.sh`.
@@ -80,6 +82,7 @@ When adding a new learner application source that currently lives at `/some/inne
 - Java validated: `https://packages.redhat.com/lightwell/java/validated`
 - Java remediated: `https://packages.redhat.com/lightwell/java/remediated`
 - Java OSV remediated: `https://packages.redhat.com/lightwell/osv/java/remediated`
+- Python / PyPI validated + remediated: confirm canonical URLs when implementing [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145); document in chart README and Antora attrs even when using seeded mirrors
 - Console: `https://console.redhat.com/lightwell`
 
 ## Coding standards
@@ -97,14 +100,15 @@ When adding a new learner application source that currently lives at `/some/inne
 - Prefer declarative manifests; avoid one-off cluster state that cannot be recreated from Git.
 - Do not commit secrets, registry service-account tokens, vault ciphertext, or customer data. Use env placeholders (`LW_USERNAME` / `LW_PASSWORD`) and RHDP secret injection docs.
 - Maven learner UX should support `mvn -s settings.xml …` with validated + remediated profiles.
+- Python learner UX should support `pip` (or equivalent) against the workshop Nexus / Lightwell PyPI index URL once #145 lands.
 - Do not expand scope into unrelated template cleanup, drive-by refactors, or new markdown docs unless requested or required for the task.
 
 ## Lab / Showroom content rules
 
-- Modules must teach: (1) validated vs remediated, (2) enterprise Maven/proxy setup, (3) OSV → `.rhlw-*` pin + source diff, (4) SBOM → RHTPA, (5) pipeline/signing/policy/GitOps.
+- Modules must teach: (1) validated vs remediated, (2) enterprise Maven/proxy setup, (3) OSV → `.rhlw-*` pin + source diff, (4) SBOM → RHTPA, (5) pipeline/signing/policy/GitOps; then Modules 7–9 for the Python parallel (PyPI Validated, remediated-when-available, SPDX/SBOM, pipeline/GitOps — epic #144).
 - Prefer deterministic seeded artifacts when live LWN membership is unavailable in RHDP.
-- Prefer copy-pasteable `oc` / `tkn` / `mvn` / `syft` paths that match deployed chart names and namespaces.
-- **Learner remotes are Gitea** — do not document GitHub clone/fork/push for student app labs; use `demo-userinfo-gitea` and path-isolated templates → learner orgs (see **Learner Git** above). Never stage Module 2–6 PoC work from a `git clone` of this monorepo; use Gitea `lw-<username>/spring-boot-lw-poc` (`student_repo_url`) with `pom.xml` at clone root.
+- Prefer copy-pasteable `oc` / `tkn` / `mvn` / `pip` / `syft` paths that match deployed chart names and namespaces.
+- **Learner remotes are Gitea** — do not document GitHub clone/fork/push for student app labs; use `demo-userinfo-gitea` and path-isolated templates → learner orgs (see **Learner Git** above). Never stage Module 2–9 PoC work from a `git clone` of this monorepo; use Gitea `lw-<username>/…` remotes with build metadata at clone root (`pom.xml` or `requirements.txt` / `pyproject.toml`).
 - Update Showroom image/chart pins per [docs/SHOWROOM-UPDATE-SPEC.md](./docs/SHOWROOM-UPDATE-SPEC.md) when touching Showroom.
 - **Lab visuals (images)** — When authoring or revising AsciiDoc labs, evaluate where a figure would clarify a concept (architecture, UI orientation, before/after, tier comparison). For each useful figure that is not already in-repo:
   1. Open a GitHub issue (`phase-4` + `content`) that explains **how to obtain the asset**: either concrete **screenshot steps** (product URL, click path, what to crop/redact) **or** an **image-generation prompt** for an agent/designer (style, labels, must-include LWN tier names / `.rhlw-*`, must-avoid fictional channel names).

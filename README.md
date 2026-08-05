@@ -2,7 +2,7 @@
 
 RHDP catalog content for a hands-on **Lightwell Network + Trusted Software Supply Chain** workshop on [demo.redhat.com](https://demo.redhat.com).
 
-Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven consumption (optionally via an enterprise artifact manager), OSV-driven exact-version pins (`.rhlw-*`), SBOM analysis, and TSSC pipeline controls.
+Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven and (post-Java) **PyPI** consumption via an enterprise artifact manager, OSV-driven exact-version pins (`.rhlw-*`), SBOM analysis, and TSSC pipeline controls. Java Modules 1–6 are the golden path; Modules 7–9 add a condensed FastAPI / Python track (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)).
 
 ## Purpose
 
@@ -24,24 +24,35 @@ Bootstrapped from [rhpds/field-sourced-content-template](https://github.com/rhpd
 1. An associate orders the workshop catalog item on RHDP.
 2. AgnosticV resolves `agd-v2.ocp-field-asset-cnv.prod` and claims a pre-warmed OpenShift (CNV) cluster.
 3. OpenShift GitOps (ArgoCD) syncs this repository (`charts/root-app`).
-4. Component charts deploy TSSC tooling, an LWN-shaped artifact repository (proxy or seeded mirrors), a Spring Boot sample app, and Showroom labs.
+4. Component charts deploy TSSC tooling, an LWN-shaped artifact repository (Maven + PyPI proxy or seeded mirrors), Spring Boot and FastAPI sample apps, and Showroom labs.
 
 ```
 This Git repo                         OpenShift (RHDP / CNV)
 ┌──────────────────┐                 ┌──────────────────────────────────┐
 │ charts/root-app  │─── ArgoCD ─────▶│ RHDH · RHTAS · RHTPA · RHACS     │
-│ + components/*   │                 │ Artifact mgr (validated/remediated/OSV) │
-│ docs/modules/    │                 │ Spring Boot PoC · Showroom       │
+│ + components/*   │                 │ Artifact mgr (Maven + PyPI / OSV) │
+│ docs/modules/    │                 │ Spring Boot · FastAPI · Showroom │
 └──────────────────┘                 └──────────────────────────────────┘
 ```
 
 ## Workshop narrative (lab modules)
 
-1. AI vulnerability storm and Lightwell Network overview (Validated vs Remediated)
-2. Enterprise integration: Maven settings and artifact-manager proxy
-3. OSV triage and exact-version remediation (`.rhlw-*` pin + source diff) — helpers in [`tools/osv-eval/`](./tools/osv-eval/)
-4. SBOM generation and analysis with RHTPA ([RHDA shift-left](./docs/rhda-rhtpa-shift-left.md) on laptop; Showroom uses TPA UI/`syft`)
-5. Pipeline signing, RHACS policy enforcement, and GitOps promotion
+**Java (complete first):**
+
+1. Lightwell Network overview (Validated vs Remediated)
+2. Enterprise integration: Maven settings and artifact-manager proxy (+ Gitea learner setup)
+3. Scaffold with Developer Hub (`lightwell-java-service`)
+4. OSV triage and exact-version remediation (`.rhlw-*` pin + source diff) — helpers in [`tools/osv-eval/`](./tools/osv-eval/)
+5. SBOM generation and analysis with RHTPA ([RHDA shift-left](./docs/rhda-rhtpa-shift-left.md) on laptop; Showroom uses TPA UI/`syft`)
+6. Pipeline signing, RHACS policy enforcement, and GitOps promotion
+
+**Python (after Java; Modules 7–9 — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)):**
+
+7. PyPI Validated + FastAPI sample / Gitea seed
+8. Remediated-when-available + SPDX/SBOM → RHTPA (seed/gate if live Remediated PyPI unavailable)
+9. Pipeline signing, policy, and GitOps promote for the Python path
+
+Java Modules 1–6 remain sufficient for catalog acceptance until the Python track is enabled.
 
 ## Repository layout
 
@@ -49,7 +60,7 @@ This Git repo                         OpenShift (RHDP / CNV)
 lightwell-tssc-workshop/
 ├── charts/                 # PRODUCTION GitOps (gitops_path → charts/root-app)
 │   ├── root-app/           # App-of-Apps (ArgoCD Applications)
-│   └── components/         # rhdh, rhtas, rhtpa, rhacs, lightwell-repo, spring-boot-lw-poc, …
+│   └── components/         # rhdh, rhtas, rhtpa, rhacs, lightwell-repo, spring-boot-lw-poc, fastapi-lw-poc, …
 ├── agnosticv/              # STAGING AgnosticV drafts (catalog ID published.lightwell-tssc-workshop.prod)
 ├── examples/
 │   ├── helm/               # REFERENCE only: App-of-Apps pattern

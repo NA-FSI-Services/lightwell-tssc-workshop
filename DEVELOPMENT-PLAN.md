@@ -32,6 +32,7 @@ Hands-on workshop showing:
 - Policy gating with Red Hat Advanced Cluster Security (RHACS)
 - Developer golden paths via Red Hat Developer Hub (RHDH)
 - GitOps promotion with OpenShift GitOps (ArgoCD)
+- **Post-Java Python path** (Modules 7–9, epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)): PyPI Validated (+ gated Remediated), FastAPI sample, SPDX/SBOM → RHTPA, pipeline / sign / policy / GitOps
 
 Provisioned through AgnosticD v2 **GitOps Field Sourced Content** on OpenShift Virtualization (CNV) pools (~10–15 minute claim + sync).
 
@@ -41,11 +42,13 @@ The workshop must simulate the same technical story used in Lightwell Network in
 
 ### Lightwell Network repository model (authoritative)
 
-| Tier | Purpose | Typical URL (Java) | Learner outcome |
-|------|---------|--------------------|-----------------|
-| **Validated** | Upstream-parity rebuilds of current libraries; no app code changes | `https://packages.redhat.com/lightwell/java/validated` | Trust upstream for active development |
-| **Remediated** | Exact-version backports for pinned production deps | `https://packages.redhat.com/lightwell/java/remediated` | Fix CVEs without risky major upgrades |
+| Tier | Purpose | Typical URL | Learner outcome |
+|------|---------|-------------|-----------------|
+| **Validated** (Java) | Upstream-parity rebuilds of current libraries; no app code changes | `https://packages.redhat.com/lightwell/java/validated` | Trust upstream for active development |
+| **Remediated** (Java) | Exact-version backports for pinned production deps | `https://packages.redhat.com/lightwell/java/remediated` | Fix CVEs without risky major upgrades |
 | **OSV (Java)** | Machine-readable fixed-vuln records for remediated stream | `https://packages.redhat.com/lightwell/osv/java/remediated` | Discover *what* was fixed and *which* `.rhlw-*` version to pin |
+| **Validated** (Python / PyPI) | Upstream-parity rebuilds for `pip` / enterprise PyPI proxy | Confirm canonical URL when wiring [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145); document even when mirroring | Modules 7–9 Validated consumption |
+| **Remediated** (Python / PyPI) | Exact-version remediations when LWN maturity allows | Confirm canonical URL in #145; **seed/gate** if live unavailable | Module 8 — do not block Java catalog |
 
 Remediated artifact versions append a sequential Lightwell suffix, for example `5.3.18.rhlw-00003` (not a custom `-lw01` naming scheme).
 
@@ -59,28 +62,32 @@ UI reference for members: [console.redhat.com/lightwell](https://console.redhat.
 
 ### Enterprise consumption pattern
 
-PoV delivery almost always includes an **enterprise artifact manager** (Artifactory or Nexus) that remotes/proxies LWN, plus Maven `settings.xml` profiles:
+PoV delivery almost always includes an **enterprise artifact manager** (Artifactory or Nexus) that remotes/proxies LWN, plus client config:
 
-- Direct: `lightwell-validated` + `lightwell-remediated` profiles pointing at `packages.redhat.com`
-- Proxied: Maven points at internal `libs-release` (etc.); remotes are configured for validated/remediated (and optionally OSV)
+- **Java / Maven:** Direct `lightwell-validated` + `lightwell-remediated` profiles pointing at `packages.redhat.com`, or proxied via internal `libs-release` (etc.) with remotes for validated/remediated (and optionally OSV)
+- **Python / PyPI:** `pip` index URL (and/or Nexus/Artifactory **PyPI** proxy) aimed at Lightwell **Validated**, then Remediated when available (#145)
 
 RHDP lab implication: `charts/components/lightwell-repo` should present that enterprise pattern (Nexus or Artifactory). Prefer either:
 
 1. **Live proxy** to LWN when workshop credentials/membership allow, or  
-2. **Seeded mirrors** of a small curated set of validated + remediated Java artifacts and sample OSV JSON for deterministic offline labs  
+2. **Seeded mirrors** of a small curated set of validated + remediated **Java** artifacts and sample OSV JSON, plus **PyPI Validated** (and gated Remediated) packages for Modules 7–9  
 
-Either way, naming, URLs (or documented remote targets), and `.rhlw-*` semantics must match production LWN.
+Either way, naming, URLs (or documented remote targets), and Java `.rhlw-*` semantics must match production LWN. Do not invent fictional channel aliases.
 
-### Primary sample application (Java-first)
+### Primary sample applications (Java first, then Python)
 
-Primary learner workload: a **small Spring Boot / Java 17 / Maven** service (greeting API + OpenAPI), demonstrating:
+**Java (Modules 1–6):** a **small Spring Boot / Java 17 / Maven** service (greeting API + OpenAPI), demonstrating:
 
 - Dual dependency streams (validated + remediated pins in `pom.xml`)
 - `mvn -s settings.xml clean verify` / `spring-boot:run`
 - SBOM generation with `syft` → CycloneDX JSON
 - Source compare of upstream vs `.rhlw-*` jars to show minimal backport impact
 
-Python / PyPI **validated** consumption is optional/secondary (remediated Python may be unavailable depending on LWN maturity). Keep it out of the critical path for the first catalog release.
+**Python (Modules 7–9):** a minimal **FastAPI** service after the Java golden path (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)):
+
+- Condensed beats: **7** PyPI Validated + Gitea seed · **8** Remediated-when-available + SPDX/SBOM → RHTPA · **9** pipeline / sign / policy / GitOps
+- Design for Remediated PyPI; **seed/gate** so the Java catalog path is not blocked if live remediated PyPI is unavailable
+- Learner remotes remain Gitea (`workshop-templates` → `lw-<username>`) — same bans as Java
 
 Parasol (or similar multi-tier demo app) remains optional reuse for a larger “enterprise app” narrative after the Spring Boot PoC path works.
 
@@ -114,13 +121,14 @@ Claim pre-warmed OCP (CNV) + bootstrap OpenShift GitOps
         ▼
 ArgoCD syncs this repo → charts/root-app (App of Apps)
         │
-        ├── rhdh (+ lightwell-java-service template)
+        ├── rhdh (+ lightwell-java-service; lightwell-python-service for Modules 7–9)
         ├── rhtas
         ├── rhtpa (+ RHDA-oriented APIs)
         ├── rhacs
-        ├── lightwell-repo (artifact manager: validated / remediated / OSV)
-        ├── spring-boot-lw-poc (primary) · optional parasol-app
-        └── showroom + AsciiDoc modules
+        ├── lightwell-repo (Maven + PyPI: validated / remediated / Java OSV)
+        ├── spring-boot-lw-poc (Java primary) · fastapi-lw-poc (Python, #146)
+        ├── optional parasol-app
+        └── showroom + AsciiDoc modules (1–6 Java, then 7–9 Python)
 ```
 
 ### Reuse from existing catalog items
@@ -143,7 +151,7 @@ Issues: [#1](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/1
 
 - Adopt field-sourced content template layout ([docs/repository-conventions.md](./docs/repository-conventions.md))
 - Scaffold `charts/root-app` App-of-Apps
-- Component charts: `rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc` (primary), optional `parasol-app`
+- Component charts: `rhdh`, `rhtas`, `rhtpa`, `rhacs`, `lightwell-repo`, `spring-boot-lw-poc` (Java primary), `fastapi-lw-poc` (Python, [#146](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/146)), optional `parasol-app`
 - After E2E success, request mirror/transfer to `github.com/rhpds/lightwell-tssc-workshop` (see [Production mirror plan](#production-mirror-plan-rhpds) below)
 
 ### Production mirror plan (rhpds)
@@ -183,28 +191,42 @@ lifespan:
 
 ### Phase 3 — Workload integration and Lightwell automation
 
-Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11)–[#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13), [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)–[#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26)
+Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11)–[#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13), [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)–[#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26); Python track charts: [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145)–[#149](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/149) (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144))
 
-1. **Artifact manager channels** matching LWN: `validated`, `remediated`, and Java `osv/remediated` — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX)
+1. **Artifact manager channels** matching LWN: Java `validated` / `remediated` / `osv/remediated`, plus **PyPI Validated** (+ gated Remediated) — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX; PyPI seed/proxy in #145)
 2. **Spring Boot PoC** with Maven profiles, dual streams, and `.rhlw-*` pins
-3. **Student Git (Gitea)** — learners clone/push only in-cluster Gitea; never GitHub for app labs. Seed Jobs isolate monorepo app paths into a student **app** repo and (for Module 5 Ex4) a thin **gitops** chart repo (minus `./app`); ApplicationSet syncs gitops remotes into `lw-poc-<username>` ([`charts/components/gitea`](./charts/components/gitea/), [AGENTS.md](./AGENTS.md) Learner Git)
-4. **RHDH golden path**: Software Template `lightwell-java-service` ([`charts/components/rhdh`](./charts/components/rhdh/)) — Maven Validated/Remediated `settings.xml`, `LW_*` placeholders, `.rhlw-*` pins, RHTAS keyless Tekton scaffold; scaffold remotes should target Gitea when used in labs (Modules 2–5)
+3. **Student Git (Gitea)** — learners clone/push only in-cluster Gitea; never GitHub for app labs. Seed Jobs isolate monorepo app paths into template remotes under `workshop-templates`; learners create `lw-<username>` and seed (Module 2 Java; Module 7 Python). ApplicationSet syncs gitops remotes into runtime namespaces ([`charts/components/gitea`](./charts/components/gitea/), [AGENTS.md](./AGENTS.md) Learner Git; Python templates #147)
+4. **RHDH golden paths**: `lightwell-java-service` (Modules 2–6) and `lightwell-python-service` (Modules 7–9, #148) — `publish:gitea` into learner orgs; fetch templates from `workshop-templates` (not GitHub)
 5. **OSV → pin → rebuild** automation-friendly steps — toolkit in [`tools/osv-eval/`](./tools/osv-eval/) (sample OSV, source-diff scripts, optional `PULP_MANIFEST` poll)
-6. **RHACS gates** / pipeline checks that prefer remediated pins ([`charts/components/rhacs`](./charts/components/rhacs/) — `lightwell-dep-gate` + `roxctl image check` + `syft-sbom-rhtpa`); SBOM attestations land in RHTPA
+6. **RHACS gates** / pipeline checks that prefer remediated pins ([`charts/components/rhacs`](./charts/components/rhacs/) — `lightwell-dep-gate` + `roxctl image check` + `syft-sbom-rhtpa`); SBOM attestations land in RHTPA; Python pipeline / `.tekton` in #149
+7. **FastAPI PoC** (`fastapi-lw-poc`, #146) — minimal app + thin GitOps chart for Modules 7–9
 
 ### Phase 4 — Lab content and Showroom
 
-Issues: [#14](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/14)–[#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19), [#27](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27)
+Issues: [#14](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/14)–[#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19), [#27](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27); Python modules / docs / visuals: [#150](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/150)–[#154](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/154) (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144); docs hygiene #153)
 
-AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), rendered in Showroom via [`charts/components/showroom`](./charts/components/showroom/) (wave 50; `showroom_url` userinfo):
+AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), rendered in Showroom via [`charts/components/showroom`](./charts/components/showroom/) (wave 50; `showroom_url` userinfo).
+
+**Java golden path (complete first):**
 
 | Module | Title | PoV alignment |
 |--------|-------|---------------|
-| 1 | AI Vulnerability Storm and Lightwell Network Overview | Validated vs Remediated; console; SLSA/SBOM/OSV |
-| 2 | Enterprise Integration: Maven and Artifact Manager Proxy | `settings.xml`, service account auth, validated consumption |
-| 3 | OSV Triage and Exact-Version Remediation | OSV file → `.rhlw-*` pin → source diff → rebuild |
-| 4 | SBOM Generation and Analysis with RHTPA (and RHDA) | `syft` CycloneDX → RHTPA; RHDA shift-left on laptop only — [docs/rhda-rhtpa-shift-left.md](./docs/rhda-rhtpa-shift-left.md) |
-| 5 | Pipeline Signing, Policy Enforcement, and GitOps Promotion | Tekton + RHTAS + RHACS + ArgoCD |
+| 1 | Lightwell Network overview | Validated vs Remediated; console; SLSA/SBOM/OSV |
+| 2 | Maven + artifact manager | `settings.xml`, service account auth, validated/remediated consumption; Gitea learner setup |
+| 3 | Scaffold with Developer Hub | RHDH `lightwell-java-service` → Gitea |
+| 4 | OSV triage + `.rhlw-*` pins | OSV file → pin → source diff → rebuild |
+| 5 | SBOM + RHTPA | `syft` CycloneDX → RHTPA; RHDA shift-left on laptop — [docs/rhda-rhtpa-shift-left.md](./docs/rhda-rhtpa-shift-left.md) |
+| 6 | Sign, policy, GitOps | Tekton + RHTAS + RHACS + ArgoCD |
+
+**Python path (after Java; condensed):**
+
+| Module | Title | PoV alignment |
+|--------|-------|---------------|
+| 7 | PyPI Validated + FastAPI / Gitea | `pip` / Nexus PyPI proxy; seed from `workshop-templates` (#150) |
+| 8 | Remediated-when-available + SPDX → RHTPA | Gated Remediated PyPI; wheel SPDX vs Maven CycloneDX (#151) |
+| 9 | Pipeline, sign, policy, GitOps | Python Tasks / `.tekton`; promote learner gitops (#152) |
+
+Java Modules 1–6 remain sufficient for catalog acceptance until the Python track charts and labs are enabled.
 
 ### Phase 5 — Testing, QA, and production launch
 

@@ -4,7 +4,7 @@ Deploys the **Showroom** split-screen learner experience for this workshop:
 
 | Pane | Source |
 |------|--------|
-| Lab guide | Antora build of `site.yml` → `docs/modules/ROOT` (Modules 1–5 + RHDA appendix) |
+| Lab guide | Antora build of `site.yml` → `docs/modules/ROOT` (Modules 1–6 Java + appendices; Modules 7–9 Python under epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)) |
 | Terminal | `quay.io/rhpds/openshift-showroom-terminal-ocp` proxied at `/terminal/` |
 
 Promoted from `examples/helm/components/showroom` for issue [#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19). Image pins follow [docs/SHOWROOM-UPDATE-SPEC.md](../../../docs/SHOWROOM-UPDATE-SPEC.md).
@@ -34,7 +34,7 @@ Learners discover modules via `docs/modules/ROOT/nav.adoc` after Antora builds.
 
 The terminal container runs as ServiceAccount `showroom` in namespace `showroom`. Module exercises use `oc -n lightwell-repo …`, `oc get routes -A`, and later TSSC namespaces — **namespace-local `edit` is not enough**.
 
-When `showroom.terminal.labClusterAccess` is `true` (default), the chart creates ClusterRoleBinding `showroom-lab-cluster-admin` → `cluster-admin` for that SA. This is intentional for the RHDP workshop path so Showroom `/terminal/` can follow Modules 1–5 without a separate learner kubeconfig.
+When `showroom.terminal.labClusterAccess` is `true` (default), the chart creates ClusterRoleBinding `showroom-lab-cluster-admin` → `cluster-admin` for that SA. This is intentional for the RHDP workshop path so Showroom `/terminal/` can follow Modules 1–6 (and 7–9 when enabled) without a separate learner kubeconfig.
 
 Root App-of-Apps places this chart at sync wave **`50`** (last).
 
