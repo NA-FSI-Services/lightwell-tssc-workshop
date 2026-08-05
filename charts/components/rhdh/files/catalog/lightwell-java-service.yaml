@@ -32,7 +32,6 @@ spec:
     - title: Service information
       required:
         - name
-        - studentUsername
       properties:
         name:
           title: Name
