@@ -1,9 +1,8 @@
 {{- if and .Values.rhdh.enabled .Values.dynamicPlugins.enabled }}
 ---
-# Dynamic plugins overlay. RHDH 1.10 hub image does NOT ship
-# backstage-plugin-scaffolder-backend-module-gitea-dynamic locally — enabling that
-# path crashes install-dynamic-plugins. Keep plugins empty until an OCI/npm package
-# is wired for publish:gitea (Module 3). Defaults still load via includes.
+# Dynamic plugins overlay. RHDH 1.10 does not ship scaffolder-backend-module-gitea
+# in-image; Module 3 publish:gitea loads a prebuilt dynamic plugin from a GitHub
+# Release (see values.dynamicPlugins.giteaScaffolder).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -19,5 +18,12 @@ data:
   dynamic-plugins.yaml: |
     includes:
       - dynamic-plugins.default.yaml
-    plugins: []
+    plugins:
+{{- if .Values.dynamicPlugins.giteaScaffolder.enabled }}
+      - package: {{ .Values.dynamicPlugins.giteaScaffolder.package | quote }}
+        integrity: {{ .Values.dynamicPlugins.giteaScaffolder.integrity | quote }}
+        disabled: false
+{{- else }}
+      []
+{{- end }}
 {{- end }}

@@ -35,8 +35,10 @@ Root App-of-Apps places this chart at sync wave **`30`** (after operators / ligh
 Scaffolder steps: `fetch:template` from Gitea `workshop-templates/lightwell-java-service`
 → `publish:gitea` → `catalog:register`.
 
-**Requires** in-cluster Gitea integration (`integrations.gitea` + dynamic plugin
-`scaffolder-backend-module-gitea`) and scaffolder credentials (Secret `rhdh-gitea-scaffolder`).
+**Requires** in-cluster Gitea integration (`integrations.gitea`) plus the
+`publish:gitea` dynamic plugin (`dynamicPlugins.giteaScaffolder` → GitHub Release
+asset built by `scripts/package-rhdh-gitea-scaffolder-plugin.sh`) and scaffolder
+credentials (Secret `rhdh-gitea-scaffolder`).
 Learners delete the Module 2 app repo `lw-<username>/spring-boot-lw-poc` first, then Create
 publishes into the **same** learner organization (Showroom Module 3). Upstream `publish:gitea`
 requires a Gitea Organization — learners create `lw-<username>` in Module 2; the seed Job only

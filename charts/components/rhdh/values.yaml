@@ -46,10 +46,18 @@ appConfig:
     fileLocations:
       - /opt/app-root/src/catalog/lightwell-java-service.yaml
 
-# dynamic-plugins.yaml — minimal includes; RHADS-style plugins land in later issues
+# dynamic-plugins.yaml — includes defaults + Module 3 publish:gitea plugin
 dynamicPlugins:
   enabled: true
   configMapName: dynamic-plugins-rhdh
+  # Prebuilt with: scripts/package-rhdh-gitea-scaffolder-plugin.sh
+  # Release: rhdh-gitea-scaffolder-0.2.23
+  giteaScaffolder:
+    enabled: true
+    package: >-
+      https://github.com/NA-FSI-Services/lightwell-tssc-workshop/releases/download/rhdh-gitea-scaffolder-0.2.23/backstage-plugin-scaffolder-backend-module-gitea-dynamic-0.2.23.tgz
+    integrity: sha512-7n5pakUPDJPwRBZ8NUMQIZOs753Q2X4tPILG/3EAtDIPHUASYOgDWDx00F1CRrEAQC3LkOiGI0oO2nTehlMsNw==
+
 
 # Software Template lightwell-java-service (skeleton under files/skeletons/)
 softwareTemplates:
