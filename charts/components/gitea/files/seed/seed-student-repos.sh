@@ -34,6 +34,11 @@ PYTHON_GITOPS_REPO_NAME="${PYTHON_GITOPS_REPO_NAME:-}"
 PYTHON_GITOPS_REPO_DESCRIPTION="${PYTHON_GITOPS_REPO_DESCRIPTION:-Lightwell TSSC student FastAPI GitOps chart (Module 9)}"
 PYTHON_GITOPS_SEED_SUBDIR="${PYTHON_GITOPS_SEED_SUBDIR:-python-gitops-repo}"
 
+# RHDH Python skeleton (#148) — fetch:template source for lightwell-python-service
+PYTHON_SKELETON_REPO_NAME="${PYTHON_SKELETON_REPO_NAME:-}"
+PYTHON_SKELETON_REPO_DESCRIPTION="${PYTHON_SKELETON_REPO_DESCRIPTION:-RHDH Software Template skeleton (Module 7+)}"
+PYTHON_SKELETON_SEED_SUBDIR="${PYTHON_SKELETON_SEED_SUBDIR:-skeleton-python}"
+
 API="${GITEA_URL%/}/api/v1"
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "${WORKDIR}"' EXIT
@@ -285,6 +290,13 @@ if [[ -n "${PYTHON_GITOPS_REPO_NAME}" && -d "${SEED_DIR}/${PYTHON_GITOPS_SEED_SU
   push_seed_tree "${TEMPLATES_ORG}" "${PYTHON_GITOPS_REPO_NAME}" "${PYTHON_GITOPS_SEED_SUBDIR}" \
     "Operator template: Lightwell FastAPI GitOps chart for learner seed (Module 9)"
   echo "TEMPLATE_PYTHON_GITOPS_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${PYTHON_GITOPS_REPO_NAME}.git"
+fi
+
+if [[ -n "${PYTHON_SKELETON_REPO_NAME}" && -d "${SEED_DIR}/${PYTHON_SKELETON_SEED_SUBDIR}" ]]; then
+  ensure_org_repo "${TEMPLATES_ORG}" "${PYTHON_SKELETON_REPO_NAME}" "${PYTHON_SKELETON_REPO_DESCRIPTION} (template)"
+  push_seed_tree "${TEMPLATES_ORG}" "${PYTHON_SKELETON_REPO_NAME}" "${PYTHON_SKELETON_SEED_SUBDIR}" \
+    "Operator template: RHDH lightwell-python-service skeleton (Module 7+ fetch:template)"
+  echo "TEMPLATE_PYTHON_SKELETON_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${PYTHON_SKELETON_REPO_NAME}.git"
 fi
 
 echo "gitea-student-repo-seed: complete (users + templates; learner orgs not created)"

@@ -67,12 +67,18 @@ seed:
     orgDescription: >-
       Operator-prepared app and GitOps trees isolated from the workshop monorepo.
       Learners clone these into their own lw-<username> organization — never GitHub.
-    # RHDH fetch:template source (Module 3) — public; not a learner push target.
+    # RHDH fetch:template sources — public; not learner push targets.
     skeleton:
       enabled: true
       repoName: lightwell-java-service
       repoDescription: "RHDH Software Template skeleton (fetch:template; Module 3)"
       sourcePath: charts/components/rhdh/files/skeletons/lightwell-java-service
+    # Python twin (#148) — Module 7+ scaffold after learner-seed-python-from-templates.sh.
+    skeletonPython:
+      enabled: true
+      repoName: lightwell-python-service
+      repoDescription: "RHDH Software Template skeleton (fetch:template; Module 7+)"
+      sourcePath: charts/components/rhdh/files/skeletons/lightwell-python-service
   # Learner repo names (under lw-<username> after Module 2 setup).
   repoName: spring-boot-lw-poc
   repoDescription: "Lightwell TSSC student lab repository (Modules 2–6; pom.xml + tools/osv-eval at root)"
@@ -133,8 +139,10 @@ userInfo:
     then seed from workshop-templates (see Showroom). student_repo_url is the
     expected Java app remote after that setup. For Modules 7–9, create
     fastapi-lw-poc + gitops-fastapi-lw-poc under the same org and run
-    learner-seed-python-from-templates.sh (student_python_repo_url). Credentials:
-    student_username / student_password. Never clone the workshop GitHub monorepo.
+    learner-seed-python-from-templates.sh (student_python_repo_url). Optional RHDH
+    re-scaffold: Create → lightwell-python-service after deleting fastapi-lw-poc
+    (mirrors Module 3). Credentials: student_username / student_password. Never
+    clone the workshop GitHub monorepo.
 
 deployer:
   domain: ""

@@ -14,3 +14,5 @@ alwaysApply: false
   `student_repo_url` or `student_python_repo_url`).
 - Keep app content at **repo root** (`pom.xml` / `requirements.txt`,
   `tools/osv-eval/` for Java, `.tekton/`).
+- RHDH skeletons seed to `workshop-templates/lightwell-java-service` and
+  `workshop-templates/lightwell-python-service` (not learner push targets).

@@ -44,7 +44,8 @@ capture that password — see [DEV-CLUSTER-WORKSHOP-USER.md](../../../docs/DEV-C
 | Java GitOps template | `workshop-templates/gitops-spring-boot-lw-poc` |
 | Python app template | `workshop-templates/fastapi-lw-poc` |
 | Python GitOps template | `workshop-templates/gitops-fastapi-lw-poc` |
-| RHDH skeleton template | `workshop-templates/lightwell-java-service` (`fetch:template`) |
+| RHDH Java skeleton | `workshop-templates/lightwell-java-service` (`fetch:template`) |
+| RHDH Python skeleton | `workshop-templates/lightwell-python-service` (`fetch:template`; #148) |
 | Promote NS / Argo app | `lw-poc-<username>` (Java ApplicationSet today) |
 
 ## Path isolation (monorepo → template remotes)
@@ -56,6 +57,7 @@ Default `seed.source.mode=live`: the seed Job clones the **workshop GitOps URL**
 2. **Java GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`
 3. **Python app template** (#147) — copies `seed.python.sourcePath` to `workshop-templates/fastapi-lw-poc`, overlays stub `.tekton/`
 4. **Python GitOps template** — copies `seed.python.gitops.sourcePath` **excluding `app/`** to `workshop-templates/gitops-fastapi-lw-poc`
+5. **RHDH skeletons** — copies `seed.templates.skeleton` / `skeletonPython` source paths to `workshop-templates/lightwell-java-service` and `workshop-templates/lightwell-python-service`
 
 Students never clone GitHub — only Gitea templates + their own org remotes
 (`student_repo_url` / `student_python_repo_url`).
@@ -89,8 +91,10 @@ Root-app Application wave: **`15`** (after TSSC operators, before RHDH / sample 
 | `gitea.namespace` | `gitea` | |
 | `students` | one `student` entry | Expand for multi-user claims |
 | `seed.templates.org` | `workshop-templates` | Operator-prepared content |
-| `seed.templates.skeleton.enabled` | `true` | Seed RHDH `fetch:template` repo |
+| `seed.templates.skeleton.enabled` | `true` | Seed RHDH Java `fetch:template` repo |
 | `seed.templates.skeleton.repoName` | `lightwell-java-service` | Under templates org |
+| `seed.templates.skeletonPython.enabled` | `true` | Seed RHDH Python skeleton (#148) |
+| `seed.templates.skeletonPython.repoName` | `lightwell-python-service` | Under templates org |
 | `seed.repoName` | `spring-boot-lw-poc` | Learner + template Java app name |
 | `seed.gitops.enabled` | `true` | Second remote per student (Java) |
 | `seed.gitops.repoName` | `gitops-spring-boot-lw-poc` | Learner + template Java gitops name |

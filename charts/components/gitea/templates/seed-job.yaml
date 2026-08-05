@@ -56,6 +56,10 @@ spec:
               export SKELETON_PATH={{ .Values.seed.templates.skeleton.sourcePath | quote }}
               bash /seed/assemble-skeleton.sh "${WORKDIR}/skeleton"
 {{- end }}
+{{- if .Values.seed.templates.skeletonPython.enabled }}
+              export SKELETON_PATH={{ .Values.seed.templates.skeletonPython.sourcePath | quote }}
+              bash /seed/assemble-skeleton.sh "${WORKDIR}/skeleton-python"
+{{- end }}
               # Python FastAPI app + gitops templates (#147) — always alongside Java when live.
               # Reuses one monorepo clone path via assemble scripts (each clones; acceptable for seed Job).
               if [[ "${SOURCE_MODE:-live}" == "live" ]]; then
@@ -117,6 +121,14 @@ spec:
               value: {{ .Values.seed.templates.skeleton.repoDescription | quote }}
             - name: SKELETON_SEED_SUBDIR
               value: skeleton
+{{- end }}
+{{- if .Values.seed.templates.skeletonPython.enabled }}
+            - name: PYTHON_SKELETON_REPO_NAME
+              value: {{ .Values.seed.templates.skeletonPython.repoName | quote }}
+            - name: PYTHON_SKELETON_REPO_DESCRIPTION
+              value: {{ .Values.seed.templates.skeletonPython.repoDescription | quote }}
+            - name: PYTHON_SKELETON_SEED_SUBDIR
+              value: skeleton-python
 {{- end }}
             - name: PYTHON_REPO_NAME
               value: {{ .Values.seed.python.repoName | quote }}

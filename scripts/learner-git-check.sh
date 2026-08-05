@@ -61,23 +61,29 @@ done < <(rg -n -e "${GITHUB_MONOREPO}" "${SCAN_PATHS[@]}" 2>/dev/null || true)
 for f in \
   charts/components/gitea/files/seed/overlay/tekton/pipelinerun.yaml \
   charts/components/gitea/files/seed/overlay-python/tekton/pipelinerun.yaml \
-  charts/components/rhdh/files/skeletons/lightwell-java-service/.tekton/pipelinerun.yaml
+  charts/components/rhdh/files/skeletons/lightwell-java-service/.tekton/pipelinerun.yaml \
+  charts/components/rhdh/files/skeletons/lightwell-python-service/.tekton/pipelinerun.yaml
 do
   [[ -f "$f" ]] || continue
   if ! grep -q 'STUDENT_REPO_URL_PLACEHOLDER' "$f"; then
-    err "${f}: repo-url must use STUDENT_REPO_URL_PLACEHOLDER (lab substitutes student_repo_url)"
+    err "${f}: repo-url must use STUDENT_REPO_URL_PLACEHOLDER (lab substitutes student_repo_url / student_python_repo_url)"
   fi
 done
 
-# Software Template must not publish to GitHub
-if [[ -f charts/components/rhdh/files/catalog/lightwell-java-service.yaml ]]; then
-  if grep -q 'publish:github' charts/components/rhdh/files/catalog/lightwell-java-service.yaml; then
-    err "lightwell-java-service.yaml: use publish:gitea, not publish:github"
+# Software Templates must not publish to GitHub or hardcode claim users
+for tmpl in \
+  charts/components/rhdh/files/catalog/lightwell-java-service.yaml \
+  charts/components/rhdh/files/catalog/lightwell-python-service.yaml
+do
+  [[ -f "$tmpl" ]] || continue
+  base="$(basename "$tmpl")"
+  if grep -q 'publish:github' "$tmpl"; then
+    err "${base}: use publish:gitea, not publish:github"
   fi
-  if grep -qE 'owner=user1|repo=.*user1' charts/components/rhdh/files/catalog/lightwell-java-service.yaml; then
-    err "lightwell-java-service.yaml: do not hardcode user1 owner/repo"
+  if grep -qE 'owner=user1|repo=.*user1|lw-user1' "$tmpl"; then
+    err "${base}: do not hardcode user1 / lw-user1 owner/repo"
   fi
-fi
+done
 
 if [[ "${failed}" -ne 0 ]]; then
   echo "learner-git-check: FAILED" >&2

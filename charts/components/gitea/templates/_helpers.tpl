@@ -63,6 +63,11 @@ https://{{ include "gitea.routeHost" . }}
 {{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
 {{- end -}}
 
+{{- define "gitea.templatePythonSkeletonRepoUrl" -}}
+{{- $repo := .Values.seed.templates.skeletonPython.repoName | default "lightwell-python-service" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
+{{- end -}}
+
 {{/* Python track (#147) — parallel keys; do not overwrite Java student_repo_url. */}}
 {{- define "gitea.studentPythonAppRepoUrl" -}}
 {{- $root := index . 0 -}}
