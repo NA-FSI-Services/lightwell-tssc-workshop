@@ -10,7 +10,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 2. **Field-sourced GitOps** — Prefer Helm charts synced by ArgoCD. Use ansible-runner Jobs only when Helm cannot express wait/secret/API logic.
 3. **Reuse over reinvent** — Adapt patterns from RHADS, Trusted Software Factory, RHACS demo, Dev Day / Parasol, and field PoV Spring Boot samples before inventing new operators or apps.
 4. **Authoritative LWN model** — Use **Validated** and **Remediated** tiers (plus Java **OSV** for remediated). Do **not** invent alternate channel names such as `upstream-untrusted` / `lightwell-network-secured`.
-5. **Exact-version suffix** — Remediated versions use `.rhlw-0000X` (e.g. `5.3.18.rhlw-00003`). Do not invent `-lw01` style suffixes.
+5. **Exact-version suffix** — Java Remediated versions use `.rhlw-0000X` (e.g. `5.3.18.rhlw-00003`). **Python / pip** Remediated pins use PEP 440 local versions `+rhlw.0000X` (e.g. `1.0.0+rhlw.00001`) — pip rejects Maven-style `.rhlw-*` version strings. Do not invent `-lw01` style suffixes.
 6. **No customer PII** — Never commit or rewrite into docs any customer names, people, emails, internal tool names, tickets, or credentials from engagement reports.
 
 ## Preferred architecture

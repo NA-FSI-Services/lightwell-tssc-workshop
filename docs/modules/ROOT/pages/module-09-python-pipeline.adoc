@@ -21,7 +21,7 @@ By the end of this module, you will be able to:
 == Prerequisites
 
 * xref:module-07-pypi.adoc[Module 7] — scaffolded `lightwell-python-service` tree at `student_python_repo_url`
-* xref:module-08-python-sbom.adoc[Module 8] — Remediated marker pin story (`lw-workshop-pypi==1.0.0.rhlw-00001`)
+* xref:module-08-python-sbom.adoc[Module 8] — Remediated marker pin story (`lw-workshop-pypi==1.0.0+rhlw.00001`)
 * Keep `gitops-fastapi-lw-poc` (`student_python_gitops_repo_url`) — do not delete it when re-scaffolding the app repo
 * Charts synced (or available): `pipelines` (OpenShift Pipelines / Tekton CRDs), `gitea` (student Git), `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
 * Job `rhacs-ci-token-mint` Complete (fills `rhacs-ci-secrets` for `acs-image-check`) — see Exercise 2
@@ -81,7 +81,7 @@ oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
   -o jsonpath='{.data.watched_package}{" -> "}{.data.remediated_version}{"\n"}'
 ----
 
-Expected pin for the workshop marker: `lw-workshop-pypi==1.0.0.rhlw-00001`.
+Expected pin for the workshop marker: `lw-workshop-pypi==1.0.0+rhlw.00001`.
 
 [NOTE]
 ====
@@ -94,7 +94,7 @@ Overview of the FastAPI policy / build-sign / promote path (Validated → Remedi
 
 == Exercise 1: Failure path (marker pin absent)
 
-Module 8 left `lw-workshop-pypi==1.0.0.rhlw-00001` in `requirements.txt`. For the fail narrative, temporarily *remove* that line, push to Gitea, then run the policy Pipeline with `dep-gate-mode=require-remediated`. Task `lightwell-python-dep-gate` must fail.
+Module 8 left `lw-workshop-pypi==1.0.0+rhlw.00001` in `requirements.txt`. For the fail narrative, temporarily *remove* that line, push to Gitea, then run the policy Pipeline with `dep-gate-mode=require-remediated`. Task `lightwell-python-dep-gate` must fail.
 
 . Confirm Pipelines (Tekton) and RHACS Python Tasks/Pipeline exist:
 +
@@ -136,34 +136,47 @@ git commit -m "Lab: remove lw-workshop-pypi pin for policy fail path"
 git push origin main
 ----
 
-. Extract the sample fail PipelineRun from the lab ConfigMap, point `repo-url` at **your** remote, and create it:
+. Create a fail PipelineRun against **your** student remote (keep `dep-gate-mode=require-remediated`):
 +
 [source,bash,role=execute]
 ----
 : "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
+: "${STUDENT_PYTHON_REPO_REV:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_revision}')}"
+: "${STUDENT_PYTHON_REQUIREMENTS_PATH:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_requirements_path}')}"
 
-oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
-  -o jsonpath='{.data.fail_pipelinerun\.yaml}' > /tmp/lightwell-python-policy-fail.yaml
-
-# Always use your Gitea FastAPI remote (never a hardcoded claim user)
-python3 - <<'PY'
-from pathlib import Path
-import os, re
-p = Path("/tmp/lightwell-python-policy-fail.yaml")
-text = p.read_text()
-url = os.environ["STUDENT_PYTHON_REPO_URL"]
-text = re.sub(
-    r"(?m)(^\s+- name: repo-url\s*\n\s+value:\s*).*$",
-    r'\1"' + url + '"',
-    text,
-    count=1,
-)
-p.write_text(text)
-print("repo-url set to", url)
-PY
-
-grep -E 'requirements-path|dep-gate|repo-url' /tmp/lightwell-python-policy-fail.yaml
-oc -n stackrox create -f /tmp/lightwell-python-policy-fail.yaml
+oc -n stackrox create -f - <<EOF
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: lightwell-python-policy-fail-
+  namespace: stackrox
+spec:
+  pipelineRef:
+    name: lightwell-python-build-policy-gate
+  params:
+    - name: repo-url
+      value: ${STUDENT_PYTHON_REPO_URL}
+    - name: revision
+      value: ${STUDENT_PYTHON_REPO_REV}
+    - name: image
+      value: quay.io/centos/centos:stream9
+    - name: dep-gate-mode
+      value: require-remediated
+    - name: requirements-path
+      value: ${STUDENT_PYTHON_REQUIREMENTS_PATH}
+    - name: rhtpa-url
+      value: ""
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+    - name: sbom
+      emptyDir: {}
+EOF
 ----
 
 . Watch until `lightwell-python-dep-gate` fails:
@@ -179,8 +192,8 @@ tkn -n stackrox pipelinerun logs "$(basename "$PR")" -f
 ----
 
 . Expected log themes:
-* Failure / remediation guidance for missing `lw-workshop-pypi` `.rhlw-*` pin
-* Required version mentions `1.0.0.rhlw-00001`
+* Failure / remediation guidance for missing `lw-workshop-pypi` `+rhlw.*` pin
+* Required version mentions `1.0.0+rhlw.00001`
 * Result `gate-status=failed`
 
 [TIP]
@@ -193,7 +206,7 @@ If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-python
 *Instructor:* Contrast with Module 6: Java fails on a real library coordinate (`commons-lang3`); Python fails on the workshop marker `lw-workshop-pypi`. Keep that distinction explicit so students do not treat the marker as a production FastAPI dependency.
 ====
 
-== Exercise 2: Success path (remediated `.rhlw-*` pin)
+== Exercise 2: Success path (remediated `+rhlw.*` pin)
 
 . Restore the Module 8 pin in **your** student repository, commit, and push:
 +
@@ -205,14 +218,14 @@ export STUDENT_USER='@@LW_USER@@'
 
 cd /tmp/fastapi-lw-poc
 # Ensure the Remediated marker is present (Module 8 pin)
-grep -q '^lw-workshop-pypi==1\.0\.0\.rhlw-00001' requirements.txt || \
-  echo 'lw-workshop-pypi==1.0.0.rhlw-00001' >> requirements.txt
+grep -q '^lw-workshop-pypi==1\.0\.0+rhlw\.00001' requirements.txt || \
+  echo 'lw-workshop-pypi==1.0.0+rhlw.00001' >> requirements.txt
 grep '^lw-workshop-pypi==' requirements.txt
 
 git config user.email "${STUDENT_USER}@workshop.local"
 git config user.name "${STUDENT_USER}"
 git add requirements.txt
-git commit -m "Pin lw-workshop-pypi to remediated 1.0.0.rhlw-00001" || true
+git commit -m "Pin lw-workshop-pypi to remediated 1.0.0+rhlw.00001" || true
 git push origin main
 ----
 
@@ -353,7 +366,7 @@ cd /tmp/fastapi-lw-poc
 git checkout "${STUDENT_PYTHON_REPO_REV}" 2>/dev/null || true
 ----
 +
-Before the PipelineRun, ensure `requirements.txt` includes `lw-workshop-pypi==1.0.0.rhlw-00001` so `lightwell-python-dep-gate` passes (same as Exercise 2). Commit and push to Gitea if you still have the fail-path tree from Exercise 1.
+Before the PipelineRun, ensure `requirements.txt` includes `lw-workshop-pypi==1.0.0+rhlw.00001` so `lightwell-python-dep-gate` passes (same as Exercise 2). Commit and push to Gitea if you still have the fail-path tree from Exercise 1.
 
 . Link the cluster pull secret to the `pipeline` SA (required for `registry.redhat.io/rhtas/cosign-rhel9`):
 +
@@ -612,10 +625,10 @@ repo to finish seeding, then hard-refresh the same way.
 |Step |Pass criteria
 
 |Dep gate fail
-|`requirements.txt` without `lw-workshop-pypi==*.rhlw-*` yields `gate-status=failed`
+|`requirements.txt` without `lw-workshop-pypi==*+rhlw.*` yields `gate-status=failed`
 
 |Dep gate pass
-|`lw-workshop-pypi==1.0.0.rhlw-00001` yields `gate-status=passed`
+|`lw-workshop-pypi==1.0.0+rhlw.00001` yields `gate-status=passed`
 
 |RHACS
 |Job `rhacs-ci-token-mint` Complete; `acs-image-check` passed or failed (not skipped)

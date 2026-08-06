@@ -97,7 +97,7 @@ pipelineHooks:
     watchedPackage: lw-workshop-pypi
     # Fail path: pin absent from default fastapi-lw-poc requirements.txt
     vulnerableVersion: ""
-    remediatedVersion: "1.0.0.rhlw-00001"
+    remediatedVersion: "1.0.0+rhlw.00001"
   sbom:
     enabled: true
     taskName: syft-sbom-rhtpa
@@ -144,7 +144,7 @@ userInfo:
     ./scripts/dev-cluster-rhacs-ci-token.sh). Run Pipeline lightwell-build-policy-gate:
     fail on non-remediated Maven pins, pass after .rhlw-* update, then SBOM → RHTPA.
     Python Modules 8–9: Pipeline lightwell-python-build-policy-gate fails until
-    requirements.txt pins lw-workshop-pypi==1.0.0.rhlw-00001.
+    requirements.txt pins lw-workshop-pypi==1.0.0+rhlw.00001.
 
 # Injected by root-app / field content workload
 deployer:

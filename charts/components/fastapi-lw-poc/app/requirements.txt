@@ -2,7 +2,7 @@
 #
 # Dual dependency streams (mirror of Java commons-lang3):
 #   - Default / Validated labs: httpx==0.27.2 from lightwell-python-validated
-#   - Remediated labs (Module 8): install lw-workshop-pypi==1.0.0.rhlw-00001
+#   - Remediated labs (Module 8): install lw-workshop-pypi==1.0.0+rhlw.00001
 #     via pip-remediated.conf (gated; not a runtime import of this app)
 #
 # Packaging note: this workshop uses requirements.txt (common client pip/Tekton UX).

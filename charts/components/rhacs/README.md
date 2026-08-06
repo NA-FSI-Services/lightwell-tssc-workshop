@@ -24,7 +24,7 @@ wave-`4` Tasks/Pipeline in this chart sync. See [`charts/components/pipelines`](
 | Artifact | Purpose |
 |----------|---------|
 | Task `lightwell-dep-gate` | Fail when default Maven pin lacks `.rhlw-*` (OSV-friendly / deterministic) |
-| Task `lightwell-python-dep-gate` | Fail when `requirements.txt` lacks `lw-workshop-pypi==*.rhlw-*` |
+| Task `lightwell-python-dep-gate` | Fail when `requirements.txt` lacks `lw-workshop-pypi==*+rhlw.*` |
 | Task `acs-image-check` | `roxctl image check` against Central BUILD policies (Clair/OSV-class) |
 | Task `syft-sbom-rhtpa` | syft CycloneDX SBOM (distroless ENTRYPOINT) + UBI publish/upload to RHTPA |
 | Pipeline `lightwell-build-policy-gate` | clone → Maven dep-gate → ACS check → SBOM |
@@ -59,7 +59,7 @@ oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
 # Expect Task lightwell-python-dep-gate to fail
 ```
 
-1. Add `lw-workshop-pypi==1.0.0.rhlw-00001` to `requirements.txt` in the student FastAPI repo and push.
+1. Add `lw-workshop-pypi==1.0.0+rhlw.00001` to `requirements.txt` in the student FastAPI repo and push.
 2. Re-run Pipeline `lightwell-python-build-policy-gate` — python-dep-gate passes.
 3. Full build → sign → GitOps promote uses learner `.tekton/fastapi-lw-poc-build-sign` (Module 9).
 
@@ -96,7 +96,7 @@ Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 |-----|---------|-------|
 | `rhacs.namespace` | `stackrox` | Central + SecuredCluster + gate Tasks |
 | `pipelineHooks.depGate.remediatedVersion` | `3.14.0.rhlw-00001` | Java success pin |
-| `pipelineHooks.pythonDepGate.remediatedVersion` | `1.0.0.rhlw-00001` | Python success pin |
+| `pipelineHooks.pythonDepGate.remediatedVersion` | `1.0.0+rhlw.00001` | Python success pin |
 | `pipelineHooks.labRepoUrl` | `""` | Student Gitea URL (root-app injects when `gitea` enabled) |
 | `pipelineHooks.pipeline.defaultPomPath` | `pom.xml` | Student repo root (not the GitOps monorepo) |
 | `pipelineHooks.pythonPipeline.defaultRequirementsPath` | `requirements.txt` | FastAPI student repo root |

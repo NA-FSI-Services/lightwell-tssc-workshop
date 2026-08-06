@@ -29,8 +29,8 @@ data:
 {{ .Files.Get "files/seed/LW-DEMO-0001.json" | indent 4 }}
   workshop-stub.jar.b64: |
 {{ .Files.Get "files/seed/workshop-stub.jar.b64" | indent 4 }}
-  lw_workshop_pypi-1.0.0.rhlw-00001-py3-none-any.whl.b64: |
-{{ .Files.Get "files/seed/lw_workshop_pypi-1.0.0.rhlw-00001-py3-none-any.whl.b64" | indent 4 }}
+  lw_workshop_pypi-remediated.whl.b64: |
+{{ .Files.Get "files/seed/lw_workshop_pypi-remediated.whl.b64" | indent 4 }}
   README: |
     Seeded-mirror mode (lightwellRepo.mode=seeded) uploads these files into Nexus hosted repos.
 

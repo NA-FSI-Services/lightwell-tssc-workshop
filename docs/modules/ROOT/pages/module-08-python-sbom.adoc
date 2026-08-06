@@ -12,7 +12,7 @@ This module continues the **Python track** after xref:module-07-pypi.adoc[Module
 By the end of this module, you will be able to:
 
 * Confirm workshop Nexus exposes PyPI *Remediated* (`pypi_remediated_enabled=true`)
-* Install `lw-workshop-pypi==1.0.0.rhlw-00001`, add it to `requirements.txt`, commit, and push to your Gitea FastAPI repo
+* Install `lw-workshop-pypi==1.0.0+rhlw.00001`, add it to `requirements.txt`, commit, and push to your Gitea FastAPI repo
 * Contrast Maven / CycloneDX packaging metadata with Python / SPDX (and inspect wheel `*.dist-info`)
 * Generate SPDX and CycloneDX inventories from the FastAPI tree with `syft`
 * Ingest into RHTPA (CycloneDX is the reliable workshop path; try SPDX when supported) and browse the result
@@ -49,13 +49,13 @@ oc -n lightwell-repo get configmap lightwell-pip-settings \
   -o jsonpath='{.data.pip-remediated\.conf}' | head -20
 ----
 
-Expect `pypi_remediated_enabled=true` and seed coordinate `lw-workshop-pypi==1.0.0.rhlw-00001`.
+Expect `pypi_remediated_enabled=true` and seed coordinate `lw-workshop-pypi==1.0.0+rhlw.00001`.
 
 Canonical remote (document even when mirroring): `{python-remediated-url}` (simple: `{python-remediated-simple-url}`). Workshop Nexus repository id: `lightwell-python-remediated`.
 
 [TIP]
 ====
-*Instructor:* This workshop **requires** `channels.pypiRemediated.enabled=true` (seeded marker wheel `lw-workshop-pypi==1.0.0.rhlw-00001`). Do not set it `false` for catalog claims. If a claim shows `pypi_remediated_enabled=false`, treat it as a misconfiguration: fix values / re-sync `lightwell-repo` and re-run Job `lightwell-repo-seed` before continuing Module 8.
+*Instructor:* This workshop **requires** `channels.pypiRemediated.enabled=true` (seeded marker wheel `lw-workshop-pypi==1.0.0+rhlw.00001`). Do not set it `false` for catalog claims. If a claim shows `pypi_remediated_enabled=false`, treat it as a misconfiguration: fix values / re-sync `lightwell-repo` and re-run Job `lightwell-repo-seed` before continuing Module 8.
 ====
 
 == Exercise 2 — Pin Remediated marker
@@ -87,7 +87,7 @@ python3 -m venv /tmp/fastapi-venv-m8
 source /tmp/fastapi-venv-m8/bin/activate
 
 PIP_CONFIG_FILE=/tmp/fastapi-lw-poc/pip-remediated.conf \
-  python3 -m pip install 'lw-workshop-pypi==1.0.0.rhlw-00001' \
+  python3 -m pip install 'lw-workshop-pypi==1.0.0+rhlw.00001' \
   > /tmp/pip-remediated-marker.log 2>&1
 
 grep -E 'lw-workshop-pypi|lightwell-python-remediated|Successfully installed|ERROR' \
@@ -96,7 +96,7 @@ grep -E 'lw-workshop-pypi|lightwell-python-remediated|Successfully installed|ERR
 python3 -m pip show lw-workshop-pypi | grep -E '^(Name|Version|Location):'
 ----
 
-Expected: version `1.0.0.rhlw-00001` from Nexus `lightwell-python-remediated` (seeded workshop marker — proves the `.rhlw-*` suffix; not a live product backport of a framework package).
+Expected: version `1.0.0+rhlw.00001` from Nexus `lightwell-python-remediated` (seeded workshop marker — PEP 440 local `+rhlw.*` so pip accepts it; not a live product backport of a framework package).
 
 === B. Add the pin to `requirements.txt`, commit, and push
 
@@ -107,8 +107,8 @@ Module 9’s Python dep-gate reads `requirements.txt` for this marker. Add the l
 cd /tmp/fastapi-lw-poc
 
 # Append only if missing
-grep -qE '^lw-workshop-pypi==1\.0\.0\.rhlw-00001$' requirements.txt \
-  || echo 'lw-workshop-pypi==1.0.0.rhlw-00001' >> requirements.txt
+grep -qE '^lw-workshop-pypi==1\.0\.0\+rhlw\.00001$' requirements.txt \
+  || echo 'lw-workshop-pypi==1.0.0+rhlw.00001' >> requirements.txt
 
 cat requirements.txt
 ----
@@ -120,7 +120,7 @@ Confirm `httpx==0.27.2` (Validated, Module 7) remains, and the Remediated marker
 fastapi==0.115.6
 uvicorn[standard]==0.32.1
 httpx==0.27.2
-lw-workshop-pypi==1.0.0.rhlw-00001
+lw-workshop-pypi==1.0.0+rhlw.00001
 ----
 
 [source,bash,role=execute]
@@ -130,13 +130,13 @@ git config user.email "${STUDENT_USER}@workshop.local"
 git config user.name "${STUDENT_USER}"
 
 git add requirements.txt
-git commit -m "Pin lw-workshop-pypi to remediated 1.0.0.rhlw-00001"
+git commit -m "Pin lw-workshop-pypi to remediated 1.0.0+rhlw.00001"
 git push origin HEAD
 ----
 
 [TIP]
 ====
-*Instructor:* Contrast with Java Module 4: there learners pin a real library coordinate (`commons-lang3` / sample OSV). Here the PyPI marker is an intentional workshop stub so Remediated is always demonstrable in RHDP without requiring live Lightwell PyPI remediations. Keep that distinction explicit so students do not treat `lw-workshop-pypi` as a production FastAPI dependency.
+*Instructor:* Contrast with Java Module 4: there learners pin a real library coordinate (`commons-lang3` / sample OSV) with Maven `.rhlw-*`. Here the PyPI marker uses PEP 440 local `+rhlw.*` so `pip` accepts the pin, and it is an intentional workshop stub so Remediated is always demonstrable in RHDP without requiring live Lightwell PyPI remediations. Keep that distinction explicit so students do not treat `lw-workshop-pypi` as a production FastAPI dependency.
 ====
 
 == Exercise 3 — SPDX vs CycloneDX and wheel `dist-info`
@@ -149,7 +149,7 @@ Lightwell-distributed *Maven* packages typically carry *CycloneDX* SBOMs (and VE
 
 |*Remediated pin*
 |`.rhlw-*` on Maven GAV (e.g. `commons-lang3`)
-|`.rhlw-*` on pip coordinate (`lw-workshop-pypi==1.0.0.rhlw-00001`)
+|PEP 440 local `+rhlw.*` on pip (`lw-workshop-pypi==1.0.0+rhlw.00001`)
 
 |*Package metadata SBOM*
 |CycloneDX (+ VEX) with the artifact
@@ -382,14 +382,14 @@ xref:module-09-python-pipeline.adoc[Module 9] runs the FastAPI Tekton path: buil
 **What you accomplished**
 
 * Confirmed PyPI Remediated is enabled on this claim
-* Installed `lw-workshop-pypi==1.0.0.rhlw-00001`, committed the pin to `requirements.txt`, and pushed to Gitea
+* Installed `lw-workshop-pypi==1.0.0+rhlw.00001`, committed the pin to `requirements.txt`, and pushed to Gitea
 * Contrasted SPDX / wheel metadata with Maven CycloneDX and inspected `dist-info` on the marker
 * Generated SPDX + CycloneDX with `syft` and ingested into RHTPA (CycloneDX path)
 
 **Key takeaways**
 
 * This workshop is Java **and** Python; tier names stay *Validated* / *Remediated* only
-* Learner UX: `PIP_CONFIG_FILE=…/pip-remediated.conf pip install lw-workshop-pypi==1.0.0.rhlw-00001`
+* Learner UX: `PIP_CONFIG_FILE=…/pip-remediated.conf pip install lw-workshop-pypi==1.0.0+rhlw.00001`
 * SPDX is the Python-native inventory story; workshop RHTPA ingest prefers CycloneDX (same as Module 5)
 * Student remotes remain Gitea under **your** org (`student_python_repo_url`)
 

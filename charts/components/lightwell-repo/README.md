@@ -68,7 +68,7 @@ sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json
 | Package | Tier | Notes |
 |---------|------|-------|
 | `httpx==0.27.2` | Validated | Real wheel fetched from PyPI at seed time; usable by FastAPI sample |
-| `lw-workshop-pypi==1.0.0.rhlw-00001` | Remediated (required) | Workshop marker proving `.rhlw-0000X` on the Remediated index |
+| `lw-workshop-pypi==1.0.0+rhlw.00001` | Remediated (required) | Workshop marker proving `.rhlw-0000X` on the Remediated index |
 
 Override the Commons Lang download URL with env `COMMONS_LANG3_JAR_URL` on the seed Job if the cluster cannot reach Maven Central. Override the httpx wheel with `pypiSeed.wheelUrl` / `PYPI_SEED_WHEEL_URL` if the cluster cannot reach `files.pythonhosted.org`.
 
@@ -143,7 +143,7 @@ oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip.conf --
 PIP_CONFIG_FILE=$PWD/pip.conf pip install httpx==0.27.2
 # Remediated marker (Module 8 — channels.pypiRemediated.enabled=true required):
 oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip-remediated.conf --to=.
-PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0.rhlw-00001
+PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0+rhlw.00001
 ```
 
 Canonical remotes (document even when mirroring):
