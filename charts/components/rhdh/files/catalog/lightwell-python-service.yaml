@@ -13,7 +13,7 @@ metadata:
   title: Lightwell Python Service
   description: >-
     FastAPI / Python microservice golden path with Lightwell Network Validated
-    and optional Remediated PyPI indexes, pip.conf helpers, and a hybrid Tekton
+    and Remediated PyPI indexes, pip.conf helpers, and a hybrid Tekton
     pipeline (dep-gate → BuildConfig → ACS → SBOM → cosign) for Modules 7–9.
     Publishes to workshop Gitea as lw-<student_username>/fastapi-lw-poc.
   tags:
@@ -152,8 +152,9 @@ spec:
           PIP_CONFIG_FILE=$PWD/pip.conf pip install -r requirements.txt
           ```
 
-          **Module 8 — Remediated (when gated on)**
-          Use `pip-remediated.conf` and install `lw-workshop-pypi==1.0.0.rhlw-00001`.
+          **Module 8 — Remediated PyPI**
+          Use `pip-remediated.conf`; pin `lw-workshop-pypi==1.0.0.rhlw-00001`
+          (`channels.pypiRemediated.enabled=true` always for this catalog).
 
           **Module 9 — Sign / policy / GitOps**
           Ensure `requirements.txt` includes `lw-workshop-pypi==1.0.0.rhlw-00001`

@@ -19,10 +19,10 @@ data:
     Mode={{ .Values.lightwellRepo.mode }}
     - proxy: Maven/raw/PyPI *proxy* repos pointing at canonical packages.redhat.com URLs,
       authenticated with Secret {{ .Values.credentials.secretName }} (LW_USERNAME / LW_PASSWORD).
-      Gate PyPI Remediated with channels.pypiRemediated.enabled=false if live stream is unavailable.
+      Keep channels.pypiRemediated.enabled=true (this catalog always exposes Remediated PyPI).
     - seeded: Maven/raw/PyPI *hosted* repos populated by Job lightwell-repo-seed
       (spring-core resolution stubs, compile-capable commons-lang3, OSV at {{ .Values.sampleOsv.rawPath }},
-      CycloneDX, httpx for PyPI Validated, gated .rhlw-* marker for PyPI Remediated).
+      CycloneDX, httpx for PyPI Validated, .rhlw-* marker for PyPI Remediated).
 
     Naming must allow remediated versions such as {{ .Values.sampleOsv.remediatedVersion }}.
     Prefer the seed Job over running this sketch manually.

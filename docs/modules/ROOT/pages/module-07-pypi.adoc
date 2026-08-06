@@ -5,18 +5,18 @@
 
 include::partial$student-username-form.adoc[]
 
-Modules 1–6 taught the Java golden path (Maven Validated / Remediated, RHDH scaffold, OSV pins, SBOM, pipeline / GitOps). This module starts the **Python track**: the same enterprise pattern with *pip* and an in-cluster *PyPI* index, using a small *FastAPI* sample in *your* Gitea organization.
+Modules 1–6 taught the Java path (Maven Validated / Remediated, RHDH scaffold, OSV pins, SBOM, pipeline / GitOps). This workshop continues with the **Python track**: the same enterprise pattern with *pip* and an in-cluster *PyPI* index, using a small *FastAPI* sample in *your* Gitea organization.
 
 You will seed Python remotes from `workshop-templates`, prove *Validated* installs against workshop Nexus, then replace the app repo with Software Template `lightwell-python-service` and re-prove Validated on the scaffold. That scaffolded tree is the source of truth for Modules 8–9.
 
 [NOTE]
 ====
-*Python track (extension).* Complete xref:module-01-overview.adoc[Modules 1–6] first. The Java story is complete without this module. Modules 7–9 parallel the TSSC path for Python / PyPI.
+*Java then Python.* Complete xref:module-01-overview.adoc[Modules 1–6] first, then Modules 7–9. Both tracks are part of this workshop definition.
 ====
 
 [NOTE]
 ====
-*Remediated PyPI* (exact-version `.rhlw-*` pins such as `lw-workshop-pypi==1.0.0.rhlw-00001`) is covered in xref:module-08-python-sbom.adoc[Module 8]. Java `.rhlw-*` remediations remain the primary remediations story until then.
+*Remediated PyPI* (exact-version `.rhlw-*` pins such as `lw-workshop-pypi==1.0.0.rhlw-00001`) is covered in xref:module-08-python-sbom.adoc[Module 8]. This catalog always enables the Remediated PyPI channel (seeded marker).
 ====
 
 == Learning objectives
@@ -56,7 +56,7 @@ Field delivery usually puts an *enterprise artifact manager* (Nexus or Artifacto
 |Pattern |pip index |When you use it
 
 |*Direct*
-|`{python-validated-simple-url}` (and Remediated when available)
+|`{python-validated-simple-url}` (and Remediated — always on in this workshop)
 |Laptop PoC or CI with Lightwell membership
 
 |*Proxied (enterprise)*
@@ -76,7 +76,7 @@ Canonical remotes (document even when mirroring):
 Workshop Nexus repository ids:
 
 * `lightwell-python-validated` — Module 7 default
-* `lightwell-python-remediated` — Module 8 (may be gated off if live Remediated PyPI is unavailable)
+* `lightwell-python-remediated` — Module 8 (always enabled for this workshop; seeded marker)
 
 [NOTE]
 ====
@@ -347,7 +347,7 @@ After Exercise 6, Modules 8–9 continue from the *scaffolded* tree at `student_
 
 == Looking ahead
 
-* xref:module-08-python-sbom.adoc[Module 8] — Remediated PyPI when the channel is enabled, plus SPDX / SBOM → RHTPA
+* xref:module-08-python-sbom.adoc[Module 8] — Remediated PyPI pin, plus SPDX / SBOM → RHTPA
 * xref:module-09-python-pipeline.adoc[Module 9] — build, sign, policy gates, and GitOps promote for the FastAPI path
 
 == Module summary
@@ -364,8 +364,8 @@ After Exercise 6, Modules 8–9 continue from the *scaffolded* tree at `student_
 * Learner UX: `PIP_CONFIG_FILE=…/pip.conf python3 -m pip install -r requirements.txt` from the Gitea `lw-<user>/fastapi-lw-poc` clone
 * Python remotes are parallel keys (`student_python_*`) — keep the Java `spring-boot-lw-poc` remote intact
 * Student remotes are Gitea under **your** org — never the workshop GitHub monorepo
-* Remediated / `.rhlw-*` for PyPI waits until Module 8; Java remediations remain the primary pin story until then
+* Remediated / `.rhlw-*` for PyPI is Module 8 (channel always on for this workshop)
 
 **Next**
 
-xref:module-08-python-sbom.adoc[Module 8] continues the Python track with Remediated-when-available and SBOM analysis.
+xref:module-08-python-sbom.adoc[Module 8] continues the Python track with the Remediated pin and SBOM analysis.

@@ -4,7 +4,7 @@ This directory is the **RHDP sync target** for the Lightwell workshop (AgnosticV
 
 ## Status
 
-`charts/root-app` App-of-Apps is scaffolded. Phase 1 component charts (#3–#8, #24) and Showroom (#19) are available. Keep non-Showroom components `enabled: false` in root-app values until ready to sync on a sized cluster; Showroom is enabled and builds Modules 1–6 from `site.yml` (Python Modules 7–9 tracked under epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)).
+`charts/root-app` App-of-Apps is scaffolded. Phase 1 component charts (#3–#8, #24) and Showroom (#19) are available. Keep non-Showroom components `enabled: false` in root-app values until ready to sync on a sized cluster; Showroom is enabled and builds Modules 1–9 from `site.yml` (Java + Python catalog; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)).
 
 ## Layout
 

@@ -45,7 +45,7 @@ publishes into the **same** learner organization (Showroom Module 3).
 
 | Concern | Implementation |
 |---------|----------------|
-| PyPI indexes | `pip.conf` (Validated) + `pip-remediated.conf` (Remediated when gated) |
+| PyPI indexes | `pip.conf` (Validated) + `pip-remediated.conf` (Remediated; always on) |
 | Auth | `LW_*` via ConfigMap extract / env (never commit secrets) |
 | Default stream | Template param `lwnProfile` → Dockerfile `LIGHTWELL_STREAM` |
 | Pipeline | `.tekton/` stub until Module 9 Tasks (#149) |

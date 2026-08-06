@@ -4,7 +4,7 @@ Deploys the **Showroom** split-screen learner experience for this workshop:
 
 | Pane | Source |
 |------|--------|
-| Lab guide | Antora build of `site.yml` → `docs/modules/ROOT` (Modules 1–6 Java + appendices; Modules 7–9 Python under epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)) |
+| Lab guide | Antora build of `site.yml` → `docs/modules/ROOT` (Modules 1–6 Java + Modules 7–9 Python; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)) |
 | Terminal | `quay.io/rhpds/openshift-showroom-terminal-ocp` proxied at `/terminal/` |
 
 Promoted from `examples/helm/components/showroom` for issue [#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19). Image pins follow [docs/SHOWROOM-UPDATE-SPEC.md](../../../docs/SHOWROOM-UPDATE-SPEC.md).

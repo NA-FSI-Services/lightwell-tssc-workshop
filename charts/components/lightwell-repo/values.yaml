@@ -75,7 +75,7 @@ channels:
     description: "Lightwell Network Python Validated — upstream-parity rebuilds for pip"
     remoteUrl: "https://packages.redhat.com/lightwell/python/validated"
     hostedName: lightwell-python-validated-hosted
-  # Gate: disable in proxy mode if membership lacks Remediated PyPI (seeded mode is local-only)
+  # REQUIRED true for this workshop (Java + Python catalog). Always seed Remediated marker.
   pypiRemediated:
     enabled: true
     name: lightwell-python-remediated
@@ -105,7 +105,7 @@ mavenSettings:
   # When empty, derived from Nexus Route host
   nexusUrl: ""
 
-# Python learner UX — pip.conf index URLs for Validated (+ gated Remediated)
+# Python learner UX — pip.conf index URLs for Validated + Remediated (always on)
 pipSettings:
   enabled: true
   configMapName: lightwell-pip-settings
@@ -173,9 +173,9 @@ userInfo:
     Nexus presents Lightwell Validated / Remediated / OSV (Java) and PyPI Validated /
     Remediated (Python) channels. Default mode is seeded (Job lightwell-repo-seed uploads
     spring-core stubs, commons-lang3, OSV/CycloneDX, plus httpx for PyPI Validated and a
-    gated .rhlw-* workshop wheel for PyPI Remediated). For live proxy, set
-    lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD; set
-    channels.pypiRemediated.enabled=false if Remediated PyPI is unavailable.
+    .rhlw-* workshop wheel for PyPI Remediated). For live proxy, set
+    lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD.
+    Keep channels.pypiRemediated.enabled=true for this Java+Python catalog (seeded marker).
     Maven: ConfigMap lightwell-maven-settings. Python: ConfigMap lightwell-pip-settings.
 
 # Injected by root-app / field content workload

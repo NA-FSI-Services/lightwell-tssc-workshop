@@ -23,7 +23,7 @@ oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip.conf --
 PIP_CONFIG_FILE=$PWD/pip.conf pip install -r requirements.txt
 ```
 
-## Pip Remediated (Module 8, when enabled)
+## Pip Remediated (Module 8 — always on)
 
 ```bash
 oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip-remediated.conf --to=.

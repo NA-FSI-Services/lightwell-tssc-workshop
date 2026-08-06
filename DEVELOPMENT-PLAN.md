@@ -32,7 +32,7 @@ Hands-on workshop showing:
 - Policy gating with Red Hat Advanced Cluster Security (RHACS)
 - Developer golden paths via Red Hat Developer Hub (RHDH)
 - GitOps promotion with OpenShift GitOps (ArgoCD)
-- **Post-Java Python path** (Modules 7–9, epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)): PyPI Validated (+ gated Remediated), FastAPI sample, SPDX/SBOM → RHTPA, pipeline / sign / policy / GitOps
+- **Python path** (Modules 7–9, epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)): PyPI Validated + Remediated (always seeded on), FastAPI sample, SPDX/SBOM → RHTPA, pipeline / sign / policy / GitOps — catalog is **Java and Python**
 
 Provisioned through AgnosticD v2 **GitOps Field Sourced Content** on OpenShift Virtualization (CNV) pools (~10–15 minute claim + sync).
 
@@ -48,7 +48,7 @@ The workshop must simulate the same technical story used in Lightwell Network in
 | **Remediated** (Java) | Exact-version backports for pinned production deps | `https://packages.redhat.com/lightwell/java/remediated` | Fix CVEs without risky major upgrades |
 | **OSV (Java)** | Machine-readable fixed-vuln records for remediated stream | `https://packages.redhat.com/lightwell/osv/java/remediated` | Discover *what* was fixed and *which* `.rhlw-*` version to pin |
 | **Validated** (Python / PyPI) | Upstream-parity rebuilds for `pip` / enterprise PyPI proxy | `https://packages.redhat.com/lightwell/python/validated` | Modules 7–9 Validated consumption |
-| **Remediated** (Python / PyPI) | Exact-version remediations when LWN maturity allows | `https://packages.redhat.com/lightwell/python/remediated`; **seed/gate** via `channels.pypiRemediated.enabled` if live unavailable | Module 8 — do not block Java catalog |
+| **Remediated** (Python / PyPI) | Exact-version remediations (workshop always seeds marker) | `https://packages.redhat.com/lightwell/python/remediated`; **require** `channels.pypiRemediated.enabled=true` (seeded `.rhlw-*` marker) | Module 8 |
 
 Remediated artifact versions append a sequential Lightwell suffix, for example `5.3.18.rhlw-00003` (not a custom `-lw01` naming scheme).
 
@@ -65,12 +65,12 @@ UI reference for members: [console.redhat.com/lightwell](https://console.redhat.
 PoV delivery almost always includes an **enterprise artifact manager** (Artifactory or Nexus) that remotes/proxies LWN, plus client config:
 
 - **Java / Maven:** Direct `lightwell-validated` + `lightwell-remediated` profiles pointing at `packages.redhat.com`, or proxied via internal `libs-release` (etc.) with remotes for validated/remediated (and optionally OSV)
-- **Python / PyPI:** `pip` index URL (and/or Nexus/Artifactory **PyPI** proxy) aimed at Lightwell **Validated**, then Remediated when available (#145)
+- **Python / PyPI:** `pip` index URL (and/or Nexus/Artifactory **PyPI** proxy) aimed at Lightwell **Validated**, then **Remediated** (this workshop always enables Remediated with a seeded marker)
 
 RHDP lab implication: `charts/components/lightwell-repo` should present that enterprise pattern (Nexus or Artifactory). Prefer either:
 
 1. **Live proxy** to LWN when workshop credentials/membership allow, or  
-2. **Seeded mirrors** of a small curated set of validated + remediated **Java** artifacts and sample OSV JSON, plus **PyPI Validated** (and gated Remediated) packages for Modules 7–9  
+2. **Seeded mirrors** of a small curated set of validated + remediated **Java** artifacts and sample OSV JSON, plus **PyPI Validated and Remediated** packages for Modules 7–9  
 
 Either way, naming, URLs (or documented remote targets), and Java `.rhlw-*` semantics must match production LWN. Do not invent fictional channel aliases.
 
@@ -83,10 +83,10 @@ Either way, naming, URLs (or documented remote targets), and Java `.rhlw-*` sema
 - SBOM generation with `syft` → CycloneDX JSON
 - Source compare of upstream vs `.rhlw-*` jars to show minimal backport impact
 
-**Python (Modules 7–9):** a minimal **FastAPI** service after the Java golden path (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)):
+**Python (Modules 7–9):** a minimal **FastAPI** service after the Java path (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)) — catalog is Java **and** Python:
 
-- Condensed beats: **7** PyPI Validated + Gitea seed · **8** Remediated-when-available + SPDX/SBOM → RHTPA · **9** pipeline / sign / policy / GitOps
-- Design for Remediated PyPI; **seed/gate** so the Java catalog path is not blocked if live remediated PyPI is unavailable
+- Condensed beats: **7** PyPI Validated + Gitea seed · **8** Remediated pin + SPDX/SBOM → RHTPA · **9** pipeline / sign / policy / GitOps
+- **Always** keep `channels.pypiRemediated.enabled=true` and seed the workshop `.rhlw-*` marker (do not disable Remediated PyPI for catalog claims)
 - Learner remotes remain Gitea (`workshop-templates` → `lw-<username>`) — same bans as Java
 
 Parasol (or similar multi-tier demo app) remains optional reuse for a larger “enterprise app” narrative after the Spring Boot PoC path works.
@@ -193,7 +193,7 @@ lifespan:
 
 Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11)–[#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13), [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)–[#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26); Python track charts: [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145)–[#149](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/149) (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144))
 
-1. **Artifact manager channels** matching LWN: Java `validated` / `remediated` / `osv/remediated`, plus **PyPI Validated** (+ gated Remediated) — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX; PyPI hosts `httpx` Validated + gated `.rhlw-*` marker — [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145))
+1. **Artifact manager channels** matching LWN: Java `validated` / `remediated` / `osv/remediated`, plus **PyPI Validated and Remediated** — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX; PyPI hosts `httpx` Validated + `.rhlw-*` Remediated marker — [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145); **`channels.pypiRemediated.enabled` must stay `true`**)
 2. **Spring Boot PoC** with Maven profiles, dual streams, and `.rhlw-*` pins
 3. **Student Git (Gitea)** — learners clone/push only in-cluster Gitea; never GitHub for app labs. Seed Jobs isolate monorepo app paths into template remotes under `workshop-templates`; learners create `lw-<username>` and seed (Module 2 Java; Module 7 Python). ApplicationSet syncs gitops remotes into runtime namespaces ([`charts/components/gitea`](./charts/components/gitea/), [AGENTS.md](./AGENTS.md) Learner Git; Python templates #147)
 4. **RHDH golden paths**: `lightwell-java-service` (Modules 2–6) and `lightwell-python-service` (Modules 7–9, #148) — `publish:gitea` into learner orgs; fetch templates from `workshop-templates` (not GitHub)
@@ -223,7 +223,7 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 | Module | Title | PoV alignment |
 |--------|-------|---------------|
 | 7 | PyPI Validated + FastAPI / Gitea | `pip` / Nexus PyPI proxy; seed from `workshop-templates` (#150) |
-| 8 | Remediated-when-available + SPDX → RHTPA | Gated Remediated PyPI; wheel SPDX vs Maven CycloneDX (#151) |
+| 8 | Remediated PyPI pin + SPDX → RHTPA | Always-on Remediated channel (seeded marker); wheel SPDX vs Maven CycloneDX (#151) |
 | 9 | Pipeline, sign, policy, GitOps | Python Tasks / `.tekton`; promote learner gitops (#152) |
 
 Java Modules 1–6 remain sufficient for catalog acceptance until the Python track charts and labs are enabled.
