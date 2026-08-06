@@ -8,6 +8,11 @@
 * xref:module-05-sbom.adoc[Module 5 — SBOM + RHTPA]
 * xref:module-06-pipeline.adoc[Module 6 — Sign, policy, GitOps]
 
+.Python track (after Modules 1–6)
+* xref:module-07-pypi.adoc[Module 7 — PyPI Validated + FastAPI]
+* xref:module-08-python-sbom.adoc[Module 8 — Remediated PyPI + SBOM (coming soon)]
+* xref:module-09-python-pipeline.adoc[Module 9 — Python pipeline + GitOps (coming soon)]
+
 .Appendix
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)]
 * xref:appendix-acronyms.adoc[Acronym glossary]
