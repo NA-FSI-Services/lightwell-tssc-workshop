@@ -49,7 +49,7 @@ After Modules 1–6, an optional **Python track** parallels Validated consumptio
 |Nexus / Lightwell PyPI Validated; Gitea seed; RHDH `lightwell-python-service`
 
 |xref:module-08-python-sbom.adoc[8 — Remediated PyPI + SBOM]
-|Remediated-when-available + SPDX / SBOM → RHTPA (*lab steps coming soon*)
+|Remediated-when-available + SPDX / SBOM → RHTPA
 
 |xref:module-09-python-pipeline.adoc[9 — Python pipeline + GitOps]
 |Sign, policy, GitOps promote for FastAPI (*lab steps coming soon*)
