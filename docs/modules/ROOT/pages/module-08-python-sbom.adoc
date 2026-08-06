@@ -1,0 +1,46 @@
+= Module 8: Remediated PyPI + SPDX / SBOM → RHTPA
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+include::partial$student-username-form.adoc[]
+
+This module continues the **Python track** after xref:module-07-pypi.adoc[Module 7]. Lab exercises are not published yet—use this page as a forward look, then return when the follow-up content lands.
+
+[NOTE]
+====
+*Coming soon.* Hands-on steps for Remediated PyPI and Python SBOM → *Red Hat Trusted Profile Analyzer (RHTPA)* will appear here. Until then, keep your Module 7 scaffolded repo (`student_python_repo_url` → `lw-@@LW_USER@@/fastapi-lw-poc`) and treat Java Modules 4–5 as the primary remediations / SBOM practice path.
+====
+
+== What this module will cover
+
+* Remediated PyPI when the workshop channel is available (exact-version `.rhlw-*` pins)
+* How that differs from the Java `.rhlw-*` story you already practiced
+* Generating and inspecting a Python SBOM, then viewing it in RHTPA
+
+== Prerequisites (when labs publish)
+
+* Complete xref:module-07-pypi.adoc[Module 7] (scaffolded `lightwell-python-service` tree)
+* Workshop Nexus PyPI Remediated path enabled *or* an honest seeded / gated path documented in the lab
+
+== Looking ahead
+
+After this module: xref:module-09-python-pipeline.adoc[Module 9] — pipeline, signing, policy gates, and GitOps promote for the FastAPI path.
+
+////
+Instructor note (not shown in Showroom)
+
+Planned beats (issue #151; epic #144):
+
+1. Confirm channels.pypiRemediated.enabled (or seeded hosted Remediated) — honest gate if live
+   Remediated PyPI is unavailable; do not invent channel names.
+2. Use pip-remediated.conf from lightwell-pip-settings / scaffold; install
+   lw-workshop-pypi==1.0.0.rhlw-00001 (workshop marker pin).
+3. Contrast Validated httpx pin (Module 7) vs Remediated marker; Java .rhlw-* remains
+   the fuller remediations narrative when PyPI Remediated is gated off.
+4. Generate SPDX and/or CycloneDX for the FastAPI tree; ingest / view in RHTPA
+   (parallel to Module 5; reuse Keycloak tpa realm patterns).
+5. Image placeholders → #154 (module-08-spdx-vs-cyclonedx.png, module-08-rhtpa-python-sbom.png).
+
+Do not send learners to GitHub; keep student_python_repo_url / Gitea only.
+////

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Showroom ↔ content contract (issue #19).
-# Validates Helm values / chart templates stay aligned with site.yml and Modules 1–6.
+# Validates Helm values / chart templates stay aligned with site.yml and Modules 1–9.
 #
 # Usage:
 #   scripts/showroom-check.sh
@@ -28,6 +28,9 @@ REQUIRED_MODULES=(
   module-04-osv.adoc
   module-05-sbom.adoc
   module-06-pipeline.adoc
+  module-07-pypi.adoc
+  module-08-python-sbom.adoc
+  module-09-python-pipeline.adoc
   index.adoc
   appendix-lightwell-concepts.adoc
   appendix-acronyms.adoc

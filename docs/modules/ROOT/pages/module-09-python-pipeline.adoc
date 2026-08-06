@@ -1,0 +1,48 @@
+= Module 9: Python pipeline, sign, policy, GitOps
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+include::partial$student-username-form.adoc[]
+
+This module finishes the **Python track** after xref:module-08-python-sbom.adoc[Module 8]. Lab exercises are not published yet—use this page as a forward look.
+
+[NOTE]
+====
+*Coming soon.* Hands-on steps for FastAPI build / sign / policy / GitOps will appear here. Until then, treat xref:module-06-pipeline.adoc[Module 6] as the primary pipeline and promote practice path (Java `spring-boot-lw-poc` + `gitops-spring-boot-lw-poc`).
+====
+
+== What this module will cover
+
+* Running the learner Tekton path for `fastapi-lw-poc`
+* Signing and policy gates on the Python supply chain
+* Promoting an image digest via your Python GitOps remote and Argo CD
+
+== Prerequisites (when labs publish)
+
+* Complete xref:module-07-pypi.adoc[Module 7] and xref:module-08-python-sbom.adoc[Module 8]
+* Keep `gitops-fastapi-lw-poc` (`student_python_gitops_repo_url`) — do not delete it when re-scaffolding the app repo
+
+== Looking back
+
+* xref:module-07-pypi.adoc[Module 7] — PyPI Validated + Gitea seed / RHDH scaffold
+* xref:module-08-python-sbom.adoc[Module 8] — Remediated-when-available + SBOM → RHTPA
+
+////
+Instructor note (not shown in Showroom)
+
+Planned beats (issue #152; epic #144; pipeline charts #149):
+
+1. Apply .tekton RBAC + Pipeline from scaffolded fastapi-lw-poc; substitute
+   STUDENT_REPO_URL_PLACEHOLDER from demo-userinfo-gitea → student_python_repo_url
+   (never bake claim-specific usernames or hosts into shared YAML).
+2. Run build → sign (RHTAS) → policy (RHACS / lightwell-python-dep-gate expecting
+   lw-workshop-pypi==*.rhlw-* after Module 8) → SBOM task narrative as available.
+3. Tag / promote digest into student_python_promote_namespace (lw-fastapi-<username>);
+   commit values on student_python_gitops_repo_url; confirm Argo app
+   student_python_argocd_app (lw-fastapi-<username>).
+4. Image placeholders → #154 (module-09-pipeline-overview.png,
+   module-09-argocd-python-promote.png).
+
+Gitea-only learner remotes; monorepo GitHub URL is operator/GitOps only.
+////
