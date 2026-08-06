@@ -1,6 +1,6 @@
 * xref:index.adoc[Workshop home]
 
-.Labs (Java track)
+.Java track
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]
 * xref:module-03-scaffold.adoc[Module 3 — Scaffold with Developer Hub]
