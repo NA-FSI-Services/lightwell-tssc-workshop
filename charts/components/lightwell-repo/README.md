@@ -23,13 +23,14 @@ Do **not** invent alternate channel names such as `upstream-untrusted` / `lightw
 
 Set mode in values (or root-app overlay). Never commit real `LW_*` values.
 
-### PyPI Remediated gate
+### PyPI Remediated (required)
 
-`channels.pypiRemediated.enabled` (default `true` for seeded workshops):
+`channels.pypiRemediated.enabled` **must stay `true`** for this Java+Python catalog:
 
 - **seeded + enabled** — creates hosted PyPI Remediated and uploads a workshop `.rhlw-*` marker wheel (does **not** call live LWN)
 - **proxy + enabled** — creates PyPI proxy to `…/python/remediated`
-- **`enabled: false`** — skips Remediated PyPI entirely so the catalog is not blocked when live Remediated PyPI is unavailable
+
+Do **not** set `enabled: false` for catalog claims. The seeded marker keeps Module 8 deterministic without live Remediated PyPI membership.
 
 ### Seeded content (default)
 
@@ -67,7 +68,7 @@ sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json
 | Package | Tier | Notes |
 |---------|------|-------|
 | `httpx==0.27.2` | Validated | Real wheel fetched from PyPI at seed time; usable by FastAPI sample |
-| `lw-workshop-pypi==1.0.0.rhlw-00001` | Remediated (gated) | Workshop marker proving `.rhlw-0000X` on the Remediated index |
+| `lw-workshop-pypi==1.0.0.rhlw-00001` | Remediated (required) | Workshop marker proving `.rhlw-0000X` on the Remediated index |
 
 Override the Commons Lang download URL with env `COMMONS_LANG3_JAR_URL` on the seed Job if the cluster cannot reach Maven Central. Override the httpx wheel with `pypiSeed.wheelUrl` / `PYPI_SEED_WHEEL_URL` if the cluster cannot reach `files.pythonhosted.org`.
 
@@ -140,7 +141,7 @@ Also published on ConfigMap `demo-userinfo-lightwell-repo` keys `pypi_index_vali
 ```bash
 oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip.conf --to=.
 PIP_CONFIG_FILE=$PWD/pip.conf pip install httpx==0.27.2
-# Remediated marker (when channels.pypiRemediated.enabled):
+# Remediated marker (Module 8 — channels.pypiRemediated.enabled=true required):
 oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip-remediated.conf --to=.
 PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0.rhlw-00001
 ```
@@ -185,6 +186,6 @@ Keep `components.lightwellRepo.enabled: false` until ready to sync.
 
 - Issue [#7](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/7) — chart scaffold
 - Issue [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11) — seed / proxy content
-- Issue [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145) — PyPI Validated (+ gated Remediated)
-- Epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) — Python path Modules 7–9
+- Issue [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145) — PyPI Validated + Remediated (always on)
+- Epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) — Python path Modules 7–9 (Java + Python catalog)
 - OSV toolkit (pin parse + source diff): [`tools/osv-eval/`](../../../tools/osv-eval/) / [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)

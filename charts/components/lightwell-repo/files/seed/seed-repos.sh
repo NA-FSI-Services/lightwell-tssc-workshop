@@ -313,7 +313,7 @@ seed_content() {
   upload_raw "${osv_repo}" "sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json" \
     "${SEED_DIR}/spring-core-5.3.18.rhlw-00003.cdx.json"
 
-  # Python / PyPI — Validated always (when channel enabled); Remediated gated
+  # Python / PyPI — Validated always (when channel enabled); Remediated required (enabled=true)
   if [[ "${PYPI_VALIDATED_ENABLED:-true}" == "true" ]]; then
     local pypi_validated="${PYPI_VALIDATED_REPO:-lightwell-python-validated}"
     prepare_pypi_validated_wheel "${work}/pypi-validated.whl"

@@ -37,7 +37,7 @@ data:
     `extra-index-url` in `pip.conf`. The LWN demo dependency is `httpx==0.27.2`
     from Lightwell Python Validated (seeded Nexus).
 
-    ## Remediated marker (Module 8 — when channels.pypiRemediated.enabled)
+    ## Remediated marker (Module 8 — channels.pypiRemediated.enabled=true)
 
     ```bash
     oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip-remediated.conf --to=.

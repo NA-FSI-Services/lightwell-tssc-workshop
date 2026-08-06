@@ -3,7 +3,7 @@
 Learner-owned **FastAPI / Python** application repository for the Lightwell TSSC
 workshop (hosted on in-cluster **Gitea**).
 
-Use this repository for Modules 7–9 (PyPI Validated → remediated-when-available →
+Use this repository for Modules 7–9 (PyPI Validated → Remediated pin →
 pipeline / GitOps). Discover your remote from ConfigMap `demo-userinfo-gitea`
 (`student_python_repo_url`).
 

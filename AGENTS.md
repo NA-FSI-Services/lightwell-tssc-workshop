@@ -23,7 +23,7 @@ Read [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) and [README.md](./README.md) b
 | AgnosticV | Document drafts in-repo; do not invent catalog IDs—use `published.lightwell-tssc-workshop.prod` |
 | OCP target | OpenShift 4.20-class CNV pool; multi-node sizing validated in `agnosticv/README.md` (1×16/32 CP + 2×16/64 workers) for RHDH + RHTAS + RHTPA + RHACS + Pipelines |
 | Primary app | Spring Boot / Java 17 / Maven PoC with dual LWN streams (Modules 1–6); Parasol optional |
-| Python | Post-Java critical path Modules 7–9 (FastAPI, epic #144); design for Remediated PyPI but **seed/gate** — do not block the Java catalog if live remediated is unavailable |
+| Python | Critical path Modules 7–9 (FastAPI, epic #144); **always** enable Remediated PyPI (`channels.pypiRemediated.enabled=true`) with seeded marker — this catalog is Java **and** Python |
 
 ### Component ownership (do not collapse)
 
@@ -83,7 +83,7 @@ When adding a new learner application source that currently lives at `/some/inne
 - Java remediated: `https://packages.redhat.com/lightwell/java/remediated`
 - Java OSV remediated: `https://packages.redhat.com/lightwell/osv/java/remediated`
 - Python / PyPI validated: `https://packages.redhat.com/lightwell/python/validated` (pip simple: `…/simple`)
-- Python / PyPI remediated: `https://packages.redhat.com/lightwell/python/remediated` (pip simple: `…/simple`; gate via `channels.pypiRemediated.enabled` when live unavailable — see [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145))
+- Python / PyPI remediated: `https://packages.redhat.com/lightwell/python/remediated` (pip simple: `…/simple`; this workshop **requires** `channels.pypiRemediated.enabled=true` and seeds a `.rhlw-*` marker — see [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145))
 - Console: `https://console.redhat.com/lightwell`
 
 ## Coding standards
@@ -106,7 +106,7 @@ When adding a new learner application source that currently lives at `/some/inne
 
 ## Lab / Showroom content rules
 
-- Modules must teach: (1) validated vs remediated, (2) enterprise Maven/proxy setup, (3) OSV → `.rhlw-*` pin + source diff, (4) SBOM → RHTPA, (5) pipeline/signing/policy/GitOps; then Modules 7–9 for the Python parallel (PyPI Validated, remediated-when-available, SPDX/SBOM, pipeline/GitOps — epic #144).
+- Modules must teach: (1) validated vs remediated, (2) enterprise Maven/proxy setup, (3) OSV → `.rhlw-*` pin + source diff, (4) SBOM → RHTPA, (5) pipeline/signing/policy/GitOps; then Modules 7–9 for the Python parallel (PyPI Validated, Remediated pin, SPDX/SBOM, pipeline/GitOps — epic #144). Catalog definition is **Java and Python** (complete 1–6, then 7–9).
 - Prefer deterministic seeded artifacts when live LWN membership is unavailable in RHDP.
 - Prefer copy-pasteable `oc` / `tkn` / `mvn` / `pip` / `syft` paths that match deployed chart names and namespaces.
 - **Learner remotes are Gitea** — do not document GitHub clone/fork/push for student app labs; use `demo-userinfo-gitea` and path-isolated templates → learner orgs (see **Learner Git** above). Never stage Module 2–9 PoC work from a `git clone` of this monorepo; use Gitea `lw-<username>/…` remotes with build metadata at clone root (`pom.xml` or `requirements.txt` / `pyproject.toml`).

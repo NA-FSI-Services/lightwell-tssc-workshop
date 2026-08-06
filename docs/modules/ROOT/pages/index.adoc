@@ -5,14 +5,18 @@ Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwel
 
 == What you will learn
 
-. *Validated* vs *Remediated* repository tiers (exact-version `.rhlw-*` pins; bit-for-bit Validated vs security-only Remediated)
-. Enterprise Maven consumption via an artifact manager proxy (not Satellite)
-. *Red Hat Developer Hub (RHDH)* Software Template scaffold into in-cluster Gitea
+. *Validated* vs *Remediated* repository tiers for **Java (Maven)** and **Python (PyPI)** (exact-version `.rhlw-*` pins)
+. Enterprise Maven and pip consumption via an artifact manager proxy (not Satellite)
+. *Red Hat Developer Hub (RHDH)* Software Template scaffold into in-cluster Gitea (Java and Python)
 . *Open Source Vulnerabilities (OSV)*–driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)
 . *Software Bill of Materials (SBOM)* / *Vulnerability Exploitability eXchange (VEX)* analysis with *Red Hat Trusted Profile Analyzer (RHTPA)* (optional *Red Hat Dependency Analytics (RHDA)* on a laptop)
 . Pipeline signing (*Red Hat Trusted Artifact Signer (RHTAS)*), policy gates (*Red Hat Advanced Cluster Security (RHACS)*), and GitOps promotion
 
 == Lab modules
+
+This workshop is **Java and Python** from the catalog definition. Complete Modules 1–6 first, then Modules 7–9.
+
+=== Java track
 
 |===
 |Module |Focus
@@ -36,11 +40,7 @@ Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwel
 |Keyless signing (RHTAS), RHACS gates, Argo CD promotion
 |===
 
-Modules 1–6 are the Java golden path and cover the FAQ concept set (plus the concepts appendix).
-
-=== Python track (extension)
-
-After Modules 1–6, an optional **Python track** parallels Validated consumption, remediations / SBOM, and pipeline / GitOps with *pip* and a FastAPI sample:
+=== Python track
 
 |===
 |Module |Focus
@@ -49,7 +49,7 @@ After Modules 1–6, an optional **Python track** parallels Validated consumptio
 |Nexus / Lightwell PyPI Validated; Gitea seed; RHDH `lightwell-python-service`
 
 |xref:module-08-python-sbom.adoc[8 — Remediated PyPI + SBOM]
-|Remediated-when-available + SPDX / SBOM → RHTPA
+|Remediated PyPI pin + SPDX / SBOM → RHTPA
 
 |xref:module-09-python-pipeline.adoc[9 — Python pipeline + GitOps]
 |Sign, policy, GitOps promote for FastAPI (*lab steps coming soon*)
@@ -63,6 +63,6 @@ After Modules 1–6, an optional **Python track** parallels Validated consumptio
 * Canonical console (membership / browsing): {lightwell-console-url}
 * RHDP claim emails / portal expose `showroom_url` from ConfigMap `demo-userinfo-showroom` (namespace `showroom`).
 
-Start with xref:module-01-overview.adoc[Module 1] and continue through xref:module-06-pipeline.adoc[Module 6] using the left-hand nav. Then optionally continue with the Python track (Modules 7–9).
+Start with xref:module-01-overview.adoc[Module 1], finish the Java track through xref:module-06-pipeline.adoc[Module 6], then continue with the Python track (Modules 7–9).
 
-Optional appendices (not required for the core path): xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:appendix-acronyms.adoc[Acronym glossary], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].
+Optional appendices: xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:appendix-acronyms.adoc[Acronym glossary], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].

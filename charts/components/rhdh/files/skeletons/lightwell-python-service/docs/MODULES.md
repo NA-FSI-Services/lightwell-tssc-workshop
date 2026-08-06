@@ -7,7 +7,7 @@ Software Template `lightwell-python-service` publishes to Gitea `fastapi-lw-poc`
 | Module | Focus | Assets here |
 |--------|--------|-------------|
 | 7 | Scaffold + PyPI Validated | `requirements.txt`, `pip.conf` |
-| 8 | Remediated PyPI (when gated on) | `pip-remediated.conf`, `lw-workshop-pypi==*.rhlw-*` |
+| 8 | Remediated PyPI (always on) | `pip-remediated.conf`, `lw-workshop-pypi==*.rhlw-*` |
 | 9 | Pipeline / signing / GitOps | `.tekton/` (dep-gate → BuildConfig → ACS → SBOM → cosign) |
 
 Clone URL: ConfigMap `demo-userinfo-gitea` → `student_python_repo_url` (not GitHub).

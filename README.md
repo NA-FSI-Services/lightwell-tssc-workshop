@@ -2,7 +2,7 @@
 
 RHDP catalog content for a hands-on **Lightwell Network + Trusted Software Supply Chain** workshop on [demo.redhat.com](https://demo.redhat.com).
 
-Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven and (post-Java) **PyPI** consumption via an enterprise artifact manager, OSV-driven exact-version pins (`.rhlw-*`), SBOM analysis, and TSSC pipeline controls. Java Modules 1–6 are the golden path; Modules 7–9 add a condensed FastAPI / Python track (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)).
+Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, **Maven and PyPI** consumption via an enterprise artifact manager, OSV-driven exact-version pins (`.rhlw-*`), SBOM analysis, and TSSC pipeline controls. This catalog is **Java and Python**: Modules 1–6 (Java), then Modules 7–9 (FastAPI / PyPI — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)). PyPI Remediated is always enabled (seeded `.rhlw-*` marker).
 
 ## Purpose
 
@@ -37,7 +37,7 @@ This Git repo                         OpenShift (RHDP / CNV)
 
 ## Workshop narrative (lab modules)
 
-**Java (complete first):**
+**Java (Modules 1–6 — complete first):**
 
 1. Lightwell Network overview (Validated vs Remediated)
 2. Enterprise integration: Maven settings and artifact-manager proxy (+ Gitea learner setup)
@@ -46,13 +46,11 @@ This Git repo                         OpenShift (RHDP / CNV)
 5. SBOM generation and analysis with RHTPA ([RHDA shift-left](./docs/rhda-rhtpa-shift-left.md) on laptop; Showroom uses TPA UI/`syft`)
 6. Pipeline signing, RHACS policy enforcement, and GitOps promotion
 
-**Python (after Java; Modules 7–9 — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)):**
+**Python (Modules 7–9 — required track; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)):**
 
 7. PyPI Validated + FastAPI sample / Gitea seed
-8. Remediated-when-available + SPDX/SBOM → RHTPA (seed/gate if live Remediated PyPI unavailable)
+8. Remediated PyPI pin + SPDX/SBOM → RHTPA (`channels.pypiRemediated.enabled=true` always)
 9. Pipeline signing, policy, and GitOps promote for the Python path
-
-Java Modules 1–6 remain sufficient for catalog acceptance until the Python track is enabled.
 
 ## Repository layout
 

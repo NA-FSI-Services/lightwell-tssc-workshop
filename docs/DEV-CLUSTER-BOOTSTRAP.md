@@ -149,7 +149,7 @@ Expect `mode=seeded`, a `fixed: 5.3.18.rhlw-00003` event, and the Nexus/Showroom
 | Control plane | 1 | 16 | 32 GB |
 | Workers | 2 | 16 | 64 GB each |
 
-~**32 vCPU / ~128 GiB** aggregate **worker** capacity before enabling RHACS / RHTPA / RHDH / heavy Tekton. Scale via the claim’s AWS console when provided. Avoid SNO for full Modules 1–6 (and 7–9 when the Python track is enabled).
+~**32 vCPU / ~128 GiB** aggregate **worker** capacity before enabling RHACS / RHTPA / RHDH / heavy Tekton. Scale via the claim’s AWS console when provided. Avoid SNO for full Modules 1–9 (Java + Python catalog).
 
 ## Prerequisites when ordering
 
@@ -194,7 +194,7 @@ If Machine API is unavailable, scale workers via `AWS_CONSOLE_URL` toward the si
 - [ ] Module 2 Maven Validated / Remediated against workshop Nexus
 - [ ] Module 4 OSV → `.rhlw-*` path
 - [ ] Modules 5–6 only after `rhtpa` / `rhacs` / `rhtas` Healthy
-- [ ] Modules 7–9 only after PyPI seed (#145) + FastAPI chart (#146) + Gitea Python templates (#147) — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)
+- [ ] Modules 7–9 are part of the Java+Python catalog (PyPI seed #145, FastAPI #146, Gitea Python templates #147 — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)); keep `channels.pypiRemediated.enabled=true`
 
 ### Showroom-only fallback
 

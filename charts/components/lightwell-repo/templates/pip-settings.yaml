@@ -1,7 +1,7 @@
 {{- if and .Values.lightwellRepo.enabled .Values.pipSettings.enabled }}
 {{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
 ---
-# pip.conf — Lightwell Python Validated (+ gated Remediated) index URLs (Modules 7–9).
+# pip.conf — Lightwell Python Validated + Remediated index URLs (Modules 7–9).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -27,7 +27,7 @@ data:
     index-url = {{ $nexusUrl }}/repository/{{ .Values.channels.pypiValidated.name }}/simple
     trusted-host = {{ include "lightwell-repo.nexusHost" . }}
   pip-remediated.conf: |
-    # Learner UX (Remediated — Module 8 when channels.pypiRemediated.enabled):
+    # Learner UX (Remediated — Module 8; channels.pypiRemediated.enabled must be true):
     #   PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install {{ .Values.pypiSeed.remediatedPackage }}=={{ .Values.pypiSeed.remediatedVersion }}
     [global]
     index-url = {{ $nexusUrl }}/repository/{{ .Values.channels.pypiRemediated.name }}/simple
@@ -39,7 +39,7 @@ data:
       {{ $nexusUrl }}/repository/{{ .Values.channels.pypiValidated.name }}/simple
       Seeded package: {{ .Values.pypiSeed.package }}=={{ .Values.pypiSeed.version }}
 
-    Remediated (gated — channels.pypiRemediated.enabled={{ .Values.channels.pypiRemediated.enabled }}):
+    Remediated (required — channels.pypiRemediated.enabled={{ .Values.channels.pypiRemediated.enabled }}):
       {{ $nexusUrl }}/repository/{{ .Values.channels.pypiRemediated.name }}/simple
       Seeded marker: {{ .Values.pypiSeed.remediatedPackage }}=={{ .Values.pypiSeed.remediatedVersion }}
 
@@ -51,4 +51,5 @@ data:
 
     Tier names are only Validated and Remediated (no fictional channel aliases).
     Remediated versions use the .rhlw-0000X suffix (e.g. {{ .Values.pypiSeed.remediatedVersion }}).
+    This workshop requires channels.pypiRemediated.enabled=true (Java + Python catalog).
 {{- end }}

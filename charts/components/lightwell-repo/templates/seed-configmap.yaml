@@ -53,10 +53,10 @@ data:
       {{ .Values.pypiSeed.package }}=={{ .Values.pypiSeed.version }}
       repo: {{ .Values.channels.pypiValidated.name }}
 
-    PyPI Remediated (gated — channels.pypiRemediated.enabled={{ .Values.channels.pypiRemediated.enabled }}):
+    PyPI Remediated (required — channels.pypiRemediated.enabled={{ .Values.channels.pypiRemediated.enabled }}):
       {{ .Values.pypiSeed.remediatedPackage }}=={{ .Values.pypiSeed.remediatedVersion }}
       repo: {{ .Values.channels.pypiRemediated.name }}
 
     Live proxy mode uses packages.redhat.com remotes with LW_USERNAME / LW_PASSWORD instead.
-    Set channels.pypiRemediated.enabled=false if live Remediated PyPI is unavailable.
+    Keep channels.pypiRemediated.enabled=true for this Java+Python workshop (seeded marker).
 {{- end }}
