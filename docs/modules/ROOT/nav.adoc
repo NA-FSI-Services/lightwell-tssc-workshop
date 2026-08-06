@@ -1,6 +1,6 @@
 * xref:index.adoc[Workshop home]
 
-.Labs
+.Labs (Java track)
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]
 * xref:module-03-scaffold.adoc[Module 3 — Scaffold with Developer Hub]
@@ -8,7 +8,7 @@
 * xref:module-05-sbom.adoc[Module 5 — SBOM + RHTPA]
 * xref:module-06-pipeline.adoc[Module 6 — Sign, policy, GitOps]
 
-.Python track (after Modules 1–6)
+.Python track
 * xref:module-07-pypi.adoc[Module 7 — PyPI Validated + FastAPI]
 * xref:module-08-python-sbom.adoc[Module 8 — Remediated PyPI + SBOM (coming soon)]
 * xref:module-09-python-pipeline.adoc[Module 9 — Python pipeline + GitOps (coming soon)]
