@@ -18,7 +18,7 @@ By the end of this module, you will be able to:
 * Use `mvn -s settings.xml -Plightwell-validated …` (and Remediated pins) against the workshop Nexus
 * Explain how `LW_USERNAME` / `LW_PASSWORD` (and *Red Hat Demo Platform (RHDP)* secret injection) supply auth without committing secrets
 * Locate the Spring Boot *proof-of-concept (PoC)* sources and run Maven from the Showroom terminal container
-* Create your Gitea organization and seed lab repositories from workshop templates (not GitHub)
+* Create your Gitea organization and seed lab repositories from workshop templates
 
 == Enterprise consumption patterns
 
@@ -392,7 +392,7 @@ xref:module-03-scaffold.adoc[Module 3] answers the next enterprise question: *ho
 * Proxied PoV is the default enterprise story; air-gap uses mirror/proxy, not Satellite
 * Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
 * Source jars accompany binaries; application-context testing stays with the consumer
-* Student remotes are Gitea under **your** org (`student_repo_url` from `demo-userinfo-gitea`) — never the workshop GitHub monorepo
+* Student remotes are Gitea under **your** org (`student_repo_url` from `demo-userinfo-gitea`)
 
 **Next**
 

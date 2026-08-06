@@ -20,7 +20,7 @@ By the end of this module, you will be able to:
 
 * Open Developer Hub from ConfigMap `demo-userinfo-rhdh` (`rhdh_url`)
 * Create a service from Software Template `lightwell-java-service`
-* Publish the scaffold to in-cluster *Gitea* under *your* org only (never GitHub / never this workshop monorepo)
+* Publish the scaffold to in-cluster *Gitea* under *your* org (`lw-@@LW_USER@@`)
 * Confirm `pom.xml`, `settings.xml`, `tools/osv-eval/`, and `.tekton/` at the Gitea repo root
 * Re-run Maven Validated and Remediated resolution/consumption proofs on the scaffold
 
@@ -211,7 +211,7 @@ Teaching proofs match Module 2: repository ids `lightwell-java-validated` / `lig
 
 **Key takeaways**
 
-* Golden path is RHDH → *your* Gitea org (`lw-<username>`); GitHub is not a learner remote
+* Golden path is RHDH → *your* Gitea org (`lw-<username>`)
 * `publish:gitea` requires an Organization — that is why Module 2 has you create `lw-<username>`
 * `repoName` stays `spring-boot-lw-poc` so `student_repo_url` and Modules 4–6 stay stable
 * Scaffold parity includes OSV helpers and Tekton overlays needed after this module

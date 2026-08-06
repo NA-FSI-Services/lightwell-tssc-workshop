@@ -190,11 +190,6 @@ curl -sk -o /dev/null -w "%{http_code}\n" \
 
 Expect HTTP `200`. Open `lw-@@LW_USER@@/fastapi-lw-poc` in Gitea and confirm `requirements.txt` (and `pip.conf`) are at the **repository root**—not nested under `charts/components/...`.
 
-[IMPORTANT]
-====
-Do *not* clone the workshop GitHub monorepo for this lab. Student remotes are Gitea only (`student_python_repo_url`).
-====
-
 == Exercise 3 — Validated install from the seeded app
 
 [source,bash,role=execute]
@@ -363,7 +358,7 @@ After Exercise 6, Modules 8–9 continue from the *scaffolded* tree at `student_
 
 * Learner UX: `PIP_CONFIG_FILE=…/pip.conf python3 -m pip install -r requirements.txt` from the Gitea `lw-<user>/fastapi-lw-poc` clone
 * Python remotes are parallel keys (`student_python_*`) — keep the Java `spring-boot-lw-poc` remote intact
-* Student remotes are Gitea under **your** org — never the workshop GitHub monorepo
+* Student remotes are Gitea under **your** org (`student_python_repo_url`)
 * Remediated / `.rhlw-*` for PyPI is Module 8 (channel always on for this workshop)
 
 **Next**

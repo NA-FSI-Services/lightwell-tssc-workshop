@@ -5,44 +5,663 @@
 
 include::partial$student-username-form.adoc[]
 
-This module finishes the **Python track** after xref:module-08-python-sbom.adoc[Module 8]. Lab exercises are not published yet—use this page as a forward look.
+Modules 7–8 wired PyPI Validated / Remediated, the FastAPI tree in *your* Gitea org, and SPDX / CycloneDX into RHTPA. This module closes the Python trusted supply-chain loop—parallel to xref:module-06-pipeline.adoc[Module 6] for Java: Tekton policy gates that *fail* without the Remediated marker pin and *pass* after it is restored, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
+
+Lightwell and *Advanced Cluster Security (ACS)* stay complementary: Lightwell remediates (or, in this workshop, seeds a demonstrable `.rhlw-*` marker); ACS and the Python dep-gate / image-check Tasks *enforce* policy before promotion.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Run the Python policy Pipeline and explain the fail-then-pass `.rhlw-*` narrative on `requirements.txt`
+* Relate RHACS `roxctl image check` to BUILD policy enforcement on the FastAPI image path
+* Sign and verify an image with cosign keyless (Fulcio / Rekor / *The Update Framework (TUF)*)
+* Promote a signed digest via your Python GitOps remote and confirm Argo CD sync
+
+== Prerequisites
+
+* xref:module-07-pypi.adoc[Module 7] — scaffolded `lightwell-python-service` tree at `student_python_repo_url`
+* xref:module-08-python-sbom.adoc[Module 8] — Remediated marker pin story (`lw-workshop-pypi==1.0.0.rhlw-00001`)
+* Keep `gitops-fastapi-lw-poc` (`student_python_gitops_repo_url`) — do not delete it when re-scaffolding the app repo
+* Charts synced (or available): `pipelines` (OpenShift Pipelines / Tekton CRDs), `gitea` (student Git), `rhacs` (namespace `stackrox`), `rhtas` (`trusted-artifact-signer`), `root-app` / Argo CD
+* Job `rhacs-ci-token-mint` Complete (fills `rhacs-ci-secrets` for `acs-image-check`) — see Exercise 2
+
+[TIP]
+====
+*Instructor:* Prefer continuing from the Module 7 scaffold / Module 8 tree. If a learner’s `.tekton/` tree is missing or stale, they can re-scaffold with RHDH `lightwell-python-service` (same publish target as Module 7 Exercise 5) *or* re-run the Python seed helper into empty remotes—then return here. Keep learners on their Gitea remotes.
+====
+
+== Your student Git repositories
+
+Pipeline labs clone **your** FastAPI application repository on in-cluster Gitea (`student_python_repo_url` from ConfigMap `demo-userinfo-gitea`). GitOps promote uses the companion remote (`student_python_gitops_repo_url`).
+
+[source,bash,role=execute]
+----
+# Discover your learner Python remotes (ConfigMap demo-userinfo-gitea)
+oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.gitea_url}{"\n"}{.data.student_python_repo_url}{"\n"}{.data.student_python_gitops_repo_url}{"\n"}{.data.student_username}{"\n"}'
+
+export STUDENT_PYTHON_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_repo_url}')"
+export STUDENT_PYTHON_REPO_REV="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_repo_revision}')"
+export STUDENT_PYTHON_REQUIREMENTS_PATH="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_requirements_path}')"
+echo "STUDENT_PYTHON_REPO_URL=${STUDENT_PYTHON_REPO_URL}"
+echo "STUDENT_PYTHON_REQUIREMENTS_PATH=${STUDENT_PYTHON_REQUIREMENTS_PATH}"
+----
+
+Sign in at `gitea_url` with `student_username` / `student_password` from the same ConfigMap when you need the web UI or `git push` credentials. Always use **your** username’s Python URLs (`student_python_repo_url` / `student_python_gitops_repo_url`)—do not overwrite the Java `student_repo_url` remote.
+
+== Architecture of the lab Pipeline
+
+Two related Pipeline definitions exist:
+
+[cols="1,2,2",options="header"]
+|===
+|Artifact |Namespace |Focus
+
+|`lightwell-python-build-policy-gate`
+|`stackrox` (RHACS chart)
+|clone, then `lightwell-python-dep-gate`, `acs-image-check`, `syft-sbom-rhtpa`
+
+|`fastapi-lw-poc-build-sign` (Gitea `.tekton` / RHDH scaffold)
+|Learner lab NS
+|clone → python-dep-gate → OpenShift BuildConfig → ACS → SBOM → `cosign sign` (RHTAS keyless)
+|===
+
+This module uses the *policy gate* Pipeline for the deterministic fail/pass lab, then covers RHTAS signing and Argo CD promotion on the FastAPI path.
+
+Lab instructions also live in ConfigMap `rhacs-lightwell-python-policy-lab`:
+
+[source,bash,role=execute]
+----
+oc -n stackrox get configmap rhacs-lightwell-python-policy-lab -o yaml
+oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
+  -o jsonpath='{.data.watched_package}{" -> "}{.data.remediated_version}{"\n"}'
+----
+
+Expected pin for the workshop marker: `lw-workshop-pypi==1.0.0.rhlw-00001`.
 
 [NOTE]
 ====
-*Coming soon.* Hands-on steps for FastAPI build / sign / policy / GitOps will appear here. Until then, treat xref:module-06-pipeline.adoc[Module 6] as the primary pipeline and promote practice path (Java `spring-boot-lw-poc` + `gitops-spring-boot-lw-poc`).
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-09-pipeline-overview.png`
+
+Overview of the FastAPI policy / build-sign / promote path (Validated → Remediated pin → Tekton gates → RHTAS → GitOps). Label tiers *Validated* / *Remediated* only; show `.rhlw-*` on the marker package.
+// Asset backlog: workshop issue #154
+// When ready: image::module-09-pipeline-overview.png[Python pipeline overview fail-pass-sign-promote,width=700]
 ====
 
-== What this module will cover
+== Exercise 1: Failure path (marker pin absent)
 
-* Running the learner Tekton path for `fastapi-lw-poc`
-* Signing and policy gates on the Python supply chain
-* Promoting an image digest via your Python GitOps remote and Argo CD
+Module 8 left `lw-workshop-pypi==1.0.0.rhlw-00001` in `requirements.txt`. For the fail narrative, temporarily *remove* that line, push to Gitea, then run the policy Pipeline with `dep-gate-mode=require-remediated`. Task `lightwell-python-dep-gate` must fail.
 
-== Prerequisites (when labs publish)
+. Confirm Pipelines (Tekton) and RHACS Python Tasks/Pipeline exist:
++
+[source,bash,role=execute]
+----
+oc get crd pipelines.tekton.dev
+oc -n stackrox get tasks lightwell-python-dep-gate acs-image-check syft-sbom-rhtpa
+oc -n stackrox get pipeline lightwell-python-build-policy-gate
+----
++
+Tekton CRDs come from chart `pipelines` (OpenShift Pipelines Operator via GitOps)—not a manual OperatorHub install for learners.
 
-* Complete xref:module-07-pypi.adoc[Module 7] and xref:module-08-python-sbom.adoc[Module 8]
-* Keep `gitops-fastapi-lw-poc` (`student_python_gitops_repo_url`) — do not delete it when re-scaffolding the app repo
+. Clone **your** FastAPI repo, remove the Remediated marker line from `requirements.txt`, commit, and push:
++
+[TIP]
+====
+Showroom `/terminal/` has no global git `user.name` / `user.email`. The block below sets them *locally* for this clone. If a prior `git commit` failed with “Author identity unknown”, run the `git config` lines, then commit and push again.
+====
++
+[source,bash,role=execute]
+----
+: "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
+export STUDENT_USER='@@LW_USER@@'
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+
+rm -rf /tmp/fastapi-lw-poc
+git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${STUDENT_PYTHON_REPO_URL#https://}" /tmp/fastapi-lw-poc
+cd /tmp/fastapi-lw-poc
+
+# Remove the Module 8 marker pin for the fail path (keep other requirements)
+grep -v '^lw-workshop-pypi==' requirements.txt > /tmp/requirements-fail.txt
+mv /tmp/requirements-fail.txt requirements.txt
+grep -E 'lw-workshop-pypi|httpx|fastapi' requirements.txt || true
+
+git config user.email "${STUDENT_USER}@workshop.local"
+git config user.name "${STUDENT_USER}"
+git add requirements.txt
+git commit -m "Lab: remove lw-workshop-pypi pin for policy fail path"
+git push origin main
+----
+
+. Extract the sample fail PipelineRun from the lab ConfigMap, point `repo-url` at **your** remote, and create it:
++
+[source,bash,role=execute]
+----
+: "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
+
+oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
+  -o jsonpath='{.data.fail_pipelinerun\.yaml}' > /tmp/lightwell-python-policy-fail.yaml
+
+# Always use your Gitea FastAPI remote (never a hardcoded claim user)
+python3 - <<'PY'
+from pathlib import Path
+import os, re
+p = Path("/tmp/lightwell-python-policy-fail.yaml")
+text = p.read_text()
+url = os.environ["STUDENT_PYTHON_REPO_URL"]
+text = re.sub(
+    r"(?m)(^\s+- name: repo-url\s*\n\s+value:\s*).*$",
+    r'\1"' + url + '"',
+    text,
+    count=1,
+)
+p.write_text(text)
+print("repo-url set to", url)
+PY
+
+grep -E 'requirements-path|dep-gate|repo-url' /tmp/lightwell-python-policy-fail.yaml
+oc -n stackrox create -f /tmp/lightwell-python-policy-fail.yaml
+----
+
+. Watch until `lightwell-python-dep-gate` fails:
++
+[source,bash,role=execute]
+----
+tkn -n stackrox pipelinerun list
+# Or:
+oc -n stackrox get pipelineruns --sort-by=.metadata.creationTimestamp | tail -5
+
+PR=$(oc -n stackrox get pipelinerun -o name --sort-by=.metadata.creationTimestamp | tail -1)
+tkn -n stackrox pipelinerun logs "$(basename "$PR")" -f
+----
+
+. Expected log themes:
+* Failure / remediation guidance for missing `lw-workshop-pypi` `.rhlw-*` pin
+* Required version mentions `1.0.0.rhlw-00001`
+* Result `gate-status=failed`
+
+[TIP]
+====
+If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-python-dep-gate`.
+====
+
+[TIP]
+====
+*Instructor:* Contrast with Module 6: Java fails on a real library coordinate (`commons-lang3`); Python fails on the workshop marker `lw-workshop-pypi`. Keep that distinction explicit so students do not treat the marker as a production FastAPI dependency.
+====
+
+== Exercise 2: Success path (remediated `.rhlw-*` pin)
+
+. Restore the Module 8 pin in **your** student repository, commit, and push:
++
+[source,bash,role=execute]
+----
+: "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
+export STUDENT_USER='@@LW_USER@@'
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+
+cd /tmp/fastapi-lw-poc
+# Ensure the Remediated marker is present (Module 8 pin)
+grep -q '^lw-workshop-pypi==1\.0\.0\.rhlw-00001' requirements.txt || \
+  echo 'lw-workshop-pypi==1.0.0.rhlw-00001' >> requirements.txt
+grep '^lw-workshop-pypi==' requirements.txt
+
+git config user.email "${STUDENT_USER}@workshop.local"
+git config user.name "${STUDENT_USER}"
+git add requirements.txt
+git commit -m "Pin lw-workshop-pypi to remediated 1.0.0.rhlw-00001" || true
+git push origin main
+----
+
+. Create a success PipelineRun against **your** student remote (keep `dep-gate-mode=require-remediated`):
++
+[source,bash,role=execute]
+----
+: "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
+: "${STUDENT_PYTHON_REPO_REV:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_revision}')}"
+: "${STUDENT_PYTHON_REQUIREMENTS_PATH:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_requirements_path}')}"
+
+oc -n stackrox create -f - <<EOF
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: lightwell-python-policy-pass-
+  namespace: stackrox
+spec:
+  pipelineRef:
+    name: lightwell-python-build-policy-gate
+  params:
+    - name: repo-url
+      value: ${STUDENT_PYTHON_REPO_URL}
+    - name: revision
+      value: ${STUDENT_PYTHON_REPO_REV}
+    - name: image
+      value: quay.io/centos/centos:stream9
+    - name: dep-gate-mode
+      value: require-remediated
+    - name: requirements-path
+      value: ${STUDENT_PYTHON_REQUIREMENTS_PATH}
+    - name: rhtpa-url
+      value: ""
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+    - name: sbom
+      emptyDir: {}
+EOF
+----
++
+[IMPORTANT]
+====
+Push the remediated pin to **your** Gitea FastAPI repository (`student_python_repo_url`) before creating the pass PipelineRun. Set PipelineRun `repo-url` to that same URL.
+====
+
+. Verify results:
++
+[source,bash,role=execute]
+----
+oc -n stackrox get pipelinerun | egrep 'lightwell-python-policy|NAME'
+
+# Inspect Task results when complete:
+oc -n stackrox get taskrun -l tekton.dev/pipelineTask=lightwell-python-dep-gate \
+  -o jsonpath='{range .items[-1:]}{.metadata.name}{" gate-status="}{.status.results[?(@.name=="gate-status")].value}{"\n"}{end}'
+----
+
+. Expected: `gate-status=passed`, then `acs-image-check` and `syft-sbom-rhtpa` continue.
+
+=== RHACS image check
+
+GitOps Job `rhacs-ci-token-mint` mints a Central **Continuous Integration** API token into Secret
+`rhacs-ci-secrets` after Central is Ready (never commit the token). Confirm before expecting a
+real `roxctl` evaluation:
+
+[source,bash,role=execute]
+----
+oc -n stackrox get job rhacs-ci-token-mint
+# Non-zero length means the token key is present (do not print the token)
+oc -n stackrox get secret rhacs-ci-secrets -o jsonpath='{.data.rox-api-token}' | wc -c
+----
+
+If the Job is missing or the secret has no token (rare on a healthy claim), use the same cluster-admin
+fallback documented in xref:module-06-pipeline.adoc[Module 6 Exercise 2] (`./scripts/dev-cluster-rhacs-ci-token.sh` or Central UI → **Platform Configuration → Integrations → API Tokens**).
+
+With the token present, re-run the PipelineRun and confirm `acs-image-check` `check-status` is
+`passed` or `failed` (not `skipped`). Workshop default `fail-on-skipped=false` still soft-skips
+if the secret is empty so the dep-gate narrative can continue—treat a skip as a provisioning gap,
+not the happy path.
+
+[TIP]
+====
+On a *fresh* claim, RHACS Scanner V4 may still be loading its vulnerability store when you create the
+pass PipelineRun. `acs-image-check` can then fail with `matcher is not initialized` / `initial load
+… in progress` even though the CI token is present and `lightwell-python-dep-gate` already passed.
+That is a timing gap, not a bad pin.
+
+Wait a few minutes (or until Central / Scanner pods look Ready), then re-create the pass PipelineRun.
+Treat `gate-status=passed` as the Exercise 2 teaching beat; expect a clean ACS result on the
+Exercise 3 FastAPI image once the matcher is ready.
+====
+
+=== SBOM handoff
+
+With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtpa` uploads CycloneDX. Otherwise upload the workspace SBOM via the RHTPA UI (Module 8).
+
+[TIP]
+====
+*Instructor:* Module 8 already showed manual SPDX + CycloneDX. Here the pipeline Task automates CycloneDX generate-and-upload—same handoff as Java Module 6.
+====
+
+== Exercise 3: Keyless sign and verify (RHTAS)
+
+RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived private keys in the workshop.
+
+This exercise uses your **Gitea** FastAPI repository (path-isolated app + `.tekton/` overlay) from `student_python_repo_url`. Image build uses an OpenShift **BuildConfig** (Dockerfile multi-stage; `pip install` inside the image build). Tekton runs python-dep-gate → build → ACS → SBOM → cosign. The image stays in your **learner lab namespace** — Exercise 4 promotes it into your product namespace via the Gitea **Python gitops** remote.
+
+IMPORTANT: Needs OpenShift Pipelines from chart `pipelines` (`git-clone` and Tekton CRDs), RHACS Tasks in `stackrox`, Job `rhacs-ci-token-mint` for a real `acs-image-check`, and pull access to `registry.redhat.io/rhtas/cosign-rhel9` for the sign step. Soft-skip of `acs-image-check` only if the CI token Secret is empty — confirm the Job first.
+
+. Inspect the Securesign instance and note Fulcio/Rekor/TUF Routes (also in userinfo ConfigMap `demo-userinfo-rhtas`):
++
+[source,bash,role=execute]
+----
+oc -n trusted-artifact-signer get securesign
+oc -n trusted-artifact-signer get routes
+oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o yaml
+----
+
+. Create (or select) a learner lab namespace and clone **your** Gitea FastAPI repo:
++
+[source,bash,role=execute]
+----
+export LAB_NS=student-lab
+oc new-project "${LAB_NS}" 2>/dev/null || oc project "${LAB_NS}"
+
+export STUDENT_PYTHON_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_repo_url}')"
+export STUDENT_PYTHON_REPO_REV="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_repo_revision}')"
+rm -rf /tmp/fastapi-lw-poc
+git clone "${STUDENT_PYTHON_REPO_URL}" /tmp/fastapi-lw-poc
+cd /tmp/fastapi-lw-poc
+git checkout "${STUDENT_PYTHON_REPO_REV}" 2>/dev/null || true
+----
++
+Before the PipelineRun, ensure `requirements.txt` includes `lw-workshop-pypi==1.0.0.rhlw-00001` so `lightwell-python-dep-gate` passes (same as Exercise 2). Commit and push to Gitea if you still have the fail-path tree from Exercise 1.
+
+. Link the cluster pull secret to the `pipeline` SA (required for `registry.redhat.io/rhtas/cosign-rhel9`):
++
+[source,bash,role=execute]
+----
+# Common on RHDP / OpenShift; adjust secret name if your claim differs
+PULL_SECRET="$(oc -n "${LAB_NS}" get secrets -o name | grep -E 'pull-secret|default-dockercfg' | head -1 | sed 's|.*/||')"
+# Prefer the cluster global pull secret when present:
+oc get secret pull-secret -n openshift-config -o jsonpath='{.data.\.dockerconfigjson}' 2>/dev/null | base64 -d >/tmp/pull.json && \
+  oc -n "${LAB_NS}" create secret generic rh-registry-pull \
+    --from-file=.dockerconfigjson=/tmp/pull.json \
+    --type=kubernetes.io/dockerconfigjson \
+    --dry-run=client -o yaml | oc apply -f - && \
+  rm -f /tmp/pull.json
+
+oc apply -f .tekton/rbac.yaml
+oc -n "${LAB_NS}" secrets link pipeline rh-registry-pull --for=pull 2>/dev/null || \
+  oc -n "${LAB_NS}" secrets link pipeline "${PULL_SECRET}" --for=pull
+----
++
+Applying `.tekton/rbac.yaml` also creates ImageStream / BuildConfig `fastapi-lw-poc` in the lab namespace (Binary Docker build).
+
+. Apply the hybrid Pipeline and start a PipelineRun (BuildConfig Binary build — no buildah):
++
+[source,bash,role=execute]
+----
+oc apply -f .tekton/pipeline.yaml
+
+DOMAIN="$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')"
+FULCIO="https://fulcio-server-trusted-artifact-signer.${DOMAIN}"
+REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
+TUF="https://tuf-trusted-artifact-signer.${DOMAIN}"
+IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/fastapi-lw-poc:latest"
+
+# Substitute your Gitea remote + claim Routes into the example PipelineRun
+sed \
+  -e "s|STUDENT_REPO_URL_PLACEHOLDER|${STUDENT_PYTHON_REPO_URL}|" \
+  -e "s|<lab-namespace>|${LAB_NS}|g" \
+  -e "s|https://fulcio-server-trusted-artifact-signer.apps.<domain>|${FULCIO}|" \
+  -e "s|https://rekor-server-trusted-artifact-signer.apps.<domain>|${REKOR}|" \
+  -e "s|https://tuf-trusted-artifact-signer.apps.<domain>|${TUF}|" \
+  .tekton/pipelinerun.yaml | oc -n "${LAB_NS}" create -f -
+
+tkn -n "${LAB_NS}" pipelinerun list
+----
++
+Expected graph: `clone` → `lightwell-python-dep-gate` → `openshift-build` (BuildConfig) → `acs-image-check` (expect pass/fail with CI token from `rhacs-ci-token-mint`) → `syft-sbom-rhtpa` → `cosign-sign-keyless`.
+
+. After a successful `cosign-sign-keyless` task, verify the signature from Showroom (or a workstation with cosign). Stock Showroom terminals often ship *without* `cosign` on `PATH`, and `/home/lab-user` is often **not writable** (cosign needs `~/.sigstore` and `~/.docker`). Install under `/tmp` and set `HOME=/tmp/lab-home`:
++
+[source,bash,role=execute]
+----
+# Install cosign once per terminal session (Showroom-friendly; uses /tmp)
+mkdir -p /tmp/bin /tmp/lab-home
+curl -sSfL -o /tmp/bin/cosign \
+  https://github.com/sigstore/cosign/releases/download/v2.4.3/cosign-linux-amd64
+chmod +x /tmp/bin/cosign
+export PATH="/tmp/bin:$PATH"
+# Showroom /home/lab-user is often not writable — cosign needs ~/.sigstore and ~/.docker
+export HOME=/tmp/lab-home
+cosign version
+----
++
+Initialize TUF, then verify with the pipeline SA identity confirmed on claim:
++
+[source,bash,role=execute]
+----
+# Reuse writable HOME from the install step (or set again if you opened a new shell)
+mkdir -p /tmp/lab-home
+export HOME=/tmp/lab-home
+export PATH="/tmp/bin:$PATH"
+
+export IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/fastapi-lw-poc:latest"
+export TUF="https://tuf-trusted-artifact-signer.${DOMAIN}"
+export REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
+# If verifying from outside the cluster, use the exposed registry route / mirrored digest instead.
+
+cosign initialize --mirror="${TUF}" --root="${TUF}/root.json"
+
+# Registry auth for in-cluster verify (Showroom SA / pipeline token):
+cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  image-registry.openshift-image-registry.svc:5000
+
+cosign verify \
+  --rekor-url="${REKOR}" \
+  --certificate-identity-regexp="^https://kubernetes.io/namespaces/${LAB_NS}/serviceaccounts/pipeline$" \
+  --certificate-oidc-issuer="https://kubernetes.default.svc" \
+  --allow-http-registry --allow-insecure-registry \
+  "${IMAGE_URL}"
+----
++
+Expect certificate identity `https://kubernetes.io/namespaces/<lab-ns>/serviceaccounts/pipeline` with issuer `https://kubernetes.default.svc` (same RHTAS pattern as Module 6). If verify fails on another claim, capture the certificate identity from Rekor and adjust—do not invent alternate issuers without claim evidence.
+
+. Confirm the log line `Signed … (keyless / RHTAS)` on the PipelineRun:
++
+[source,bash,role=execute]
+----
+: "${LAB_NS:=student-lab}"
+
+PR="$(oc -n "${LAB_NS}" get pipelinerun \
+  --sort-by=.metadata.creationTimestamp \
+  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+  | grep 'fastapi-lw-poc-build-sign' | tail -1)"
+
+echo "PipelineRun=${PR}"
+tkn -n "${LAB_NS}" pipelinerun logs "${PR}" \
+  | grep -F 'Signed' | grep -F 'keyless / RHTAS'
+----
++
+Expect a line like `Signed image-registry…/fastapi-lw-poc:latest (keyless / RHTAS)`.
++
+If `tkn` is unavailable:
++
+[source,bash,role=execute]
+----
+oc -n "${LAB_NS}" logs "pipelinerun/${PR}" --all-containers \
+  | grep -F 'Signed' | grep -F 'keyless / RHTAS'
+----
+
+[TIP]
+====
+Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF components for RHDP email/Showroom links.
+Optional: RHDH Software Template `lightwell-python-service` can scaffold a similar `.tekton/` tree; scaffolded remotes must still use your Gitea `student_python_repo_url`.
+====
+
+== Exercise 4: GitOps promotion (Argo CD)
+
+Promotion means: tag the signed lab image into your **product** namespace, commit the image **digest** and `replicas: 1` to your **Gitea Python gitops** repo, let Argo CD sync, and confirm the Route is Healthy. You do not `oc apply` long-lived Deployment YAML by hand.
+
+[NOTE]
+====
+You have **two** Python Gitea remotes (from ConfigMap `demo-userinfo-gitea`):
+
+* `student_python_repo_url` — FastAPI application source + `.tekton/` (Exercises 1–3)
+* `student_python_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD ApplicationSet syncs this into `student_python_promote_namespace` (`lw-fastapi-<username>`)
+
+Runtime desired state for the promoted app is your Gitea Python gitops repo (`student_python_gitops_repo_url`).
+====
+
+. Discover promote coordinates from userinfo:
++
+[source,bash,role=execute]
+----
+export LAB_NS="${LAB_NS:-student-lab}"
+export PROMOTE_NS="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_promote_namespace}')"
+export GITOPS_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_gitops_repo_url}')"
+export ARGO_APP="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_argocd_app}')"
+export STUDENT_USER='@@LW_USER@@'
+export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_password}')"
+
+echo "PROMOTE_NS=${PROMOTE_NS}"
+echo "GITOPS_REPO_URL=${GITOPS_REPO_URL}"
+echo "ARGO_APP=${ARGO_APP}"
+----
+
+. Confirm the ApplicationSet child Application exists and is Synced (chart at `replicas: 0`, empty digest → Healthy without ImagePullBackOff):
++
+[source,bash,role=execute]
+----
+oc -n openshift-gitops get applications.argoproj.io "${ARGO_APP}" \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+oc -n "${PROMOTE_NS}" get imagestream,deploy,route 2>/dev/null || \
+  echo "Namespace may still be creating — wait for Argo sync after seed"
+----
+
+. Tag the signed lab image into the product ImageStream:
++
+[source,bash,role=execute]
+----
+# Requires a successful Exercise 3 build in LAB_NS
+oc tag "${LAB_NS}/fastapi-lw-poc:latest" "${PROMOTE_NS}/fastapi-lw-poc:latest"
+
+# Digest for values.yaml (keep the sha256: prefix)
+export IMAGE_DIGEST="$(oc -n "${PROMOTE_NS}" get imagestreamtag fastapi-lw-poc:latest \
+  -o jsonpath='{.image.metadata.name}')"
+echo "IMAGE_DIGEST=${IMAGE_DIGEST}"
+test -n "${IMAGE_DIGEST}" && [[ "${IMAGE_DIGEST}" == sha256:* ]]
+----
+
+. Clone your **Python gitops** Gitea repo, pin digest + scale up, commit, and push:
++
+[source,bash,role=execute]
+----
+rm -rf /tmp/gitops-fastapi-lw-poc
+git clone "${GITOPS_REPO_URL}" /tmp/gitops-fastapi-lw-poc
+cd /tmp/gitops-fastapi-lw-poc
+
+# Patch values.yaml: set image.digest and replicas: 1
+python3 - <<PY
+from pathlib import Path
+import os, re
+p = Path("values.yaml")
+text = p.read_text()
+digest = os.environ["IMAGE_DIGEST"]
+text = re.sub(r'(?m)^(\s*digest:\s*).*$', r'\1"' + digest + '"', text, count=1)
+text = re.sub(r'(?m)^replicas:\s*\d+\s*$', "replicas: 1", text, count=1)
+p.write_text(text)
+print(p.read_text().split("image:")[1][:400])
+PY
+
+git config user.email "${STUDENT_USER}@workshop.local"
+git config user.name "${STUDENT_USER}"
+git add values.yaml
+git commit -m "Promote signed FastAPI image digest and scale to 1 replica"
+# Prefer credential helper / URL from userinfo — do not commit passwords
+git push "https://${STUDENT_USER}:${STUDENT_PASS}@${GITOPS_REPO_URL#https://}" HEAD:main
+----
+
+. Wait for Argo CD auto-sync (or refresh), then verify Healthy Deployment + Route:
++
+[source,bash,role=execute]
+----
+# Force Argo to re-read the Gitea gitops tip if status looks stale after push
+oc -n openshift-gitops annotate applications.argoproj.io/${ARGO_APP} \
+  argocd.argoproj.io/refresh=hard --overwrite
+
+oc -n openshift-gitops wait --for=jsonpath='{.status.sync.status}'=Synced \
+  "applications.argoproj.io/${ARGO_APP}" --timeout=180s || true
+oc -n openshift-gitops get applications.argoproj.io "${ARGO_APP}" \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+
+# Expect replicas=1 and image …@sha256:… after the promote commit syncs
+oc -n "${PROMOTE_NS}" get deploy,pods,route
+ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route fastapi-lw-poc \
+  -o jsonpath='{.spec.host}')"
+curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
+----
+
+[NOTE]
+====
+*Image placeholder* — intended file: `docs/modules/ROOT/images/module-09-argocd-python-promote.png`
+
+Argo CD Application `lw-fastapi-<username>` Synced/Healthy after digest promote (redact claim host / account PII). Screenshot steps: OpenShift GitOps → Applications → learner Python app → Sync/Health + related resources.
+// Asset backlog: workshop issue #154
+// When ready: image::module-09-argocd-python-promote.png[Argo CD Python GitOps promotion,width=700]
+====
+
+[TIP]
+====
+Automated sync can lag briefly after `git push` to Gitea — Argo may still show `Synced` /
+`Healthy` on the *previous* revision (`replicas: 0`, empty digest) until it polls again.
+A hard refresh (command above) usually picks up the promote commit within a minute.
+
+If the Application stays `Unknown` / clone errors *right after seed*, wait for the Gitea gitops
+repo to finish seeding, then hard-refresh the same way.
+====
+
+== End-to-end checklist
+
+[cols="1,2",options="header"]
+|===
+|Step |Pass criteria
+
+|Dep gate fail
+|`requirements.txt` without `lw-workshop-pypi==*.rhlw-*` yields `gate-status=failed`
+
+|Dep gate pass
+|`lw-workshop-pypi==1.0.0.rhlw-00001` yields `gate-status=passed`
+
+|RHACS
+|Job `rhacs-ci-token-mint` Complete; `acs-image-check` passed or failed (not skipped)
+
+|SBOM
+|CycloneDX written; uploaded or manual RHTPA UI
+
+|Sign / verify
+|Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea FastAPI repo (learner lab NS image); Tekton from chart `pipelines`
+
+|GitOps
+|`oc tag` lab → `lw-fastapi-<user>` ImageStream; digest + `replicas: 1` committed to Gitea Python gitops repo; Argo Application Synced + Healthy; Route responds
+|===
 
 == Looking back
 
-* xref:module-07-pypi.adoc[Module 7] — PyPI Validated + Gitea seed / RHDH scaffold
-* xref:module-08-python-sbom.adoc[Module 8] — Remediated-when-available + SBOM → RHTPA
+|===
+|Java path (Module 6) |Python equivalent (this module)
 
-////
-Instructor note (not shown in Showroom)
+|`lightwell-dep-gate` on `pom.xml` / `commons-lang3`
+|`lightwell-python-dep-gate` on `requirements.txt` / `lw-workshop-pypi`
 
-Planned beats (issue #152; epic #144; pipeline charts #149):
+|`spring-boot-lw-poc-build-sign` + `student_repo_url`
+|`fastapi-lw-poc-build-sign` + `student_python_repo_url`
 
-1. Apply .tekton RBAC + Pipeline from scaffolded fastapi-lw-poc; substitute
-   STUDENT_REPO_URL_PLACEHOLDER from demo-userinfo-gitea → student_python_repo_url
-   (never bake claim-specific usernames or hosts into shared YAML).
-2. Run build → sign (RHTAS) → policy (RHACS / lightwell-python-dep-gate expecting
-   lw-workshop-pypi==*.rhlw-* after Module 8) → SBOM task narrative as available.
-3. Tag / promote digest into student_python_promote_namespace (lw-fastapi-<username>);
-   commit values on student_python_gitops_repo_url; confirm Argo app
-   student_python_argocd_app (lw-fastapi-<username>).
-4. Image placeholders → #154 (module-09-pipeline-overview.png,
-   module-09-argocd-python-promote.png).
+|Promote to `lw-poc-<user>` / `student_gitops_repo_url`
+|Promote to `lw-fastapi-<user>` / `student_python_gitops_repo_url`
+|===
 
-Gitea-only learner remotes; monorepo GitHub URL is operator/GitOps only.
-////
+== Module summary
+
+**What you accomplished**
+
+* Demonstrated fail-then-pass policy on the Lightwell Remediated PyPI marker pin
+* Ran RHACS / SBOM pipeline tasks after the Python dep gate
+* Oriented keyless signing with RHTAS and verification with cosign on the FastAPI image
+* Confirmed GitOps promotion: digest pin in Gitea Python gitops → Argo CD → product namespace Route
+
+**Key takeaways**
+
+* Pipelines enforce the Module 8 pin story before images ship; ACS policy and Lightwell remediations work together on Python the same way they do on Java
+* OpenShift Pipelines and the RHACS CI token are provisioned by GitOps (`pipelines` chart + Job `rhacs-ci-token-mint`)—learners verify readiness, they do not install Operators by hand
+* Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog
+* Git remains the source of truth; Argo CD promotes digest pins from your Gitea Python gitops remote after pipeline gates
+* Student remotes remain Gitea under **your** org (`student_python_repo_url` / `student_python_gitops_repo_url`)
+
+**Workshop complete**
+
+You finished both tracks: Java (Modules 1–6) and Python (Modules 7–9). Revisit xref:module-01-overview.adoc[Module 1] for the narrative frame, xref:appendix-lightwell-concepts.adoc[Lightwell concepts] for FAQ-style refreshers, or the xref:rhda-shift-left.adoc[RHDA appendix] for laptop shift-left against RHTPA.

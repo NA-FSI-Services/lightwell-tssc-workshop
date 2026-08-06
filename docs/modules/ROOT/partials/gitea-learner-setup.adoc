@@ -5,7 +5,7 @@
 
 Lab automation starts **Gitea** and normally creates your **user account** (`student_username` / `student_password` in ConfigMap `demo-userinfo-gitea`).
 If sign-in fails, run the ensure-user helper below (uses Secret `gitea-admin`).
-You create the **Organization** and **repositories** you will use for the rest of the workshop, then seed them from operator-prepared **templates** (isolated monorepo content — never clone GitHub).
+You create the **Organization** and **repositories** you will use for the rest of the workshop, then seed them from operator-prepared **templates** under Gitea org `workshop-templates`.
 
 === Conventions
 
@@ -72,7 +72,7 @@ image::module-02-gitea-new-repos.png[Empty spring-boot-lw-poc and gitops repos u
 
 === C. Seed from workshop templates
 
-Operator Job `gitea-student-repo-seed` already published prepared trees under `workshop-templates/` (path-isolated from the monorepo). Copy that content into **your** repos:
+Operator Job `gitea-student-repo-seed` already published prepared trees under `workshop-templates/`. Copy that content into **your** repos:
 
 [source,bash,role=execute]
 ----
