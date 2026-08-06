@@ -52,7 +52,7 @@ This workshop is **Java and Python** from the catalog definition. Complete Modul
 |Remediated PyPI pin + SPDX / SBOM → RHTPA
 
 |xref:module-09-python-pipeline.adoc[9 — Python pipeline + GitOps]
-|Sign, policy, GitOps promote for FastAPI (*lab steps coming soon*)
+|Keyless signing (RHTAS), RHACS gates, Argo CD promotion (FastAPI)
 |===
 
 == Before you start

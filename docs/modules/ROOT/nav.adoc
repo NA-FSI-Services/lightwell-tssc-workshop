@@ -11,7 +11,7 @@
 .Python track
 * xref:module-07-pypi.adoc[Module 7 — PyPI Validated + FastAPI]
 * xref:module-08-python-sbom.adoc[Module 8 — Remediated PyPI + SPDX / SBOM]
-* xref:module-09-python-pipeline.adoc[Module 9 — Python pipeline + GitOps (coming soon)]
+* xref:module-09-python-pipeline.adoc[Module 9 — Python pipeline + GitOps]
 
 .Appendix
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)]

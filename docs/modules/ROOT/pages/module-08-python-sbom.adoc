@@ -100,7 +100,7 @@ Expected: version `1.0.0.rhlw-00001` from Nexus `lightwell-python-remediated` (s
 
 === B. Add the pin to `requirements.txt`, commit, and push
 
-Module 9’s Python dep-gate reads `requirements.txt` for this marker. Add the line, then push to **your** Gitea remote (not GitHub).
+Module 9’s Python dep-gate reads `requirements.txt` for this marker. Add the line, then push to **your** Gitea remote.
 
 [source,bash,role=execute]
 ----
@@ -133,11 +133,6 @@ git add requirements.txt
 git commit -m "Pin lw-workshop-pypi to remediated 1.0.0.rhlw-00001"
 git push origin HEAD
 ----
-
-[IMPORTANT]
-====
-Do *not* clone or push the workshop GitHub monorepo. Student remotes are Gitea only (`student_python_repo_url` → `lw-@@LW_USER@@/fastapi-lw-poc`).
-====
 
 [TIP]
 ====
@@ -396,7 +391,7 @@ xref:module-09-python-pipeline.adoc[Module 9] runs the FastAPI Tekton path: buil
 * This workshop is Java **and** Python; tier names stay *Validated* / *Remediated* only
 * Learner UX: `PIP_CONFIG_FILE=…/pip-remediated.conf pip install lw-workshop-pypi==1.0.0.rhlw-00001`
 * SPDX is the Python-native inventory story; workshop RHTPA ingest prefers CycloneDX (same as Module 5)
-* Student remotes remain Gitea under **your** org — never the workshop GitHub monorepo
+* Student remotes remain Gitea under **your** org (`student_python_repo_url`)
 
 **Next**
 
