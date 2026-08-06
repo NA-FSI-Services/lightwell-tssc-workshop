@@ -31,7 +31,7 @@ STUDENT_PYTHON_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_python_repo_url}')"
 
 # Policy gate expects the Remediated marker pin (Module 8) in requirements.txt:
-#   lw-workshop-pypi==1.0.0.rhlw-00001
+#   lw-workshop-pypi==1.0.0+rhlw.00001
 
 oc apply -f .tekton/rbac.yaml -f .tekton/pipeline.yaml
 sed "s|STUDENT_REPO_URL_PLACEHOLDER|${STUDENT_PYTHON_REPO_URL}|g" \

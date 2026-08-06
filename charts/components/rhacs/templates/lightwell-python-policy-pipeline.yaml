@@ -15,7 +15,7 @@ metadata:
     argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
 spec:
   description: >-
-    Demonstrate failure when lw-workshop-pypi .rhlw-* is absent and success after
+    Demonstrate failure when lw-workshop-pypi +rhlw.* is absent and success after
     the pin is added, with RHACS roxctl image check and CycloneDX SBOM toward RHTPA.
   params:
     - name: repo-url

@@ -27,8 +27,8 @@ PIP_CONFIG_FILE=$PWD/pip.conf pip install -r requirements.txt
 
 ```bash
 oc -n lightwell-repo extract configmap/lightwell-pip-settings --keys=pip-remediated.conf --to=.
-PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0.rhlw-00001
-# Also add lw-workshop-pypi==1.0.0.rhlw-00001 to requirements.txt for Module 9 dep-gate
+PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0+rhlw.00001
+# Also add lw-workshop-pypi==1.0.0+rhlw.00001 to requirements.txt for Module 9 dep-gate
 ```
 
 ## Pipeline (Module 9)

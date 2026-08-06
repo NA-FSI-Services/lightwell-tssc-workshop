@@ -23,7 +23,7 @@ fastapi-lw-poc/
 |---------|--------|------|
 | `fastapi`, `uvicorn` | Public PyPI | Framework (Dockerfile + local venv) |
 | `httpx==0.27.2` | Lightwell **Validated** (seeded Nexus) | LWN demo dependency |
-| `lw-workshop-pypi==1.0.0.rhlw-00001` | Lightwell **Remediated** (required) | Module 8 `.rhlw-*` marker |
+| `lw-workshop-pypi==1.0.0+rhlw.00001` | Lightwell **Remediated** (required) | Module 8 `.rhlw-*` marker |
 
 ### Why `requirements.txt` (not `pyproject.toml`)
 
@@ -51,7 +51,7 @@ PIP_CONFIG_FILE=$PWD/pip.conf pip install --force-reinstall --no-deps httpx==0.2
 uvicorn main:app --host 0.0.0.0 --port 8080
 
 # Remediated marker (Module 8 — channels.pypiRemediated.enabled=true):
-PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0.rhlw-00001
+PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install lw-workshop-pypi==1.0.0+rhlw.00001
 
 # SBOM for RHTPA
 syft packages dir:. -o spdx-json > sbom.spdx.json

@@ -1,6 +1,6 @@
 {{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.pythonDepGate.enabled }}
 ---
-# Build-time PyPI pin gate — .rhlw-* narrative for Modules 8–9 (issue #149).
+# Build-time PyPI pin gate — +rhlw.* narrative for Modules 8–9 (issue #149).
 # Complements Maven lightwell-dep-gate; watches requirements.txt for lw-workshop-pypi.
 apiVersion: tekton.dev/v1
 kind: Task
@@ -17,7 +17,7 @@ metadata:
 spec:
   description: >-
     Fail the pipeline when requirements.txt lacks the Lightwell Remediated
-    workshop marker pin (lw-workshop-pypi==*.rhlw-0000X) for Module 9 policy labs.
+    workshop marker pin (lw-workshop-pypi==*+rhlw.*) for Module 9 policy labs.
   params:
     - name: requirements-path
       type: string
@@ -27,7 +27,7 @@ spec:
       type: string
       default: {{ .Values.pipelineHooks.pythonDepGate.defaultMode | quote }}
       description: >-
-        require-remediated = fail without .rhlw-* on watched package;
+        require-remediated = fail without +rhlw.* on watched package;
         allow-validated = informational only (exit 0)
     - name: watched-package
       type: string
@@ -66,7 +66,7 @@ spec:
       script: |
         #!/usr/bin/env bash
         set -euo pipefail
-        echo "=== Lightwell Python dependency gate (PyPI / .rhlw-* narrative) ==="
+        echo "=== Lightwell Python dependency gate (PyPI / +rhlw.* narrative) ==="
         echo "mode=${MODE} package=${PACKAGE}"
         echo "vulnerable=${VULN_VER:-<absent>} remediated=${REM_VER}"
 
@@ -92,16 +92,16 @@ spec:
           exit 0
         fi
 
-        if [[ -n "${resolved}" && "${resolved}" == *".rhlw-"* ]]; then
+        if [[ -n "${resolved}" && ( "${resolved}" == *"+rhlw."* || "${resolved}" == "${REM_VER}" ) ]]; then
           echo "PASS: ${PACKAGE} pin is remediated (${resolved})"
-          echo "Exact-version .rhlw-0000X matches Lightwell Remediated PyPI marker."
+          echo "PEP 440 local +rhlw.* matches Lightwell Remediated PyPI marker (pip-safe)."
           echo -n "passed" > "$(results.gate-status.path)"
           exit 0
         fi
 
         echo "FAIL: non-remediated / missing pin for ${PACKAGE}"
         echo "  Found:    ${resolved:-absent}"
-        echo "  Required: ${PACKAGE}==${REM_VER}  (exact-version .rhlw-0000X)"
+        echo "  Required: ${PACKAGE}==${REM_VER}  (PEP 440 local +rhlw.*)"
         echo ""
         echo "Lab path:"
         echo "  1) Default requirements.txt has Validated httpx only → gate fails (this run)"

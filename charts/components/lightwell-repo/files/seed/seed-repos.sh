@@ -180,15 +180,28 @@ prepare_pypi_validated_wheel() {
   exit 1
 }
 
-# Minimal workshop marker wheel with .rhlw-0000X version (Remediated proof; not a live backport).
-# Prefer embedded seed payload; fall back to zip/python3 build if missing.
+# Minimal workshop marker wheel (Remediated proof; not a live backport).
+# Python/pip require PEP 440 — use local version 1.0.0+rhlw.00001 (Java keeps .rhlw-0000X).
+# ConfigMap keys cannot contain '+' — embed as ${norm}-remediated.whl(.b64); upload uses PEP 427 name.
 prepare_pypi_remediated_wheel() {
   local out="$1"
   local pkg="${PYPI_REMEDIATED_PACKAGE:-lw-workshop-pypi}"
-  local ver="${PYPI_REMEDIATED_VERSION:-1.0.0.rhlw-00001}"
+  local ver="${PYPI_REMEDIATED_VERSION:-1.0.0+rhlw.00001}"
   local norm
   norm="$(echo "${pkg}" | tr '-' '_')"
   local wheel_name="${norm}-${ver}-py3-none-any.whl"
+  local embedded="${norm}-remediated.whl"
+  if [[ -f "${SEED_DIR}/${embedded}" ]]; then
+    cp "${SEED_DIR}/${embedded}" "${out}"
+    log "Using embedded Remediated marker wheel ${pkg}==${ver}"
+    return 0
+  fi
+  if [[ -f "${SEED_DIR}/${embedded}.b64" ]]; then
+    base64 -d < "${SEED_DIR}/${embedded}.b64" > "${out}"
+    log "Decoded Remediated marker wheel ${pkg}==${ver}"
+    return 0
+  fi
+  # Legacy filename fallback (pre-PEP440 workshop marker)
   if [[ -f "${SEED_DIR}/${wheel_name}" ]]; then
     cp "${SEED_DIR}/${wheel_name}" "${out}"
     log "Using embedded Remediated marker wheel ${pkg}==${ver}"
@@ -208,7 +221,7 @@ prepare_pypi_remediated_wheel() {
 Metadata-Version: 2.1
 Name: ${pkg}
 Version: ${ver}
-Summary: Workshop seeded Lightwell PyPI Remediated marker (.rhlw-0000X)
+Summary: Workshop seeded Lightwell PyPI Remediated marker (PEP 440 local +rhlw.*)
 EOF
   cat > "${work}/${norm}-${ver}.dist-info/WHEEL" <<EOF
 Wheel-Version: 1.0
@@ -235,7 +248,7 @@ with zipfile.ZipFile(out, "w") as zf:
             zf.write(p, p.relative_to(root).as_posix())
 PY
   else
-    log "ERROR: missing ${wheel_name}(.b64) in ${SEED_DIR} and no zip/python3 to build it"
+    log "ERROR: missing ${embedded}(.b64) in ${SEED_DIR} and no zip/python3 to build it"
     exit 1
   fi
   log "Built Remediated marker wheel ${pkg}==${ver}"
@@ -314,15 +327,26 @@ seed_content() {
     "${SEED_DIR}/spring-core-5.3.18.rhlw-00003.cdx.json"
 
   # Python / PyPI — Validated always (when channel enabled); Remediated required (enabled=true)
+  # Wheel filenames MUST be PEP 427 (e.g. httpx-0.27.2-py3-none-any.whl). Nexus simple
+  # index exposes the upload basename; pip ignores non-conforming names (versions: none).
   if [[ "${PYPI_VALIDATED_ENABLED:-true}" == "true" ]]; then
     local pypi_validated="${PYPI_VALIDATED_REPO:-lightwell-python-validated}"
-    prepare_pypi_validated_wheel "${work}/pypi-validated.whl"
-    upload_pypi "${pypi_validated}" "${work}/pypi-validated.whl"
+    local pkg="${PYPI_SEED_PACKAGE:-httpx}"
+    local ver="${PYPI_SEED_VERSION:-0.27.2}"
+    local validated_wheel="${work}/${pkg}-${ver}-py3-none-any.whl"
+    prepare_pypi_validated_wheel "${validated_wheel}"
+    upload_pypi "${pypi_validated}" "${validated_wheel}"
   fi
   if [[ "${PYPI_REMEDIATED_ENABLED:-true}" == "true" ]]; then
     local pypi_remediated="${PYPI_REMEDIATED_REPO:-lightwell-python-remediated}"
-    prepare_pypi_remediated_wheel "${work}/pypi-remediated.whl"
-    upload_pypi "${pypi_remediated}" "${work}/pypi-remediated.whl"
+    local rpkg="${PYPI_REMEDIATED_PACKAGE:-lw-workshop-pypi}"
+    local rver="${PYPI_REMEDIATED_VERSION:-1.0.0+rhlw.00001}"
+    local rnorm
+    rnorm="$(echo "${rpkg}" | tr '-' '_')"
+    # Upload basename must be PEP 427 (pip simple index); '+' is valid in wheel filenames.
+    local remediated_wheel="${work}/${rnorm}-${rver}-py3-none-any.whl"
+    prepare_pypi_remediated_wheel "${remediated_wheel}"
+    upload_pypi "${pypi_remediated}" "${remediated_wheel}"
   fi
 
   log "Seeded Maven (stubs + compile-capable commons-lang3) + OSV (${OSV_PATH}) + CycloneDX SBOMs + PyPI"

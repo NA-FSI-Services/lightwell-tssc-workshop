@@ -153,11 +153,11 @@ spec:
           ```
 
           **Module 8 — Remediated PyPI**
-          Use `pip-remediated.conf`; pin `lw-workshop-pypi==1.0.0.rhlw-00001`
+          Use `pip-remediated.conf`; pin `lw-workshop-pypi==1.0.0+rhlw.00001`
           (`channels.pypiRemediated.enabled=true` always for this catalog).
 
           **Module 9 — Sign / policy / GitOps**
-          Ensure `requirements.txt` includes `lw-workshop-pypi==1.0.0.rhlw-00001`
+          Ensure `requirements.txt` includes `lw-workshop-pypi==1.0.0+rhlw.00001`
           (Module 8). Apply `.tekton/rbac.yaml` + `pipeline.yaml`, then `sed`
           `STUDENT_REPO_URL_PLACEHOLDER` from `student_python_repo_url` into
           `pipelinerun.yaml` and create the PipelineRun. Promote digest via

@@ -25,12 +25,16 @@ data:
     #   {{ .Values.channels.pypiRemediated.remoteUrl }}/simple
     [global]
     index-url = {{ $nexusUrl }}/repository/{{ .Values.channels.pypiValidated.name }}/simple
+    # Public PyPI fallback for FastAPI / uvicorn (seeded Nexus hosts {{ .Values.pypiSeed.package }} only)
+    extra-index-url = https://pypi.org/simple
     trusted-host = {{ include "lightwell-repo.nexusHost" . }}
   pip-remediated.conf: |
     # Learner UX (Remediated — Module 8; channels.pypiRemediated.enabled must be true):
     #   PIP_CONFIG_FILE=$PWD/pip-remediated.conf pip install {{ .Values.pypiSeed.remediatedPackage }}=={{ .Values.pypiSeed.remediatedVersion }}
     [global]
     index-url = {{ $nexusUrl }}/repository/{{ .Values.channels.pypiRemediated.name }}/simple
+    # Keep Validated + public PyPI so Module 8 marker install does not break prior deps
+    extra-index-url = {{ $nexusUrl }}/repository/{{ .Values.channels.pypiValidated.name }}/simple https://pypi.org/simple
     trusted-host = {{ include "lightwell-repo.nexusHost" . }}
   README: |
     Python / PyPI learner index URLs (Nexus enterprise manager stand-in).
@@ -50,6 +54,6 @@ data:
       {{ .Values.channels.pypiRemediated.remoteUrl }}/simple
 
     Tier names are only Validated and Remediated (no fictional channel aliases).
-    Remediated versions use the .rhlw-0000X suffix (e.g. {{ .Values.pypiSeed.remediatedVersion }}).
+    Remediated versions: Java uses `.rhlw-0000X`; Python/pip uses PEP 440 local `+rhlw.0000X` (e.g. {{ .Values.pypiSeed.remediatedVersion }}).
     This workshop requires channels.pypiRemediated.enabled=true (Java + Python catalog).
 {{- end }}

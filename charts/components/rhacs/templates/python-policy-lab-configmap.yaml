@@ -4,7 +4,7 @@
 {{- $labRepoFallback := ternary (printf "https://%s.%s/%s/%s.git" .Values.pipelineHooks.labRepoHostPrefix .Values.deployer.domain .Values.pipelineHooks.labRepoOwner "fastapi-lw-poc") "https://gitea.<cluster-domain>/student/fastapi-lw-poc.git" (ne .Values.deployer.domain "") -}}
 {{- $labRepo := .Values.pipelineHooks.labPythonRepoUrl | default $labRepoFallback -}}
 ---
-# Lab narrative — fail without lw-workshop-pypi .rhlw-*, succeed after pin, SBOM in RHTPA (#149).
+# Lab narrative — fail without lw-workshop-pypi +rhlw.*, succeed after pin, SBOM in RHTPA (#149).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -28,7 +28,7 @@ data:
         -o jsonpath='{.data.student_python_repo_url}{"\n"}'
 
     ## Components
-    - Task `{{ .Values.pipelineHooks.pythonDepGate.taskName }}` — PyPI .rhlw-* pin gate (lw-workshop-pypi)
+    - Task `{{ .Values.pipelineHooks.pythonDepGate.taskName }}` — PyPI +rhlw.* pin gate (lw-workshop-pypi)
     - Task `{{ .Values.pipelineHooks.taskName }}` — `roxctl image check` (RHACS / Clair-class)
     - Task `{{ .Values.pipelineHooks.sbom.taskName }}` — syft CycloneDX → RHTPA
     - Pipeline `{{ .Values.pipelineHooks.pythonPipeline.name }}` — wires the three gates
@@ -40,7 +40,7 @@ data:
        `requirements-path=requirements.txt`.
     3. Expect Task `lightwell-python-dep-gate` to **fail** with remediation instructions.
 
-    ## Success path (remediated .rhlw-*)
+    ## Success path (remediated +rhlw.*)
     1. In **your** student repo, add
        `{{ .Values.pipelineHooks.pythonDepGate.watchedPackage }}=={{ .Values.pipelineHooks.pythonDepGate.remediatedVersion }}`
        to `requirements.txt`, commit, and push.

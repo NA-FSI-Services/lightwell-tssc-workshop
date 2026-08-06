@@ -119,9 +119,9 @@ pypiSeed:
   version: "0.27.2"
   # Content-addressed files.pythonhosted.org URL (override if cluster cannot reach PyPI)
   wheelUrl: "https://files.pythonhosted.org/packages/56/95/9377bcb415797e44274b51d46e3249eba641711cf3348050f76ee7b15ffc/httpx-0.27.2-py3-none-any.whl"
-  # Workshop marker wheel for Remediated hosted (proves .rhlw-0000X; not a live LWN backport)
+  # Workshop marker wheel for Remediated hosted (PEP 440 local +rhlw.*; not a live LWN backport)
   remediatedPackage: lw-workshop-pypi
-  remediatedVersion: "1.0.0.rhlw-00001"
+  remediatedVersion: "1.0.0+rhlw.00001"
 
 # Sample OSV JSON demonstrating .rhlw-0000X fixed version (seeded / lab beat)
 sampleOsv:
