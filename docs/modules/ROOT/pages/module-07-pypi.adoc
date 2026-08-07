@@ -16,7 +16,7 @@ You will seed Python remotes from `workshop-templates`, prove *Validated* instal
 
 [NOTE]
 ====
-*Remediated PyPI* (exact-version `.rhlw-*` pins such as `lw-workshop-pypi==1.0.0+rhlw.00001`) is covered in xref:module-08-python-sbom.adoc[Module 8]. This catalog always enables the Remediated PyPI channel (seeded marker).
+*Remediated PyPI* (PEP 440 local pins such as `lw-workshop-pypi==1.0.0+rhlw.00001`) is covered in xref:module-08-python-sbom.adoc[Module 8]. This catalog always enables the Remediated PyPI channel (seeded marker).
 ====
 
 == Learning objectives
