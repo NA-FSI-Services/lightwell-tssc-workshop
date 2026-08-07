@@ -78,14 +78,7 @@ Workshop Nexus repository ids:
 * `lightwell-python-validated` — Module 7 default
 * `lightwell-python-remediated` — Module 8 (always enabled for this workshop; seeded marker)
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-07-pypi-validated-nexus.png`
-
-Nexus UI showing the Lightwell Python Validated repository (and pip simple index orientation). Redact account PII.
-// Asset backlog: workshop issue #154
-// When ready: image::module-07-pypi-validated-nexus.png[Workshop Nexus Lightwell Python Validated,width=700]
-====
+image::module-07-pypi-validated-nexus.png[Workshop Nexus Lightwell Python Validated,width=700]
 
 == Exercise 1 — Discover URLs and extract `pip.conf`
 
@@ -153,14 +146,7 @@ In the *Gitea UI*, under organization *`lw-@@LW_USER@@`*:
 . Name: *`fastapi-lw-poc`* — leave **Initialize repository** unchecked (empty) → **Create**
 . Repeat for *`gitops-fastapi-lw-poc`* (also empty / no README)
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-07-gitea-python-repos.png`
-
-Learner org showing empty (then seeded) `fastapi-lw-poc` and `gitops-fastapi-lw-poc`. Redact passwords / tokens.
-// Asset backlog: workshop issue #154
-// When ready: image::module-07-gitea-python-repos.png[Gitea Python app and gitops repos under learner org,width=700]
-====
+image::module-07-gitea-python-repos.png[Gitea Python app and gitops repos under learner org,width=700]
 
 === B. Seed from workshop templates
 

@@ -160,14 +160,7 @@ Lightwell-distributed *Maven* packages typically carry *CycloneDX* SBOMs (and VE
 |`syft` → SPDX (Python-native) *and* CycloneDX (RHTPA path)
 |===
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-08-spdx-vs-cyclonedx.png`
-
-Diagram contrasting Maven / CycloneDX with Python wheel / SPDX packaging metadata. Labels must use only *Validated* / *Remediated* and `.rhlw-*` (no fictional channel names).
-// Asset backlog: workshop issue #154
-// When ready: image::module-08-spdx-vs-cyclonedx.png[SPDX vs CycloneDX packaging contrast,width=700]
-====
+image::module-08-spdx-vs-cyclonedx.png[SPDX vs CycloneDX packaging contrast,width=700]
 
 === Inspect the installed marker wheel layout
 
@@ -344,14 +337,7 @@ oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
 
 Open the TPA UI (Showroom **RHTPA** tab or the URL above). Sign in via realm **`tpa`**. Locate the ingested SBOM (often named from the scanned directory when generated with `dir:.`) and browse packages from the FastAPI tree.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-08-rhtpa-python-sbom.png`
-
-RHTPA UI after Python / FastAPI SBOM ingest (CycloneDX). Redact account PII.
-// Asset backlog: workshop issue #154
-// When ready: image::module-08-rhtpa-python-sbom.png[RHTPA view of Python SBOM,width=700]
-====
+image::module-08-rhtpa-python-sbom.png[RHTPA view of Python SBOM,width=700]
 
 [TIP]
 ====

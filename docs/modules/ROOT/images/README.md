@@ -2,8 +2,6 @@
 
 Place committed assets here; AsciiDoc uses `image::filename[...]`.
 
-Until ready, Module pages keep NOTE placeholders linking to content-image issues.
-
 | Asset | Issue | Type |
 |-------|-------|------|
 | `module-01-validated-vs-remediated.png` | #47 | Diagram (committed) |
@@ -29,10 +27,10 @@ Until ready, Module pages keep NOTE placeholders linking to content-image issues
 | `module-06-fail-then-pass.png` | #63 | Diagram (committed) |
 | `module-06-rhtas-cosign.png` | #64 | Diagram (committed) |
 | `module-06-argocd-promote.png` | #65 | Diagram (committed) |
-| `module-07-pypi-validated-nexus.png` | #154 | Screenshot / diagram (placeholder) |
-| `module-07-gitea-python-repos.png` | #154 | Screenshot (placeholder) |
-| `module-08-spdx-vs-cyclonedx.png` | #154 | Diagram (placeholder) |
-| `module-08-rhtpa-python-sbom.png` | #154 | Screenshot (placeholder) |
-| `module-09-pipeline-overview.png` | #154 | Diagram (placeholder) |
-| `module-09-argocd-python-promote.png` | #154 | Screenshot (placeholder) |
+| `module-07-pypi-validated-nexus.png` | #154 | Screenshot (committed) |
+| `module-07-gitea-python-repos.png` | #154 | Screenshot (committed) |
+| `module-08-spdx-vs-cyclonedx.png` | #154 | Diagram (committed) |
+| `module-08-rhtpa-python-sbom.png` | #154 | Screenshot (committed) |
+| `module-09-pipeline-overview.png` | #154 | Diagram (committed) |
+| `module-09-argocd-python-promote.png` | #154 | Screenshot (committed) |
 | `appendix-osv-pulp-manifest-poll.png` | #68 | Diagram (committed) |
