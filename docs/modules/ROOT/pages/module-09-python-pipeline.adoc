@@ -83,14 +83,7 @@ oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
 
 Expected pin for the workshop marker: `lw-workshop-pypi==1.0.0+rhlw.00001`.
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-09-pipeline-overview.png`
-
-Overview of the FastAPI policy / build-sign / promote path (Validated → Remediated pin → Tekton gates → RHTAS → GitOps). Label tiers *Validated* / *Remediated* only; show `.rhlw-*` on the marker package.
-// Asset backlog: workshop issue #154
-// When ready: image::module-09-pipeline-overview.png[Python pipeline overview fail-pass-sign-promote,width=700]
-====
+image::module-09-pipeline-overview.png[Python pipeline overview fail-pass-sign-promote,width=700]
 
 == Exercise 1: Failure path (marker pin absent)
 
@@ -599,14 +592,7 @@ ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route fastapi-lw-poc \
 curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
 ----
 
-[NOTE]
-====
-*Image placeholder* — intended file: `docs/modules/ROOT/images/module-09-argocd-python-promote.png`
-
-Argo CD Application `lw-fastapi-<username>` Synced/Healthy after digest promote (redact claim host / account PII). Screenshot steps: OpenShift GitOps → Applications → learner Python app → Sync/Health + related resources.
-// Asset backlog: workshop issue #154
-// When ready: image::module-09-argocd-python-promote.png[Argo CD Python GitOps promotion,width=700]
-====
+image::module-09-argocd-python-promote.png[Argo CD Python GitOps promotion,width=700]
 
 [TIP]
 ====

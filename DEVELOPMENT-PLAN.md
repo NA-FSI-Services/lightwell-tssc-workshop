@@ -32,7 +32,7 @@ Hands-on workshop showing:
 - Policy gating with Red Hat Advanced Cluster Security (RHACS)
 - Developer golden paths via Red Hat Developer Hub (RHDH)
 - GitOps promotion with OpenShift GitOps (ArgoCD)
-- **Python path** (Modules 7–9, epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)): PyPI Validated + Remediated (always seeded on), FastAPI sample, SPDX/SBOM → RHTPA, pipeline / sign / policy / GitOps — catalog is **Java and Python**
+- **Python path** (Modules 7–9, epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) **complete**): PyPI Validated + Remediated (always seeded on), FastAPI sample, SPDX/SBOM → RHTPA, pipeline / sign / policy / GitOps — catalog is **Java and Python**
 
 Provisioned through AgnosticD v2 **GitOps Field Sourced Content** on OpenShift Virtualization (CNV) pools (~10–15 minute claim + sync).
 
@@ -191,7 +191,7 @@ lifespan:
 
 ### Phase 3 — Workload integration and Lightwell automation
 
-Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11)–[#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13), [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)–[#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26); Python track charts: [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145)–[#149](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/149) (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144))
+Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11)–[#13](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/13), [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)–[#26](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/26); Python track charts: [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145)–[#149](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/149) (**done**; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144))
 
 1. **Artifact manager channels** matching LWN: Java `validated` / `remediated` / `osv/remediated`, plus **PyPI Validated and Remediated** — see [`charts/components/lightwell-repo`](./charts/components/lightwell-repo/) (`seeded` default vs `proxy` with `LW_*`; Job seeds `spring-core` / `commons-lang3` + OSV path `osv/java/remediated/` + CycloneDX; PyPI hosts `httpx` Validated + `.rhlw-*` Remediated marker — [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145); **`channels.pypiRemediated.enabled` must stay `true`**)
 2. **Spring Boot PoC** with Maven profiles, dual streams, and `.rhlw-*` pins
@@ -203,7 +203,7 @@ Issues: [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/
 
 ### Phase 4 — Lab content and Showroom
 
-Issues: [#14](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/14)–[#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19), [#27](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27); Python modules / docs / visuals: [#150](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/150)–[#154](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/154) (epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144); docs hygiene #153)
+Issues: [#14](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/14)–[#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19), [#27](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/27); Python modules / docs / visuals: [#150](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/150)–[#154](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/154) (**done**; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) complete; docs hygiene #153)
 
 AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), rendered in Showroom via [`charts/components/showroom`](./charts/components/showroom/) (wave 50; `showroom_url` userinfo).
 
@@ -226,7 +226,7 @@ AsciiDoc under `docs/modules/ROOT/pages/` (Antora component + root `site.yml`), 
 | 8 | Remediated PyPI pin + SPDX → RHTPA | Always-on Remediated channel (seeded marker); wheel SPDX vs Maven CycloneDX (#151) |
 | 9 | Pipeline, sign, policy, GitOps | Python Tasks / `.tekton`; promote learner gitops (#152) |
 
-Java Modules 1–6 remain sufficient for catalog acceptance until the Python track charts and labs are enabled.
+Python figures (#154) and docs hygiene (#153) are committed under `docs/modules/ROOT/`. Epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) (chart + content children #145–#154) is complete; catalog remains Java **and** Python.
 
 ### Phase 5 — Testing, QA, and production launch
 

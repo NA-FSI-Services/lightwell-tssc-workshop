@@ -2,7 +2,7 @@
 
 RHDP catalog content for a hands-on **Lightwell Network + Trusted Software Supply Chain** workshop on [demo.redhat.com](https://demo.redhat.com).
 
-Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, **Maven and PyPI** consumption via an enterprise artifact manager, OSV-driven exact-version pins (`.rhlw-*`), SBOM analysis, and TSSC pipeline controls. This catalog is **Java and Python**: Modules 1–6 (Java), then Modules 7–9 (FastAPI / PyPI — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)). PyPI Remediated is always enabled (seeded `.rhlw-*` marker).
+Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, **Maven and PyPI** consumption via an enterprise artifact manager, OSV-driven exact-version pins (`.rhlw-*`), SBOM analysis, and TSSC pipeline controls. This catalog is **Java and Python**: Modules 1–6 (Java), then Modules 7–9 (FastAPI / PyPI — epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144), complete). PyPI Remediated is always enabled (seeded `.rhlw-*` marker).
 
 ## Purpose
 
@@ -46,7 +46,7 @@ This Git repo                         OpenShift (RHDP / CNV)
 5. SBOM generation and analysis with RHTPA ([RHDA shift-left](./docs/rhda-rhtpa-shift-left.md) on laptop; Showroom uses TPA UI/`syft`)
 6. Pipeline signing, RHACS policy enforcement, and GitOps promotion
 
-**Python (Modules 7–9 — required track; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)):**
+**Python (Modules 7–9 — required track; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) complete):**
 
 7. PyPI Validated + FastAPI sample / Gitea seed
 8. Remediated PyPI pin + SPDX/SBOM → RHTPA (`channels.pypiRemediated.enabled=true` always)
