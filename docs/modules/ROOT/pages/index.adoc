@@ -5,7 +5,7 @@ Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwel
 
 == What you will learn
 
-. *Validated* vs *Remediated* repository tiers for **Java (Maven)** and **Python (PyPI)** (exact-version `.rhlw-*` pins)
+. *Validated* vs *Remediated* repository tiers for **Java (Maven)** (`.rhlw-*`) and **Python (PyPI)** (PEP 440 `+rhlw.*`; Remediated always seeded in this workshop)
 . Enterprise Maven and pip consumption via an artifact manager proxy (not Satellite)
 . *Red Hat Developer Hub (RHDH)* Software Template scaffold into in-cluster Gitea (Java and Python)
 . *Open Source Vulnerabilities (OSV)*–driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)

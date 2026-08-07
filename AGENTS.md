@@ -83,7 +83,7 @@ When adding a new learner application source that currently lives at `/some/inne
 - Java remediated: `https://packages.redhat.com/lightwell/java/remediated`
 - Java OSV remediated: `https://packages.redhat.com/lightwell/osv/java/remediated`
 - Python / PyPI validated: `https://packages.redhat.com/lightwell/python/validated` (pip simple: `…/simple`)
-- Python / PyPI remediated: `https://packages.redhat.com/lightwell/python/remediated` (pip simple: `…/simple`; this workshop **requires** `channels.pypiRemediated.enabled=true` and seeds a `.rhlw-*` marker — see [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145))
+- Python / PyPI remediated: `https://packages.redhat.com/lightwell/python/remediated` (pip simple: `…/simple`; this workshop **requires** `channels.pypiRemediated.enabled=true` and seeds a PEP 440 `+rhlw.0000X` marker — see [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145))
 - Console: `https://console.redhat.com/lightwell`
 
 ## Coding standards

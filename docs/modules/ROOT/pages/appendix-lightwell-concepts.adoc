@@ -2,7 +2,7 @@
 :toc:
 :toclevels: 2
 
-Optional reference for instructors and learners. Distills technical concepts that appear in field Lightwell enablement into workshop language. It does *not* replace Modules 1–6, and it omits commercial SKUs, pricing, competitor comparisons, and associate-only sales guidance.
+Optional reference for instructors and learners. Distills technical concepts that appear in field Lightwell enablement into workshop language. It does *not* replace Modules 1–9, and it omits commercial SKUs, pricing, competitor comparisons, and associate-only sales guidance.
 
 Hands-on work stays in the core modules. Use this page when a learner asks “what does Validated mean?” or “does Lightwell go through Satellite?”
 
@@ -22,7 +22,7 @@ Hands-on work stays in the core modules. Use this page when a learner asks “wh
 |Proprietary code scanning, penetration testing, feature bug fixes, Satellite content views, inventing alternate channel names.
 
 |Which ecosystems?
-|Java (Maven) and Python (PyPI) at launch. *This catalog exercises Java.* Do not promise unannounced ecosystems.
+|Java (Maven) and Python (PyPI) at launch. *This catalog exercises both*: Java Modules 1–6, then Python Modules 7–9. Do not promise unannounced ecosystems.
 |===
 
 == Repositories and versioning
@@ -32,7 +32,7 @@ Hands-on work stays in the core modules. Use this page when a learner asks “wh
 |Question |Workshop answer
 
 |Validated vs Remediated?
-|*Validated* = upstream binaries, bit-for-bit, from a trusted Red Hat source, validated for known CVEs. *Remediated* = Red Hat security-only patches on a pinned baseline with `.rhlw-#####` (labs use `.rhlw-0000X`).
+|*Validated* = upstream binaries, bit-for-bit, from a trusted Red Hat source, validated for known CVEs. *Remediated* = Red Hat security-only patches on a pinned baseline. Java uses `.rhlw-#####` (labs use `.rhlw-0000X`); Python / pip uses PEP 440 local `+rhlw.#####` (workshop seeded marker `1.0.0+rhlw.00001`).
 
 |When does Remediated become Validated?
 |Only after upstream accepts, merges, and releases the fix; otherwise it stays Remediated.
@@ -54,7 +54,7 @@ Hands-on work stays in the core modules. Use this page when a learner asks “wh
 |Question |Workshop answer
 
 |How do build tools integrate?
-|Point Maven / PyPI clients and Nexus or Artifactory proxies at Lightwell remotes (or seeded mirrors). Module 2.
+|Point Maven / PyPI clients and Nexus or Artifactory proxies at Lightwell remotes (or seeded mirrors). Module 2 (Maven); Modules 7–8 (pip / PyPI).
 
 |Air-gapped?
 |Same mirror/proxy patterns used for other Red Hat content—not a unique LWN-only protocol.
@@ -100,7 +100,7 @@ Acronym expansions: xref:appendix-acronyms.adoc[Acronym glossary]. First teachin
 |Question |Workshop answer
 
 |vs RHEL / OpenShift / ACS?
-|Complementary. Platform products cover OS/platform; Lightwell covers third-party app deps. Module 6 gates use ACS with remediated pins.
+|Complementary. Platform products cover OS/platform; Lightwell covers third-party app deps. Module 6 (Java) and Module 9 (Python) gates use ACS with remediated pins.
 
 |vs Hardened Images?
 |Hardened Images address container *foundations*; Validated/Remediated address *application* dependencies.
@@ -111,13 +111,12 @@ Acronym expansions: xref:appendix-acronyms.adoc[Acronym glossary]. First teachin
 
 == What we deliberately do *not* add as labs
 
-The following FAQ topics stay *out* of the Showroom hands-on path (no new Module 6+):
+The following FAQ topics stay *out* of the Showroom hands-on path:
 
 * Commercial STAM / Services Accelerator SKUs and pricing
 * Competitor positioning
 * International sales / export / federated clearinghouse policy
-* Full Python PyPI remediations lab (validated-only secondary; do not block the catalog)
-* Live air-gap sync Job beyond the seeded/proxy modes already in Module 2
+* Live air-gap sync Job beyond the seeded/proxy modes already in Module 2 (and the PyPI seeded/proxy modes in Modules 7–8)
 * Embargo contract enforcement (Module 4 mentions the concept only)
 
 Return to xref:index.adoc[Workshop home] or continue with xref:module-01-overview.adoc[Module 1].

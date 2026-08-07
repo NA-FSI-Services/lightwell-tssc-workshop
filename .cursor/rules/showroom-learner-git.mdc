@@ -5,10 +5,10 @@ alwaysApply: false
 ---
 # Showroom labs — learner Git
 
-- Clone / push / PipelineRun `repo-url` → Gitea only (`student_repo_url`, `template_*`, `@@LW_USER@@` / `lw-@@LW_USER@@`).
+- Clone / push / PipelineRun `repo-url` → Gitea only (`student_repo_url`, `student_python_repo_url`, `template_*`, `@@LW_USER@@` / `lw-@@LW_USER@@`).
 - Ban learner steps that clone the workshop GitHub monorepo (a one-line “do not clone GitHub” warning is OK).
-- Org/repo setup belongs in Module 2 (`partials/gitea-learner-setup.adoc`); later modules assume `lw-<user>` exists.
+- Org/repo setup belongs in Module 2 (`partials/gitea-learner-setup.adoc`); later modules assume `lw-<user>` exists. Module 7 adds Python remotes (`fastapi-lw-poc` / `gitops-fastapi-lw-poc`) under the same org.
 - Tables use AsciiDoc `|===`, not Markdown pipes.
 - Figures: IMAGE PLACEHOLDER + GitHub issue (screenshot steps or image-gen prompt); no invented binaries / customer PII.
 - Username tokens: `@@LW_USER@@` (not `__LW_USER__` — AsciiDoc italics).
-- Pipeline examples: substitute `STUDENT_REPO_URL_PLACEHOLDER` from `demo-userinfo-gitea`, never bake `lw-user1`.
+- Pipeline examples: substitute `STUDENT_REPO_URL_PLACEHOLDER` from `demo-userinfo-gitea`, never bake `lw-user1`. Python labs use `student_python_repo_url` / `student_python_gitops_repo_url`.

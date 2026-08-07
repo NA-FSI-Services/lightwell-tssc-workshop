@@ -5,9 +5,9 @@
 
 Attackers and researchers alike now use AI to discover and weaponize vulnerabilities faster than traditional patch cycles. Scanners and *Software Bills of Materials (SBOMs)* *identify* issues, but application teams often cannot take the recommended upgrade path because of compatibility, certification, release freezes, or production risk.
 
-*Lightwell Network (LWN)* closes that *remediation gap*: signed, backported fixes for eligible third-party application dependencies (libraries, frameworks, build tools, and transitive deps)—without requiring disruptive upgrades, app refactoring, or recertification. This workshop uses two complementary Maven streams—*Validated* for active development and *Remediated* for exact-version security backports (`.rhlw-*`).
+*Lightwell Network (LWN)* closes that *remediation gap*: signed, backported fixes for eligible third-party application dependencies (libraries, frameworks, build tools, and transitive deps)—without requiring disruptive upgrades, app refactoring, or recertification. This workshop uses two complementary streams—*Validated* for active development and *Remediated* for exact-version security backports (Java Maven `.rhlw-*`; Python / pip PEP 440 local `+rhlw.*`).
 
-In this module you map those tiers, eligibility and coexistence with the Red Hat stack, the supply-chain metadata that travels with artifacts (*Supply-chain Levels for Software Artifacts (SLSA)* L3, SBOM, *Vulnerability Exploitability eXchange (VEX)*, *Open Source Vulnerabilities (OSV)*), and where the Lightwell console fits—before you wire Maven and pipelines in later labs.
+In this module you map those tiers, eligibility and coexistence with the Red Hat stack, the supply-chain metadata that travels with artifacts (*Supply-chain Levels for Software Artifacts (SLSA)* L3, SBOM, *Vulnerability Exploitability eXchange (VEX)*, *Open Source Vulnerabilities (OSV)*), and where the Lightwell console fits—before you wire Maven (Modules 2–6) and the Python / PyPI track (Modules 7–9).
 
 == Learning objectives
 
@@ -33,7 +33,7 @@ image::module-01-osv-pin-rebuild-loop.png[Remediation evaluation loop,width=700]
 
 === Scope (what this workshop covers)
 
-At launch, Lightwell covers *Java (Maven)* and *Python (PyPI)*. This *Red Hat Demo Platform (RHDP)* catalog focuses on the *Java / Maven* golden path. Python is a validated-oriented secondary story and is *not* required to complete Modules 2–6. Do not promise unannounced ecosystems (npm, .NET, Go, and so on) in field conversations until they are officially available.
+At launch, Lightwell covers *Java (Maven)* and *Python (PyPI)*. This *Red Hat Demo Platform (RHDP)* catalog is **Java and Python**: complete the Java golden path (Modules 1–6), then the Python critical path (Modules 7–9 — PyPI Validated, Remediated-when-seeded, FastAPI, SPDX/SBOM, pipeline / GitOps). Do not promise unannounced ecosystems (npm, .NET, Go, and so on) in field conversations until they are officially available.
 
 Lightwell remediates *application-layer* libraries. Patched content can run on Red Hat and non–Red Hat stacks (for example OpenJDK on another Linux distribution)—it is not limited to *Red Hat Enterprise Linux (RHEL)*-only runtimes.
 
@@ -43,33 +43,40 @@ Eligible packages generally must be source-available under a recognized open sou
 
 == Lightwell Network tiers
 
-[cols="1,2,2",options="header"]
+[cols="1,2,2,2",options="header"]
 |===
-|Tier |Purpose |Canonical Java remote
+|Tier |Purpose |Canonical Java remote |Canonical Python remote
 
 |*Validated*
 |Upstream-released versions validated for known CVEs; binaries are *bit-for-bit identical* to upstream, delivered from a trusted Red Hat source
 |{java-validated-url}
+|{python-validated-url} (simple: {python-validated-simple-url})
 
 |*Remediated*
-|Red Hat–patched builds of a pinned upstream baseline with *security-only* CVE remediations; version qualifier `.rhlw-#####` (workshop examples use `.rhlw-0000X`)
+|Red Hat–patched builds of a pinned upstream baseline with *security-only* CVE remediations; Java uses `.rhlw-#####`; Python / pip uses PEP 440 local `+rhlw.#####`
 |{java-remediated-url}
+|{python-remediated-url} (simple: {python-remediated-simple-url}) — this workshop always enables Remediated PyPI with a *seeded* marker (Module 8)
 
 |*OSV (Java)*
 |Machine-readable fixed-vuln records for the remediated stream (the `fixed` field names the `.rhlw-*` version); also how you map CVEs to remediated pins
 |{java-osv-url}
+|—
 |===
 
 image::module-01-validated-vs-remediated.png[Validated vs Remediated vs OSV tiers,width=700]
 
-Example remediated coordinate style:
+Example remediated coordinate styles:
 
 [source,text]
 ----
+# Java / Maven
 org.springframework:spring-core:5.3.18.rhlw-00003
+
+# Python / pip (PEP 440 local; workshop seeded marker)
+lw-workshop-pypi==1.0.0+rhlw.00001
 ----
 
-When additional CVEs are fixed on the *same* baseline, the qualifier increments and remains *cumulative* (for example `…rhlw-00001` then `…rhlw-00002` includes prior fixes). A remediated library moves into *Validated* only after the upstream community accepts, merges, and releases the fix; otherwise it stays in Remediated.
+When additional CVEs are fixed on the *same* baseline, the Java qualifier increments and remains *cumulative* (for example `…rhlw-00001` then `…rhlw-00002` includes prior fixes). A remediated library moves into *Validated* only after the upstream community accepts, merges, and releases the fix; otherwise it stays in Remediated.
 
 How to tell which tier you are looking at:
 
@@ -142,6 +149,7 @@ oc -n lightwell-repo get configmap lightwell-channels -o jsonpath='{.data.channe
 * Channel keys refer to `lightwell-java-validated`, `lightwell-java-remediated`, and `lightwell-osv-java-remediated`
 * Remediated note mentions `.rhlw-0000X`
 * Canonical remotes point at `packages.redhat.com/lightwell/...` (even in seeded mode)
+* When PyPI channels are enabled for Modules 7–9, look for `lightwell-python-validated` / `lightwell-python-remediated` (Remediated is always on with a seeded marker in this catalog)
 
 == Exercise 2: Inspect a sample OSV `fixed` event
 
@@ -175,17 +183,26 @@ You will not configure every product in this module. Use this checklist so the l
 |Enterprise Maven proxy (Validated / Remediated)
 |Module 2 — Nexus `lightwell-repo` + `settings.xml`
 
-|RHDH Software Template → Gitea scaffold
+|RHDH Software Template → Gitea scaffold (Java)
 |Module 3 — `lightwell-java-service` (canonical app for Modules 4–6)
 
 |Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild
 |Module 4 — `tools/osv-eval/` + Spring Boot PoC
 
-|SBOM system of record
+|SBOM system of record (Java / CycloneDX)
 |Module 5 — RHTPA (+ optional laptop RHDA)
 
-|Keyless signing + policy + GitOps
+|Keyless signing + policy + GitOps (Java)
 |Module 6 — RHTAS, RHACS, Argo CD
+
+|Enterprise PyPI Validated + FastAPI / Gitea
+|xref:module-07-pypi.adoc[Module 7] — `pip` + `lightwell-python-service`
+
+|Remediated PyPI pin + SPDX / SBOM → RHTPA
+|xref:module-08-python-sbom.adoc[Module 8] — seeded `+rhlw.*` marker
+
+|Python pipeline + sign + policy + GitOps
+|xref:module-09-python-pipeline.adoc[Module 9] — parallel to Module 6
 |===
 
 . Optional: open the OpenShift console and note Routes for components that are already Healthy (names vary by sync):
@@ -222,16 +239,16 @@ Learners without membership still complete RHDP labs using the seeded Nexus / Co
 * Distinguished *Validated* (bit-for-bit upstream) vs *Remediated* (security-only `.rhlw-*`) and Java *OSV*
 * Placed Lightwell next to platform products, Hardened Images, and (conceptually) LSOS
 * Inspected workshop channel metadata and a sample OSV `fixed` event that names a `.rhlw-*` pin
-* Connected the overview to Modules 2–6 (Maven, RHDH scaffold, OSV loop, RHTPA/RHDA, TSSC pipelines)
+* Connected the overview to Modules 2–6 (Java) and Modules 7–9 (Python / PyPI)
 
 **Key takeaways**
 
-* Remediated versions use `.rhlw-0000X` (example: `5.3.18.rhlw-00003`); qualifiers are cumulative
+* Java Remediated versions use `.rhlw-0000X` (example: `5.3.18.rhlw-00003`); Python / pip uses PEP 440 local `+rhlw.0000X` (workshop seeded marker)
 * SBOMs, VEX, SLSA L3 provenance, and OSV records travel with the Lightwell story
 * Lightwell application libraries are consumed via `packages.redhat.com` (or an enterprise proxy)—not through Satellite content views
 
 **Next**
 
-Module 2 wires enterprise Maven `settings.xml` profiles to the artifact manager so builds resolve Validated and Remediated streams.
+Module 2 wires enterprise Maven `settings.xml` profiles to the artifact manager so builds resolve Validated and Remediated streams. After Module 6, continue with xref:module-07-pypi.adoc[Module 7] for the Python track.
 
 Optional reference: xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)].
