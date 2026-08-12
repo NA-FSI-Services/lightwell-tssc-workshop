@@ -139,8 +139,24 @@ approval_checklist:
         overview: "Parallels Modules 4-5 for Python. Confirms Remediated PyPI is enabled, pins the workshop marker package using PEP 440 local +rhlw.00001 syntax, generates both SPDX and CycloneDX SBOMs using syft, and ingests CycloneDX into RHTPA."
       - title: "Python Pipeline, Sign, Policy, and GitOps Promotion"
         overview: "Closes the Python trusted supply-chain loop mirroring Module 6. Learners run the lightwell-python-dep-gate Tekton task (fail then pass), sign the image keylessly via RHTAS, and promote the signed digest to the Python gitops Helm repo for Argo CD sync."
-    rcars_overlap_pct: null
-    rcars_top_matches: []
+    rcars_overlap_pct: 100
+    rcars_top_matches:
+      - title: "Enhancing Developer Efficiency and Security with Trusted Application Pipeline"
+        ci_name: "sandboxes-gpte.enhancing-developer.prod"
+        url: "https://catalog.demo.redhat.com/catalog?item=sandboxes-gpte.enhancing-developer.prod"
+        relevance_score: 100
+        why_it_fits: "Covers the full RHTAP stack — RHTAS, RHTPA, RHACS, OpenShift Pipelines, OpenShift GitOps, RHDH — with hands-on signing, SBOM ingestion, and GitOps promotion."
+      - title: "Build Secure, Streamlined Developer Workflows with Red Hat Advanced Developer Suite"
+        ci_name: "published.rhads-secure-dev-workflows.prod"
+        url: "https://catalog.demo.redhat.com/catalog?item=published.rhads-secure-dev-workflows.prod"
+        relevance_score: 91
+        why_it_fits: "Covers all six requested products with dedicated content on SBOM ingest, keyless signing, Tekton policy gates via Enterprise Contract, and GitOps-driven promotion."
+      - title: "LB1464: Unifying DevSecOps: Secure, Standardized Application Delivery Across Containers (CNV)"
+        ci_name: "summit-2026.lb1464-unified-devsecops-delivery-cnv.prod"
+        url: "https://catalog.demo.redhat.com/catalog?item=summit-2026.lb1464-unified-devsecops-delivery-cnv.prod"
+        relevance_score: 88
+        why_it_fits: "Covers TSSC full stack including TAS, TPA, RHACS, RHDH, Tekton, and Argo CD with supply-chain policy enforcement and keyless signing."
+    catalog_gap: "No existing catalog item teaches the Lightwell Network consumption model — the Validated/Remediated/OSV tier structure, .rhlw-* exact-version pinning via OSV event analysis, or the parallel Java and Python remediation tracks integrated end-to-end with TSSC pipeline policy gates and GitOps promotion."
     rejections: []
 
   infra:
