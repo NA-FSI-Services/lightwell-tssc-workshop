@@ -19,43 +19,90 @@ project:
   workflow_id: "61d499a1-cfec-4d29-ad00-9f09dd08116e"
 
 spec:
-  title: ""
-  learning_objectives: []
-  modules: []              # [{id, title, duration_min}] — written by intake Phase 4; id is stable (e.g. module-01)
+  title: "Lightwell Software Supply Chain Security Workshop"
+  learning_objectives:
+    - "Verify Lightwell Network tiers and OSV remediation events using the oc CLI and cluster ConfigMaps"
+    - "Configure Maven settings.xml and pip.conf to resolve artifacts from enterprise-proxied Lightwell channels"
+    - "Scaffold Java and Python application repositories from Red Hat Developer Hub Software Templates"
+    - "Analyze OSV fixed events and apply exact-version .rhlw-* pins to pom.xml and requirements.txt"
+    - "Generate CycloneDX and SPDX SBOMs from build output using syft"
+    - "Ingest SBOMs into Red Hat Trusted Profile Analyzer via the v3 API"
+    - "Verify supply-chain policy gates in Tekton pipelines for both the Java and Python application tracks"
+    - "Sign container images keylessly using Red Hat Trusted Artifact Signer (Fulcio, Rekor, TUF)"
+    - "Promote signed image digests to GitOps repositories for Argo CD deployment"
+  modules:
+    - id: module-01
+      title: "AI Vulnerability Storm and Lightwell Network Overview"
+      duration_min: 20
+      status: not_started
+    - id: module-02
+      title: "Enterprise Maven + Artifact Manager Integration"
+      duration_min: 20
+      status: not_started
+    - id: module-03
+      title: "Developer Hub Scaffolding (Java Golden Path)"
+      duration_min: 25
+      status: not_started
+    - id: module-04
+      title: "OSV Triage and Exact-Version Remediation"
+      duration_min: 20
+      status: not_started
+    - id: module-05
+      title: "SBOM Generation and Analysis with RHTPA"
+      duration_min: 20
+      status: not_started
+    - id: module-06
+      title: "Pipeline, Signing, Policy, and GitOps Promotion (Java)"
+      duration_min: 45
+      status: not_started
+    - id: module-07
+      title: "PyPI Validated + FastAPI (Python Track Kickoff)"
+      duration_min: 30
+      status: not_started
+    - id: module-08
+      title: "Remediated PyPI + SPDX/SBOM to RHTPA"
+      duration_min: 25
+      status: not_started
+    - id: module-09
+      title: "Python Pipeline, Sign, Policy, and GitOps Promotion"
+      duration_min: 40
+      status: not_started
   environment:
-    platform: ""               # ocp | rhel-vms — determines which sizing fields apply
-    topology: ""               # shared-cluster | per-student | cnv-pool
+    platform: "ocp"            # ocp | rhel-vms — determines which sizing fields apply
+    topology: "per-student"    # shared-cluster | per-student | cnv-pool
     cloud_provider: cnv        # cnv | aws | troshka — cnv is default
     max_concurrent_users: null # required if topology = shared-cluster
 
     # --- OCP-specific fields (only when platform = ocp) ---
-    ocp_version: ""                    # e.g. 4.20 — minimum 4.20; leave empty for rhel-vms
-    cluster_type: ""                   # sno | multinode — only for platform = ocp
-    control_plane_instance_count: null # 1 if sno, 3 if multinode
-    control_plane_cpu: null            # 32 if sno, 16 if multinode
-    control_plane_ram_gb: null         # 128 if sno, 64 if multinode
-    worker_count: null                 # number of OCP worker nodes
-    worker_cpu: null                   # vCPU per worker
-    worker_ram_gb: null                # RAM per worker in GB
-    worker_disk_gb: null               # disk per worker in GB
+    ocp_version: ""                    # TBD — confirmed in infrastructure phase; not stated in content
+    cluster_type: ""                   # TBD — confirmed in infrastructure phase; likely multinode
+    control_plane_instance_count: null # TBD — confirmed in infrastructure phase
+    control_plane_cpu: null            # TBD — confirmed in infrastructure phase
+    control_plane_ram_gb: null         # TBD — confirmed in infrastructure phase
+    worker_count: null                 # TBD — confirmed in infrastructure phase
+    worker_cpu: null                   # TBD — confirmed in infrastructure phase
+    worker_ram_gb: null                # TBD — confirmed in infrastructure phase
+    worker_disk_gb: null               # TBD — confirmed in infrastructure phase
 
     # --- VM-specific fields (only when platform = rhel-vms) ---
     # Each entry: {role, count, cpu, ram_gb, disk_gb, os}
     vms_per_student: []
 
     # --- Common fields (both platforms) ---
-    aap_version: ""                    # required if AAP in products
-    ai_requirement: ""                 # maas | gpu | none
-    ai_model_tier: ""                  # open-source | frontier (if ai_requirement = maas or gpu)
-    ai_model_name: ""                  # specific model e.g. granite-3.1-8b
-    ai_justification: ""               # required if ai_model_tier = frontier or ai_requirement = gpu
-    non_ga_products: []                # list of non-GA products/versions
-    non_ga_access_plan: ""             # how access is provided for non-GA products
-    external_services: []              # named external service dependencies e.g. [github.com]
+    aap_version: ""                    # not applicable — AAP not a product under instruction
+    ai_requirement: "none"             # maas | gpu | none
+    ai_model_tier: ""                  # not applicable
+    ai_model_name: ""                  # not applicable
+    ai_justification: ""               # not applicable
+    non_ga_products: []                # none identified
+    non_ga_access_plan: ""             # not applicable
+    external_services:
+      - "packages.redhat.com"          # Lightwell package registry proxied via Nexus
+      - "github.com"                   # cosign binary download from sigstore/cosign releases
     gpu_nodes: 0                       # number of GPU nodes (0 = none)
-    gpu_type: ""                       # e.g. NVIDIA A100 40GB (required if gpu_nodes > 0)
-  duration_hours: null
-  audience: ""               # beginner | intermediate | advanced
+    gpu_type: ""                       # not applicable
+  duration_hours: 4
+  audience: "intermediate"    # beginner | intermediate | advanced
 
 compliance:
   last_hard_check: null
@@ -69,11 +116,29 @@ tracking:
 approval_checklist:
 
   content:
-    prerequisites_verifiable: null
-    assessment_strategy: ""
+    prerequisites_verifiable: false
+    assessment_strategy: "Observable outcomes per module (CLI output, UI state, curl response codes) — no automated solve/validate buttons"
     catalog_gap: ""
-    design_overview: ""
-    module_summaries: []
+    design_overview: "This lab teaches enterprise software supply chain security using Red Hat Lightwell Network and the TSSC toolchain across Java (Modules 1-6) and Python (Modules 7-9) tracks. Participants configure Maven and PyPI consumers against a Nexus proxy, perform OSV-driven exact-version remediation, generate and ingest SBOMs into RHTPA, execute policy-gated Tekton pipelines, sign images keylessly with RHTAS, and promote via Argo CD."
+    module_summaries:
+      - title: "AI Vulnerability Storm and Lightwell Network Overview"
+        overview: "Conceptual foundation covering the remediation gap Lightwell Network addresses, the Validated/Remediated/OSV tier model, and how supply-chain metadata travels with artifacts. Learners inspect in-cluster ConfigMaps and review a sample OSV fixed event."
+      - title: "Enterprise Maven + Artifact Manager Integration"
+        overview: "Demonstrates the three enterprise artifact consumption patterns (direct, proxied, seeded) and wires Maven settings.xml profiles to a Nexus instance proxying Lightwell tiers. Learners prove Validated and Remediated resolution by running mvn clean verify against the Spring Boot PoC."
+      - title: "Developer Hub Scaffolding (Java Golden Path)"
+        overview: "Transitions from the manually seeded Module 2 repository to the canonical developer golden path via a RHDH Software Template. Learners delete the seeded Gitea repo, scaffold via lightwell-java-service, and re-run Maven stream proofs."
+      - title: "OSV Triage and Exact-Version Remediation"
+        overview: "Walks learners through the complete remediation evaluation loop: reading an OSV fixed event, diffing upstream vs. remediated sources jar, updating pom.xml, and rebuilding to confirm commons-lang3:3.14.0.rhlw-00001 in the dependency tree."
+      - title: "SBOM Generation and Analysis with RHTPA"
+        overview: "Covers supply-chain metadata as a system of record, distinguishing RHTPA from RHDA. Learners SSO into the TPA UI, generate a CycloneDX SBOM using syft, and ingest it via the RHTPA v3 API using a bearer token obtained by OIDC password grant."
+      - title: "Pipeline, Signing, Policy, and GitOps Promotion (Java)"
+        overview: "Closes the full Java trusted supply-chain loop. Learners trigger a dep-gate failure on the un-remediated pin, update pom.xml to pass the gate, complete RHACS image check, upload SBOM, keylessly sign with cosign, and promote the signed digest via Argo CD."
+      - title: "PyPI Validated + FastAPI (Python Track Kickoff)"
+        overview: "Mirrors the Module 2-3 Java pattern for Python/PyPI. Learners extract pip.conf from a ConfigMap, seed Gitea repositories, prove httpx resolves from the validated Nexus index, and re-scaffold via the lightwell-python-service RHDH Software Template."
+      - title: "Remediated PyPI + SPDX/SBOM to RHTPA"
+        overview: "Parallels Modules 4-5 for Python. Confirms Remediated PyPI is enabled, pins the workshop marker package using PEP 440 local +rhlw.00001 syntax, generates both SPDX and CycloneDX SBOMs using syft, and ingests CycloneDX into RHTPA."
+      - title: "Python Pipeline, Sign, Policy, and GitOps Promotion"
+        overview: "Closes the Python trusted supply-chain loop mirroring Module 6. Learners run the lightwell-python-dep-gate Tekton task (fail then pass), sign the image keylessly via RHTAS, and promote the signed digest to the Python gitops Helm repo for Argo CD sync."
     rcars_overlap_pct: null
     rcars_top_matches: []
     rejections: []

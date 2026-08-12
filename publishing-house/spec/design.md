@@ -1,89 +1,132 @@
-# [Project Title]
-
-<!-- This file is the design document for your lab or demo. -->
-<!-- Fill in each section below, or run /rhdp-publishing-house to have the intake skill help. -->
-<!-- Sections marked with [brackets] are placeholders — replace with real content. -->
-<!-- The validation gate checks for all required sections before submission. -->
+# Lightwell Software Supply Chain Security Workshop
 
 ## Overview
 
-[2-3 sentences on what this lab or demo is and why it exists. Then a direct description of what participants will do — specific enough that someone reading this section immediately understands the content without interpretation. No flowery language. Example: "Participants will deploy a 3-tier application on OpenShift, configure autoscaling, and troubleshoot a simulated pod failure."]
+This lab teaches enterprise software supply chain security using the Red Hat Lightwell Network and the Red Hat Trusted Software Supply Chain (TSSC) toolchain. It exists to close the gap between publishing a CVE fix and getting that fix into production artifacts — a gap that Lightwell Network addresses through its Validated, Remediated, and OSV tiers. Participants will configure Maven and PyPI artifact consumers against an enterprise Nexus proxy, perform OSV-driven exact-version remediation, generate and ingest SBOMs into Red Hat Trusted Profile Analyzer, execute policy-gated Tekton pipelines, sign container images keylessly with Red Hat Trusted Artifact Signer, and promote signed digests via Argo CD — covering a complete Java path (Modules 1–6) and a mirrored Python/FastAPI path (Modules 7–9).
 
 ## Target Audience
 
-- **Role:** [Data scientists, platform engineers, developers, etc.]
-- **Experience level:** [Beginner, intermediate, or advanced]
-- **What they already know:** [Existing skills and knowledge]
-- **What they don't know:** [Skills this lab teaches]
+- **Role:** Application developers, DevSecOps engineers, and platform engineers responsible for artifact governance and supply-chain security
+- **Experience level:** Intermediate to Advanced
+- **What they already know:** Basic Maven and pip dependency management, Git CLI fundamentals, oc CLI fundamentals (namespaces, configmaps, routes), and RHDP Showroom access
+- **What they don't know:** Lightwell Network tier model (Validated/Remediated/OSV), OSV record format and .rhlw-* pin scheme, SBOM generation and ingestion workflows, keyless image signing with Sigstore, Tekton policy gate patterns, and GitOps promotion via Argo CD
 
 ## Prerequisites
 
-- [What the learner must know or have completed before starting]
-- [Can the lab validate these automatically? Yes/No — brief explanation]
+- Basic Maven and pip package management (can add a dependency, run a build)
+- Git CLI: clone, commit, push
+- oc CLI: can inspect namespaces, configmaps, and routes
+- RHDP Showroom access provisioned before the session
+- No prior Lightwell Network, SBOM, or supply-chain security experience required
 
-<!-- If no prerequisites, write "None" -->
+Prerequisites are assumed and not automatically validated by the lab environment.
 
 ## Learning Objectives
 
-1. [Action verb] [specific, measurable outcome]
-2. [Action verb] [specific, measurable outcome]
-3. [Action verb] [specific, measurable outcome]
-
-<!-- Scale to duration: up to 3 objectives per 45 min of content. Start with action verbs: Configure, Deploy, Create, Implement, Troubleshoot, Monitor, Scale. Each should be testable. NOT: Understand, Learn, Know. -->
+1. Verify Lightwell Network tiers and OSV remediation events using the oc CLI and cluster ConfigMaps
+2. Configure Maven settings.xml and pip.conf to resolve artifacts from enterprise-proxied Lightwell channels
+3. Scaffold Java and Python application repositories from Red Hat Developer Hub Software Templates
+4. Analyze OSV fixed events and apply exact-version .rhlw-* pins to pom.xml and requirements.txt
+5. Generate CycloneDX and SPDX SBOMs from build output using syft
+6. Ingest SBOMs into Red Hat Trusted Profile Analyzer via the v3 API
+7. Verify supply-chain policy gates in Tekton pipelines for both the Java and Python application tracks
+8. Sign container images keylessly using Red Hat Trusted Artifact Signer (Fulcio, Rekor, TUF)
+9. Promote signed image digests to GitOps repositories for Argo CD deployment
 
 ## Content Type
 
-[Lab (hands-on) or Demo (presenter-led)]
+Lab (hands-on)
 
 ## Products & Technologies
 
-- [Official Red Hat product name with version if relevant]
-- [Additional products/technologies]
+**Red Hat Products:**
+- Red Hat Lightwell Network (Validated, Remediated, OSV tiers)
+- Red Hat Trusted Profile Analyzer (RHTPA / TPA)
+- Red Hat Trusted Artifact Signer (RHTAS) — Fulcio, Rekor, TUF
+- Red Hat Advanced Cluster Security (RHACS)
+- Red Hat Developer Hub (RHDH) — Software Templates / golden path
+- Red Hat OpenShift Container Platform (OCP) — oc CLI
+- Red Hat OpenShift Pipelines (Tekton)
+- Red Hat OpenShift GitOps (Argo CD)
+- Keycloak / SSO — OIDC token provider for RHTPA
 
-<!-- Use official names: "Red Hat OpenShift", not "OpenShift". List upstream projects separately. -->
+**Upstream and Third-Party Technologies:**
+- Maven — Java build tool
+- pip / PyPI — Python package manager
+- Nexus — enterprise artifact manager (proxying packages.redhat.com/lightwell/*)
+- Gitea — source and GitOps repositories
+- syft — SBOM generator (CycloneDX and SPDX output)
+- cosign (Sigstore) v2.4.3 — keyless image signing and verification
+- Spring Boot — Java sample application (spring-boot-lw-poc)
+- FastAPI — Python sample application (lw-fastapi)
+- CycloneDX — SBOM format
+- SPDX — SBOM format
+- OSV (Open Source Vulnerabilities) schema
 
 ## Module Map
 
 | Module | Title | Duration |
 |--------|-------|----------|
-| 1 | [Module title] | [XX min] |
-| 2 | [Module title] | [XX min] |
-| — | **Total hands-on** | **[X hours]** |
-| — | Intro / presentation | [~XX min] |
-| — | **Total lab** | **[~X hours]** |
-
-<!-- Each module 10-30 min. Total: lab 1-4 hours, demo 15-45 min. Modules should build on each other. -->
+| 1 | AI Vulnerability Storm and Lightwell Network Overview | 20 min |
+| 2 | Enterprise Maven + Artifact Manager Integration | 20 min |
+| 3 | Developer Hub Scaffolding (Java Golden Path) | 25 min |
+| 4 | OSV Triage and Exact-Version Remediation | 20 min |
+| 5 | SBOM Generation and Analysis with RHTPA | 20 min |
+| 6 | Pipeline, Signing, Policy, and GitOps Promotion (Java) | 45 min |
+| 7 | PyPI Validated + FastAPI (Python Track Kickoff) | 30 min |
+| 8 | Remediated PyPI + SPDX/SBOM to RHTPA | 25 min |
+| 9 | Python Pipeline, Sign, Policy, and GitOps Promotion | 40 min |
+| — | **Total hands-on** | **245 min (~4 hours)** |
+| — | Intro / presentation | ~15 min (Module 1 conceptual) |
+| — | **Total lab** | **~4.5 hours** |
 
 ## Difficulty Level
 
-[Beginner, Intermediate, or Advanced]
+Intermediate to Advanced
 
 ## Environment
 
-**Learner view:** [What exists when the lab starts — pre-deployed resources, what participants see and interact with. Be specific about cluster details.]
+**Learner view:** Learners access the lab via RHDP Showroom. When the lab starts, a shared OpenShift cluster is pre-provisioned with all required operators and services already running: OpenShift Pipelines, OpenShift GitOps (Argo CD), Red Hat Advanced Cluster Security, Red Hat Trusted Profile Analyzer, Red Hat Developer Hub, Keycloak (SSO), Gitea, Nexus, Red Hat Trusted Artifact Signer, and an OpenShift BuildConfig. Per-learner namespaces (`lw-poc-<username>` for Java and `lw-fastapi-<username>` for Python) are pre-created with seeded application repositories and ConfigMaps containing discovery URLs. Learners interact through a combination of the Showroom terminal (oc CLI, mvn, pip, cosign, syft, curl, git) and GUIs (RHDH, RHTPA, Argo CD console, OpenShift Console).
 
-**Automation needed:** [Yes/No]
+**Automation needed:** Yes
 
-[If yes, list what automation must provision — operators, per-user resources, sample apps, data sets.]
+The following must be provisioned before learners begin:
+- OpenShift cluster with all operators installed (Pipelines, GitOps, RHACS, RHTPA, RHDH, RHTAS)
+- Keycloak realm and demo user accounts
+- Nexus instance configured with Lightwell proxy repositories (validated, remediated, OSV tiers) backed by packages.redhat.com/lightwell/*
+- Gitea instance with seeded Java (spring-boot-lw-poc) and Python (lw-fastapi) repositories per learner
+- ConfigMaps per namespace: lightwell-channels, demo-userinfo-rhdh, demo-userinfo-keycloak, lightwell-pip-settings
+- Per-learner namespaces: lw-poc-<username>, lw-fastapi-<username>
+- Tekton Pipeline definitions: dep-gate (Java), lightwell-python-dep-gate (Python)
+- GitOps Helm repositories seeded in Gitea per learner
+- RHDH Software Templates loaded: lightwell-java-service, lightwell-python-service
+- cosign binary available in Showroom home directory
+- syft binary available in Showroom home directory
+- OSV evaluation scripts pre-staged: tools/osv-eval/scripts/
 
 ## Infrastructure Requirements
 
-- **Cloud provider:** [CNV (default), AWS, or Troshka (bare-metal/nested virt)]
-- **Cluster type:** [Multinode or SNO (Single Node OpenShift)]
-- **OCP version:** [e.g. 4.20 — minimum 4.20]
-- **Topology:** [Shared cluster, per-student, or CNV pool]
-- **Sizing:** [Node types and counts with resources — e.g., "3 control plane (16 CPU, 64GB RAM), 6 workers (8 CPU, 32GB RAM, 100GB disk)"]
-- **Automation approach:** [Ansible, GitOps (Helm + ArgoCD), or combo]
-- **AI/MaaS:** [None, MaaS (open-source model), MaaS (frontier model), or dedicated GPU — include justification if not "none"]
-- **External services:** [Named services — e.g., github.com, registry.access.redhat.com — or "None"]
-- **AAP version:** [e.g. 2.5 — only if AAP is in products; omit otherwise]
-- **Non-GA products:** [Product name + version, with access plan — or "None (all products are GA)"]
+- **Cloud provider:** CNV (default)
+- **Cluster type:** TBD — confirmed in infrastructure phase (likely multinode given operator stack)
+- **OCP version:** TBD — confirmed in infrastructure phase (minimum 4.14 expected for Pipelines v1 GA; exact version not stated in content)
+- **Topology:** Per-student (each learner gets dedicated namespaces lw-poc-<username> and lw-fastapi-<username>)
+- **Sizing:** TBD — confirmed in infrastructure phase. Heavy operator stack (RHACS, RHTPA, RHDH, RHTAS, Pipelines, GitOps) plus Nexus and Gitea with persistent storage suggests significant worker capacity. Rough estimate: 3 control plane + 4–6 workers at 16 CPU / 64GB RAM / 200GB disk each.
+- **Automation approach:** Ansible (setup) + GitOps Helm + Argo CD (per-learner resources)
+- **AI/MaaS:** None
+- **External services:** packages.redhat.com (Lightwell package registry, proxied via Nexus), github.com (cosign binary download from sigstore/cosign releases)
+- **AAP version:** Not applicable (Ansible used for provisioning only, not as a product under instruction)
+- **Non-GA products:** None (all products are GA) — TBD, confirmed in infrastructure phase if RHTPA version requires verification
 
-<!-- Not all fields must be known at intake. "TBD, estimating ~X" is fine. -->
+## Assessment Strategy
 
-## Assessment Strategy (Optional)
+This lab uses observable outcomes rather than automated solve/validate buttons (classic Showroom pattern). Each module closes with a verifiable CLI or UI result:
 
-<!-- Optional — skip this section for demos or classic labs without verification. -->
-<!-- Relevant for Zero-Touch labs with solve/validate buttons or labs with automated checks. -->
-
-[If applicable: how will we know the learner successfully completed each module? Per module: verification script, solve/validate button, visible result in the UI, or automated check.]
+- **Module 1:** `oc get configmap lightwell-channels` output visible; OSV record inspected in terminal
+- **Module 2:** `mvn clean verify` output shows artifacts resolved from lightwell-validated and lightwell-remediated Nexus repos
+- **Module 3:** Scaffolded repo cloned; `mvn clean verify` passes on RHDH-generated project
+- **Module 4:** `mvn clean verify` dependency tree shows `commons-lang3:3.14.0.rhlw-00001`
+- **Module 5:** RHTPA UI shows ingested SBOM; curl response returns 201
+- **Module 6:** PipelineRun gate-status=passed; cosign verify succeeds; Argo CD shows synced application
+- **Module 7:** pip install resolves from lightwell-python-validated Nexus index; scaffolded FastAPI repo created in RHDH
+- **Module 8:** syft generates SPDX and CycloneDX; RHTPA ingestion returns 201
+- **Module 9:** lightwell-python-dep-gate PipelineRun passes; cosign verify succeeds; Argo CD syncs Python app
