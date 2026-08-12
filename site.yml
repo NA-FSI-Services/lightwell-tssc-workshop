@@ -8,7 +8,7 @@ site:
 content:
   sources:
     - url: .
-      start_path: docs
+      start_path: content
 
 ui:
   bundle:

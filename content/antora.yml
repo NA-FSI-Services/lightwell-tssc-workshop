@@ -16,3 +16,13 @@ asciidoc:
     ssh_password: changeme
     openshift_console_url: 'https://console-openshift-console.apps.cluster-%GUID%.example.com'
     openshift_cluster_ingress_domain: 'apps.cluster-%GUID%.example.com'
+    # Lightwell Network URLs — referenced in module content
+    lightwell-console-url: 'https://console.redhat.com/lightwell'
+    java-validated-url: 'https://packages.redhat.com/lightwell/java/validated'
+    java-remediated-url: 'https://packages.redhat.com/lightwell/java/remediated'
+    java-osv-url: 'https://packages.redhat.com/lightwell/osv/java/remediated'
+    python-validated-url: 'https://packages.redhat.com/lightwell/python/validated'
+    python-remediated-url: 'https://packages.redhat.com/lightwell/python/remediated'
+    python-validated-simple-url: 'https://packages.redhat.com/lightwell/python/validated/simple'
+    python-remediated-simple-url: 'https://packages.redhat.com/lightwell/python/remediated/simple'
+    student_username: 'student'
