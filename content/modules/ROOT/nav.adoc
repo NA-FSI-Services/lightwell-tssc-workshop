@@ -1,4 +1,20 @@
-* xref:index.adoc[Getting Started]
-* xref:module-01.adoc[Module 1: Your First Lab Page]
-* xref:module-02.adoc[Module 2: Another Module]
-* xref:conclusion.adoc[Conclusion]
+* xref:index.adoc[Workshop home]
+
+.Java track
+* xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
+* xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]
+* xref:module-03-scaffold.adoc[Module 3 — Scaffold with Developer Hub]
+* xref:module-04-osv.adoc[Module 4 — OSV triage + .rhlw-* pins]
+* xref:module-05-sbom.adoc[Module 5 — SBOM + RHTPA]
+* xref:module-06-pipeline.adoc[Module 6 — Sign, policy, GitOps]
+
+.Python track
+* xref:module-07-pypi.adoc[Module 7 — PyPI Validated + FastAPI]
+* xref:module-08-python-sbom.adoc[Module 8 — Remediated PyPI + SPDX / SBOM]
+* xref:module-09-python-pipeline.adoc[Module 9 — Python pipeline + GitOps]
+
+.Appendix
+* xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)]
+* xref:appendix-acronyms.adoc[Acronym glossary]
+* xref:rhda-shift-left.adoc[RHDA shift-left (laptop)]
+* xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling (advanced)]

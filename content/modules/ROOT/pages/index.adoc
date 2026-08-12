@@ -1,84 +1,68 @@
-= Getting Started
-:navtitle: Getting Started
+= Lightwell Software Supply Chain Security Workshop
+:toc:
 
-You've cloned the https://github.com/rhpds/rhdp-publishing-house-template[Publishing House template] -- a minimal starting point for authoring lab instructions on the https://demo.redhat.com[Red Hat Demo Platform].
-This template gives you a working Antora site with the Red Hat Demo Platform UI theme, ready for you to replace with your own content.
+Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwell Network (LWN)* integration patterns used in field *proof-of-value (PoV)* delivery—paired with Red Hat *Trusted Software Supply Chain (TSSC)* controls on OpenShift.
 
-== Setup Checklist
+== What you will learn
 
-Follow these steps to make the template yours:
+. *Validated* vs *Remediated* repository tiers for **Java (Maven)** (`.rhlw-*`) and **Python (PyPI)** (PEP 440 `+rhlw.*`; Remediated always seeded in this workshop)
+. Enterprise Maven and pip consumption via an artifact manager proxy (not Satellite)
+. *Red Hat Developer Hub (RHDH)* Software Template scaffold into in-cluster Gitea (Java and Python)
+. *Open Source Vulnerabilities (OSV)*–driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)
+. *Software Bill of Materials (SBOM)* / *Vulnerability Exploitability eXchange (VEX)* analysis with *Red Hat Trusted Profile Analyzer (RHTPA)* (optional *Red Hat Dependency Analytics (RHDA)* on a laptop)
+. Pipeline signing (*Red Hat Trusted Artifact Signer (RHTAS)*), policy gates (*Red Hat Advanced Cluster Security (RHACS)*), and GitOps promotion
 
-[cols="1,4",options="header"]
+== Lab modules
+
+This workshop is **Java and Python** from the catalog definition. Complete Modules 1–6 first, then Modules 7–9.
+
+=== Java track
+
 |===
-|Step |What to do
+|Module |Focus
 
-|1. Rename your repo
-|Suggested naming: `<lab-name>-showroom` (e.g. `ai-powered-rhel-mgmt-showroom`)
+|xref:module-01-overview.adoc[1 — Overview]
+|Remediation gap; Validated vs Remediated; coexistence; *Supply-chain Levels for Software Artifacts (SLSA)* / SBOM / VEX / OSV
 
-|2. Update `content/antora.yml`
-|Change the `title` to your lab name. Update the default attribute values (`guid`, `ssh_user`, `ssh_password`, etc.) to match your environment.
+|xref:module-02-maven.adoc[2 — Maven integration]
+|`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth; mirror / air-gap note (seeded Gitea PoC)
 
-|3. Configure `ui-config.yml`
-|Uncomment and configure the tabs your lab needs (terminal, OCP console, external URLs). See the comments in the file for examples.
+|xref:module-03-scaffold.adoc[3 — Scaffold with Developer Hub]
+|RHDH `lightwell-java-service` → Gitea `spring-boot-lw-poc`; Maven Validated / Remediated proofs on the scaffold
 
-|4. Write your content
-|Replace the pages in `content/modules/ROOT/pages/` with your lab modules. Update `nav.adoc` to list them.
+|xref:module-04-osv.adoc[4 — Exact-version remediation]
+|Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild (continues from Module 3 scaffold)
 
-|5. Preview locally
-|Run `podman-compose up` and open http://localhost:8080. Changes auto-reload.
+|xref:module-05-sbom.adoc[5 — SBOM + RHTPA]
+|CycloneDX via `syft`; RHTPA ingest; VEX / scanner narrative; RHDA callout
+
+|xref:module-06-pipeline.adoc[6 — Pipeline + GitOps]
+|Keyless signing (RHTAS), RHACS gates, Argo CD promotion
 |===
 
-== Local Preview
+=== Python track
 
-The Antora container runs as UID 1001 and needs to modify `site.yml` at startup (to inject dev-mode extensions).
-With rootless Podman, your host files map to UID 0 inside the container, so the container cannot write to them without a permissions fix first.
+|===
+|Module |Focus
 
-Before your first run, grant the container write access:
+|xref:module-07-pypi.adoc[7 — PyPI Validated + FastAPI]
+|Nexus / Lightwell PyPI Validated; Gitea seed; RHDH `lightwell-python-service`
 
-[source,bash]
-----
-podman unshare chown -R 1001:0 site.yml
-----
+|xref:module-08-python-sbom.adoc[8 — Remediated PyPI + SBOM]
+|Remediated PyPI pin + SPDX / SBOM → RHTPA
 
-After stopping the container, reclaim ownership so you can edit the file again:
+|xref:module-09-python-pipeline.adoc[9 — Python pipeline + GitOps]
+|Keyless signing (RHTAS), RHACS gates, Argo CD promotion (FastAPI)
+|===
 
-[source,bash]
-----
-podman unshare chown -R 0:0 site.yml
-----
+== Before you start
 
-TIP: `git checkout -- site.yml` also restores both content and ownership.
+* This guide runs in the RHDP **Showroom** split-screen *user interface (UI)* (lab nav + embedded terminal at `/terminal/`).
+* Use the Showroom terminal for `oc` / `tkn` / `mvn` / `pip` / `syft` commands.
+* Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`).
+* Canonical console (membership / browsing): {lightwell-console-url}
+* RHDP claim emails / portal expose `showroom_url` from ConfigMap `demo-userinfo-showroom` (namespace `showroom`).
 
-[source,bash]
-----
-podman-compose up
-----
+Start with xref:module-01-overview.adoc[Module 1], finish the Java track through xref:module-06-pipeline.adoc[Module 6], then continue with the Python track (Modules 7–9).
 
-Open http://localhost:8080 in your browser.
-The site rebuilds automatically whenever you save a content file -- no restart needed.
-
-== Directory Layout
-
-[source,text]
-----
-your-content-repo/
-├── content/
-│   ├── antora.yml            # Component config: title, nav, attributes
-│   └── modules/ROOT/
-│       ├── nav.adoc          # Sidebar navigation
-│       ├── pages/            # Your lab pages (AsciiDoc)
-│       └── images/           # Screenshots and diagrams (create as needed)
-├── site.yml                  # Antora playbook (do not modify)
-├── ui-config.yml             # Showroom tab layout config
-└── podman-compose.yaml       # Local dev compose
-----
-
-== Documentation
-
-For comprehensive documentation on Showroom content authoring, configuration, and deployment:
-
-* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410091680/Showroom[Showroom Documentation] -- main docs hub
-* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410157268[Getting Started with Showroom Content]
-* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410091753[Antora Content Authoring Guide]
-* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410124789[Configuring Tabs and Services]
-* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410091775[User Variables and Substitution]
+Optional appendices: xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:appendix-acronyms.adoc[Acronym glossary], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].

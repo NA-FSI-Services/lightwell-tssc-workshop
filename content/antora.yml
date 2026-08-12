@@ -1,5 +1,5 @@
 name: modules
-title: My Lab Title
+title: Lightwell Software Supply Chain Security Workshop
 version: ~
 nav:
   - modules/ROOT/nav.adoc

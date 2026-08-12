@@ -1,0 +1,352 @@
+= Module 7: PyPI Validated + FastAPI (Gitea + Developer Hub)
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+include::partial$student-username-form.adoc[]
+
+Modules 1–6 taught the Java path (Maven Validated / Remediated, RHDH scaffold, OSV pins, SBOM, pipeline / GitOps). This workshop continues with the **Python track**: the same enterprise pattern with *pip* and an in-cluster *PyPI* index, using a small *FastAPI* sample in *your* Gitea organization.
+
+You will seed Python remotes from `workshop-templates`, prove *Validated* installs against workshop Nexus, then replace the app repo with Software Template `lightwell-python-service` and re-prove Validated on the scaffold. That scaffolded tree is the source of truth for Modules 8–9.
+
+[NOTE]
+====
+*Java then Python.* Complete xref:module-01-overview.adoc[Modules 1–6] first, then Modules 7–9. Both tracks are part of this workshop definition.
+====
+
+[NOTE]
+====
+*Remediated PyPI* (PEP 440 local pins such as `lw-workshop-pypi==1.0.0+rhlw.00001`) is covered in xref:module-08-python-sbom.adoc[Module 8]. This catalog always enables the Remediated PyPI channel (seeded marker).
+====
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Contrast canonical Lightwell PyPI remotes with the workshop Nexus *Validated* index
+* Create empty FastAPI app + GitOps repos under `lw-@@LW_USER@@` and seed them from `workshop-templates`
+* Install dependencies with `pip` against `lightwell-python-validated` (ConfigMap `lightwell-pip-settings`)
+* Scaffold `lightwell-python-service` into your Gitea org and re-prove Validated on that tree
+
+== Prerequisites
+
+* Finish xref:module-06-pipeline.adoc[Module 6] (or at least Modules 2–3 so org `lw-@@LW_USER@@` exists and RHDH / Gitea work)
+* Set *Your Gitea username* above (must match `demo-userinfo-gitea` → `student_username`)
+* ConfigMaps:
+** `demo-userinfo-gitea` (namespace `gitea`) — `gitea_url`, `student_gitea_org`, `student_username`, `student_password`, `student_python_repo_url`, `student_python_gitops_repo_url`, `template_python_*`
+** `demo-userinfo-rhdh` (namespace `rhdh`) — `rhdh_url`, `software_template_python`
+** `lightwell-pip-settings` / `lightwell-channels` (namespace `lightwell-repo`)
+
+== Lab story
+
+[arabic]
+. Confirm the header username is *pass:q[<span class="lw-student-user">student</span>]* (Apply if you changed it)
+. Browse Nexus PyPI *Validated* and extract `pip.conf`
+. Create empty `fastapi-lw-poc` + `gitops-fastapi-lw-poc` under `lw-@@LW_USER@@`; seed from templates
+. Clone `student_python_repo_url` and `pip install` against Validated
+. Delete the seeded app repo; scaffold `lightwell-python-service` in RHDH
+. Re-clone and re-prove Validated on the scaffold (canonical for Modules 8–9)
+
+== Enterprise PyPI patterns
+
+Field delivery usually puts an *enterprise artifact manager* (Nexus or Artifactory) between developers and `packages.redhat.com`—the same idea as Maven in Module 2, with *pip* indexes instead of Maven repositories.
+
+[cols="1,2,2",options="header"]
+|===
+|Pattern |pip index |When you use it
+
+|*Direct*
+|`{python-validated-simple-url}` (and Remediated — always on in this workshop)
+|Laptop PoC or CI with Lightwell membership
+
+|*Proxied (enterprise)*
+|Internal Nexus / Artifactory PyPI repos that remote or host the same tiers
+|Nearly all customer PoVs; workshop default via `charts/components/lightwell-repo`
+
+|*Seeded (RHDP)*
+|Same Nexus *repository names*; wheels uploaded by Job `lightwell-repo-seed`
+|Deterministic labs when live *Lightwell Network (LWN)* membership is unavailable
+|===
+
+Canonical remotes (document even when mirroring):
+
+* Validated: `{python-validated-url}` (simple: `{python-validated-simple-url}`)
+* Remediated: `{python-remediated-url}` (simple: `{python-remediated-simple-url}`) — Module 8
+
+Workshop Nexus repository ids:
+
+* `lightwell-python-validated` — Module 7 default
+* `lightwell-python-remediated` — Module 8 (always enabled for this workshop; seeded marker)
+
+image::module-07-pypi-validated-nexus.png[Workshop Nexus Lightwell Python Validated,width=700]
+
+== Exercise 1 — Discover URLs and extract `pip.conf`
+
+In the Showroom terminal:
+
+[source,bash,role=execute]
+----
+oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='gitea_url={.data.gitea_url}{"\n"}student_gitea_org={.data.student_gitea_org}{"\n"}student_python_repo_url={.data.student_python_repo_url}{"\n"}student_python_gitops_repo_url={.data.student_python_gitops_repo_url}{"\n"}'
+
+oc -n rhdh get configmap demo-userinfo-rhdh \
+  -o jsonpath='rhdh_url={.data.rhdh_url}{"\n"}software_template_python={.data.software_template_python}{"\n"}'
+
+oc -n lightwell-repo get configmap lightwell-channels \
+  -o jsonpath='mode={.data.mode}{"\n"}'
+
+oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
+  -o jsonpath='pypi_validated_enabled={.data.pypi_validated_enabled}{"\n"}pypi_index_validated={.data.pypi_index_validated}{"\n"}' \
+  2>/dev/null || true
+
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+echo "Nexus: ${LIGHTWELL_NEXUS_URL}"
+----
+
+Confirm the toolchain (Showroom terminal should provide `oc`, `git`, and Python):
+
+[source,bash,role=execute]
+----
+which oc git python3
+python3 -m pip --version
+----
+
+[IMPORTANT]
+====
+Showroom terminal home (`/home/lab-user`) is often a root-owned *PersistentVolumeClaim (PVC)*.
+Write lab artifacts under `/tmp` (not `--to=.` while `pwd` is `/home/lab-user`).
+====
+
+Extract the workshop Validated `pip.conf` (host and index URL already filled for this claim):
+
+[source,bash,role=execute]
+----
+mkdir -p /tmp/lightwell-pip
+oc -n lightwell-repo extract configmap/lightwell-pip-settings \
+  --keys=pip.conf --to=/tmp/lightwell-pip --confirm
+head -30 /tmp/lightwell-pip/pip.conf
+----
+
+Optional: open the Nexus UI route and locate repository `lightwell-python-validated` (instructor / Showroom link).
+
+[TIP]
+====
+*Instructor:* If `python3 -m pip` is missing from the Showroom terminal image, install a user-local pip in the session (`python3 -m ensurepip --user` when available) or demo the same commands from a workstation with Python 3. Prefer not to block the Java Modules 1–6 path on terminal-image changes.
+====
+
+== Exercise 2 — Create Python repos and seed from templates
+
+Your org `lw-@@LW_USER@@` should already exist from xref:module-02-maven.adoc[Module 2]. Do *not* recreate it. Add the Python remotes only.
+
+=== A. Create empty repositories
+
+In the *Gitea UI*, under organization *`lw-@@LW_USER@@`*:
+
+. **+** → **New Repository**
+. Name: *`fastapi-lw-poc`* — leave **Initialize repository** unchecked (empty) → **Create**
+. Repeat for *`gitops-fastapi-lw-poc`* (also empty / no README)
+
+image::module-07-gitea-python-repos.png[Gitea Python app and gitops repos under learner org,width=700]
+
+=== B. Seed from workshop templates
+
+Operator Job `gitea-student-repo-seed` already published path-isolated trees under `workshop-templates/`. Copy that content into **your** Python remotes:
+
+[source,bash,role=execute]
+----
+export STUDENT_USER='@@LW_USER@@'
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+: "${GITEA_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')}"
+
+oc -n gitea get configmap gitea-student-repo-seed \
+  -o jsonpath='{.data.learner-seed-python-from-templates\.sh}' > /tmp/learner-seed-python.sh
+chmod +x /tmp/learner-seed-python.sh
+/tmp/learner-seed-python.sh
+----
+
+Confirm:
+
+[source,bash,role=execute]
+----
+oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_repo_url}{"\n"}{.data.template_python_app_repo_url}{"\n"}'
+curl -sk -o /dev/null -w "%{http_code}\n" \
+  "$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')"
+----
+
+Expect HTTP `200`. Open `lw-@@LW_USER@@/fastapi-lw-poc` in Gitea and confirm `requirements.txt` (and `pip.conf`) are at the **repository root**—not nested under `charts/components/...`.
+
+== Exercise 3 — Validated install from the seeded app
+
+[source,bash,role=execute]
+----
+: "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
+
+rm -rf /tmp/fastapi-lw-poc
+# Student app repos are public — anonymous clone; credentials are for push / seed only
+git clone "${STUDENT_PYTHON_REPO_URL}" /tmp/fastapi-lw-poc
+cd /tmp/fastapi-lw-poc
+
+ls -la requirements.txt pip.conf
+----
+
+Prefer the cluster ConfigMap `pip.conf` (correct host for this claim). Install into a writable virtual environment under `/tmp`:
+
+[source,bash,role=execute]
+----
+export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}')"
+oc -n lightwell-repo extract configmap/lightwell-pip-settings \
+  --keys=pip.conf --to=/tmp/fastapi-lw-poc --confirm
+
+python3 -m venv /tmp/fastapi-venv
+source /tmp/fastapi-venv/bin/activate
+
+PIP_CONFIG_FILE=/tmp/fastapi-lw-poc/pip.conf \
+  python3 -m pip install -r requirements.txt \
+  > /tmp/pip-validated-seed.log 2>&1
+
+grep -E 'httpx|lightwell-python-validated|Successfully installed|ERROR' \
+  /tmp/pip-validated-seed.log | tail -40
+----
+
+Expected:
+
+* `httpx==0.27.2` resolves from Nexus `lightwell-python-validated` (seeded wheel in RHDP)
+* FastAPI / uvicorn may come from the `extra-index-url` (public PyPI)—same idea as Maven Central fallback in Module 2
+* Install completes without errors
+
+Quick package check:
+
+[source,bash,role=execute]
+----
+python3 -m pip show httpx | grep -E '^(Name|Version|Location):'
+deactivate
+----
+
+== Exercise 4 — Delete the seeded app repo
+
+The Software Template *creates* a new Gitea repository; it does not force-push over an existing one. Delete only the **app** repo (keep GitOps).
+
+In the *Gitea UI*:
+
+. Open organization *`lw-@@LW_USER@@`* → repository *`fastapi-lw-poc`*
+. *Settings* → *Danger Zone* → *Delete This Repository*
+. Type the repository name to confirm and delete
+
+Or from the Showroom terminal:
+
+[source,bash,role=execute]
+----
+: "${GITEA_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')}"
+: "${GITEA_ORG:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_gitea_org}')}"
+export STUDENT_USER='@@LW_USER@@'
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+: "${STUDENT_PYTHON_REPO_NAME:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_name}')}"
+
+curl -sk -o /dev/null -w "%{http_code}\n" -u "${STUDENT_USER}:${STUDENT_PASS}" \
+  -X DELETE "${GITEA_URL}/api/v1/repos/${GITEA_ORG}/${STUDENT_PYTHON_REPO_NAME}"
+----
+
+Expect HTTP `204`. A `404` means the repo is already gone—continue.
+
+[NOTE]
+====
+Do *not* delete `gitops-fastapi-lw-poc` (`student_python_gitops_repo_url`). That thin Helm chart is for xref:module-09-python-pipeline.adoc[Module 9] promote.
+====
+
+== Exercise 5 — Scaffold from Developer Hub
+
+. Open RHDH (`rhdh_url` from Exercise 1). Choose *Guest* (workshop auth).
+. *Create* → Software Template *Lightwell Python Service* (`lightwell-python-service`)
+. Fill the form:
+** *Name* — e.g. `fastapi-lw-poc` (Kubernetes-safe; lowercase)
+** *Gitea organization* — *`lw-@@LW_USER@@`* (your Module 2 org; required for `publish:gitea`)
+** *Gitea student username* — *pass:q[<span class="lw-student-user">student</span>]*
+** *Repository name* — leave as *`fastapi-lw-poc`*
+** Optional: leave Lightwell stream default *Validated* (`lightwell-validated`)
+. Review → *Create*
+
+When the scaffolder finishes, the *Repository* link should point at:
+
+`https://gitea.<domain>/lw-@@LW_USER@@/fastapi-lw-poc`
+
+That URL must match `student_python_repo_url` in `demo-userinfo-gitea`.
+
+[TIP]
+====
+*Instructor:* `publish:gitea` requires a Gitea *Organization*. Module 2 already added workshop user `gitea-admin` to the learner org Owners team so the scaffolder credential can create repos. If Create fails with a permissions error, re-run the Java seed helper `learner-seed-from-templates.sh` (Owners team step) or add `gitea-admin` to Owners manually.
+====
+
+== Exercise 6 — Validated install on the scaffold
+
+[source,bash,role=execute]
+----
+: "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
+
+rm -rf /tmp/fastapi-lw-poc
+git clone "${STUDENT_PYTHON_REPO_URL}" /tmp/fastapi-lw-poc
+cd /tmp/fastapi-lw-poc
+
+ls -la requirements.txt pip.conf pip-remediated.conf
+ls .tekton 2>/dev/null || true
+
+oc -n lightwell-repo extract configmap/lightwell-pip-settings \
+  --keys=pip.conf --to=/tmp/fastapi-lw-poc --confirm
+
+python3 -m venv /tmp/fastapi-venv-scaffold
+source /tmp/fastapi-venv-scaffold/bin/activate
+
+PIP_CONFIG_FILE=/tmp/fastapi-lw-poc/pip.conf \
+  python3 -m pip install -r requirements.txt \
+  > /tmp/pip-validated-scaffold.log 2>&1
+
+grep -E 'httpx|lightwell-python-validated|Successfully installed|ERROR' \
+  /tmp/pip-validated-scaffold.log | tail -40
+
+python3 -m pip show httpx | grep -E '^(Name|Version):'
+deactivate
+----
+
+Teaching proof: Validated index id `lightwell-python-validated`, seed coordinate `httpx==0.27.2`. Leave `pip-remediated.conf` and any `.rhlw-*` pins for Module 8.
+
+== Relationship to Modules 2–3 (Java)
+
+|===
+|Path |Python equivalent (this module)
+
+|Module 2 template seed → `spring-boot-lw-poc`
+|Exercise 2–3 seed → `fastapi-lw-poc`
+
+|Module 3 RHDH `lightwell-java-service`
+|Exercise 4–6 RHDH `lightwell-python-service`
+
+|`student_repo_url` (Java)
+|`student_python_repo_url` (Python — do not overwrite the Java remote)
+|===
+
+After Exercise 6, Modules 8–9 continue from the *scaffolded* tree at `student_python_repo_url`.
+
+== Looking ahead
+
+* xref:module-08-python-sbom.adoc[Module 8] — Remediated PyPI pin, plus SPDX / SBOM → RHTPA
+* xref:module-09-python-pipeline.adoc[Module 9] — build, sign, policy gates, and GitOps promote for the FastAPI path
+
+== Module summary
+
+**What you accomplished**
+
+* Mapped direct Lightwell PyPI remotes vs workshop Nexus Validated proxy / seed
+* Created `fastapi-lw-poc` + `gitops-fastapi-lw-poc` under `lw-<username>` and seeded from `workshop-templates`
+* Installed Validated dependencies (`httpx` from `lightwell-python-validated`)
+* Scaffolded `lightwell-python-service` into the same org and re-proved Validated
+
+**Key takeaways**
+
+* Learner UX: `PIP_CONFIG_FILE=…/pip.conf python3 -m pip install -r requirements.txt` from the Gitea `lw-<user>/fastapi-lw-poc` clone
+* Python remotes are parallel keys (`student_python_*`) — keep the Java `spring-boot-lw-poc` remote intact
+* Student remotes are Gitea under **your** org (`student_python_repo_url`)
+* Remediated / `.rhlw-*` for PyPI is Module 8 (channel always on for this workshop)
+
+**Next**
+
+xref:module-08-python-sbom.adoc[Module 8] continues the Python track with the Remediated pin and SBOM analysis.

@@ -1,0 +1,152 @@
+= Appendix: Acronym glossary
+:toc:
+:toclevels: 1
+
+Workshop modules expand each acronym *the first time it appears* in the learner path. Use this page when you need a quick lookup later.
+
+[cols="1,2,3",options="header"]
+|===
+|Acronym |Expansion |Workshop use
+
+|ACS
+|Advanced Cluster Security
+|Usually *RHACS*; platform/image policy gates (Module 6)
+
+|API
+|Application Programming Interface
+|HTTP endpoints (for example `/api/greeting`, RHTPA upload API)
+
+|ASL
+|Apache Software License
+|Workshop `commons-lang3` seed is an ASL 2.0 binary (Module 2)
+
+|CI / CD
+|Continuous Integration / Continuous Delivery (or Deployment)
+|Pipelines and scanners that consume OSV / VEX
+
+|CVE
+|Common Vulnerabilities and Exposures
+|Public vulnerability identifiers mapped via OSV / advisories
+
+|CycloneDX
+|(name, not an acronym)
+|SBOM format used for Maven / `syft` in this workshop (Module 5)
+
+|EOL
+|End of Life
+|Lifecycle conversations (for example obsolete JDK lines)
+
+|GAV
+|GroupId:ArtifactId:Version
+|Maven coordinate shape (Module 2 resolution experiments)
+
+|GitOps
+|Git Operations (desired state in Git)
+|Argo CD sync of workshop charts (Module 6)
+
+|IdP
+|Identity Provider
+|Keycloak for RHTPA sign-in (Modules 4–5)
+
+|JAR
+|Java ARchive
+|Packaged Java library or application binary
+
+|JWKS
+|JSON Web Key Set
+|OIDC signing keys RHTPA loads from Keycloak
+
+|LWN
+|Lightwell Network
+|Validated / Remediated package streams and console
+
+|LSOS
+|Library Support for Open Source (IBM)
+|Complementary EOL framework story; *not* exercised in this catalog
+
+|OIDC
+|OpenID Connect
+|Browser / API login to TPA via Keycloak
+
+|OSV
+|Open Source Vulnerabilities
+|Machine-readable `fixed` events naming `.rhlw-*` pins (Module 4)
+
+|PoC
+|Proof of Concept
+|Spring Boot PoC learner application (`spring-boot-lw-poc`)
+
+|PoV
+|Proof of Value
+|Field delivery pattern this workshop mirrors
+
+|POM
+|Project Object Model
+|Maven `pom.xml` (version properties and profiles)
+
+|PVC
+|PersistentVolumeClaim
+|Cluster storage (for example Showroom terminal home)
+
+|RHACS
+|Red Hat Advanced Cluster Security
+|Image / BUILD policy enforcement (Module 6)
+
+|RHDA
+|Red Hat Dependency Analytics
+|IDE shift-left client of TPA intelligence (Module 5 appendix)
+
+|RHDH
+|Red Hat Developer Hub
+|Optional Software Template path (`lightwell-java-service`)
+
+|RHDP
+|Red Hat Demo Platform
+|Catalog / Showroom hosting ([demo.redhat.com](https://demo.redhat.com))
+
+|RHEL
+|Red Hat Enterprise Linux
+|OS / platform boundary complementary to Lightwell
+
+|RHTAS
+|Red Hat Trusted Artifact Signer
+|Keyless cosign (Fulcio / Rekor / TUF) in Module 6
+
+|RHTPA / TPA
+|Red Hat Trusted Profile Analyzer
+|SBOM and advisory system of record (Module 5)
+
+|SBOM
+|Software Bill of Materials
+|Component inventory (CycloneDX via `syft` in Module 5)
+
+|SLSA
+|Supply-chain Levels for Software Artifacts
+|Build integrity story; Lightwell targets Level 3
+
+|SPDX
+|Software Package Data Exchange
+|SBOM format for Python wheels (narrative; Java labs use CycloneDX)
+
+|SSO
+|Single Sign-On
+|Workshop Keycloak realm `tpa` for RHTPA
+
+|TSSC
+|Trusted Software Supply Chain
+|Red Hat signing, SBOM, and policy tooling paired with Lightwell
+
+|TUF
+|The Update Framework
+|Trust root used with RHTAS keyless verification
+
+|UI
+|User Interface
+|Browser consoles (Showroom, Nexus, RHTPA, Argo CD)
+
+|VEX
+|Vulnerability Exploitability eXchange
+|Machine-readable remediation / exploitability status for scanners
+|===
+
+Related: xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)] for product Q&A beyond acronym expansions.
