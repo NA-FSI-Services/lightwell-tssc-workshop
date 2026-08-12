@@ -1,0 +1,41 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: lightwell-tssc-workshop-ph
+  title: lightwell-tssc-workshop-ph
+  description: "Learners practice the same integration patterns used in Lightwell
+    Network proof-of-value delivery: Validated and Remediated repositories,
+    Maven and PyPI consumption via an enterprise artifact manager, OSV-driven
+    exact-version pins (.rhlw-*), SBOM analysis, and TSSC pipeline controls.
+    This catalog is Java and Python: Modules 1–6 (Java), then Modules 7–9
+    (FastAPI / PyPI — epic #144, complete). PyPI Remediated is always enabled
+    (seeded .rhlw-* marker)."
+  annotations:
+    ph.rhdp.io/content-type: lab
+    ph.rhdp.io/deployment-mode: rhdp_published
+    ph.rhdp.io/github-user: treddy08
+    ph.rhdp.io/owner: treddy@redhat.com
+    ph.rhdp.io/migrated-repo: https://github.com/rhpds/lightwell-tssc-workshop
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: rhpds/lightwell-tssc-workshop-ph
+    ph.rhdp.io/created-at: 2026-08-12T00:04:07.662Z
+  tags:
+    - publishing-house
+    - lab
+    - rhdp-published
+    - migration
+  links:
+    - url: https://github.com/rhpds/lightwell-tssc-workshop-ph
+      title: Repository
+      icon: github
+    - url: https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/lightwell-tssc-workshop-ph
+      title: Open in DevSpaces
+      icon: catalog
+    - url: https://central-api-publishing-house.apps.ocpv-infra02.wdc07.infra.demo.redhat.com
+      title: Central
+      icon: dashboard
+spec:
+  type: content
+  lifecycle: experimental
+  owner: rhdp-team
+  system: publishing-house

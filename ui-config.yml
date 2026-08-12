@@ -1,9 +1,41 @@
 ---
+# RHDP Showroom split-screen layout (lab guide + proxied terminal).
+# Consumed by showroom-content when ZT_UI_ENABLED=true (nookbag UI shell).
+# Terminal is nginx-proxied at /terminal/ → showroom terminal container :7681.
+#
+# RHTPA embeds in-pane (no X-Frame-Options). SSO / Nexus / OpenShift Console
+# refuse iframes (SAMEORIGIN / DENY) — open them with external: true.
+#
+# SSO must NOT use /realms/tpa alone — that returns realm JSON metadata.
+# Use the Account Console path so learners see a login UI.
 type: showroom
 
-default_width: 50
+default_width: 35
 persist_url_state: true
 
 view_switcher:
   enabled: true
   default_mode: split
+
+# Do not set antora.name alone — nookbag v0.4 requires antora.modules (array) when
+# the antora: block is present. Omit antora: so the shell defaults to /modules/.
+
+tabs:
+  - name: Terminal
+    path: /terminal/
+
+  - name: SSO (Keycloak)
+    url: "https://sso.${DOMAIN}/realms/tpa/account/"
+    external: true
+
+  - name: RHTPA
+    url: "https://server-trusted-profile-analyzer.${DOMAIN}"
+    external: false
+
+  - name: Nexus
+    url: "https://nexus-lightwell-repo.${DOMAIN}"
+    external: true
+
+  - name: OpenShift Console
+    url: "https://console-openshift-console.${DOMAIN}"
+    external: true
