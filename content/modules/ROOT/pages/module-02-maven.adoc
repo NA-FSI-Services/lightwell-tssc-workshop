@@ -14,7 +14,7 @@ In this module you wire that pattern on the workshop cluster: extract `settings.
 By the end of this module, you will be able to:
 
 * Contrast **direct** Lightwell remotes with the **proxied enterprise manager** pattern used in PoV delivery
-* Run two Maven experiments against workshop Nexus: **resolution** (`dependency:get`) and **consumption** (`clean verify`)
+* Run 2 Maven experiments against workshop Nexus: **resolution** (`dependency:get`) and **consumption** (`clean verify`)
 * Use `mvn -s settings.xml -Plightwell-validated …` (and Remediated pins) against the workshop Nexus
 * Explain how `LW_USERNAME` / `LW_PASSWORD` (and *Red Hat Demo Platform (RHDP)* secret injection) supply auth without committing secrets
 * Locate the Spring Boot *proof-of-concept (PoC)* sources and run Maven from the Showroom terminal container
@@ -39,9 +39,9 @@ By the end of this module, you will be able to:
 |Deterministic labs when live *Lightwell Network (LWN)* membership is unavailable
 |===
 
-Disconnected / air-gapped environments use the same *proxy or mirror* techniques customers already use for Red Hat content—sync into a local registry manager, then point Maven at that manager. Lightwell content is *not* synced through Red Hat Satellite content views or errata; delivery is via the artifact repository infrastructure (`packages.redhat.com` / Pulp) that build tools and managers consume.
+Disconnected / air-gapped environments use the same *proxy or mirror* techniques customers already use for Red Hat content; sync into a local registry manager, then point Maven at that manager. Lightwell content is *not* synced through Red Hat Satellite content views or errata; delivery is via the artifact repository infrastructure (`packages.redhat.com` / Pulp) that build tools and managers consume.
 
-Technology-relevant *source archives* ship in the same repositories as the binaries (standard Maven layout). Red Hat runs upstream test suites and regression checks before publish; *your* unit, integration, and performance testing in the application context remains your responsibility—patches are intended to be surgical security-only fixes.
+Technology-relevant *source archives* ship in the same repositories as the binaries (standard Maven layout). Red Hat runs upstream test suites and regression checks before publish; *your* unit, integration, and performance testing in the application context remains your responsibility; patches are intended to be surgical security-only fixes.
 
 Canonical remotes (document even when mirroring):
 
@@ -51,11 +51,11 @@ Canonical remotes (document even when mirroring):
 
 Workshop Maven profiles that select those streams are named `lightwell-validated` and `lightwell-remediated`.
 
-image::module-02-direct-vs-proxy.png[Direct LWN versus enterprise Nexus proxy,width=700]
+image::module-02-direct-vs-proxy.png[Direct LWN versus enterprise Nexus proxy,width=700,link=self,window=blank]
 
 == Auth: service account via env / RHDP secrets
 
-Lightwell Network and (optionally) Nexus expect credentials. Workshop templates read them from the environment—**never** from committed files.
+Lightwell Network and (optionally) Nexus expect credentials. Workshop templates read them from the environment, **never** from committed files.
 
 [source,bash,role=execute]
 ----
@@ -66,7 +66,7 @@ export LW_PASSWORD='<token>'
 
 On OpenShift (proxy mode), the chart expects Secret `lightwell-network-credentials` in namespace `lightwell-repo`:
 
-[source,bash]
+[source,bash,role=execute]
 ----
 oc -n lightwell-repo create secret generic lightwell-network-credentials \
   --from-literal=LW_USERNAME='<registry-sa|name>' \
@@ -74,7 +74,7 @@ oc -n lightwell-repo create secret generic lightwell-network-credentials \
   --dry-run=client -o yaml | oc apply -f -
 ----
 
-RHDP catalog delivery should inject these via platform secrets / ExternalSecret—not by editing Git values with real passwords.
+RHDP catalog delivery should inject these via platform secrets / ExternalSecret, not by editing Git values with real passwords.
 
 Maven `settings.xml` in the Spring Boot PoC and *Red Hat Developer Hub (RHDH)* `lightwell-java-service` skeleton binds server credentials with:
 
@@ -116,7 +116,7 @@ ConfigMap `lightwell-maven-settings` (chart `lightwell-repo`) ships the learner 
 
 The Spring Boot PoC adds a *Project Object Model (POM)* profile `lightwell-remediated-pins` that flips dependency versions (for example `commons-lang3` from `3.14.0` to `3.14.0.rhlw-00001`). Settings profiles select *where* Maven looks; POM profiles select *which version* to build.
 
-image::module-02-maven-profiles.png[Maven Validated and Remediated profiles,width=700]
+image::module-02-maven-profiles.png[Maven Validated and Remediated profiles,width=700,link=self,window=blank]
 
 === Extract settings from the cluster
 
@@ -161,7 +161,7 @@ oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}{"\n"}'
 . In a browser (instructor / Showroom link), open the Nexus UI and locate repositories:
 * `lightwell-java-validated`
 * `lightwell-java-remediated`
-* `lightwell-osv-java-remediated` (raw / OSV — used in Module 4)
+* `lightwell-osv-java-remediated` (raw / OSV, used in Module 4)
 
 . Optional: confirm the seed Job finished (seeded mode):
 +
@@ -170,40 +170,48 @@ oc -n lightwell-repo get route nexus -o jsonpath='{.spec.host}{"\n"}'
 oc -n lightwell-repo get jobs,pods -l app.kubernetes.io/name=lightwell-repo
 ----
 
-image::module-02-nexus-repos.png[Workshop Nexus Lightwell repositories,width=700]
+image::module-02-nexus-repos.png[Workshop Nexus Lightwell repositories,width=700,link=self,window=blank]
+
+=== Verify
+
+Confirm the following before continuing:
+
+* All 3 repositories appear in the Nexus UI: `lightwell-java-validated`, `lightwell-java-remediated`, and `lightwell-osv-java-remediated`.
+* Each repository is listed as a *hosted* or *proxy* type (not group-only stubs).
+* If you ran step 3 in seeded mode, the Job shows `Complete` and no pods are in `Error` or `CrashLoopBackOff`.
 
 include::partial$gitea-learner-setup.adoc[]
 
-== Seeded content: two experiments
+== Seeded content: 2 experiments
 
-In *seeded* mode the Job uploads **two kinds** of Maven content into the same Nexus repo names customers would use for live LWN:
+In *seeded* mode the Job uploads **2 kinds** of Maven content into the same Nexus repo names customers would use for live LWN:
 
 [cols="1,2,2",options="header"]
 |===
 |Experiment |What is seeded |What you prove
 
-|*A — Resolution*
+|*A: Resolution*
 |`spring-core:5.3.18` and `5.3.18.rhlw-00003` as *manifest-only stubs*
 |Maven can fetch Lightwell-shaped coordinates from the enterprise manager (`dependency:get`)
 
-|*B — Consumption*
+|*B: Consumption*
 |`commons-lang3:3.14.0` and `3.14.0.rhlw-00001` as a *compile-capable* Apache Commons Lang binary (*Apache Software License (ASL)* 2.0)
 |The same manager can feed a real Spring Boot PoC build (`clean verify`)
 |===
 
 [NOTE]
 ====
-Stubs intentionally omit classes — they are for *GroupId:ArtifactId:Version (GAV)* / remote proofs, not for compiling application code.
+Stubs intentionally omit classes: they are for *GroupId:ArtifactId:Version (GAV)* / remote proofs, not for compiling application code.
 The Remediated `commons-lang3` coordinate re-publishes the same ASL 2.0 binary under the `.rhlw-00001` exact-version suffix so you can practice pin flips without live LWN membership.
 ====
 
-image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption experiments,width=700]
+image::module-02-seed-experiments.png[Seeded Nexus resolution vs consumption experiments,width=700,link=self,window=blank]
 
 == Exercise 2: Validated stream (resolution + consumption)
 
 === What is the Spring Boot PoC?
 
-The *Spring Boot PoC* (`spring-boot-lw-poc`) is this workshop’s primary learner application: a small **Spring Boot 3 / Java 17 / Maven** greeting API used to practice Lightwell Network **Validated** and **Remediated** consumption.
+The *Spring Boot PoC* (`spring-boot-lw-poc`) is this workshop's primary learner application: a small **Spring Boot 3 / Java 17 / Maven** greeting API used to practice Lightwell Network **Validated** and **Remediated** consumption.
 
 Your in-cluster **Gitea** repository under org *`lw-@@LW_USER@@`* (**`spring-boot-lw-poc`**) has the PoC at the **repository root** (`pom.xml` at clone root) after you complete the Gitea setup exercise above. Discover the URL via ConfigMap `demo-userinfo-gitea` (`student_repo_url`).
 
@@ -211,14 +219,14 @@ That tree includes `pom.xml` (dual-stream version properties + `lightwell-remedi
 
 [IMPORTANT]
 ====
-Module 2 does *not* attach to a running Spring Boot Deployment — you validate Maven remotes from the **Showroom terminal** (`mvn` + `java` + `oc` are already installed there).
+Module 2 does *not* attach to a running Spring Boot Deployment; you validate Maven remotes from the **Showroom terminal** (`mvn` + `java` + `oc` are already installed there).
 
 A per-student GitOps app may already exist (`lw-poc-<username>` from Gitea) scaled to `replicas: 0` until you publish and promote an image in xref:module-06-pipeline.adoc[Module 6 Exercise 4]. That runtime path is out of scope here.
 ====
 
 === Find and enter the Showroom terminal container
 
-. Prefer the Showroom UI terminal pane (`/terminal/`) — that session *is* container `terminal` on Deployment `showroom`.
+. Prefer the Showroom UI terminal pane (`/terminal/`), that session *is* container `terminal` on Deployment `showroom`.
 . From a laptop (same environment the labs expect), locate the pod and open a shell in that container:
 +
 [source,bash,role=execute]
@@ -237,7 +245,7 @@ mvn -v | head -2
 
 === Stage the PoC sources and Nexus URL
 
-Same as the settings extract above: clone your Gitea app repo into `/tmp` and keep Maven’s local repository writable:
+Same as the settings extract above: clone your Gitea app repo into `/tmp` and keep Maven's local repository writable:
 
 [source,bash,role=execute]
 ----
@@ -260,7 +268,7 @@ Confirm `pom.xml` and `settings.xml` are at the clone root (`ls pom.xml settings
 Maven can print hundreds of lines. In the Showroom split terminal, redirect to a log under `/tmp` and `grep` for the proof lines (`BUILD SUCCESS`, `Downloading from lightwell-java-*`) so the teaching beat fits the buffer.
 ====
 
-=== Experiment A — resolve a Validated GAV
+=== Experiment A: resolve a Validated GAV
 
 Prove Nexus serves the seeded Validated coordinate (look for `Downloading from lightwell-java-validated` in the log):
 
@@ -277,7 +285,7 @@ grep -E 'Downloading from lightwell-java-validated|Downloaded from lightwell-jav
 
 Expected: `BUILD SUCCESS` and at least one download line from `lightwell-java-validated` (stub JAR is enough for this step). Full output stays in `/tmp/mvn-dep-get-validated.log` if you need to inspect further.
 
-=== Experiment B — build the PoC from Validated
+=== Experiment B: build the PoC from Validated
 
 [source,bash,role=execute]
 ----
@@ -294,13 +302,26 @@ Expected outcomes (from the `grep` slice):
 * `BUILD SUCCESS` (tests pass)
 * Other Spring Boot deps may still fall back to Maven Central (visible in the full log if you search for `central`)
 
+=== Verify
+
+Confirm both experiments succeeded before moving to Exercise 3:
+
+.Experiment A (resolution)
+* The `grep` output includes `BUILD SUCCESS`.
+* At least one line shows `Downloading from lightwell-java-validated` or `Downloaded from lightwell-java-validated`.
+
+.Experiment B (consumption)
+* The `grep` output includes a `commons-lang3` line downloading from `lightwell-java-validated`.
+* The `grep` output includes `BUILD SUCCESS`.
+* No `BUILD FAILURE` line appears in `/tmp/mvn-verify-validated.log`.
+
 == Exercise 3: Remediated stream (resolution + consumption)
 
 You are not changing production pins yet (that is Module 4). First confirm the Remediated remote serves the workshop example artifact, then build with the PoC pin profile.
 
 Stay in the PoC app directory from Exercise 2 (`/tmp/spring-boot-lw-poc`) with `LIGHTWELL_NEXUS_URL` and `MVN_LOCAL` still set.
 
-=== Experiment A — resolve a `.rhlw-*` GAV
+=== Experiment A: resolve a `.rhlw-*` GAV
 
 [source,bash,role=execute]
 ----
@@ -315,7 +336,7 @@ grep -E 'Downloading from lightwell-java-remediated|Downloaded from lightwell-ja
 
 Expected: download from `lightwell-java-remediated` (resolution stub) and `BUILD SUCCESS`.
 
-=== Experiment B — build with Remediated pins
+=== Experiment B: build with Remediated pins
 
 This combination selects the Remediated *repository* and the POM pin `3.14.0.rhlw-00001` for `commons-lang3`:
 
@@ -332,7 +353,7 @@ grep -E 'commons-lang3|Downloading from lightwell-java-remediated|Downloaded fro
 
 Expected: `commons-lang3:3.14.0.rhlw-00001` resolves from Nexus and `BUILD SUCCESS`.
 
-Optional contrast — fetch the remediated pin from Nexus (exists only under `.rhlw-*`, not on Central):
+Optional contrast: fetch the remediated pin from Nexus (exists only under `.rhlw-*`, not on Central):
 
 [source,bash,role=execute]
 ----
@@ -346,6 +367,19 @@ grep -E 'Downloading from lightwell-java-remediated|Downloaded from lightwell-ja
 ----
 
 Expect `Downloaded from lightwell-java-remediated` (or `Downloading from …`) and `BUILD SUCCESS`. The same GAV is absent from Maven Central.
+
+=== Verify
+
+Confirm both experiments succeeded before continuing:
+
+.Experiment A (resolution)
+* The `grep` output includes `BUILD SUCCESS`.
+* At least one line shows `Downloading from lightwell-java-remediated` or `Downloaded from lightwell-java-remediated`.
+
+.Experiment B (build with pins)
+* The `grep` output includes `commons-lang3` with version `3.14.0.rhlw-00001` downloading from `lightwell-java-remediated`.
+* The `grep` output includes `BUILD SUCCESS`.
+* No `BUILD FAILURE` line appears in `/tmp/mvn-verify-remediated.log`.
 
 == Direct `packages.redhat.com` pattern (field reference)
 
@@ -365,15 +399,15 @@ When an enterprise manager is not yet available, profiles can point straight at 
 
 Pair those `<id>` values with `<server>` entries that use `${env.LW_USERNAME}` / `${env.LW_PASSWORD}` from a Red Hat terms-based registry service account.
 
-In the field, prefer *proxied* remotes so developers never embed LWN credentials in every laptop `settings.xml`—the manager holds the remote auth once.
+In the field, prefer *proxied* remotes so developers never embed LWN credentials in every laptop `settings.xml`; the manager holds the remote auth once.
 
-Artifactory uses the same remote URLs and `.rhlw-*` naming; this workshop uses Nexus as the RHDP stand-in. See the Lightwell Network “configure Artifactory” documentation for the production mirror of this pattern.
+Artifactory uses the same remote URLs and `.rhlw-*` naming; this workshop uses Nexus as the RHDP stand-in. See the Lightwell Network "configure Artifactory" documentation for the production mirror of this pattern.
 
 == Looking ahead: Developer Hub
 
 You just proved that *Validated* and *Remediated* are concrete Maven behaviors: the same `settings.xml` profiles, the same GAV story, and a project under *your* Gitea org (`lw-@@LW_USER@@/spring-boot-lw-poc`).
 
-xref:module-03-scaffold.adoc[Module 3] answers the next enterprise question: *how do new services get that layout without hand-copying a PoC?* You will open *Red Hat Developer Hub (RHDH)*, run Software Template `lightwell-java-service`, and land a fresh service in the **same** organization—with the dual-stream Maven setup you practiced here already baked in. Keep this clone for Module 2 exercises; in Module 3 you replace the app repo via the template, then re-run Validated / Remediated proofs to confirm the golden path produces what you just learned by hand.
+xref:module-03-scaffold.adoc[Module 3] answers the next enterprise question: *how do new services get that layout without hand-copying a PoC?* You will open *Red Hat Developer Hub (RHDH)*, run Software Template `lightwell-java-service`, and land a fresh service in the **same** organization, with the dual-stream Maven setup you practiced here already baked in. Keep this clone for Module 2 exercises; in Module 3 you replace the app repo via the template, then re-run Validated / Remediated proofs to confirm the golden path produces what you just learned by hand.
 
 == Module summary
 
@@ -390,7 +424,7 @@ xref:module-03-scaffold.adoc[Module 3] answers the next enterprise question: *ho
 * Learner UX: `mvn -s settings.xml -Plightwell-validated …` from the Gitea `lw-<user>/spring-boot-lw-poc` clone
 * Seeded RHDP can teach both GAV/remote proofs and real builds without live LWN membership
 * Proxied PoV is the default enterprise story; air-gap uses mirror/proxy, not Satellite
-* Credentials stay in env / RHDP secrets / cluster Secrets—never in the GitOps repo
+* Credentials stay in env / RHDP secrets / cluster Secrets, never in the GitOps repo
 * Source jars accompany binaries; application-context testing stays with the consumer
 * Student remotes are Gitea under **your** org (`student_repo_url` from `demo-userinfo-gitea`)
 

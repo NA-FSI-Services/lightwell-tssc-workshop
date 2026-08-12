@@ -19,10 +19,10 @@ By the end of this module, you will be able to:
 
 == Prerequisites
 
-* Finish xref:module-07-pypi.adoc[Module 7] — scaffolded `lightwell-python-service` tree at `student_python_repo_url`
+* Finish xref:module-07-pypi.adoc[Module 7]: scaffolded `lightwell-python-service` tree at `student_python_repo_url`
 * Set *Your Gitea username* above (must match `demo-userinfo-gitea` → `student_username`)
 * ConfigMaps:
-** `demo-userinfo-gitea` (namespace `gitea`) — `student_python_repo_url`, credentials
+** `demo-userinfo-gitea` (namespace `gitea`): `student_python_repo_url`, credentials
 ** `demo-userinfo-lightwell-repo` / `lightwell-pip-settings` (namespace `lightwell-repo`)
 ** `rhtpa-ingestion-info` (namespace `trusted-profile-analyzer`) and Keycloak `tpa` realm (same as Module 5)
 * Optional familiarity: xref:module-05-sbom.adoc[Module 5] SSO / ingest pattern
@@ -36,7 +36,7 @@ By the end of this module, you will be able to:
 . Generate SPDX + CycloneDX with `syft`
 . Ingest into RHTPA and browse (CycloneDX preferred)
 
-== Exercise 1 — Confirm Remediated PyPI
+== Exercise 1: Confirm Remediated PyPI
 
 In the Showroom terminal:
 
@@ -58,14 +58,20 @@ Canonical remote (document even when mirroring): `{python-remediated-url}` (simp
 *Instructor:* This workshop **requires** `channels.pypiRemediated.enabled=true` (seeded marker wheel `lw-workshop-pypi==1.0.0+rhlw.00001`). Do not set it `false` for catalog claims. If a claim shows `pypi_remediated_enabled=false`, treat it as a misconfiguration: fix values / re-sync `lightwell-repo` and re-run Job `lightwell-repo-seed` before continuing Module 8.
 ====
 
-== Exercise 2 — Pin Remediated marker
+=== Verify
+
+* `pypi_remediated_enabled=true` appears in the ConfigMap output.
+* The `lightwell-pip-settings` pip config block contains the `lightwell-python-remediated` index URL.
+* Seed coordinate `lw-workshop-pypi==1.0.0+rhlw.00001` is visible in the output.
+
+== Exercise 2: Pin Remediated marker
 
 === A. Clone your FastAPI repo and install the marker
 
 [source,bash,role=execute]
 ----
 : "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 rm -rf /tmp/fastapi-lw-poc
@@ -96,7 +102,7 @@ grep -E 'lw-workshop-pypi|lightwell-python-remediated|Successfully installed|ERR
 python3 -m pip show lw-workshop-pypi | grep -E '^(Name|Version|Location):'
 ----
 
-Expected: version `1.0.0+rhlw.00001` from Nexus `lightwell-python-remediated` (seeded workshop marker — PEP 440 local `+rhlw.*` so pip accepts it; not a live product backport of a framework package).
+Expected: version `1.0.0+rhlw.00001` from Nexus `lightwell-python-remediated` (seeded workshop marker, PEP 440 local `+rhlw.*` so pip accepts it; not a live product backport of a framework package).
 
 === B. Add the pin to `requirements.txt`, commit, and push
 
@@ -139,7 +145,13 @@ git push origin HEAD
 *Instructor:* Contrast with Java Module 4: there learners pin a real library coordinate (`commons-lang3` / sample OSV) with Maven `.rhlw-*`. Here the PyPI marker uses PEP 440 local `+rhlw.*` so `pip` accepts the pin, and it is an intentional workshop stub so Remediated is always demonstrable in RHDP without requiring live Lightwell PyPI remediations. Keep that distinction explicit so students do not treat `lw-workshop-pypi` as a production FastAPI dependency.
 ====
 
-== Exercise 3 — SPDX vs CycloneDX and wheel `dist-info`
+=== Verify
+
+* `python3 -m pip show lw-workshop-pypi` reports `Version: 1.0.0+rhlw.00001` and a `Location:` path inside the active venv.
+* `requirements.txt` contains both `httpx==0.27.2` (from Module 7) and `lw-workshop-pypi==1.0.0+rhlw.00001`.
+* `git push origin HEAD` exits successfully, listing the new commit as pushed to the Gitea remote.
+
+== Exercise 3: SPDX vs CycloneDX and wheel `dist-info`
 
 Lightwell-distributed *Maven* packages typically carry *CycloneDX* SBOMs (and VEX). *Python* wheels commonly carry *SPDX* under packaging metadata. This workshop still uses CycloneDX for the reliable RHTPA ingest path (same API as Module 5).
 
@@ -160,7 +172,7 @@ Lightwell-distributed *Maven* packages typically carry *CycloneDX* SBOMs (and VE
 |`syft` → SPDX (Python-native) *and* CycloneDX (RHTPA path)
 |===
 
-image::module-08-spdx-vs-cyclonedx.png[SPDX vs CycloneDX packaging contrast,width=700]
+image::module-08-spdx-vs-cyclonedx.png[SPDX vs CycloneDX packaging contrast,width=700,link=self,window=blank]
 
 === Inspect the installed marker wheel layout
 
@@ -185,10 +197,15 @@ deactivate
 
 [TIP]
 ====
-*Instructor:* Do not imply the workshop marker ships production SPDX under `sboms/`. The teaching beat is (1) where live LWN Python metadata lives, (2) that learners still generate an *application* SBOM with `syft` for RHTPA—parallel to Module 5 scanning `target/`, not only browsing Nexus component SBOMs.
+*Instructor:* Do not imply the workshop marker ships production SPDX under `sboms/`. The teaching beat is (1) where live LWN Python metadata lives, (2) that learners still generate an *application* SBOM with `syft` for RHTPA, parallel to Module 5 scanning `target/`, not only browsing Nexus component SBOMs.
 ====
 
-== Exercise 4 — Generate SPDX and CycloneDX with `syft`
+=== Verify
+
+* `ls -la "${LOC}"/lw_workshop_pypi-*.dist-info` lists `METADATA`, `WHEEL`, and `RECORD` files without error.
+* The `sboms/` directory check prints: `No *.dist-info/sboms/ on workshop marker (expected for seed)`.
+
+== Exercise 4: Generate SPDX and CycloneDX with `syft`
 
 Work from the FastAPI clone:
 
@@ -239,16 +256,22 @@ jq '{spdxVersion, name, packages:(.packages|length)}' sbom.spdx.json 2>/dev/null
 jq '{bomFormat, specVersion, components:(.components|length)}' sbom.cyclonedx.json
 ----
 
-Expect CycloneDX `bomFormat` of `CycloneDX` and a non-zero `components` count. Keep both files in the workspace for Exercise 5 — do **not** commit large SBOMs to Gitea unless your instructor asks.
+Expect CycloneDX `bomFormat` of `CycloneDX` and a non-zero `components` count. Keep both files in the workspace for Exercise 5: do **not** commit large SBOMs to Gitea unless your instructor asks.
 
 [IMPORTANT]
 ====
 Showroom terminal home (`/home/lab-user`) is often a root-owned *PersistentVolumeClaim (PVC)*. Keep clones and SBOM files under `/tmp`.
 ====
 
-== Exercise 5 — Ingest and browse in RHTPA
+=== Verify
 
-Reuse the Module 5 Trustify API pattern. Prefer **CycloneDX** for the copy-paste success path. Optionally try **SPDX** afterward—if the API rejects it, that is expected on some workshop builds; keep CycloneDX as the teaching proof.
+* Both `sbom.spdx.json` and `sbom.cyclonedx.json` exist with non-zero size under `/tmp/fastapi-lw-poc`.
+* `jq '{spdxVersion, name, packages:(.packages|length)}'` returns a `spdxVersion` (e.g. `SPDX-2.3`) and a `packages` count greater than zero.
+* `jq '{bomFormat, specVersion, components:(.components|length)}'` returns `"bomFormat": "CycloneDX"` and a non-zero `components` count.
+
+== Exercise 5: Ingest and browse in RHTPA
+
+Reuse the Module 5 Trustify API pattern. Prefer **CycloneDX** for the copy-paste success path. Optionally try **SPDX** afterward: if the API rejects it, that is expected on some workshop builds; keep CycloneDX as the teaching proof.
 
 === Confirm TPA readiness
 
@@ -261,7 +284,7 @@ oc -n sso get configmap demo-userinfo-keycloak \
   -o jsonpath='issuer={.data.oidc_issuer}{"\n"}user={.data.workshop_username}{"\n"}'
 ----
 
-Sign in to the TPA UI Route (not Keycloak `/admin/`) with the workshop `tpa-user` credentials if you want a browser session before the API upload—same caution as Module 5.
+Sign in to the TPA UI Route (not Keycloak `/admin/`) with the workshop `tpa-user` credentials if you want a browser session before the API upload, same caution as Module 5.
 
 === Ingest CycloneDX (required path)
 
@@ -300,7 +323,7 @@ curl -sk -X POST \
 
 Confirm HTTP **201** (or another success code) and an SBOM `id` in the JSON body. Do not commit tokens or passwords.
 
-=== Optional — try SPDX upload
+=== Optional: try SPDX upload
 
 [source,bash,role=execute]
 ----
@@ -337,12 +360,18 @@ oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
 
 Open the TPA UI (Showroom **RHTPA** tab or the URL above). Sign in via realm **`tpa`**. Locate the ingested SBOM (often named from the scanned directory when generated with `dir:.`) and browse packages from the FastAPI tree.
 
-image::module-08-rhtpa-python-sbom.png[RHTPA view of Python SBOM,width=700]
+image::module-08-rhtpa-python-sbom.png[RHTPA view of Python SBOM,width=700,link=self,window=blank]
 
 [TIP]
 ====
 *Instructor:* Pipeline Task `syft-sbom-rhtpa` (Java Module 6 / Python Module 9) automates CycloneDX generate-and-upload. Module 8 keeps the manual path so learners see SPDX vs CycloneDX before the pipeline hides the formats.
 ====
+
+=== Verify
+
+* The CycloneDX upload `curl` returns HTTP **201** and a JSON body containing an SBOM `id`.
+* The ingested SBOM appears in the TPA UI **SBOMs** list when signed in to the `tpa` realm.
+* Package entries from the FastAPI tree (e.g. `fastapi`, `uvicorn`, `lw-workshop-pypi`) are visible in the SBOM detail view.
 
 == Relationship to Modules 4–5 (Java)
 

@@ -26,3 +26,4 @@ asciidoc:
     python-validated-simple-url: 'https://packages.redhat.com/lightwell/python/validated/simple'
     python-remediated-simple-url: 'https://packages.redhat.com/lightwell/python/remediated/simple'
     student_username: 'student'
+    cosign_version: 'v2.4.3'

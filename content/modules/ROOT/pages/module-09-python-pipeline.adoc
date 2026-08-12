@@ -5,7 +5,7 @@
 
 include::partial$student-username-form.adoc[]
 
-Modules 7–8 wired PyPI Validated / Remediated, the FastAPI tree in *your* Gitea org, and SPDX / CycloneDX into RHTPA. This module closes the Python trusted supply-chain loop—parallel to xref:module-06-pipeline.adoc[Module 6] for Java: Tekton policy gates that *fail* without the Remediated marker pin and *pass* after it is restored, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
+Modules 7–8 wired PyPI Validated / Remediated, the FastAPI tree in *your* Gitea org, and SPDX / CycloneDX into RHTPA. This module closes the Python trusted supply-chain loop, parallel to xref:module-06-pipeline.adoc[Module 6] for Java: Tekton policy gates that *fail* without the Remediated marker pin and *pass* after it is restored, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
 
 Lightwell and *Advanced Cluster Security (ACS)* stay complementary: Lightwell remediates (or, in this workshop, seeds a demonstrable `.rhlw-*` marker); ACS and the Python dep-gate / image-check Tasks *enforce* policy before promotion.
 
@@ -55,7 +55,7 @@ Sign in at `gitea_url` with `student_username` / `student_password` from the sam
 
 == Architecture of the lab Pipeline
 
-Two related Pipeline definitions exist:
+2 related Pipeline definitions exist:
 
 [cols="1,2,2",options="header"]
 |===
@@ -83,7 +83,7 @@ oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
 
 Expected pin for the workshop marker: `lw-workshop-pypi==1.0.0+rhlw.00001`.
 
-image::module-09-pipeline-overview.png[Python pipeline overview fail-pass-sign-promote,width=700]
+image::module-09-pipeline-overview.png[Python pipeline overview fail-pass-sign-promote,width=700,link=self,window=blank]
 
 == Exercise 1: Failure path (marker pin absent)
 
@@ -110,7 +110,7 @@ Showroom `/terminal/` has no global git `user.name` / `user.email`. The block be
 [source,bash,role=execute]
 ----
 : "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 rm -rf /tmp/fastapi-lw-poc
@@ -185,6 +185,7 @@ tkn -n stackrox pipelinerun logs "$(basename "$PR")" -f
 ----
 
 . Expected log themes:
++
 * Failure / remediation guidance for missing `lw-workshop-pypi` `+rhlw.*` pin
 * Required version mentions `1.0.0+rhlw.00001`
 * Result `gate-status=failed`
@@ -199,6 +200,29 @@ If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-python
 *Instructor:* Contrast with Module 6: Java fails on a real library coordinate (`commons-lang3`); Python fails on the workshop marker `lw-workshop-pypi`. Keep that distinction explicit so students do not treat the marker as a production FastAPI dependency.
 ====
 
+=== Verify
+
+Confirm the failure was detected correctly before proceeding to Exercise 2:
+
+[source,bash,role=execute]
+----
+# Get the most recent fail PipelineRun
+PR=$(oc -n stackrox get pipelinerun -o name --sort-by=.metadata.creationTimestamp \
+  | grep lightwell-python-policy | tail -1)
+echo "PipelineRun: $(basename "$PR")"
+
+# Overall PipelineRun condition should be Failed
+oc -n stackrox get "$(basename "$PR")" \
+  -o jsonpath='{.status.conditions[0].reason}{"\n"}'
+
+# Dep-gate TaskRun result
+oc -n stackrox get taskrun \
+  -l tekton.dev/pipelineTask=lightwell-python-dep-gate \
+  -o jsonpath='{range .items[-1:]}{.metadata.name}{" gate-status="}{.status.results[?(@.name=="gate-status")].value}{"\n"}{end}'
+----
+
+Expected: PipelineRun condition reason `Failed`; `gate-status=failed`; task log includes a message about the missing `+rhlw.*` marker pin.
+
 == Exercise 2: Success path (remediated `+rhlw.*` pin)
 
 . Restore the Module 8 pin in **your** student repository, commit, and push:
@@ -206,7 +230,7 @@ If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-python
 [source,bash,role=execute]
 ----
 : "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 cd /tmp/fastapi-lw-poc
@@ -325,6 +349,33 @@ With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtp
 *Instructor:* Module 8 already showed manual SPDX + CycloneDX. Here the pipeline Task automates CycloneDX generate-and-upload—same handoff as Java Module 6.
 ====
 
+=== Verify
+
+Confirm all three tasks completed and the gate passed:
+
+[source,bash,role=execute]
+----
+PR=$(oc -n stackrox get pipelinerun -o name --sort-by=.metadata.creationTimestamp \
+  | grep lightwell-python-policy-pass | tail -1)
+echo "PipelineRun: $(basename "$PR")"
+
+# Overall condition should be Succeeded
+oc -n stackrox get "$(basename "$PR")" \
+  -o jsonpath='{.status.conditions[0].reason}{"\n"}'
+
+# Dep-gate result
+oc -n stackrox get taskrun \
+  -l tekton.dev/pipelineTask=lightwell-python-dep-gate \
+  -o jsonpath='{range .items[-1:]}{.metadata.name}{" gate-status="}{.status.results[?(@.name=="gate-status")].value}{"\n"}{end}'
+
+# ACS check result
+oc -n stackrox get taskrun \
+  -l tekton.dev/pipelineTask=acs-image-check \
+  -o jsonpath='{range .items[-1:]}{.metadata.name}{" check-status="}{.status.results[?(@.name=="check-status")].value}{"\n"}{end}'
+----
+
+Expected: `gate-status=passed`; `acs-image-check` shows `check-status=passed` or `check-status=failed` (not `skipped`); `syft-sbom-rhtpa` task is present in the PipelineRun task list.
+
 == Exercise 3: Keyless sign and verify (RHTAS)
 
 RHTAS provides Fulcio, Rekor, and TUF for *keyless* cosign—no long-lived private keys in the workshop.
@@ -415,7 +466,7 @@ Expected graph: `clone` → `lightwell-python-dep-gate` → `openshift-build` (B
 # Install cosign once per terminal session (Showroom-friendly; uses /tmp)
 mkdir -p /tmp/bin /tmp/lab-home
 curl -sSfL -o /tmp/bin/cosign \
-  https://github.com/sigstore/cosign/releases/download/v2.4.3/cosign-linux-amd64
+  https://github.com/sigstore/cosign/releases/download/{cosign_version}/cosign-linux-amd64
 chmod +x /tmp/bin/cosign
 export PATH="/tmp/bin:$PATH"
 # Showroom /home/lab-user is often not writable — cosign needs ~/.sigstore and ~/.docker
@@ -485,13 +536,37 @@ Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF compo
 Optional: RHDH Software Template `lightwell-python-service` can scaffold a similar `.tekton/` tree; scaffolded remotes must still use your Gitea `student_python_repo_url`.
 ====
 
+=== Verify
+
+Confirm the keyless signature is valid and recorded in Rekor:
+
+[source,bash,role=execute]
+----
+: "${LAB_NS:=student-lab}"
+export HOME=/tmp/lab-home
+export PATH="/tmp/bin:$PATH"
+DOMAIN="$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')"
+IMAGE_URL="image-registry.openshift-image-registry.svc:5000/${LAB_NS}/fastapi-lw-poc:latest"
+REKOR="https://rekor-server-trusted-artifact-signer.${DOMAIN}"
+
+cosign verify \
+  --rekor-url="${REKOR}" \
+  --certificate-identity-regexp="^https://kubernetes.io/namespaces/${LAB_NS}/serviceaccounts/pipeline$" \
+  --certificate-oidc-issuer="https://kubernetes.default.svc" \
+  --allow-http-registry --allow-insecure-registry \
+  "${IMAGE_URL}" \
+  | jq -r '.[0].optional.Issuer, .[0].optional.Subject'
+----
+
+Expected: `cosign verify` exits 0; the issuer is `https://kubernetes.default.svc` and the subject matches `https://kubernetes.io/namespaces/<lab-ns>/serviceaccounts/pipeline`. A non-zero exit code indicates a missing or invalid signature.
+
 == Exercise 4: GitOps promotion (Argo CD)
 
 Promotion means: tag the signed lab image into your **product** namespace, commit the image **digest** and `replicas: 1` to your **Gitea Python gitops** repo, let Argo CD sync, and confirm the Route is Healthy. You do not `oc apply` long-lived Deployment YAML by hand.
 
 [NOTE]
 ====
-You have **two** Python Gitea remotes (from ConfigMap `demo-userinfo-gitea`):
+You have **2** Python Gitea remotes (from ConfigMap `demo-userinfo-gitea`):
 
 * `student_python_repo_url` — FastAPI application source + `.tekton/` (Exercises 1–3)
 * `student_python_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD ApplicationSet syncs this into `student_python_promote_namespace` (`lw-fastapi-<username>`)
@@ -510,7 +585,7 @@ export GITOPS_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_python_gitops_repo_url}')"
 export ARGO_APP="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_python_argocd_app}')"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
 export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_password}')"
 
@@ -592,7 +667,7 @@ ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route fastapi-lw-poc \
 curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
 ----
 
-image::module-09-argocd-python-promote.png[Argo CD Python GitOps promotion,width=700]
+image::module-09-argocd-python-promote.png[Argo CD Python GitOps promotion,width=700,link=self,window=blank]
 
 [TIP]
 ====
@@ -603,6 +678,33 @@ A hard refresh (command above) usually picks up the promote commit within a minu
 If the Application stays `Unknown` / clone errors *right after seed*, wait for the Gitea gitops
 repo to finish seeding, then hard-refresh the same way.
 ====
+
+=== Verify
+
+Confirm the Argo CD Application is Synced and the promoted FastAPI Route responds:
+
+[source,bash,role=execute]
+----
+: "${PROMOTE_NS:=$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_promote_namespace}')}"
+: "${ARGO_APP:=$(oc -n gitea get configmap demo-userinfo-gitea \
+  -o jsonpath='{.data.student_python_argocd_app}')}"
+
+# Argo CD Application sync and health
+oc -n openshift-gitops get applications.argoproj.io "${ARGO_APP}" \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+
+# Deployment readiness
+oc -n "${PROMOTE_NS}" get deploy fastapi-lw-poc \
+  -o jsonpath='replicas={.status.readyReplicas}/{.spec.replicas}{"\n"}'
+
+# Route health check
+ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route fastapi-lw-poc \
+  -o jsonpath='{.spec.host}')"
+curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
+----
+
+Expected: Application shows `Synced` / `Healthy`; Deployment shows `1/1` ready replicas; Route returns an HTTP 200 response from `/api/healthz` or `/api/greeting`.
 
 == End-to-end checklist
 

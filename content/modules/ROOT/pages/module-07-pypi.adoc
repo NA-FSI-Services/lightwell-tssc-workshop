@@ -49,7 +49,7 @@ By the end of this module, you will be able to:
 
 == Enterprise PyPI patterns
 
-Field delivery usually puts an *enterprise artifact manager* (Nexus or Artifactory) between developers and `packages.redhat.com`—the same idea as Maven in Module 2, with *pip* indexes instead of Maven repositories.
+Field delivery usually puts an *enterprise artifact manager* (Nexus or Artifactory) between developers and `packages.redhat.com`, the same idea as Maven in Module 2, with *pip* indexes instead of Maven repositories.
 
 [cols="1,2,2",options="header"]
 |===
@@ -78,9 +78,9 @@ Workshop Nexus repository ids:
 * `lightwell-python-validated` — Module 7 default
 * `lightwell-python-remediated` — Module 8 (always enabled for this workshop; seeded marker)
 
-image::module-07-pypi-validated-nexus.png[Workshop Nexus Lightwell Python Validated,width=700]
+image::module-07-pypi-validated-nexus.png[Workshop Nexus Lightwell Python Validated,width=700,link=self,window=blank]
 
-== Exercise 1 — Discover URLs and extract `pip.conf`
+== Exercise 1: Discover URLs and extract `pip.conf`
 
 In the Showroom terminal:
 
@@ -134,7 +134,13 @@ Optional: open the Nexus UI route and locate repository `lightwell-python-valida
 *Instructor:* If `python3 -m pip` is missing from the Showroom terminal image, install a user-local pip in the session (`python3 -m ensurepip --user` when available) or demo the same commands from a workstation with Python 3. Prefer not to block the Java Modules 1–6 path on terminal-image changes.
 ====
 
-== Exercise 2 — Create Python repos and seed from templates
+=== Verify
+
+* All four `oc` commands print non-empty values for `gitea_url`, `student_gitea_org`, `student_python_repo_url`, and `student_python_gitops_repo_url`.
+* `which oc git python3` returns a path for each tool; `python3 -m pip --version` prints a version string.
+* `/tmp/lightwell-pip/pip.conf` exists and its first 30 lines contain a `[global]` section with an `index-url` pointing to the cluster Nexus route.
+
+== Exercise 2: Create Python repos and seed from templates
 
 Your org `lw-@@LW_USER@@` should already exist from xref:module-02-maven.adoc[Module 2]. Do *not* recreate it. Add the Python remotes only.
 
@@ -146,7 +152,7 @@ In the *Gitea UI*, under organization *`lw-@@LW_USER@@`*:
 . Name: *`fastapi-lw-poc`* — leave **Initialize repository** unchecked (empty) → **Create**
 . Repeat for *`gitops-fastapi-lw-poc`* (also empty / no README)
 
-image::module-07-gitea-python-repos.png[Gitea Python app and gitops repos under learner org,width=700]
+image::module-07-gitea-python-repos.png[Gitea Python app and gitops repos under learner org,width=700,link=self,window=blank]
 
 === B. Seed from workshop templates
 
@@ -176,7 +182,13 @@ curl -sk -o /dev/null -w "%{http_code}\n" \
 
 Expect HTTP `200`. Open `lw-@@LW_USER@@/fastapi-lw-poc` in Gitea and confirm `requirements.txt` (and `pip.conf`) are at the **repository root**—not nested under `charts/components/...`.
 
-== Exercise 3 — Validated install from the seeded app
+=== Verify
+
+* The `curl` command returns HTTP `200` for `student_python_repo_url`.
+* The Gitea UI shows repository `lw-@@LW_USER@@/fastapi-lw-poc` with `requirements.txt` and `pip.conf` at the repository root.
+* Repository `lw-@@LW_USER@@/gitops-fastapi-lw-poc` also exists and is non-empty.
+
+== Exercise 3: Validated install from the seeded app
 
 [source,bash,role=execute]
 ----
@@ -212,7 +224,7 @@ grep -E 'httpx|lightwell-python-validated|Successfully installed|ERROR' \
 Expected:
 
 * `httpx==0.27.2` resolves from Nexus `lightwell-python-validated` (seeded wheel in RHDP)
-* FastAPI / uvicorn may come from the `extra-index-url` (public PyPI)—same idea as Maven Central fallback in Module 2
+* FastAPI / uvicorn may come from the `extra-index-url` (public PyPI): same idea as Maven Central fallback in Module 2
 * Install completes without errors
 
 Quick package check:
@@ -223,7 +235,13 @@ python3 -m pip show httpx | grep -E '^(Name|Version|Location):'
 deactivate
 ----
 
-== Exercise 4 — Delete the seeded app repo
+=== Verify
+
+* `pip show httpx` prints `Name: httpx` and `Version: 0.27.2`.
+* The log file `/tmp/pip-validated-seed.log` contains `Successfully installed` and no `ERROR` lines.
+* The `grep` output shows `lightwell-python-validated` as the resolved index for `httpx`.
+
+== Exercise 4: Delete the seeded app repo
 
 The Software Template *creates* a new Gitea repository; it does not force-push over an existing one. Delete only the **app** repo (keep GitOps).
 
@@ -254,7 +272,13 @@ Expect HTTP `204`. A `404` means the repo is already gone—continue.
 Do *not* delete `gitops-fastapi-lw-poc` (`student_python_gitops_repo_url`). That thin Helm chart is for xref:module-09-python-pipeline.adoc[Module 9] promote.
 ====
 
-== Exercise 5 — Scaffold from Developer Hub
+=== Verify
+
+* The `curl -X DELETE` command returns HTTP `204` (or `404` if the repository was already absent).
+* A subsequent `curl` GET to `student_python_repo_url` returns HTTP `404`, confirming the app repo is gone.
+* Repository `lw-@@LW_USER@@/gitops-fastapi-lw-poc` still exists (open it in Gitea to confirm).
+
+== Exercise 5: Scaffold from Developer Hub
 
 . Open RHDH (`rhdh_url` from Exercise 1). Choose *Guest* (workshop auth).
 . *Create* → Software Template *Lightwell Python Service* (`lightwell-python-service`)
@@ -277,7 +301,14 @@ That URL must match `student_python_repo_url` in `demo-userinfo-gitea`.
 *Instructor:* `publish:gitea` requires a Gitea *Organization*. Module 2 already added workshop user `gitea-admin` to the learner org Owners team so the scaffolder credential can create repos. If Create fails with a permissions error, re-run the Java seed helper `learner-seed-from-templates.sh` (Owners team step) or add `gitea-admin` to Owners manually.
 ====
 
-== Exercise 6 — Validated install on the scaffold
+=== Verify
+
+* The scaffolder task log ends with a green checkmark and a *Repository* link.
+* The Repository URL matches `student_python_repo_url` from `demo-userinfo-gitea`.
+* A `curl` GET to the Repository URL returns HTTP `200`.
+* The scaffolded repository contains `requirements.txt`, `pip.conf`, and a `.tekton/` directory at the repository root.
+
+== Exercise 6: Validated install on the scaffold
 
 [source,bash,role=execute]
 ----
@@ -309,7 +340,13 @@ deactivate
 
 Teaching proof: Validated index id `lightwell-python-validated`, seed coordinate `httpx==0.27.2`. Leave `pip-remediated.conf` and any `.rhlw-*` pins for Module 8.
 
-== Relationship to Modules 2–3 (Java)
+=== Verify
+
+* `pip show httpx` prints `Name: httpx` and `Version: 0.27.2`.
+* The log file `/tmp/pip-validated-scaffold.log` contains `Successfully installed` and no `ERROR` lines.
+* `ls .tekton` (run inside the clone before `deactivate`) lists at least one pipeline run file, confirming the scaffolded tree includes Tekton configuration for Modules 8–9.
+
+== Relationship to modules 2–3 (Java)
 
 |===
 |Path |Python equivalent (this module)
@@ -328,8 +365,8 @@ After Exercise 6, Modules 8–9 continue from the *scaffolded* tree at `student_
 
 == Looking ahead
 
-* xref:module-08-python-sbom.adoc[Module 8] — Remediated PyPI pin, plus SPDX / SBOM → RHTPA
-* xref:module-09-python-pipeline.adoc[Module 9] — build, sign, policy gates, and GitOps promote for the FastAPI path
+* xref:module-08-python-sbom.adoc[Module 8]: Remediated PyPI pin, plus SPDX / SBOM → RHTPA
+* xref:module-09-python-pipeline.adoc[Module 9]: build, sign, policy gates, and GitOps promote for the FastAPI path
 
 == Module summary
 

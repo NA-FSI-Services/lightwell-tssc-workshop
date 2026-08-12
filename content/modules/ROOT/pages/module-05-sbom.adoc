@@ -5,7 +5,7 @@
 
 include::partial$student-username-form.adoc[]
 
-Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. Every Lightwell-distributed package is built with *Supply-chain Levels for Software Artifacts (SLSA)* Level 3 integrity and signed; Maven packages include CycloneDX *Software Bills of Materials (SBOMs)* and *Vulnerability Exploitability eXchange (VEX)* advisories (Python wheels use *Software Package Data Exchange (SPDX)*). In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)* (also called *TPA*), and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence—without installing an IDE in Showroom.
+Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. Every Lightwell-distributed package is built with *Supply-chain Levels for Software Artifacts (SLSA)* Level 3 integrity and signed; Maven packages include CycloneDX *Software Bills of Materials (SBOMs)* and *Vulnerability Exploitability eXchange (VEX)* advisories (Python wheels use *Software Package Data Exchange (SPDX)*). In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)* (also called *TPA*), and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence, without installing an IDE in Showroom.
 
 Customers submit *dependency manifests* (for example `pom.xml`) and SBOMs for program workflows—not proprietary application source code. Application source stays in the customer environment.
 
@@ -69,7 +69,7 @@ echo "OIDC discovery: $(oc -n sso get configmap demo-userinfo-keycloak -o jsonpa
 Do **not** open `https://sso.<domain>/admin/` for Module 5. That is the Keycloak *Admin Console* (`master` realm). Workshop user `tpa-user` exists only in realm **`tpa`**. Starting from the TPA UI Route forces the correct *OpenID Connect (OIDC)* redirect.
 ====
 
-image::module-05-tpa-sso-signin.png[Keycloak tpa realm sign-in for RHTPA,width=700]
+image::module-05-tpa-sso-signin.png[Keycloak tpa realm sign-in for RHTPA,width=700,link=self,window=blank]
 
 Confirm the page shows realm branding **TPA** (not the Keycloak Admin Console). Username is typically prefilled or entered as `tpa-user`; leave the password blank until you paste `pass=` from the ConfigMap command above, then **Sign In**.
 
@@ -87,6 +87,13 @@ reloads *JSON Web Key Set (JWKS)* material:
 `oc -n trusted-profile-analyzer rollout restart deploy/server`
 (scale to `0` then `1` if the server PVC leaves pods CrashLoopBackOff).
 ====
+
+=== Verify
+
+* The first command outputs `issuer=…/realms/tpa`, `user=tpa-user`, and a non-empty `pass=` value.
+* Navigating to the TPA UI URL redirects to a Keycloak page whose address bar contains `/realms/tpa/` (not `/admin/`).
+* After signing in with the `user` / `pass` from the ConfigMap, the browser returns to the TPA application home screen (not an error or the Keycloak Admin Console).
+* (Optional diagnostics) The OIDC discovery URL printed in step 3 returns a valid JSON document when opened in a browser or fetched with `curl`.
 
 == Roles: RHTPA vs RHDA
 
@@ -111,7 +118,7 @@ OSV feeds and *VEX* metadata published with Lightwell content let code-scanning 
 
 Full author notes: `docs/rhda-rhtpa-shift-left.md`. Showroom appendix: xref:rhda-shift-left.adoc[RHDA shift-left].
 
-image::module-05-syft-rhtpa-flow.png[syft CycloneDX to RHTPA flow,width=700]
+image::module-05-syft-rhtpa-flow.png[syft CycloneDX to RHTPA flow,width=700,link=self,window=blank]
 
 == Exercise 1: Read RHTPA ingestion hints
 
@@ -138,6 +145,13 @@ oc -n trusted-profile-analyzer get routes
 ----
 
 If the namespace is not ready yet, continue with SBOM *generation* locally; upload when the UI Route is Healthy.
+
+=== Verify
+
+* The `rhtpa-ingestion-info` ConfigMap is present in namespace `trusted-profile-analyzer` (no `Error from server (NotFound)` message).
+* The `server_url` field starts with `https://` and resolves to the TPA application host.
+* The `supported_cyclonedx_version` field is non-empty (for example `1.4` or higher).
+* (Optional) `oc -n trusted-profile-analyzer get routes` lists at least one route whose host matches the `server_url` printed above.
 
 == Exercise 2: Generate CycloneDX with `syft`
 
@@ -191,7 +205,7 @@ head -c 400 sbom.cyclonedx.json; echo
 
 . Optional — if you have `podman` or `docker` on a laptop (not typical in Showroom), run the published image (same family as the Tekton Task):
 +
-[source,bash]
+[source,bash,role=execute]
 ----
 podman run --rm -v "$PWD:/work:z" -w /work \
   ghcr.io/anchore/syft:v1.18.1 \
@@ -213,6 +227,13 @@ Expect `bomFormat` of `CycloneDX` and a non-zero `components` count.
 ====
 Seeded Lightwell artifact SBOMs also exist under the Nexus raw repo path `sbom/java/...` (chart `lightwell-repo`). Those demonstrate *component* metadata; this exercise focuses on the *application* SBOM from your build.
 ====
+
+=== Verify
+
+* `syft version` printed a version string (for example `syft 1.18.1`) without errors.
+* `ls -la sbom.cyclonedx.json` shows the file exists and has a size greater than zero.
+* The `mvn … package` build reported `BUILD SUCCESS` and `ls -la target/*.jar` lists at least one JAR file.
+* Running `jq '{bomFormat, specVersion, components:(.components|length)}' sbom.cyclonedx.json` outputs `"bomFormat": "CycloneDX"` and a non-zero `components` count (typically several dozen for a Spring Boot project).
 
 == Exercise 3: Ingest and browse in RHTPA
 
@@ -298,7 +319,7 @@ Confirm the browser URL contains `/realms/tpa/` (not `/admin/`). After a success
 
 . Browse the ingested SBOM: locate packages such as `commons-lang3` and Spring Boot starters. Tie findings mentally to Module 4 remediated pins (`.rhlw-*`) when a vulnerable coordinate appears.
 
-image::module-05-rhtpa-sbom-ui.png[RHTPA All SBOMs after CycloneDX ingest,width=700]
+image::module-05-rhtpa-sbom-ui.png[RHTPA All SBOMs after CycloneDX ingest,width=700,link=self,window=blank]
 
 Confirm the list shows your ingested SBOM (often named `target` when generated from `dir:target`) with a `type=cyclonedx` label. Open the name link to browse packages such as `commons-lang3` and Spring Boot starters.
 
@@ -310,7 +331,14 @@ Use this only when `sbom.cyclonedx.json` is on the same machine as the browser (
 . Choose SBOMs / upload (labels vary slightly by TPA version) and select `sbom.cyclonedx.json`.
 . Confirm the SBOM appears in the list, then continue with the browse steps above.
 
-== Exercise 4: RHDA callout (laptop — not required in Showroom)
+=== Verify
+
+* The `curl` POST returned HTTP **201** and a JSON response body containing an `id` field (a UUID or numeric identifier for the ingested SBOM).
+* The TPA UI SBOM list shows a new entry labelled `target` (or the JAR name) with `type=cyclonedx`.
+* Clicking the SBOM name in the UI opens a package list that includes Spring Boot starters and `commons-lang3` (or other PoC dependencies).
+* No `401 Unauthorized` or `403 Forbidden` response was received; if one appears, re-run the token exchange step (step 2 of the Ingest via API section) and re-POST.
+
+== Exercise 4: RHDA callout (laptop; not required in Showroom)
 
 Showroom does *not* install VS Code or IntelliJ. Treat RHDA as the shift-left story for field delivery:
 
@@ -333,14 +361,23 @@ Showroom does *not* install VS Code or IntelliJ. Treat RHDA as the shift-left st
 
 Instructor laptop (optional demo):
 
-. Install https://marketplace.visualstudio.com/items?itemName=redhat.fabric8-analytics[Red Hat Dependency Analytics] (VS Code or JetBrains).
+. Install https://marketplace.visualstudio.com/items?itemName=redhat.fabric8-analytics[Red Hat Dependency Analytics^] (VS Code or JetBrains).
 . Ensure `mvn` is on `PATH`.
 . Set *Backend URL* to `https://rhda.rhcloud.com` (public) or the workshop Exhort/RHDA route when published.
 . Open `pom.xml` in your Gitea `spring-boot-lw-poc` clone and run Dependency Analytics; compare with the RHTPA UI from Exercise 3.
 
 Details: xref:rhda-shift-left.adoc[RHDA shift-left appendix].
 
-image::module-05-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700]
+image::module-05-rhtpa-vs-rhda.png[RHTPA versus RHDA roles,width=700,link=self,window=blank]
+
+=== Verify
+
+This exercise is an instructor/field demo; verification is observational.
+
+* (Laptop with VS Code) The Red Hat Dependency Analytics extension is listed as *Enabled* under Extensions.
+* Opening `pom.xml` from the `spring-boot-lw-poc` Gitea clone triggers RHDA analysis; a report or inline wavy underlines appear for known vulnerable coordinates.
+* The dependency highlighted by RHDA (for example a `commons-text` or `spring-core` coordinate) matches a package visible in the RHTPA UI SBOM from Exercise 3, confirming that both tools draw from the same intelligence feed.
+* Learners in Showroom confirm the roles table above: RHDA wavy underlines require a local IDE and are **not** available in the Showroom terminal.
 
 == Module summary
 

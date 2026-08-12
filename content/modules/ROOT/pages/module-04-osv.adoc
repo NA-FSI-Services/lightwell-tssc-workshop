@@ -5,7 +5,7 @@
 
 include::partial$student-username-form.adoc[]
 
-When a *Common Vulnerabilities and Exposures (CVE)* lands against a library you cannot casually upgrade, Lightwell Network publishes a *Remediated* artifact on the same upstream version line with a sequential `.rhlw-0000X` suffix. *Open Source Vulnerabilities (OSV)* records for the Java remediated stream tell you which pin to use. Subscribers discover new remediated packages by polling the Lightwell OSV feed (additional push notifications are a future platform topic—not required for this lab).
+When a *Common Vulnerabilities and Exposures (CVE)* lands against a library you cannot casually upgrade, Lightwell Network publishes a *Remediated* artifact on the same upstream version line with a sequential `.rhlw-0000X` suffix. *Open Source Vulnerabilities (OSV)* records for the Java remediated stream tell you which pin to use. Subscribers discover new remediated packages by polling the Lightwell OSV feed (additional push notifications are a future platform topic, not required for this lab).
 
 In this module you run the field *proof-of-value (PoV)* evaluation loop: inspect the OSV record, read `fixed`, compare upstream vs remediated sources, update the Spring Boot *proof-of-concept (PoC)* pin, then rebuild with Remediated Maven profiles.
 
@@ -53,16 +53,17 @@ Remediated pins use the `.rhlw-0000X` suffix (example: `5.3.18.rhlw-00003`).
 
 Production Lightwell OSV records follow the OSV specification. Useful conventions for triage:
 
-* *Primary id* — Lightwell scheme `RHLW-YYYY-NNNN` (this workshop sample uses `LW-DEMO-0001` for deterministic labs)
-* *aliases* — known CVE ids (for example `CVE-…`); novel findings start with a Lightwell id until a CVE is assigned
-* *affected* — packages by PURL; `ECOSYSTEM` ranges with `"introduced": "0"` and `"fixed": "X.Y.Z.rhlw-#####"`
-* *references* — upstream fix commits as `"type": "FIX"`; advisories / web links as needed
-* *severity* — CVSS v3.1 strings when published
-* *credits* — Red Hat Lightwell as remediation developer; *AI detection models are not named* in OSV (anonymous discovery source by design)
+* *Primary id*: Lightwell scheme `RHLW-YYYY-NNNN` (this workshop sample uses `LW-DEMO-0001` for deterministic labs)
+* *aliases*: known CVE ids (for example `CVE-…`); novel findings start with a Lightwell id until a CVE is assigned
+* *affected*: packages by PURL; `ECOSYSTEM` ranges with `"introduced": "0"` and `"fixed": "X.Y.Z.rhlw-#####"`
+* *references*: upstream fix commits as `"type": "FIX"`; advisories / web links as needed
+* *severity*: CVSS v3.1 strings when published
+* *credits*: Red Hat Lightwell as remediation developer; *AI detection models are not named* in OSV (anonymous discovery source by design)
 
 After High/Critical findings, Network members may see content under a limited disclosure (embargo) window before public upstream contribution. Upstream contribution after that window is intentional; if upstream rejects or delays a merge, the backport remains available in *Remediated*. If upstream ships a different fix, Lightwell aligns remediations where practical and places official upstream releases into *Validated*.
 
-Technology-relevant *source archives* for remediated packages are available in the same repositories as the binaries—Exercise 2 uses that fact.
+Technology-relevant *source archives* for remediated packages are available in the same repositories as the binaries, and Exercise 2 uses that fact.
+
 == Exercise 1: Inspect sample OSV and identify `fixed`
 
 . Prefer the in-cluster sample (seeded with `lightwell-repo`):
@@ -100,7 +101,7 @@ chmod +x tools/osv-eval/scripts/*.sh
 +
 Expected keys include `package=org.springframework:spring-core`, `base_version=5.3.18`, and `fixed_version=5.3.18.rhlw-00003`.
 
-image::module-04-osv-fixed-pin.png[OSV fixed event to .rhlw pin,width=700]
+image::module-04-osv-fixed-pin.png[OSV fixed event to .rhlw pin,width=700,link=self,window=blank]
 
 . Optional: prove the remediated coordinate resolves from Nexus (Module 2 remotes):
 +
@@ -118,6 +119,12 @@ mvn $MVN_LOCAL -s settings.xml dependency:get \
 grep -E 'Downloading from lightwell-java-remediated|Downloaded from lightwell-java-remediated|BUILD SUCCESS|BUILD FAILURE' \
   /tmp/mvn-dep-get-m3-remediated.log
 ----
+
+=== Verify
+
+* `osv-pin.sh` output includes `package=org.springframework:spring-core`, `base_version=5.3.18`, and `fixed_version=5.3.18.rhlw-00003`.
+* The OSV record (step 3) contains the JSON fragment `{ "fixed": "5.3.18.rhlw-00003" }`.
+* (Optional) `/tmp/mvn-dep-get-m3-remediated.log` contains `Downloaded from lightwell-java-remediated` and `BUILD SUCCESS`.
 
 == Exercise 2: Source diff (upstream vs remediated)
 
@@ -145,7 +152,7 @@ git --no-pager diff --no-index -- \
   tools/osv-eval/fixtures/remediated
 ----
 
-image::module-04-source-diff.png[Upstream versus remediated source diff,width=700]
+image::module-04-source-diff.png[Upstream versus remediated source diff,width=700,link=self,window=blank]
 
 === Optional: fetch real `-sources.jar` (instructor / network)
 
@@ -163,6 +170,12 @@ export LIGHTWELL_NEXUS_URL="https://$(oc -n lightwell-repo get route nexus -o js
 ----
 
 Seeded workshop JARs may be manifest-only stubs; if fetch cannot unpack meaningful sources, rely on `--fixture` for the teaching beat.
+
+=== Verify
+
+* `diff-sources.sh --fixture` (or the manual `git --no-pager diff --no-index` equivalent) produces a `git diff` output highlighting a change in `VulnerableUtil.java`.
+* The diff shows only a targeted length-check modification — no new method signatures or package structure changes — confirming the remediation is a scoped backport on the same version line.
+* (Optional) If fetching live sources, the script completes without error and produces a comparable scoped diff against the real Spring Framework source file.
 
 == Exercise 3: Update `pom.xml` and rebuild
 
@@ -221,12 +234,18 @@ grep -E 'commons-lang3|BUILD SUCCESS|BUILD FAILURE' /tmp/mvn-tree-m3-remediated.
 +
 You should see `commons-lang3:jar:3.14.0.rhlw-00001` (or your edited pin) and `BUILD SUCCESS`.
 
-image::module-04-pom-rebuild.png[Pin pom.xml and rebuild with Remediated profiles,width=700]
+image::module-04-pom-rebuild.png[Pin pom.xml and rebuild with Remediated profiles,width=700,link=self,window=blank]
 
 [TIP]
 ====
 In field PoVs you pin *the coordinate named in OSV* (here, `spring-core` on apps still on that line). This workshop separates *discovery* (OSV for `spring-core`) from *app rebuild* (`commons-lang3` on the Boot PoC) so the lab stays deterministic on Spring Boot 3.
 ====
+
+=== Verify
+
+* `grep` on `pom.xml` confirms the `lightwell-remediated-pins` profile contains a `commons.lang3.version` property set to a `.rhlw-*` coordinate.
+* `/tmp/mvn-verify-m3-remediated.log` contains `Downloaded from lightwell-java-remediated` and `BUILD SUCCESS`.
+* `/tmp/mvn-tree-m3-remediated.log` contains `commons-lang3:jar:3.14.0.rhlw-00001` (or your edited pin) and `BUILD SUCCESS`.
 
 == Instructor note: OSV manifest polling
 

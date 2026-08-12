@@ -5,7 +5,7 @@
 
 include::partial$student-username-form.adoc[]
 
-Module 2 used your *learner-owned* Gitea remotes (`lw-@@LW_USER@@/spring-boot-lw-poc`, seeded from `workshop-templates`) to prove enterprise Maven remotes. This module switches to the *developer golden path*: open *Red Hat Developer Hub (RHDH)*, run the Software Template `lightwell-java-service`, and land the same Lightwell Maven dual-stream project in **your** Gitea organization—then re-run Validated and Remediated proofs against workshop Nexus.
+Module 2 used your *learner-owned* Gitea remotes (`lw-@@LW_USER@@/spring-boot-lw-poc`, seeded from `workshop-templates`) to prove enterprise Maven remotes. This module switches to the *developer golden path*: open *Red Hat Developer Hub (RHDH)*, run the Software Template `lightwell-java-service`, and land the same Lightwell Maven dual-stream project in **your** Gitea organization, then re-run Validated and Remediated proofs against workshop Nexus.
 
 After this module, Modules 4–6 continue from the *scaffolded* tree (same `student_repo_url`), not from the Module 2 template seed contents.
 
@@ -41,7 +41,7 @@ By the end of this module, you will be able to:
 . In RHDH, Create → `lightwell-java-service` (Gitea owner/org = `lw-@@LW_USER@@`; repo name `spring-boot-lw-poc`)
 . Clone `student_repo_url` and run Validated + Remediated Maven proofs
 
-== Exercise 1 — Discover RHDH and Gitea URLs
+== Exercise 1: Discover RHDH and Gitea URLs
 
 In the Showroom terminal, read the fields you need (not the whole ConfigMap YAML):
 
@@ -76,7 +76,14 @@ Open the printed RHDH and Gitea URLs in the browser.
 * *RHDH* — choose *Guest* (workshop auth; do not use GitHub — that provider is not configured).
 * *Gitea* — sign in as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from `demo-userinfo-gitea` when prompted.
 
-== Exercise 2 — Delete the seeded app repo
+=== Verify
+
+* Terminal output shows non-empty, non-placeholder values for `RHDH`, `Gitea`, `Org`, `User`, `Repo`, and `App URL`.
+* Both URLs open in the browser without error.
+* RHDH landing page shows a *Guest* login option.
+* Gitea shows a sign-in prompt or your organization dashboard when authenticated.
+
+== Exercise 2: Delete the seeded app repo
 
 Module 2 left a seeded app repo at `student_repo_url` (`lw-<username>/spring-boot-lw-poc`). The Software Template *creates* a new Gitea repository; it does not force-push over an existing one.
 
@@ -86,7 +93,8 @@ In the *Gitea UI*:
 . *Settings* → *Danger Zone* → *Delete This Repository*
 . Type the repository name to confirm and delete
 
-image::module-03-gitea-delete-repo.png[Gitea Danger Zone delete spring-boot-lw-poc,width=700]
+// TODO: add screenshot
+image::module-03-gitea-delete-repo.png[Gitea Danger Zone delete spring-boot-lw-poc,width=700,link=self,window=blank]
 
 Or from the Showroom terminal (API delete; uses your student credentials):
 
@@ -102,14 +110,20 @@ curl -sk -o /dev/null -w "%{http_code}\n" -u "${STUDENT_USER}:${STUDENT_PASS}" \
   -X DELETE "${GITEA_URL}/api/v1/repos/${GITEA_ORG}/${STUDENT_REPO_NAME}"
 ----
 
-Expect HTTP `204`. A `404` means the repo is already gone—continue.
+Expect HTTP `204`. A `404` means the repo is already gone; continue.
 
 [NOTE]
 ====
 Do *not* delete `gitops-spring-boot-lw-poc` (`student_gitops_repo_url`). That thin Helm chart is for xref:module-06-pipeline.adoc[Module 6] promote.
 ====
 
-== Exercise 3 — Scaffold from Developer Hub
+=== Verify
+
+* The `curl` command returns HTTP `204` (deleted) or `404` (already absent).
+* Navigating to `${GITEA_URL}/lw-@@LW_USER@@/spring-boot-lw-poc` in the browser returns a Gitea 404 page.
+* The `gitops-spring-boot-lw-poc` repository is still visible under the `lw-@@LW_USER@@` organization.
+
+== Exercise 3: Scaffold from Developer Hub
 
 . In RHDH, open *Create* → Software Template *Lightwell Java Service* (`lightwell-java-service`)
 . Fill the form:
@@ -120,7 +134,8 @@ Do *not* delete `gitops-spring-boot-lw-poc` (`student_gitops_repo_url`). That th
 ** Optional: leave Maven / Lightwell defaults (`lightwell-validated` active profile)
 . Review → *Create*
 
-image::module-03-rhdh-scaffold-form.png[RHDH lightwell-java-service publish form,width=700]
+// TODO: add screenshot
+image::module-03-rhdh-scaffold-form.png[RHDH lightwell-java-service publish form,width=700,link=self,window=blank]
 
 When the scaffolder finishes, the *Repository* link should point at:
 
@@ -128,7 +143,14 @@ When the scaffolder finishes, the *Repository* link should point at:
 
 That URL must match `student_repo_url` in `demo-userinfo-gitea`.
 
-== Exercise 4 — Clone the scaffold and prove Maven streams
+=== Verify
+
+* The RHDH scaffolder shows green checkmarks for all steps (fetch, template, publish, register).
+* The *Repository* link displayed by the scaffolder resolves to `https://gitea.<domain>/lw-@@LW_USER@@/spring-boot-lw-poc`.
+* That URL matches the value of `student_repo_url` from `demo-userinfo-gitea`.
+* The repository is visible under organization *`lw-@@LW_USER@@`* in Gitea.
+
+== Exercise 4: Clone the scaffold and prove Maven streams
 
 [source,bash,role=execute]
 ----
@@ -184,6 +206,13 @@ mvn $MVN_LOCAL -s settings.xml -Plightwell-remediated,lightwell-remediated-pins 
 grep -E 'Downloading from lightwell-java-remediated|\.rhlw-|BUILD SUCCESS|BUILD FAILURE' \
   /tmp/mvn-scaffold-remediated-verify.log | tail -30
 ----
+
+=== Verify
+
+* `ls -la pom.xml settings.xml` lists both files at the repo root without error.
+* `ls tools/osv-eval` and `ls .tekton` both list directory contents without error.
+* Validated `grep` output contains `Downloaded from lightwell-java-validated` and `BUILD SUCCESS`; no `BUILD FAILURE` line appears.
+* Remediated `grep` output contains `Downloaded from lightwell-java-remediated`, at least one `.rhlw-` coordinate, and `BUILD SUCCESS`; no `BUILD FAILURE` line appears.
 
 Teaching proofs match Module 2: repository ids `lightwell-java-validated` / `lightwell-java-remediated`, and Remediated coordinates carrying `.rhlw-*`.
 

@@ -7,7 +7,7 @@ include::partial$student-username-form.adoc[]
 
 Modules 2–5 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
 
-Lightwell and *Advanced Cluster Security (ACS)* are complementary: Lightwell remediates application dependencies; ACS (and this workshop’s dep-gate / image-check Tasks) *enforce* that builds and images meet policy before promotion. OSV and VEX metadata help *continuous integration (CI)* scanners recognize remediated pins so gates and third-party scanners stay aligned.
+Lightwell and *Advanced Cluster Security (ACS)* are complementary: Lightwell remediates application dependencies; ACS (and this workshop’s dep-gate / image-check Tasks) *enforce* that builds and images meet policy before promotion. OSV and VEX (Vulnerability Exploitability eXchange) metadata help *continuous integration (CI)* scanners recognize remediated pins so gates and third-party scanners stay aligned.
 
 == Learning objectives
 
@@ -46,7 +46,7 @@ echo "STUDENT_REPO_URL=${STUDENT_REPO_URL}"
 
 Sign in at `gitea_url` with `student_username` / `student_password` from the same ConfigMap when you need the web UI or `git push` credentials. Multi-user claims list additional remotes under `student_repos` in that ConfigMap — always use **your** username’s URL.
 
-== Architecture of the lab Pipeline
+== Architecture of the lab pipeline
 
 Two related Pipeline definitions exist:
 
@@ -76,7 +76,7 @@ oc -n stackrox get configmap rhacs-lightwell-policy-lab \
 
 Expected pin pair for `commons-lang3`: vulnerable `3.14.0`, remediated `3.14.0.rhlw-00001`.
 
-image::module-06-fail-then-pass.png[Pipeline fail then pass on .rhlw pin,width=700]
+image::module-06-fail-then-pass.png[Pipeline fail then pass on .rhlw pin,width=700,link=self,window=blank]
 
 == Exercise 1: Failure path (non-remediated pin)
 
@@ -120,6 +120,7 @@ tkn -n stackrox pipelinerun logs "$(basename "$PR")" -f
 ----
 
 . Expected log themes:
++
 * `FAIL: non-remediated default pin for commons-lang3`
 * Required version mentions `3.14.0.rhlw-00001`
 * Result `gate-status=failed`
@@ -128,6 +129,20 @@ tkn -n stackrox pipelinerun logs "$(basename "$PR")" -f
 ====
 If `tkn` is unavailable, use `oc logs` on the TaskRun pods for `lightwell-dep-gate`.
 ====
+
+=== Verify
+
+Confirm that `lightwell-dep-gate` failed as expected:
+
+[source,bash,role=execute]
+----
+PR=$(oc -n stackrox get pipelinerun -o name --sort-by=.metadata.creationTimestamp | tail -1)
+oc -n stackrox get taskrun \
+  -l tekton.dev/pipelineTask=lightwell-dep-gate \
+  -o jsonpath='{range .items[-1:]}{.metadata.name}{" gate-status="}{.status.results[?(@.name=="gate-status")].value}{"\n"}{end}'
+----
+
+Expected: `gate-status=failed`. The overall PipelineRun shows `Failed` status, and the log contains `FAIL: non-remediated default pin for commons-lang3`.
 
 == Exercise 2: Success path (remediated `.rhlw-*` pin)
 
@@ -141,7 +156,7 @@ Showroom `/terminal/` has no global git `user.name` / `user.email`. The block be
 [source,bash,role=execute]
 ----
 : "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${STUDENT_REPO_URL#https://}" /tmp/student-lw-poc
@@ -248,7 +263,7 @@ fallback: `./scripts/dev-cluster-rhacs-ci-token.sh`, or create the token in Cent
 **Platform Configuration → Integrations → API Tokens** (role **Continuous Integration**) and
 patch the Secret:
 
-[source,bash]
+[source,bash,role=execute]
 ----
 oc -n stackrox create secret generic rhacs-ci-secrets \
   --from-literal=rox-api-endpoint='central-stackrox.apps.<domain>:443' \
@@ -260,7 +275,7 @@ Import the Fixable Critical BUILD policy from ConfigMap `rhacs-lightwell-central
 
 With the token present, re-run the PipelineRun and confirm `acs-image-check` `check-status` is
 `passed` or `failed` (not `skipped`). Workshop default `fail-on-skipped=false` still soft-skips
-if the secret is empty so the dep-gate narrative can continue—treat a skip as a provisioning gap,
+if the secret is empty so the dep-gate narrative can continue; treat a skip as a provisioning gap,
 not the happy path.
 
 [TIP]
@@ -278,6 +293,23 @@ Exercise 3 app image once the matcher is ready.
 === SBOM handoff
 
 With `rhtpa-url` set (and optional Secret `rhtpa-upload-token`), `syft-sbom-rhtpa` uploads CycloneDX. Otherwise upload the workspace SBOM via the RHTPA UI (Module 5).
+
+=== Verify
+
+Confirm the pass PipelineRun completed and all tasks progressed:
+
+[source,bash,role=execute]
+----
+PR=$(oc -n stackrox get pipelinerun -o name --sort-by=.metadata.creationTimestamp | tail -1)
+oc -n stackrox get "$(basename ${PR})" \
+  -o custom-columns=NAME:.metadata.name,STATUS:.status.conditions[-1].reason,SUCCEEDED:.status.conditions[-1].status
+
+oc -n stackrox get taskrun \
+  -l tekton.dev/pipelineTask=lightwell-dep-gate \
+  -o jsonpath='{range .items[-1:]}{.metadata.name}{" gate-status="}{.status.results[?(@.name=="gate-status")].value}{"\n"}{end}'
+----
+
+Expected: `gate-status=passed`, the PipelineRun status is `Succeeded`, and TaskRuns for `acs-image-check` and `syft-sbom-rhtpa` are present in the run.
 
 == Exercise 3: Keyless sign and verify (RHTAS)
 
@@ -451,13 +483,37 @@ oc -n "${LAB_NS}" logs "pipelinerun/${PR}" --all-containers \
   | grep -F 'Signed' | grep -F 'keyless / RHTAS'
 ----
 
-image::module-06-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700]
+image::module-06-rhtas-cosign.png[RHTAS keyless cosign sign and verify,width=700,link=self,window=blank]
 
 [TIP]
 ====
 Userinfo ConfigMap in `trusted-artifact-signer` documents Fulcio/Rekor/TUF components for RHDP email/Showroom links.
 Optional advanced path: RHDH Software Template `lightwell-java-service` can scaffold a similar tree; scaffolded remotes must still use your Gitea `student_repo_url`.
 ====
+
+=== Verify
+
+Confirm the keyless signature is recorded in Rekor and verifiable with cosign:
+
+[source,bash,role=execute]
+----
+: "${LAB_NS:=student-lab}"
+: "${DOMAIN:=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')}"
+: "${IMAGE_URL:=image-registry.openshift-image-registry.svc:5000/${LAB_NS}/spring-boot-lw-poc:latest}"
+: "${REKOR:=https://rekor-server-trusted-artifact-signer.${DOMAIN}}"
+
+export HOME=/tmp/lab-home
+export PATH="/tmp/bin:$PATH"
+
+cosign verify \
+  --rekor-url="${REKOR}" \
+  --certificate-identity-regexp="^https://kubernetes.io/namespaces/${LAB_NS}/serviceaccounts/pipeline$" \
+  --certificate-oidc-issuer="https://kubernetes.default.svc" \
+  --allow-http-registry --allow-insecure-registry \
+  "${IMAGE_URL}" && echo "SIGNATURE VERIFIED"
+----
+
+Expected: `cosign verify` exits 0, prints a JSON payload, and ends with `SIGNATURE VERIFIED`. A non-zero exit indicates the signature was not found or the certificate identity does not match; re-check the `cosign-sign-keyless` TaskRun logs.
 
 == Exercise 4: GitOps promotion (Argo CD)
 
@@ -484,7 +540,7 @@ export GITOPS_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_gitops_repo_url}')"
 export ARGO_APP="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_argocd_app}')"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
 export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_password}')"
 
@@ -566,7 +622,7 @@ ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route spring-boot-lw-poc \
 curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
 ----
 
-image::module-06-argocd-promote.png[Argo CD GitOps promotion,width=700]
+image::module-06-argocd-promote.png[Argo CD GitOps promotion,width=700,link=self,window=blank]
 
 [TIP]
 ====
@@ -577,6 +633,26 @@ A hard refresh (command above) usually picks up the promote commit within a minu
 If the Application stays `Unknown` / clone errors *right after seed*, wait for the Gitea gitops
 repo to finish seeding, then hard-refresh the same way.
 ====
+
+=== Verify
+
+Confirm the promoted application is running and reachable:
+
+[source,bash,role=execute]
+----
+: "${ARGO_APP:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_argocd_app}')}"
+: "${PROMOTE_NS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_promote_namespace}')}"
+
+oc -n openshift-gitops get applications.argoproj.io "${ARGO_APP}" \
+  -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+
+oc -n "${PROMOTE_NS}" get pods,deploy
+ROUTE_HOST="$(oc -n "${PROMOTE_NS}" get route spring-boot-lw-poc -o jsonpath='{.spec.host}' 2>/dev/null)"
+echo "Route: https://${ROUTE_HOST}"
+curl -sk "https://${ROUTE_HOST}/api/healthz" || curl -sk "https://${ROUTE_HOST}/api/greeting"
+----
+
+Expected: Application shows `Synced` / `Healthy`, one pod is Running in `${PROMOTE_NS}`, and the Route health endpoint returns HTTP 200.
 
 == End-to-end checklist
 
@@ -615,8 +691,8 @@ repo to finish seeding, then hard-refresh the same way.
 **Key takeaways**
 
 * Pipelines enforce the Module 4 pin story before images ship; ACS policy and Lightwell remediations work together
-* OpenShift Pipelines and the RHACS CI token are provisioned by GitOps (`pipelines` chart + Job `rhacs-ci-token-mint`)—learners verify readiness, they do not install Operators by hand
-* Prefer keyless signing (Fulcio/Rekor)—do not bake long-lived cosign keys into the catalog; Lightwell artifacts themselves also use RHTAS-class signing / SLSA L3
+* OpenShift Pipelines and the RHACS CI token are provisioned by GitOps (`pipelines` chart + Job `rhacs-ci-token-mint`); learners verify readiness, they do not install Operators by hand
+* Prefer keyless signing (Fulcio/Rekor); do not bake long-lived cosign keys into the catalog. Lightwell artifacts themselves also use RHTAS-class signing and SLSA (Supply-chain Levels for Software Artifacts) L3 provenance
 * Git remains the source of truth; Argo CD promotes digest pins from your Gitea gitops remote after pipeline gates
 
 **Workshop complete**
