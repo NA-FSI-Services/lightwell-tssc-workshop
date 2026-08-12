@@ -15,8 +15,8 @@ project:
   intake_type: "migration"
   description: "Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven and PyPI consumption via an enterprise artifact manager, OSV-driven exact-version pins (.rhlw-*), SBOM analysis, and TSSC pipeline controls. This catalog is Java and Python: Modules 1–6 (Java), then Modules 7–9 (FastAPI / PyPI — epic #144, complete). PyPI Remediated is always enabled (seeded .rhlw-* marker)."
   # content_reviewer_email and infra_reviewer_email are assigned by the RHDP team — not set by the author
-  jira_ticket: ""
-  workflow_id: ""
+  jira_ticket: "RHDPCD-908"
+  workflow_id: "61d499a1-cfec-4d29-ad00-9f09dd08116e"
 
 spec:
   title: ""
