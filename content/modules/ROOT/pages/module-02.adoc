@@ -1,0 +1,6 @@
+= Module 2: Another Module
+:navtitle: Module 2: Another Module
+
+This page is a working example of a Showroom lab module.
+It demonstrates the AsciiDoc patterns you'll use when writing your own content.
+Replace this page with your actual lab instructions.

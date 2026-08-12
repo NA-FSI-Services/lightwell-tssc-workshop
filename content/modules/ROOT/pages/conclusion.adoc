@@ -1,0 +1,57 @@
+= Conclusion and Next Steps
+:navtitle: Conclusion
+
+This page is a placeholder for the final page of your lab.
+Replace this page with your actual conclusion content.
+
+TIP: If this is a Publishing House project (see `publishing-house/spec.yaml`), don't write this by hand. Once every module's `status` is `complete`, ask the `rhdp-publishing-house-skills:writer-helper` skill to generate the conclusion for you -- it pulls learning objectives and references straight from your module outlines.
+
+== What You've Learned
+
+// TODO: Recap the learning objectives from every module.
+* Module 1: ...
+* Module 2: ...
+
+== References
+
+// TODO: Consolidate every reference cited across all modules here.
+// Individual modules must *not* have their own `== References` section -- this is the only page they belong on.
+* https://example.com[Reference cited in Module 1]
+* https://example.com[Reference cited in Module 2]
+
+== Next Steps
+
+// TODO (optional): Related labs, further documentation, or practice projects for participants who want to go deeper.
+* Try out ...
+
+== What a Good Conclusion Includes
+
+* **What You've Learned** (mandatory) -- Recap the learning objectives from every module, so the participant sees the full arc of the lab in one place.
+* **References** (mandatory) -- Consolidate every reference cited across all modules here. Individual modules must *not* have their own `== References` section -- this is the only page they belong on.
+* **Next Steps** (optional) -- Related labs, further documentation, or practice projects for participants who want to go deeper.
+
+== Example Structure
+
+A complete conclusion page might look like this:
+
+[source,asciidoc]
+----
+= Conclusion and Next Steps
+:navtitle: Conclusion
+
+Congratulations! You've completed the {{ lab_name }} lab.
+
+== What You've Learned
+
+* Module 1: ...
+* Module 2: ...
+
+== References
+
+* https://example.com[Reference cited in Module 1]
+* https://example.com[Reference cited in Module 2]
+
+== Next Steps
+
+* Try out ...
+----

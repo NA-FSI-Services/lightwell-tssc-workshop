@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""Set up this project for a specific lab pattern.
+
+Requires Python 3.8+.  No external dependencies — stdlib only.
+"""
+from __future__ import annotations
+
+import argparse
+import re
+import shutil
+import sys
+from pathlib import Path
+
+SCAFFOLD_DIR = Path("_scaffolds")
+MANIFEST = Path("publishing-house/spec.yaml")
+UI_CONFIG = Path("ui-config.yml")
+
+PATTERN_DIRS = [
+    Path("runtime-automation"),
+    Path("setup-automation"),
+    Path("config"),
+]
+
+PATTERNS: dict[str, tuple[str, str]] = {
+    #  pattern-name   : (showroom_type, infrastructure)
+    "agd-open":   ("classic", "agd_v2"),
+    "agd-guided": ("guided",  "agd_v2"),
+    "zt-guided":  ("guided",  "zt"),
+}
+
+MENU = """\
+Which lab pattern?
+
+  1. AgD v2 Open      — AgnosticD v2 infra, classic Showroom (no solve/validate)
+  2. AgD v2 Guided    — AgnosticD v2 infra, guided Showroom (solve/validate buttons)
+  3. ZT Guided        — Project Zero infra, guided Showroom (solve/validate buttons)
+"""
+
+MENU_MAP = {"1": "agd-open", "2": "agd-guided", "3": "zt-guided"}
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser for the scaffold CLI."""
+    parser = argparse.ArgumentParser(
+        description="Set up this project for a specific lab pattern.",
+    )
+    parser.add_argument(
+        "--pattern",
+        choices=list(PATTERNS),
+        help="Lab pattern to scaffold (skips interactive menu)",
+    )
+    parser.add_argument(
+        "--force", "-f",
+        action="store_true",
+        help="Skip confirmation prompt on re-scaffold",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be done without touching the filesystem",
+    )
+    return parser
+
+
+def interactive_menu() -> str:
+    """Present the interactive pattern selection menu."""
+    print(MENU)
+    while True:
+        choice = input("Enter choice [1-3]: ").strip()
+        if choice in MENU_MAP:
+            return MENU_MAP[choice]
+        print(f"Invalid choice: {choice!r}. Enter 1, 2, or 3.")
+
+
+def update_manifest(path: Path, showroom_type: str, infrastructure: str) -> None:
+    """Update showroom_type and infrastructure in the manifest YAML.
+
+    Uses regex replacement to preserve comments and formatting.
+    """
+    text = path.read_text(encoding="utf-8")
+    text = re.sub(
+        r'^(\s*showroom_type:\s*)""',
+        rf'\g<1>"{showroom_type}"',
+        text,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r'^(\s*infrastructure:\s*)""',
+        rf'\g<1>"{infrastructure}"',
+        text,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    path.write_text(text, encoding="utf-8")
+
+
+def scaffold(root: Path, pattern: str, *, force: bool, dry_run: bool) -> int:
+    """Run the scaffolding process.  Returns 0 on success, 1 on error."""
+    scaffold_dir = root / SCAFFOLD_DIR
+    pattern_src = scaffold_dir / pattern
+    manifest = root / MANIFEST
+    ui_config = root / UI_CONFIG
+
+    # --- Pre-flight checks ---
+    if not scaffold_dir.is_dir():
+        print(
+            "Error: This project has already been scaffolded. "
+            f"The `{SCAFFOLD_DIR}/` directory was removed after initial scaffolding.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if not (root / "content").is_dir():
+        print(
+            "Error: scaffold.py must be run from the template root — "
+            f"expected to find `{SCAFFOLD_DIR}/` and `content/` in the current directory.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if not pattern_src.is_dir():
+        print(
+            f"Error: Pattern {pattern!r} not found in `{SCAFFOLD_DIR}/`.",
+            file=sys.stderr,
+        )
+        return 1
+
+    showroom_type, infrastructure = PATTERNS[pattern]
+
+    # --- Check for existing pattern dirs ---
+    existing = [d for d in PATTERN_DIRS if (root / d).is_dir()]
+    if existing and not force:
+        if dry_run:
+            print(f"Would remove existing directories: {', '.join(str(d) for d in existing)}")
+        else:
+            names = ", ".join(str(d) for d in existing)
+            print(f"Existing pattern directories found: {names}")
+            confirm = input("Re-scaffolding will clear and recreate them. Continue? [y/N] ").strip()
+            if confirm.lower() not in ("y", "yes"):
+                print("Aborted.")
+                return 1
+
+    # --- Dry-run summary ---
+    if dry_run:
+        print(f"\n--- Dry run: pattern={pattern} ---")
+        files = sorted(
+            p.relative_to(pattern_src)
+            for p in pattern_src.rglob("*")
+            if p.is_file()
+        )
+        print(f"  Copy from {pattern_src}/:")
+        for f in files:
+            print(f"    → {f}")
+        if manifest.is_file():
+            print(f"  Update {manifest}: showroom_type={showroom_type!r}, infrastructure={infrastructure!r}")
+        else:
+            print(f"  Skip {manifest} update (file not present yet)")
+        print(f"  Remove {scaffold_dir}/")
+        print("No changes made.")
+        return 0
+
+    # --- Execute ---
+    try:
+        # 1. Remove any existing pattern-specific directories
+        for d in PATTERN_DIRS:
+            target = root / d
+            if target.is_dir():
+                shutil.rmtree(target)
+
+        # 2. Copy pattern files into project root
+        shutil.copytree(pattern_src, root, dirs_exist_ok=True)
+
+        # 3. Update manifest (spec.yaml is populated by skeleton substitution;
+        #    skip if it doesn't exist yet — fields will be set at instantiation)
+        if manifest.is_file():
+            update_manifest(manifest, showroom_type, infrastructure)
+
+        # 4. Remove _scaffolds/
+        shutil.rmtree(scaffold_dir)
+
+    except OSError as exc:
+        print(f"Error during scaffolding: {exc}", file=sys.stderr)
+        print(
+            f"The project may be in a partial state. "
+            f"Re-run with --force to attempt recovery.",
+            file=sys.stderr,
+        )
+        return 1
+
+    # --- Summary ---
+    print(f"\nScaffolded: {pattern}")
+    print(f"  showroom_type:  {showroom_type}")
+    print(f"  infrastructure: {infrastructure}")
+
+    created = [d for d in PATTERN_DIRS if (root / d).is_dir()]
+    if created:
+        print(f"  created:        {', '.join(str(d) for d in created)}")
+    print(f"\nNext: run /rhdp-publishing-house to start intake, or edit files directly.")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point.  Parse args, resolve pattern, and run scaffold."""
+    args = build_parser().parse_args(argv)
+
+    root = Path.cwd()
+
+    if args.pattern:
+        pattern = args.pattern
+    else:
+        try:
+            pattern = interactive_menu()
+        except (KeyboardInterrupt, EOFError):
+            print("\nAborted.")
+            return 1
+
+    return scaffold(root, pattern, force=args.force, dry_run=args.dry_run)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

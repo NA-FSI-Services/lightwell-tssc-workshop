@@ -1,0 +1,84 @@
+= Getting Started
+:navtitle: Getting Started
+
+You've cloned the https://github.com/rhpds/rhdp-publishing-house-template[Publishing House template] -- a minimal starting point for authoring lab instructions on the https://demo.redhat.com[Red Hat Demo Platform].
+This template gives you a working Antora site with the Red Hat Demo Platform UI theme, ready for you to replace with your own content.
+
+== Setup Checklist
+
+Follow these steps to make the template yours:
+
+[cols="1,4",options="header"]
+|===
+|Step |What to do
+
+|1. Rename your repo
+|Suggested naming: `<lab-name>-showroom` (e.g. `ai-powered-rhel-mgmt-showroom`)
+
+|2. Update `content/antora.yml`
+|Change the `title` to your lab name. Update the default attribute values (`guid`, `ssh_user`, `ssh_password`, etc.) to match your environment.
+
+|3. Configure `ui-config.yml`
+|Uncomment and configure the tabs your lab needs (terminal, OCP console, external URLs). See the comments in the file for examples.
+
+|4. Write your content
+|Replace the pages in `content/modules/ROOT/pages/` with your lab modules. Update `nav.adoc` to list them.
+
+|5. Preview locally
+|Run `podman-compose up` and open http://localhost:8080. Changes auto-reload.
+|===
+
+== Local Preview
+
+The Antora container runs as UID 1001 and needs to modify `site.yml` at startup (to inject dev-mode extensions).
+With rootless Podman, your host files map to UID 0 inside the container, so the container cannot write to them without a permissions fix first.
+
+Before your first run, grant the container write access:
+
+[source,bash]
+----
+podman unshare chown -R 1001:0 site.yml
+----
+
+After stopping the container, reclaim ownership so you can edit the file again:
+
+[source,bash]
+----
+podman unshare chown -R 0:0 site.yml
+----
+
+TIP: `git checkout -- site.yml` also restores both content and ownership.
+
+[source,bash]
+----
+podman-compose up
+----
+
+Open http://localhost:8080 in your browser.
+The site rebuilds automatically whenever you save a content file -- no restart needed.
+
+== Directory Layout
+
+[source,text]
+----
+your-content-repo/
+├── content/
+│   ├── antora.yml            # Component config: title, nav, attributes
+│   └── modules/ROOT/
+│       ├── nav.adoc          # Sidebar navigation
+│       ├── pages/            # Your lab pages (AsciiDoc)
+│       └── images/           # Screenshots and diagrams (create as needed)
+├── site.yml                  # Antora playbook (do not modify)
+├── ui-config.yml             # Showroom tab layout config
+└── podman-compose.yaml       # Local dev compose
+----
+
+== Documentation
+
+For comprehensive documentation on Showroom content authoring, configuration, and deployment:
+
+* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410091680/Showroom[Showroom Documentation] -- main docs hub
+* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410157268[Getting Started with Showroom Content]
+* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410091753[Antora Content Authoring Guide]
+* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410124789[Configuring Tabs and Services]
+* https://redhat.atlassian.net/wiki/spaces/RHPDS/pages/410091775[User Variables and Substitution]
