@@ -106,16 +106,16 @@ The following must be provisioned before learners begin:
 
 ## Infrastructure Requirements
 
-- **Cloud provider:** CNV (default)
-- **Cluster type:** TBD — confirmed in infrastructure phase (likely multinode given operator stack)
-- **OCP version:** TBD — confirmed in infrastructure phase (minimum 4.14 expected for Pipelines v1 GA; exact version not stated in content)
-- **Topology:** Per-student (each learner gets dedicated namespaces lw-poc-<username> and lw-fastapi-<username>)
-- **Sizing:** TBD — confirmed in infrastructure phase. Heavy operator stack (RHACS, RHTPA, RHDH, RHTAS, Pipelines, GitOps) plus Nexus and Gitea with persistent storage suggests significant worker capacity. Rough estimate: 3 control plane + 4–6 workers at 16 CPU / 64GB RAM / 200GB disk each.
+- **Cloud provider:** CNV
+- **Cluster type:** Multinode
+- **OCP version:** 4.20 (minimum)
+- **Topology:** Per-student
+- **Sizing:** 3 control plane (16 vCPU, 64GB RAM); 2 workers (16 vCPU, 64GB RAM, 2000GB disk)
 - **Automation approach:** Ansible (setup) + GitOps Helm + Argo CD (per-learner resources)
 - **AI/MaaS:** None
 - **External services:** packages.redhat.com (Lightwell package registry, proxied via Nexus), github.com (cosign binary download from sigstore/cosign releases)
-- **AAP version:** Not applicable (Ansible used for provisioning only, not as a product under instruction)
-- **Non-GA products:** None (all products are GA) — TBD, confirmed in infrastructure phase if RHTPA version requires verification
+- **AAP version:** Not applicable
+- **Non-GA products:** None (all products are GA)
 
 ## Assessment Strategy
 

@@ -74,15 +74,15 @@ spec:
     max_concurrent_users: null # required if topology = shared-cluster
 
     # --- OCP-specific fields (only when platform = ocp) ---
-    ocp_version: ""                    # TBD — confirmed in infrastructure phase; not stated in content
-    cluster_type: ""                   # TBD — confirmed in infrastructure phase; likely multinode
-    control_plane_instance_count: null # TBD — confirmed in infrastructure phase
-    control_plane_cpu: null            # TBD — confirmed in infrastructure phase
-    control_plane_ram_gb: null         # TBD — confirmed in infrastructure phase
-    worker_count: null                 # TBD — confirmed in infrastructure phase
-    worker_cpu: null                   # TBD — confirmed in infrastructure phase
-    worker_ram_gb: null                # TBD — confirmed in infrastructure phase
-    worker_disk_gb: null               # TBD — confirmed in infrastructure phase
+    ocp_version: "4.20"                 # minimum version; confirmed in infrastructure phase
+    cluster_type: "multinode"           # sno | multinode
+    control_plane_instance_count: 3
+    control_plane_cpu: 16
+    control_plane_ram_gb: 64
+    worker_count: 2
+    worker_cpu: 16
+    worker_ram_gb: 64
+    worker_disk_gb: 2000
 
     # --- VM-specific fields (only when platform = rhel-vms) ---
     # Each entry: {role, count, cpu, ram_gb, disk_gb, os}
