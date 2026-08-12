@@ -1,0 +1,18 @@
+site_name: Lightwell Software Supply Chain Security Workshop
+docs_dir: publishing-house/spec
+nav:
+- Home: index.md
+- Design Spec: design.md
+- Modules:
+  - Module 1 - Overview: modules/module-01-overview.md
+  - Module 2 - Maven: modules/module-02-maven.md
+  - Module 3 - Scaffold: modules/module-03-scaffold.md
+  - Module 4 - Osv: modules/module-04-osv.md
+  - Module 5 - Sbom: modules/module-05-sbom.md
+  - Module 6 - Pipeline: modules/module-06-pipeline.md
+  - Module 7 - Pypi: modules/module-07-pypi.md
+  - Module 8 - Python Sbom: modules/module-08-python-sbom.md
+  - Module 9 - Python Pipeline: modules/module-09-python-pipeline.md
+- Automation Manifest: automation-manifest.yaml
+plugins:
+- techdocs-core
