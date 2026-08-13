@@ -1,5 +1,5 @@
 ---
-# Antora playbook for RHDP Showroom (charts/root-app → antoraPlaybook: site.yml)
+# Antora playbook for RHDP Showroom (automation/bootstrap-infra → antoraPlaybook: site.yml)
 # Omit site.url so the Showroom title/canonical links stay in-cluster (no GitHub chrome).
 site:
   title: Lightwell Software Supply Chain Security Workshop

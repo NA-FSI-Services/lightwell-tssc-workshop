@@ -1,0 +1,30 @@
+{{- if and .Values.keycloak.enabled .Values.keycloak.anyuidScc }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.keycloak.name }}
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.syncWaves.rbac | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.keycloak.name }}-scc-anyuid
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.syncWaves.rbac | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.keycloak.name }}
+    namespace: {{ .Values.keycloak.namespace }}
+{{- end }}

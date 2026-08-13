@@ -1,0 +1,122 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.depGate.enabled }}
+---
+# Build-time Maven pin gate — OSV-friendly narrative for non-remediated vs .rhlw-* pins.
+# Complements roxctl image check (stub/seeded images may not surface real CVEs yet).
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ .Values.pipelineHooks.depGate.taskName }}
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pipeline-hooks
+    lightwell.redhat.com/gate: dep-pin
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+spec:
+  description: >-
+    Fail the pipeline when workshop demo dependencies use unpatched versions
+    instead of Lightwell remediated .rhlw-0000X pins (Module 3 / 5 narrative).
+  params:
+    - name: pom-path
+      type: string
+      default: pom.xml
+      description: Path to pom.xml in the source workspace
+    - name: mode
+      type: string
+      default: {{ .Values.pipelineHooks.depGate.defaultMode | quote }}
+      description: >-
+        require-remediated = fail without .rhlw-* on watched artifacts;
+        allow-validated = informational only (exit 0)
+    - name: watched-artifact
+      type: string
+      default: {{ .Values.pipelineHooks.depGate.watchedArtifact | quote }}
+      description: Maven artifactId to inspect (e.g. commons-lang3)
+    - name: vulnerable-version
+      type: string
+      default: {{ .Values.pipelineHooks.depGate.vulnerableVersion | quote }}
+    - name: remediated-version
+      type: string
+      default: {{ .Values.pipelineHooks.depGate.remediatedVersion | quote }}
+  workspaces:
+    - name: source
+      description: Checkout containing pom.xml
+  results:
+    - name: gate-status
+      type: string
+      description: passed | failed | skipped
+    - name: resolved-version
+      type: string
+      description: Version string detected for the watched artifact
+  steps:
+    - name: check-pins
+      computeResources: {}
+      image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: POM_PATH
+          value: $(params.pom-path)
+        - name: MODE
+          value: $(params.mode)
+        - name: ARTIFACT
+          value: $(params.watched-artifact)
+        - name: VULN_VER
+          value: $(params.vulnerable-version)
+        - name: REM_VER
+          value: $(params.remediated-version)
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        echo "=== Lightwell dependency gate (OSV / .rhlw-* narrative) ==="
+        echo "mode=${MODE} artifact=${ARTIFACT}"
+        echo "vulnerable=${VULN_VER} remediated=${REM_VER}"
+
+        if [[ ! -f "${POM_PATH}" ]]; then
+          echo "ERROR: ${POM_PATH} not found"
+          echo -n "failed" > "$(results.gate-status.path)"
+          echo -n "missing-pom" > "$(results.resolved-version.path)"
+          exit 1
+        fi
+
+        # Read the *default* <properties> pin only (ignore profile blocks that also list .rhlw-*).
+        # Success lab: change the top-level commons.lang3.version to the remediated value.
+        resolved=""
+        if [[ "${ARTIFACT}" == "commons-lang3" ]]; then
+          resolved="$(awk '/<properties>/,/<\/properties>/' "${POM_PATH}" \
+            | grep -oE "<commons.lang3.version>[^<]+</commons.lang3.version>" \
+            | head -1 | sed -E 's/.*>([^<]+)<.*/\1/' || true)"
+        fi
+        if [[ -z "${resolved}" ]]; then
+          resolved="$(grep -A2 "<artifactId>${ARTIFACT}</artifactId>" "${POM_PATH}" \
+            | grep -oE "<version>[^<]+</version>" | head -1 | sed -E 's/.*>([^<]+)<.*/\1/' || true)"
+        fi
+
+        echo "resolved-version=${resolved:-unknown}"
+        echo -n "${resolved:-unknown}" > "$(results.resolved-version.path)"
+
+        if [[ "${MODE}" == "allow-validated" ]]; then
+          echo "INFO: allow-validated mode — gate is informational only"
+          echo -n "skipped" > "$(results.gate-status.path)"
+          exit 0
+        fi
+
+        if [[ "${resolved}" == *".rhlw-"* ]]; then
+          echo "PASS: default properties pin is remediated (${resolved})"
+          echo "OSV-style fixed event aligns with Lightwell exact-version .rhlw-0000X remediation."
+          echo -n "passed" > "$(results.gate-status.path)"
+          exit 0
+        fi
+
+        echo "FAIL: non-remediated default pin for ${ARTIFACT}"
+        echo "  Found (properties): ${resolved:-unknown}"
+        echo "  Required:           ${REM_VER}  (exact-version .rhlw-0000X)"
+        echo ""
+        echo "Lab path:"
+        echo "  1) Default pom uses unpatched ${VULN_VER} → gate fails (this run)"
+        echo "  2) Set <commons.lang3.version>${REM_VER}</commons.lang3.version> in <properties>"
+        echo "     (or merge lightwell-remediated-pins into the default properties)"
+        echo "  3) Re-run pipeline → dep-gate + roxctl image check + SBOM to RHTPA"
+        echo -n "failed" > "$(results.gate-status.path)"
+        exit 1
+{{- end }}
+

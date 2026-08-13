@@ -1,0 +1,11 @@
+{{- if .Values.parasolApp.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.namespace | quote }}
+{{- end }}

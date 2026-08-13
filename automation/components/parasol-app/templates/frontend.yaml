@@ -1,0 +1,103 @@
+{{- if and .Values.parasolApp.enabled .Values.frontend.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.frontend.name }}-html
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+    tier: frontend
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.config | quote }}
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8"/>
+      <title>Parasol (optional) — Lightwell TSSC Workshop</title>
+      <style>
+        body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 40rem; }
+        code { background: #f4f4f4; padding: 0.1rem 0.3rem; }
+      </style>
+    </head>
+    <body>
+      <h1>Parasol — optional secondary workload</h1>
+      <p>This UI tier is a <strong>placeholder</strong>. Primary Lightwell Maven labs use
+      <code>spring-boot-lw-poc</code>.</p>
+      <p>Build the real Parasol app from
+      <a href="{{ .Values.upstream.url }}">{{ .Values.upstream.name }}</a>
+      and set <code>frontend.image</code> / <code>backend.image</code> in values.</p>
+      <p>Maven channels (same as primary PoC):
+        <code>{{ .Values.lightwell.validatedRepo }}</code>,
+        <code>{{ .Values.lightwell.remediatedRepo }}</code>,
+        <code>{{ .Values.lightwell.osvRepo }}</code>.
+      </p>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.frontend.name }}
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+    app: {{ .Values.frontend.name }}
+    tier: frontend
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.workload | quote }}
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.frontend.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "parasol-app.labels" . | nindent 8 }}
+        app: {{ .Values.frontend.name }}
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.service.port }}
+          volumeMounts:
+            - name: html
+              mountPath: /opt/app-root/src
+          resources:
+            requests:
+              cpu: {{ .Values.frontend.resources.requests.cpu | quote }}
+              memory: {{ .Values.frontend.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.frontend.resources.limits.cpu | quote }}
+              memory: {{ .Values.frontend.resources.limits.memory | quote }}
+      volumes:
+        - name: html
+          configMap:
+            name: {{ .Values.frontend.name }}-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.frontend.name }}
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+    app: {{ .Values.frontend.name }}
+    tier: frontend
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.workload | quote }}
+spec:
+  selector:
+    app: {{ .Values.frontend.name }}
+  ports:
+    - name: http
+      port: {{ .Values.frontend.service.port }}
+      targetPort: http
+{{- end }}

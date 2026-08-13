@@ -1,0 +1,27 @@
+{{- if and .Values.rhacs.enabled .Values.userInfo.enabled }}
+{{- $centralUrl := include "rhacs.centralUrl" . }}
+{{- $endpoint := include "rhacs.centralEndpoint" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-rhacs
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  operator_name: {{ .Values.operator.packageName | quote }}
+  rhacs_namespace: {{ .Values.rhacs.namespace | quote }}
+  central_name: {{ .Values.central.name | quote }}
+  central_url: {{ $centralUrl | quote }}
+  central_endpoint: {{ $endpoint | quote }}
+  pipeline_task: {{ .Values.pipelineHooks.taskName | quote }}
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}

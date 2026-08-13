@@ -1,0 +1,31 @@
+{{- if and .Values.rhtpa.enabled .Values.ingestionInfo.enabled }}
+{{- $serverUrl := include "rhtpa.serverUrl" . }}
+---
+# Lab-facing notes for CycloneDX SBOM + VEX / advisory ingestion (Module 4 / #17, RHDA #26).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhtpa-ingestion-info
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.userinfo | quote }}
+data:
+  server_url: {{ $serverUrl | quote }}
+  supported_cyclonedx_version: {{ .Values.ingestionInfo.supportedCycloneDxVersion | quote }}
+  sbom_formats: "CycloneDX JSON (preferred for workshop syft output)"
+  vex_advisory_formats: "CSAF / VEX advisories; CVE list v5; OSV (GitHub Advisory Database)"
+  upload_hint: >-
+    Generate a CycloneDX SBOM with syft from the Spring Boot PoC, then upload via the
+    TPA UI or REST API authenticated with the cli OIDC client.
+  importers: >-
+    Enabled by default: cve (CVE list v5), osv-github (OSV advisories).
+    Disabled by default (heavy): redhat-csaf, redhat-sboms — enable via values when needed.
+  rhda_note: >-
+    RHDA (IDE) is the shift-left client; RHTPA is the SBOM system of record.
+    Showroom uses TPA UI + syft only — no IDE in-cluster. Instructors may demo
+    RHDA on a laptop (Backend URL → public rhda.rhcloud.com or workshop Exhort route).
+    See docs/rhda-rhtpa-shift-left.md and Showroom page rhda-shift-left.adoc.
+  rhda_doc: "docs/rhda-rhtpa-shift-left.md"
+{{- end }}

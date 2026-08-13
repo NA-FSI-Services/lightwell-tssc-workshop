@@ -1,0 +1,20 @@
+{{- if .Values.gitea.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.gitea.name }}-data
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+  annotations:
+    # Same wave as Deployment — WaitForFirstConsumer PVCs stay Progressing until a
+    # consumer exists; a later deploy wave deadlocks (Argo waits for PVC Healthy).
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.deploy | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.gitea.pvc.size | quote }}
+{{- end }}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: lightwell-repo
+description: Enterprise artifact manager for Lightwell Network Java (Maven/OSV) and Python (PyPI) validated / remediated tiers
+type: application
+version: 0.1.0
+appVersion: "3.70"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/rhpds/lightwell-tssc-workshop

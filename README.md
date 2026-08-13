@@ -1,4 +1,4 @@
-# lightwell-tssc-workshop-ph
+# lightwell-tssc-workshop
 
 Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven and PyPI consumption via an enterprise artifact manager, OSV-driven exact-version pins (.rhlw-*), SBOM analysis, and TSSC pipeline controls. This catalog is Java and Python: Modules 1–6 (Java), then Modules 7–9 (FastAPI / PyPI — epic #144, complete). PyPI Remediated is always enabled (seeded .rhlw-* marker).
 
@@ -22,7 +22,7 @@ Claude will walk you through the entire content lifecycle — from intake and sp
 
 ### DevSpaces (recommended)
 
-1. Open in DevSpaces: `https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/lightwell-tssc-workshop-ph`
+1. Open in DevSpaces: `https://devspaces.apps.ocpv-infra02.wdc07.infra.demo.redhat.com#https://github.com/rhpds/lightwell-tssc-workshop`
 2. Use Claude via the **extension** or the **CLI**:
    - **Extension:** Click the **Claude** icon in the sidebar, click **New Session**. If the Claude icon is not visible, open **Extensions** (`Ctrl/Cmd+Shift+X`), find **Claude Code for VS Code** under the DevSpaces section, click it, then click **Enable (Workspace)**.
    - **CLI:** Open a terminal and run `claude`
@@ -36,8 +36,8 @@ Claude will walk you through the entire content lifecycle — from intake and sp
    ```
 2. Clone the repo:
    ```
-   git clone https://github.com/rhpds/lightwell-tssc-workshop-ph
+   git clone https://github.com/rhpds/lightwell-tssc-workshop
    ```
-3. `cd lightwell-tssc-workshop-ph`
+3. `cd lightwell-tssc-workshop`
 4. Start Claude CLI: `claude`
 5. Run `/rhdp-publishing-house` — and you're off!

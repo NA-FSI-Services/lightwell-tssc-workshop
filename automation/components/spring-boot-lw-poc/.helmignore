@@ -1,0 +1,7 @@
+# Patterns to ignore when packaging the chart (Maven build output under app/)
+.git/
+*.tgz
+app/target/
+.idea/
+*.iml
+sbom.cdx.json

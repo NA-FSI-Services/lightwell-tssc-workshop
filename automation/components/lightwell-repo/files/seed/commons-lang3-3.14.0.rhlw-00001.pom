@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Workshop seed POM — Remediated .rhlw-00001. Same ASL 2.0 binary as 3.14.0 under exact-version suffix. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.commons</groupId>
+  <artifactId>commons-lang3</artifactId>
+  <version>3.14.0.rhlw-00001</version>
+  <packaging>jar</packaging>
+  <name>commons-lang3 (Lightwell workshop remediated seed)</name>
+  <description>Compile-capable Remediated seed for lightwell-remediated-pins (Module 2 consumption experiment).</description>
+  <properties>
+    <lightwell.tier>remediated</lightwell.tier>
+    <lightwell.seed.kind>compile-capable</lightwell.seed.kind>
+    <lightwell.baseVersion>3.14.0</lightwell.baseVersion>
+    <lightwell.remediatedVersion>3.14.0.rhlw-00001</lightwell.remediatedVersion>
+  </properties>
+</project>

@@ -1,7 +1,7 @@
 schemaVersion: 2.2.0
 metadata:
-  name: lightwell-tssc-workshop-ph
-  displayName: lightwell-tssc-workshop-ph - Publishing House Workspace
+  name: lightwell-tssc-workshop
+  displayName: lightwell-tssc-workshop - Publishing House Workspace
   description: Workspace for creating RHDP lab/demo content with Claude AI assistance
 attributes:
   che-code.eclipse.org/vscode-preferences:
@@ -57,7 +57,7 @@ commands:
             LITELLM_RESP=$(curl -sk -X POST "${CENTRAL_URL}/api/v1/litellm/keys/generate" \
               -H "Authorization: Bearer ${API_KEY}" \
               -H "Content-Type: application/json" \
-              -d "{\"project_id\": \"lightwell-tssc-workshop-ph\"}")
+              -d "{\"project_id\": \"lightwell-tssc-workshop\"}")
 
             LITELLM_KEY=$(echo "$LITELLM_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['litellm_key'])" 2>/dev/null)
             LITELLM_ENDPOINT=$(echo "$LITELLM_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['litellm_endpoint'])" 2>/dev/null)

@@ -1,0 +1,158 @@
+# Workshop Gitea — student-facing git for Module 5 (not the workshop GitOps monorepo).
+
+gitea:
+  enabled: true
+  namespace: gitea
+  name: gitea
+  routeHostPrefix: gitea
+  image: docker.io/gitea/gitea:1.22.3
+  replicas: 1
+  # anyuid SCC — Gitea image UID expectations under restricted OpenShift SCCs
+  anyuidScc: true
+  syncWaves:
+    namespace: "0"
+    rbac: "1"
+    config: "1"
+    deploy: "2"
+    route: "3"
+    seed: "4"
+    applicationset: "5"
+    userinfo: "6"
+  pvc:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # Workshop-only admin — override via values / RHDP secrets in shared envs
+  admin:
+    username: gitea-admin
+    password: "workshop-gitea-admin-changeme"
+    email: gitea-admin@workshop.local
+    secretName: gitea-admin
+  # SQLite under /data (PVC). DISABLE_REGISTRATION — users created by seed Job.
+  config:
+    disableRegistration: true
+    requireSigninView: false
+    defaultPrivate: false
+
+# Students who receive seeded application + gitops repositories.
+# Catalog / chart default: one `student` placeholder.
+# Dev-cluster bootstrap overrides to a single `user1` + generated password
+# (docs/DEV-CLUSTER-WORKSHOP-USER.md) — do not rely on this changeme on claims.
+students:
+  - username: student
+    password: "workshop-student-changeme"
+    email: student@workshop.local
+    fullName: Workshop Student
+
+seed:
+  enabled: true
+  jobName: gitea-student-repo-seed
+  configMapName: gitea-student-repo-seed
+  serviceAccountName: gitea-seed
+  # Root-capable UBI so seed can install git/python3 and download oc (origin-cli is non-root).
+  image: registry.access.redhat.com/ubi9/ubi:latest
+  imagePullPolicy: IfNotPresent
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400
+  # Operator prepares *template* remotes only. Learners create org lw-<username> + repos
+  # in Showroom Module 2, then seed from templates (AGENTS.md / #120).
+  templates:
+    org: workshop-templates
+    orgFullName: Workshop Templates
+    orgDescription: >-
+      Operator-prepared app and GitOps trees isolated from the workshop monorepo.
+      Learners clone these into their own lw-<username> organization — never GitHub.
+    # RHDH fetch:template sources — public; not learner push targets.
+    skeleton:
+      enabled: true
+      repoName: lightwell-java-service
+      repoDescription: "RHDH Software Template skeleton (fetch:template; Module 3)"
+      sourcePath: automation/components/rhdh/files/skeletons/lightwell-java-service
+    # Python twin (#148) — Module 7+ scaffold after learner-seed-python-from-templates.sh.
+    skeletonPython:
+      enabled: true
+      repoName: lightwell-python-service
+      repoDescription: "RHDH Software Template skeleton (fetch:template; Module 7+)"
+      sourcePath: automation/components/rhdh/files/skeletons/lightwell-python-service
+  # Learner repo names (under lw-<username> after Module 2 setup).
+  repoName: spring-boot-lw-poc
+  repoDescription: "Lightwell TSSC student lab repository (Modules 2–6; pom.xml + tools/osv-eval at root)"
+  defaultBranch: main
+  # Isolate learner app from the workshop GitOps monorepo (AGENTS.md Learner Git).
+  # live = clone source.repoUrl, copy source.path to Gitea repo root, include tools/osv-eval, + .tekton overlay.
+  # embedded = ConfigMap pom/README fallback only (dev without git clone).
+  source:
+    mode: live
+    # Injected by root-app from gitops.repoUrl / gitops.revision (operators only — not students).
+    repoUrl: ""
+    revision: main
+    path: automation/components/spring-boot-lw-poc/app
+    # Optional Secret with username/password (or token as password) for private GitOps clones.
+    # Leave empty for public repos. Never commit real credentials into values.
+    gitSecretName: ""
+    gitSslVerify: true
+  # Second template remote: thin Helm chart (minus ./app) for Module 6 Ex4 promote (#100).
+  gitops:
+    enabled: true
+    repoName: gitops-spring-boot-lw-poc
+    repoDescription: "Lightwell TSSC student GitOps chart (Module 6 Ex4 promote)"
+    sourcePath: automation/components/spring-boot-lw-poc
+  # Python track (#147) — always seeded alongside Java when seed.enabled (even if
+  # root-app keeps fastapiLwPoc.enabled=false). Learners create repos in Module 7.
+  python:
+    repoName: fastapi-lw-poc
+    repoDescription: "Lightwell TSSC student FastAPI lab repository (Modules 7–9; requirements.txt at root)"
+    sourcePath: automation/components/fastapi-lw-poc/app
+    gitops:
+      repoName: gitops-fastapi-lw-poc
+      repoDescription: "Lightwell TSSC student FastAPI GitOps chart (Module 9 promote)"
+      sourcePath: automation/components/fastapi-lw-poc
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Per-student Argo CD Applications pointing at learner gitops remotes (#100).
+# Remotes exist after Module 2 learner setup; Argo retries until Healthy.
+gitopsAppSet:
+  enabled: true
+  name: lightwell-student-gitops-sb
+  argocdNamespace: openshift-gitops
+  project: default
+  appNamePrefix: lw-poc
+  namespacePrefix: lw-poc
+
+# Python twin (#149) — Module 9 digest promote (coexists with Java lw-poc-<user>).
+gitopsAppSetPython:
+  enabled: true
+  name: lightwell-student-gitops-fastapi
+  argocdNamespace: openshift-gitops
+  project: default
+  appNamePrefix: lw-fastapi
+  namespacePrefix: lw-fastapi
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Student Git (Gitea)"
+  instructions: >-
+    Lab charts start Gitea and create your user. In Module 2, create organization
+    lw-<student_username> and repos spring-boot-lw-poc + gitops-spring-boot-lw-poc,
+    then seed from workshop-templates (see Showroom). student_repo_url is the
+    expected Java app remote after that setup. For Modules 7–9, create
+    fastapi-lw-poc + gitops-fastapi-lw-poc under the same org and run
+    learner-seed-python-from-templates.sh (student_python_repo_url). Optional RHDH
+    re-scaffold: Create → lightwell-python-service after deleting fastapi-lw-poc
+    (mirrors Module 3). Credentials: student_username / student_password. Never
+    clone the workshop GitHub monorepo.
+
+deployer:
+  domain: ""
+  apiUrl: ""

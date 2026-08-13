@@ -1,0 +1,23 @@
+{{- if and .Values.rhacs.enabled .Values.securedCluster.enabled }}
+---
+# SecuredCluster — Sensor / Collector / Admission on the workshop cluster.
+apiVersion: {{ .Values.rhacs.apiVersion }}
+kind: SecuredCluster
+metadata:
+  name: {{ .Values.securedCluster.name }}
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: secured-cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.securedCluster | quote }}
+spec:
+  clusterName: {{ .Values.securedCluster.clusterName | quote }}
+  admissionControl:
+    listenOnCreates: {{ .Values.securedCluster.admissionControl.listenOnCreates }}
+    listenOnUpdates: {{ .Values.securedCluster.admissionControl.listenOnUpdates }}
+    listenOnEvents: {{ .Values.securedCluster.admissionControl.listenOnEvents }}
+  perNode:
+    collector:
+      collection: CORE_BPF
+{{- end }}

@@ -1,0 +1,38 @@
+# OpenShift Pipelines — Lightwell TSSC workshop
+# Required before RHACS Tasks / student .tekton PipelineRuns (Module 5).
+# Root App-of-Apps injects pipelines.* (see automation/bootstrap-infra).
+
+pipelines:
+  # Chart-level gate (root-app Application only exists when components.pipelines.enabled)
+  enabled: true
+  syncWaves:
+    operator: "1"
+    userinfo: "2"
+
+# OLM install into openshift-operators (AllNamespaces; OperatorGroup already exists)
+operator:
+  enabled: true
+  # Subscription metadata.name
+  name: openshift-pipelines-operator
+  # OLM package name
+  packageName: openshift-pipelines-operator-rh
+  namespace: openshift-operators
+  channel: latest
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+  # openshift-operators already has an OperatorGroup — do not create another
+  createOperatorGroup: false
+
+# RHDP userinfo ConfigMap (optional orientation for operators / lab authors)
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — OpenShift Pipelines"
+  instructions: >-
+    OpenShift Pipelines provides Tekton CRDs (Pipeline, Task, PipelineRun) used by
+    Module 5 student .tekton overlays and RHACS policy-gate Tasks in stackrox.
+    After the Operator is Ready, confirm: oc get crd pipelines.tekton.dev
+
+deployer:
+  domain: ""
+  apiUrl: ""

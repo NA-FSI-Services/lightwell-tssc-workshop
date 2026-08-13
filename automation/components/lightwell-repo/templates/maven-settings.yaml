@@ -1,0 +1,83 @@
+{{- if and .Values.lightwellRepo.enabled .Values.mavenSettings.enabled }}
+{{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
+---
+# Maven settings.xml — lightwell-validated + lightwell-remediated profiles (field PoV UX).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.mavenSettings.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  settings.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+      <!--
+        Learner UX: mvn -s settings.xml -Plightwell-validated clean verify
+                    mvn -s settings.xml -Plightwell-remediated clean verify
+        Proxied PoV: point mirrors at {{ $nexusUrl }}/repository/{{ .Values.channels.virtualLibsRelease.name }}/
+        Direct LWN: profiles can also target packages.redhat.com with LW_* auth (not committed).
+      -->
+      <profiles>
+        <profile>
+          <id>lightwell-validated</id>
+          <repositories>
+            <repository>
+              <id>{{ .Values.channels.validated.name }}</id>
+              <name>Lightwell Java Validated</name>
+              <url>{{ $nexusUrl }}/repository/{{ .Values.channels.validated.name }}/</url>
+              <releases><enabled>true</enabled></releases>
+              <snapshots><enabled>false</enabled></snapshots>
+            </repository>
+          </repositories>
+          <pluginRepositories>
+            <pluginRepository>
+              <id>{{ .Values.channels.validated.name }}</id>
+              <url>{{ $nexusUrl }}/repository/{{ .Values.channels.validated.name }}/</url>
+              <releases><enabled>true</enabled></releases>
+              <snapshots><enabled>false</enabled></snapshots>
+            </pluginRepository>
+          </pluginRepositories>
+        </profile>
+        <profile>
+          <id>lightwell-remediated</id>
+          <repositories>
+            <repository>
+              <id>{{ .Values.channels.remediated.name }}</id>
+              <name>Lightwell Java Remediated (.rhlw-0000X)</name>
+              <url>{{ $nexusUrl }}/repository/{{ .Values.channels.remediated.name }}/</url>
+              <releases><enabled>true</enabled></releases>
+              <snapshots><enabled>false</enabled></snapshots>
+            </repository>
+          </repositories>
+          <pluginRepositories>
+            <pluginRepository>
+              <id>{{ .Values.channels.remediated.name }}</id>
+              <url>{{ $nexusUrl }}/repository/{{ .Values.channels.remediated.name }}/</url>
+              <releases><enabled>true</enabled></releases>
+              <snapshots><enabled>false</enabled></snapshots>
+            </pluginRepository>
+          </pluginRepositories>
+        </profile>
+      </profiles>
+      <activeProfiles>
+        <!-- Default to validated for active development; switch to remediated for prod pins -->
+        <activeProfile>lightwell-validated</activeProfile>
+      </activeProfiles>
+    </settings>
+  README: |
+    Copy settings.xml next to the Spring Boot PoC and run:
+      mvn -s settings.xml -Plightwell-validated clean verify
+      mvn -s settings.xml -Plightwell-remediated clean verify
+
+    Remediated pins use exact versions such as {{ .Values.sampleOsv.remediatedVersion }}.
+    Canonical remotes (for proxy mode / documentation):
+      {{ .Values.channels.validated.remoteUrl }}
+      {{ .Values.channels.remediated.remoteUrl }}
+      {{ .Values.channels.osv.remoteUrl }}
+{{- end }}

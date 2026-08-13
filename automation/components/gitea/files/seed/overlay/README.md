@@ -1,0 +1,42 @@
+# spring-boot-lw-poc (student lab repository)
+
+Learner-owned application repository for the Lightwell TSSC workshop
+(hosted on in-cluster **Gitea**).
+
+Use this repository for Module 5 pipeline exercises (clone → policy gate → remediate →
+BuildConfig image → sign). Discover your remote from ConfigMap `demo-userinfo-gitea`
+(`student_repo_url`).
+
+## Layout
+
+| Path | Purpose |
+|------|---------|
+| `pom.xml` / `src/` / `Dockerfile` | App sources at repository root |
+| `settings.xml` | Local Maven + LWN/Nexus (optional Secret — see Module 5) |
+| `.tekton/` | Hybrid pipeline: dep-gate → OpenShift BuildConfig → ACS → SBOM → cosign |
+| `README.md` | This file |
+
+## Module 5 quick path (policy gate)
+
+1. Default pin fails dep-gate:
+
+   ```xml
+   <commons.lang3.version>3.14.0</commons.lang3.version>
+   ```
+
+2. Success path — change the **default** properties pin to:
+
+   ```xml
+   <commons.lang3.version>3.14.0.rhlw-00001</commons.lang3.version>
+   ```
+
+3. Commit, push to `main` on **this** Gitea remote, re-run `lightwell-build-policy-gate`.
+
+## Module 5 Ex3 (build + keyless sign)
+
+Image build uses OpenShift **BuildConfig** (Dockerfile multi-stage / Maven Central inside
+the build — not the learner Maven Secret). Tekton handles policy, ACS (may soft-skip),
+SBOM, and RHTAS cosign.
+
+See Showroom Module 5 Exercise 3 for copy-paste `oc` / `tkn` steps (lab namespace,
+pull-secret link, PipelineRun).

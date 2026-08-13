@@ -1,0 +1,9 @@
+apiVersion: v2
+name: parasol-app
+description: Optional multi-tier Parasol enterprise workload (secondary to spring-boot-lw-poc)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/rhpds/lightwell-tssc-workshop

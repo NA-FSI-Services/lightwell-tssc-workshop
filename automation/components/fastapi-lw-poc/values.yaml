@@ -1,0 +1,63 @@
+# FastAPI LWN PoC — Lightwell TSSC workshop (Modules 7–9)
+# App sources live in ./app (requirements.txt + pip.conf). Root injects fastapiLwPoc.* / deployer.*.
+
+fastapiLwPoc:
+  enabled: true
+  namespace: fastapi-lw-poc
+  name: fastapi-lw-poc
+  syncWaves:
+    namespace: "0"
+    config: "1"
+    workload: "2"
+    route: "3"
+    userinfo: "4"
+
+# Container image — prefer digest pin after Module 9 promote.
+# repository empty → derived as {registry}/{namespace}/{name}
+image:
+  registry: image-registry.openshift-image-registry.svc:5000
+  name: fastapi-lw-poc
+  repository: ""
+  tag: latest
+  # When set (sha256:…), Deployment uses repo@digest instead of :tag
+  digest: ""
+  pullPolicy: IfNotPresent
+
+# Labs / GitOps: keep scaled down until a digest is promoted (Healthy without ImagePullBackOff).
+replicas: 0
+
+# validated | remediated — exposed on /api/greeting
+lightwellStream: validated
+
+service:
+  port: 8080
+
+route:
+  enabled: true
+  host: ""
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Lab docs ConfigMap (commands for pip / syft / OpenAPI)
+labDocs:
+  enabled: true
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — FastAPI LWN PoC"
+  instructions: >-
+    Python learner app (Modules 7–9). Clone the Gitea FastAPI remote
+    (requirements.txt at repo root; student_python_repo_url from
+    demo-userinfo-gitea). Install with pip against lightwell-repo Validated index
+    for httpx==0.27.2; FastAPI/uvicorn come from public PyPI. Open the Route
+    for /api/greeting and /docs.
+
+deployer:
+  domain: ""
+  apiUrl: ""

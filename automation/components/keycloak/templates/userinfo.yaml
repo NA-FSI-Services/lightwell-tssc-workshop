@@ -1,0 +1,31 @@
+{{- if and .Values.keycloak.enabled .Values.userInfo.enabled }}
+{{- $url := include "keycloak.url" . }}
+{{- $issuer := include "keycloak.issuerUrl" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-keycloak
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  keycloak_url: {{ $url | quote }}
+  oidc_issuer: {{ $issuer | quote }}
+  oidc_realm: {{ .Values.oidc.realm | quote }}
+  oidc_frontend_client: {{ .Values.oidc.frontendClientId | quote }}
+  oidc_cli_client: {{ .Values.oidc.cliClientId | quote }}
+  workshop_username: {{ .Values.oidc.workshopUser.username | quote }}
+  # Workshop demo password for Module 4 TPA UI — override via values / RHDP injection in shared envs
+  workshop_password: {{ .Values.oidc.workshopUser.password | quote }}
+  trustify_roles: "chicken-user,chicken-manager,chicken-admin"
+  trustify_client_scopes: "read:document,create:document,delete:document"
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}

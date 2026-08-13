@@ -1,0 +1,11 @@
+{{- if .Values.rhtas.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.rhtas.namespace }}
+  labels:
+    {{- include "rhtas.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtas.syncWaves.namespace | quote }}
+{{- end }}

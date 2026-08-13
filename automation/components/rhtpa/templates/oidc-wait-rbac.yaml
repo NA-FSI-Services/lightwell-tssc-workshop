@@ -1,0 +1,70 @@
+{{- if and .Values.rhtpa.enabled .Values.oidcWait.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.oidcWait.serviceAccountName }}
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oidc-wait
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.oidcWait | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.oidcWait.serviceAccountName }}
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oidc-wait
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.oidcWait | quote }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.oidcWait.serviceAccountName }}
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oidc-wait
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.oidcWait | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.oidcWait.serviceAccountName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.oidcWait.serviceAccountName }}
+    namespace: {{ .Values.rhtpa.namespace }}
+---
+# UBI Job installs oc/curl via dnf — needs anyuid (same pattern as Gitea seed).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.oidcWait.serviceAccountName }}-scc-anyuid
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oidc-wait
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.oidcWait | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.oidcWait.serviceAccountName }}
+    namespace: {{ .Values.rhtpa.namespace }}
+{{- end }}

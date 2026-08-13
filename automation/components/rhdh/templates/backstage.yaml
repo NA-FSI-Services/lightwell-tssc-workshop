@@ -1,0 +1,45 @@
+{{- if .Values.rhdh.enabled }}
+---
+# Backstage CR — RHDH Operator instance for the Lightwell workshop.
+# Reuse source: RHADS / RHDH Operator install pattern (rhdh.redhat.com).
+apiVersion: {{ .Values.rhdh.apiVersion }}
+kind: Backstage
+metadata:
+  name: {{ .Values.rhdh.name }}
+  namespace: {{ .Values.rhdh.namespace }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
+    app.kubernetes.io/name: backstage
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhdh.syncWaves.instance | quote }}
+spec:
+  application:
+    appConfig:
+      mountPath: /opt/app-root/src
+      configMaps:
+        - name: app-config-rhdh
+    {{- if .Values.softwareTemplates.enabled }}
+    extraFiles:
+      mountPath: {{ .Values.softwareTemplates.mountPath | quote }}
+      configMaps:
+        - name: {{ .Values.softwareTemplates.configMapName }}
+          # Directory mount → /opt/app-root/src/catalog/<key>
+          mountPath: {{ printf "%s/catalog" .Values.softwareTemplates.mountPath | quote }}
+    {{- end }}
+    {{- if .Values.giteaIntegration.enabled }}
+    # v1alpha5 extraEnvs.envs is name/value only (no valueFrom). Inject Secret keys as env vars.
+    extraEnvs:
+      secrets:
+        - name: {{ .Values.giteaIntegration.secretName }}
+    {{- end }}
+
+    {{- if .Values.dynamicPlugins.enabled }}
+    dynamicPluginsConfigMapName: {{ .Values.dynamicPlugins.configMapName }}
+    {{- end }}
+    # Note: v1alpha5 (RHDH Operator 1.10+) removed application.replicas;
+    # override replica count via spec.deployment.patch if needed.
+    route:
+      enabled: {{ .Values.rhdh.route.enabled }}
+  database:
+    enableLocalDb: {{ .Values.rhdh.database.enableLocalDb }}
+{{- end }}

@@ -1,0 +1,15 @@
+{{- if .Values.springBootLwPoc.enabled }}
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ .Values.springBootLwPoc.name }}
+  namespace: {{ .Values.springBootLwPoc.namespace }}
+  labels:
+    {{- include "spring-boot-lw-poc.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.springBootLwPoc.syncWaves.config | quote }}
+spec:
+  lookupPolicy:
+    local: true
+{{- end }}

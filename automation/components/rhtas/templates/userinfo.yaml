@@ -1,0 +1,32 @@
+{{- if and .Values.rhtas.enabled .Values.userInfo.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-rhtas
+  namespace: {{ .Values.rhtas.namespace }}
+  labels:
+    {{- include "rhtas.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtas.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  operator_name: {{ .Values.operator.packageName | quote }}
+  rhtas_namespace: {{ .Values.rhtas.namespace | quote }}
+  rhtas_name: {{ .Values.rhtas.name | quote }}
+  signing_model: "keyless"
+  components: "fulcio,rekor,tuf,trillian,ctlog"
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+  # After Ready: oc get securesign {{ .Values.rhtas.name }} -n {{ .Values.rhtas.namespace }} -o jsonpath='{.status}'
+  status_hint: "oc get securesign -n {{ .Values.rhtas.namespace }}"
+  routes_hint: "oc -n {{ .Values.rhtas.namespace }} get routes"
+  # Typical Route hosts when deployer.domain is set (confirm with routes_hint)
+  fulcio_url_hint: {{ printf "https://fulcio-server-%s.apps.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
+  rekor_url_hint: {{ printf "https://rekor-server-%s.apps.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
+  tuf_url_hint: {{ printf "https://tuf-%s.apps.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
+  cosign_image: "registry.redhat.io/rhtas/cosign-rhel9:1.3.0"
+{{- end }}

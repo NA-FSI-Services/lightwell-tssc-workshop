@@ -1,0 +1,76 @@
+{{- if and .Values.lightwellRepo.enabled .Values.bootstrap.enabled }}
+{{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
+---
+# Bootstrap notes + REST sketches. Automated by Job lightwell-repo-seed (files/seed/seed-repos.sh).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.bootstrap.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  mode: {{ .Values.lightwellRepo.mode | quote }}
+  README: |
+    After Nexus is Ready, create repositories that match Lightwell Network tiers.
+
+    Mode={{ .Values.lightwellRepo.mode }}
+    - proxy: Maven/raw/PyPI *proxy* repos pointing at canonical packages.redhat.com URLs,
+      authenticated with Secret {{ .Values.credentials.secretName }} (LW_USERNAME / LW_PASSWORD).
+      Keep channels.pypiRemediated.enabled=true (this catalog always exposes Remediated PyPI).
+    - seeded: Maven/raw/PyPI *hosted* repos populated by Job lightwell-repo-seed
+      (spring-core resolution stubs, compile-capable commons-lang3, OSV at {{ .Values.sampleOsv.rawPath }},
+      CycloneDX, httpx for PyPI Validated, .rhlw-* marker for PyPI Remediated).
+
+    Naming must allow remediated versions such as {{ .Values.sampleOsv.remediatedVersion }}.
+    Prefer the seed Job over running this sketch manually.
+
+  create-repos.sh: |
+    #!/usr/bin/env bash
+    # Sketch — run with Nexus admin credentials from the Nexus pod / first-boot secret.
+    # Do not embed LW_* or Nexus admin passwords in Git.
+    set -euo pipefail
+    NEXUS_URL="${NEXUS_URL:-{{ $nexusUrl }}}"
+    MODE="${LIGHTWELL_REPO_MODE:-{{ .Values.lightwellRepo.mode }}}"
+    AUTH=(-u "${NEXUS_ADMIN_USER:-admin}:${NEXUS_ADMIN_PASSWORD:?set NEXUS_ADMIN_PASSWORD}")
+
+    create_maven_proxy() {
+      local name="$1" url="$2"
+      curl -sf "${AUTH[@]}" -H 'Content-Type: application/json' \
+        -X POST "${NEXUS_URL}/service/rest/v1/repositories/maven/proxy" \
+        -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":true,\"writePolicy\":\"ALLOW\"},\"proxy\":{\"remoteUrl\":\"${url}\",\"contentMaxAge\":1440,\"metadataMaxAge\":1440},\"negativeCache\":{\"enabled\":true,\"timeToLive\":1440},\"httpClient\":{\"blocked\":false,\"autoBlock\":true,\"authentication\":{\"type\":\"username\",\"username\":\"${LW_USERNAME}\",\"password\":\"${LW_PASSWORD}\"}},\"maven\":{\"versionPolicy\":\"RELEASE\",\"layoutPolicy\":\"PERMISSIVE\"}}"
+    }
+
+    create_maven_hosted() {
+      local name="$1"
+      curl -sf "${AUTH[@]}" -H 'Content-Type: application/json' \
+        -X POST "${NEXUS_URL}/service/rest/v1/repositories/maven/hosted" \
+        -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":true,\"writePolicy\":\"ALLOW\"},\"maven\":{\"versionPolicy\":\"RELEASE\",\"layoutPolicy\":\"PERMISSIVE\"}}"
+    }
+
+    create_raw_hosted() {
+      local name="$1"
+      curl -sf "${AUTH[@]}" -H 'Content-Type: application/json' \
+        -X POST "${NEXUS_URL}/service/rest/v1/repositories/raw/hosted" \
+        -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":false,\"writePolicy\":\"ALLOW\"},\"raw\":{\"contentDisposition\":\"ATTACHMENT\"}}"
+    }
+
+    if [[ "${MODE}" == "proxy" ]]; then
+      : "${LW_USERNAME:?set LW_USERNAME}" "${LW_PASSWORD:?set LW_PASSWORD}"
+      create_maven_proxy "{{ .Values.channels.validated.name }}" "{{ .Values.channels.validated.remoteUrl }}/"
+      create_maven_proxy "{{ .Values.channels.remediated.name }}" "{{ .Values.channels.remediated.remoteUrl }}/"
+      # OSV is often served as raw/files — adjust package type if using Maven-layout OSV mirrors
+      create_raw_hosted "{{ .Values.channels.osv.name }}"
+    else
+      create_maven_hosted "{{ .Values.channels.validated.hostedName }}"
+      create_maven_hosted "{{ .Values.channels.remediated.hostedName }}"
+      create_raw_hosted "{{ .Values.channels.osv.hostedName }}"
+      # Optional: also create proxy-named aliases that point learners at hosted content (#11)
+      create_maven_hosted "{{ .Values.channels.validated.name }}"
+      create_maven_hosted "{{ .Values.channels.remediated.name }}"
+      create_raw_hosted "{{ .Values.channels.osv.name }}"
+    fi
+    echo "Repositories created for mode=${MODE}"
+{{- end }}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: spring-boot-lw-poc
+description: Primary Spring Boot / Java 17 / Maven PoC for Lightwell Validated + Remediated labs
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/rhpds/lightwell-tssc-workshop

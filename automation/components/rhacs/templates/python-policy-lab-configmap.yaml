@@ -1,0 +1,109 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.pythonPipeline.enabled }}
+{{- $endpoint := include "rhacs.centralEndpoint" . }}
+{{- $centralUrl := include "rhacs.centralUrl" . }}
+{{- $labRepoFallback := ternary (printf "https://%s.%s/%s/%s.git" .Values.pipelineHooks.labRepoHostPrefix .Values.deployer.domain .Values.pipelineHooks.labRepoOwner "fastapi-lw-poc") "https://gitea.<cluster-domain>/student/fastapi-lw-poc.git" (ne .Values.deployer.domain "") -}}
+{{- $labRepo := .Values.pipelineHooks.labPythonRepoUrl | default $labRepoFallback -}}
+---
+# Lab narrative — fail without lw-workshop-pypi +rhlw.*, succeed after pin, SBOM in RHTPA (#149).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhacs-lightwell-python-policy-lab
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pipeline-hooks
+    lightwell.redhat.com/language: python
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+data:
+  README: |
+    # Lightwell RHACS / Python pipeline policy lab (issue #149)
+
+    ## Student git (required)
+    PipelineRuns clone **your** FastAPI repository on in-cluster Gitea.
+    Discover your URL:
+
+      oc -n gitea get configmap demo-userinfo-gitea \
+        -o jsonpath='{.data.student_python_repo_url}{"\n"}'
+
+    ## Components
+    - Task `{{ .Values.pipelineHooks.pythonDepGate.taskName }}` — PyPI +rhlw.* pin gate (lw-workshop-pypi)
+    - Task `{{ .Values.pipelineHooks.taskName }}` — `roxctl image check` (RHACS / Clair-class)
+    - Task `{{ .Values.pipelineHooks.sbom.taskName }}` — syft CycloneDX → RHTPA
+    - Pipeline `{{ .Values.pipelineHooks.pythonPipeline.name }}` — wires the three gates
+
+    ## Failure path (marker pin absent)
+    1. Use your student FastAPI repo whose `requirements.txt` has Validated `httpx`
+       but **no** `{{ .Values.pipelineHooks.pythonDepGate.watchedPackage }}=={{ .Values.pipelineHooks.pythonDepGate.remediatedVersion }}`.
+    2. Create PipelineRun with `dep-gate-mode=require-remediated` and
+       `requirements-path=requirements.txt`.
+    3. Expect Task `lightwell-python-dep-gate` to **fail** with remediation instructions.
+
+    ## Success path (remediated +rhlw.*)
+    1. In **your** student repo, add
+       `{{ .Values.pipelineHooks.pythonDepGate.watchedPackage }}=={{ .Values.pipelineHooks.pythonDepGate.remediatedVersion }}`
+       to `requirements.txt`, commit, and push.
+    2. Re-run PipelineRun — python-dep-gate **passes**.
+    3. Populate Secret `{{ .Values.pipelineHooks.secretName }}` and re-run — ACS image check runs.
+    4. syft writes CycloneDX; set `rhtpa-url` (and optional token Secret) so SBOM lands in RHTPA,
+       or upload the SBOM workspace file via the RHTPA UI (Module 8).
+
+    Full build → sign → GitOps promote uses Pipeline `fastapi-lw-poc-build-sign` in the
+    learner lab namespace (Gitea `.tekton/` / Module 9).
+
+  student_python_repo_url: {{ $labRepo | quote }}
+  student_repo_revision: {{ .Values.pipelineHooks.labRevision | quote }}
+  student_python_requirements_path: {{ .Values.pipelineHooks.pythonPipeline.defaultRequirementsPath | quote }}
+
+  fail_pipelinerun.yaml: |
+    apiVersion: tekton.dev/v1
+    kind: PipelineRun
+    metadata:
+      generateName: lightwell-python-policy-fail-
+      namespace: {{ .Values.rhacs.namespace }}
+    spec:
+      pipelineRef:
+        name: {{ .Values.pipelineHooks.pythonPipeline.name }}
+      params:
+        - name: repo-url
+          value: {{ $labRepo | quote }}
+        - name: revision
+          value: {{ .Values.pipelineHooks.labRevision | quote }}
+        - name: image
+          value: {{ .Values.pipelineHooks.exampleImage | quote }}
+        - name: dep-gate-mode
+          value: require-remediated
+        - name: requirements-path
+          value: {{ .Values.pipelineHooks.pythonPipeline.defaultRequirementsPath | quote }}
+        - name: rhtpa-url
+          value: ""
+      workspaces:
+        - name: source
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 1Gi
+        - name: sbom
+          emptyDir: {}
+    # Student Gitea FastAPI repo (requirements.txt at root; no lw-workshop-pypi → fail).
+    # Success: add {{ .Values.pipelineHooks.pythonDepGate.watchedPackage }}=={{ .Values.pipelineHooks.pythonDepGate.remediatedVersion }},
+    # push to student_python_repo_url, then create a pass PipelineRun with the same path.
+
+  success_notes: |
+    After adding {{ .Values.pipelineHooks.pythonDepGate.watchedPackage }}=={{ .Values.pipelineHooks.pythonDepGate.remediatedVersion }}
+    to requirements.txt in your student FastAPI repo and pushing:
+      oc -n {{ .Values.rhacs.namespace }} create -f <pipelinerun-success.yaml>
+    Verify:
+      - python-dep-gate result gate-status=passed
+      - acs-image-check result check-status=passed (with CI secrets + Central policy)
+      - syft-sbom-rhtpa result upload-status=uploaded|manual-required
+      - SBOM visible in RHTPA UI
+
+  central_url: {{ $centralUrl | quote }}
+  central_endpoint: {{ $endpoint | quote }}
+  watched_package: {{ .Values.pipelineHooks.pythonDepGate.watchedPackage | quote }}
+  remediated_version: {{ .Values.pipelineHooks.pythonDepGate.remediatedVersion | quote }}
+{{- end }}

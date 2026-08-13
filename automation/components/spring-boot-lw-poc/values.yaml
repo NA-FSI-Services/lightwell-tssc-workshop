@@ -1,0 +1,66 @@
+# Primary Spring Boot LWN PoC — Lightwell TSSC workshop
+# App sources live in ./app (Maven + settings.xml). Root injects springBootLwPoc.* / deployer.*.
+
+springBootLwPoc:
+  enabled: true
+  namespace: spring-boot-lw-poc
+  name: spring-boot-lw-poc
+  syncWaves:
+    namespace: "0"
+    config: "1"
+    workload: "2"
+    route: "3"
+    userinfo: "4"
+
+# Container image — prefer digest pin after Module 5 Ex4 promote (#100).
+# repository empty → derived as {registry}/{namespace}/{name}
+image:
+  registry: image-registry.openshift-image-registry.svc:5000
+  name: spring-boot-lw-poc
+  repository: ""
+  tag: latest
+  # When set (sha256:…), Deployment uses repo@digest instead of :tag
+  digest: ""
+  pullPolicy: IfNotPresent
+  buildConfig:
+    enabled: false
+
+# Labs / GitOps: keep scaled down until a digest is promoted (Healthy without ImagePullBackOff).
+replicas: 0
+
+
+# validated | remediated — exposed on /api/greeting
+lightwellStream: validated
+
+service:
+  port: 8080
+
+route:
+  enabled: true
+  host: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Lab docs ConfigMap (commands for mvn / syft / OpenAPI)
+labDocs:
+  enabled: true
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Spring Boot LWN PoC"
+  instructions: >-
+    Primary learner app. Clone student_repo_url from demo-userinfo-gitea (Gitea
+    spring-boot-lw-poc; pom.xml at repo root). Build with
+    mvn -s settings.xml -Plightwell-validated clean verify. Open the Route for
+    /api/greeting and /swagger-ui.html. Use
+    -Plightwell-remediated,lightwell-remediated-pins for .rhlw-* pins.
+
+deployer:
+  domain: ""
+  apiUrl: ""

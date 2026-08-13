@@ -1,0 +1,105 @@
+{{- if .Values.rhtas.enabled }}
+{{- $fulcioCN := include "rhtas.fulcioCommonName" . }}
+---
+# Securesign CR — deploys Fulcio, Rekor, Trillian, CTlog, and TUF for keyless signing.
+# Reuse: Trusted Software Factory / RHADS tas-instance patterns.
+apiVersion: {{ .Values.rhtas.apiVersion }}
+kind: Securesign
+metadata:
+  name: {{ .Values.rhtas.name }}
+  namespace: {{ .Values.rhtas.namespace }}
+  labels:
+    {{- include "rhtas.labels" . | nindent 4 }}
+    app.kubernetes.io/component: securesign
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtas.syncWaves.instance | quote }}
+spec:
+  ctlog:
+    monitoring:
+      enabled: {{ .Values.securesign.ctlog.monitoring }}
+    trillian:
+      port: {{ .Values.securesign.ctlog.trillianPort }}
+
+  fulcio:
+    certificate:
+      commonName: {{ $fulcioCN | quote }}
+      organizationEmail: {{ .Values.securesign.fulcio.organizationEmail | quote }}
+      organizationName: {{ .Values.securesign.fulcio.organizationName | quote }}
+    config:
+      OIDCIssuers:
+{{- if .Values.oidc.kubernetes.enabled }}
+        - ClientID: {{ .Values.oidc.kubernetes.clientID | quote }}
+          Issuer: {{ .Values.oidc.kubernetes.issuer | quote }}
+          IssuerURL: {{ .Values.oidc.kubernetes.issuerURL | quote }}
+          Type: kubernetes
+{{- end }}
+{{- if .Values.oidc.keycloak.enabled }}
+{{- $kcIssuer := include "rhtas.keycloakIssuer" . }}
+        - ClientID: {{ .Values.oidc.keycloak.clientID | quote }}
+          Issuer: {{ $kcIssuer | quote }}
+          IssuerURL: {{ $kcIssuer | quote }}
+          Type: email
+{{- end }}
+    ctlog:
+      port: {{ .Values.securesign.fulcio.ctlog.port }}
+      prefix: {{ .Values.securesign.fulcio.ctlog.prefix | quote }}
+    externalAccess:
+      enabled: {{ .Values.securesign.fulcio.externalAccess }}
+    monitoring:
+      enabled: {{ .Values.securesign.fulcio.monitoring }}
+
+  rekor:
+    backFillRedis:
+      enabled: {{ .Values.securesign.rekor.backFillRedis.enabled }}
+      schedule: {{ .Values.securesign.rekor.backFillRedis.schedule | quote }}
+    externalAccess:
+      enabled: {{ .Values.securesign.rekor.externalAccess }}
+    monitoring:
+      enabled: {{ .Values.securesign.rekor.monitoring }}
+    pvc:
+      accessModes:
+        - ReadWriteOnce
+      retain: true
+      size: {{ .Values.securesign.rekor.pvcSize | quote }}
+    rekorSearchUI:
+      enabled: {{ .Values.securesign.rekor.rekorSearchUI }}
+    sharding: []
+    signer:
+      kms: secret
+    trillian:
+      port: {{ .Values.securesign.trillian.port }}
+
+  trillian:
+    database:
+      create: {{ .Values.securesign.trillian.createDatabase }}
+      pvc:
+        accessModes:
+          - ReadWriteOnce
+        retain: true
+        size: {{ .Values.securesign.trillian.pvcSize | quote }}
+      tls: {}
+    monitoring:
+      enabled: {{ .Values.securesign.trillian.monitoring }}
+
+  tuf:
+    externalAccess:
+      enabled: {{ .Values.securesign.tuf.externalAccess }}
+    keys:
+{{- range .Values.securesign.tuf.keys }}
+      - name: {{ .name | quote }}
+{{- end }}
+    port: {{ .Values.securesign.tuf.port }}
+    pvc:
+      accessModes:
+        - ReadWriteOnce
+      retain: true
+      size: {{ .Values.securesign.tuf.pvcSize | quote }}
+
+{{- if .Values.securesign.tsa.enabled }}
+  tsa:
+    externalAccess:
+      enabled: {{ .Values.securesign.tsa.externalAccess }}
+    signer:
+      certificateChain: {}
+{{- end }}
+{{- end }}

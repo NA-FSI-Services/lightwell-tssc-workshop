@@ -1,0 +1,82 @@
+---
+# Instructor appendix — Ansible-style OSV PULP_MANIFEST poll (generic ticketing hook).
+# No customer ITSM bindings. Pair with scripts/poll-pulp-manifest.sh for shell demos.
+#
+#   ansible-playbook tools/osv-eval/playbooks/poll-osv-manifest.yml \
+#     -e osv_base=https://packages.redhat.com/lightwell/osv/java/remediated \
+#     -e lw_username="{{ lookup('env','LW_USERNAME') }}" \
+#     -e lw_password="{{ lookup('env','LW_PASSWORD') }}"
+#
+# On change: print a generic "open ticket / trigger pipeline" message (customize locally).
+
+- name: Poll Lightwell Java OSV PULP_MANIFEST
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    osv_base: "https://packages.redhat.com/lightwell/osv/java/remediated"
+    state_dir: "{{ lookup('env', 'HOME') }}/.cache/lightwell-osv-eval"
+    manifest_url: "{{ osv_base }}/PULP_MANIFEST"
+    lw_username: ""
+    lw_password: ""
+  tasks:
+    - name: Ensure state directory exists
+      ansible.builtin.file:
+        path: "{{ state_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Fetch PULP_MANIFEST
+      ansible.builtin.uri:
+        url: "{{ manifest_url }}"
+        user: "{{ lw_username | default(omit, true) }}"
+        password: "{{ lw_password | default(omit, true) }}"
+        return_content: true
+        status_code: [200]
+      register: pulp_manifest
+      no_log: true
+
+    - name: Write current manifest
+      ansible.builtin.copy:
+        dest: "{{ state_dir }}/PULP_MANIFEST"
+        content: "{{ pulp_manifest.content }}"
+        mode: "0644"
+
+    - name: Checksum current manifest
+      ansible.builtin.stat:
+        path: "{{ state_dir }}/PULP_MANIFEST"
+        checksum_algorithm: sha256
+      register: cur
+
+    - name: Read previous checksum if present
+      ansible.builtin.slurp:
+        src: "{{ state_dir }}/PULP_MANIFEST.sha256"
+      register: prev
+      failed_when: false
+
+    - name: Persist checksum (first run)
+      ansible.builtin.copy:
+        dest: "{{ state_dir }}/PULP_MANIFEST.sha256"
+        content: "{{ cur.stat.checksum }}\n"
+        mode: "0644"
+      when: prev.content is not defined
+
+    - name: Detect new OSV files (checksum change)
+      ansible.builtin.debug:
+        msg: >-
+          NEW OSV content detected in PULP_MANIFEST
+          ({{ prev.content | b64decode | trim }} → {{ cur.stat.checksum }}).
+          Generic hook: open a ticket / trigger a rebuild pipeline
+          (map to your org's tooling — do not hard-code customer ITSM).
+      when:
+        - prev.content is defined
+        - (prev.content | b64decode | trim) != cur.stat.checksum
+
+    - name: Update stored checksum after change
+      ansible.builtin.copy:
+        dest: "{{ state_dir }}/PULP_MANIFEST.sha256"
+        content: "{{ cur.stat.checksum }}\n"
+        mode: "0644"
+      when:
+        - prev.content is defined
+        - (prev.content | b64decode | trim) != cur.stat.checksum

@@ -1,0 +1,32 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:a1111111-1111-4111-8111-111111111111",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-01-15T00:00:00Z",
+    "component": {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-core@5.3.18",
+      "group": "org.springframework",
+      "name": "spring-core",
+      "version": "5.3.18",
+      "purl": "pkg:maven/org.springframework/spring-core@5.3.18",
+      "properties": [
+        {
+          "name": "lightwell:tier",
+          "value": "validated"
+        }
+      ]
+    },
+    "tools": [
+      {
+        "vendor": "Lightwell TSSC Workshop",
+        "name": "seeded-mirror",
+        "version": "0.1.0"
+      }
+    ]
+  },
+  "components": [],
+  "vulnerabilities": []
+}

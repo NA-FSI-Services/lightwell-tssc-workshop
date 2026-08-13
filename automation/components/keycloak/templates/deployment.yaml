@@ -1,0 +1,103 @@
+{{- if .Values.keycloak.enabled }}
+{{- $host := include "keycloak.routeHost" . }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.keycloak.name }}
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+    app: {{ .Values.keycloak.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.syncWaves.deploy | quote }}
+spec:
+  replicas: {{ .Values.keycloak.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Values.keycloak.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "keycloak.labels" . | nindent 8 }}
+        app: {{ .Values.keycloak.name }}
+      annotations:
+        # start-dev has no PVC — recreate on realm ConfigMap change so --import-realm
+        # picks up Trustify chicken roles / document scopes (Module 4).
+        checksum/realm-import: {{ include (print $.Template.BasePath "/realm-configmap.yaml") . | sha256sum }}
+    spec:
+{{- if .Values.keycloak.anyuidScc }}
+      serviceAccountName: {{ .Values.keycloak.name }}
+{{- end }}
+      containers:
+        - name: keycloak
+          image: {{ .Values.keycloak.image | quote }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - start-dev
+            - --import-realm
+            - --http-port=8080
+            - --health-enabled=true
+          env:
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keycloak.admin.secretName }}
+                  key: username
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keycloak.admin.secretName }}
+                  key: password
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+            # Full URL required when using edge Route + proxy headers (Keycloak 26)
+            - name: KC_HOSTNAME
+              value: {{ printf "https://%s" $host | quote }}
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
+              value: "false"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: management
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: management
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: {{ .Values.keycloak.resources.requests.cpu | quote }}
+              memory: {{ .Values.keycloak.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.keycloak.resources.limits.cpu | quote }}
+              memory: {{ .Values.keycloak.resources.limits.memory | quote }}
+          volumeMounts:
+            - name: realm-import
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+      volumes:
+        - name: realm-import
+          configMap:
+            name: {{ .Values.keycloak.name }}-realm-import
+{{- end }}

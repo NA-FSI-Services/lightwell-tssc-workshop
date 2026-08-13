@@ -1,0 +1,60 @@
+# Minimal workshop Keycloak — issuer https://sso.<deployer.domain>/realms/tpa
+# Matches automation/components/rhtpa oidc.* defaults (frontend + cli clients).
+
+keycloak:
+  enabled: true
+  namespace: sso
+  name: keycloak
+  # Route host prefix → sso.<deployer.domain> (required by rhtpa.oidcIssuer helper)
+  routeHostPrefix: sso
+  image: quay.io/keycloak/keycloak:26.0.2
+  replicas: 1
+  # anyuid SCC — Keycloak image UID expectations under restricted OpenShift SCCs
+  anyuidScc: true
+  syncWaves:
+    namespace: "0"
+    rbac: "1"
+    config: "1"
+    deploy: "2"
+    route: "3"
+    userinfo: "4"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 768Mi
+    limits:
+      cpu: "1"
+      memory: 1536Mi
+  # Workshop-only admin — override via values / RHDP secrets in shared envs
+  admin:
+    username: admin
+    password: "workshop-keycloak-admin-changeme"
+    secretName: keycloak-admin
+
+# Realm + clients aligned with automation/components/rhtpa/values.yaml oidc.*
+oidc:
+  realm: tpa
+  frontendClientId: frontend
+  cliClientId: cli
+  # Must match rhtpa oidc.cliClientSecret (Secret tpa-realm-cli-clients key cli)
+  cliClientSecret: "workshop-tpa-cli-changeme"
+  # Workshop browser user for Module 4 TPA UI sign-in
+  workshopUser:
+    username: tpa-user
+    password: "workshop-tpa-user-changeme"
+    email: tpa-user@workshop.local
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Keycloak (TPA SSO)"
+  instructions: >-
+    Workshop IdP for RHTPA / Trustify. Issuer https://sso.<cluster-domain>/realms/tpa.
+    Sign in to TPA UI as tpa-user (password in this userinfo / chart values oidc.workshopUser).
+    Realm import includes chicken-user|manager|admin roles and read|create|delete:document
+    client scopes so Module 4 SBOM upload/browse is authorized without manual Keycloak admin steps.
+    CLI client id "cli" secret matches RHTPA oidc.cliClientSecret (same chart values / RHDP injection).
+    Admin console: /admin/ (workshop-only credentials — replace in shared envs).
+
+deployer:
+  domain: ""
+  apiUrl: ""

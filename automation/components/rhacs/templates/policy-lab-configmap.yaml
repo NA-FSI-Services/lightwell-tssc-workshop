@@ -1,0 +1,128 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled }}
+{{- $endpoint := include "rhacs.centralEndpoint" . }}
+{{- $centralUrl := include "rhacs.centralUrl" . }}
+{{- $labRepoFallback := ternary (printf "https://%s.%s/%s/%s.git" .Values.pipelineHooks.labRepoHostPrefix .Values.deployer.domain .Values.pipelineHooks.labRepoOwner .Values.pipelineHooks.labRepoName) "https://gitea.<cluster-domain>/student/spring-boot-lw-poc.git" (ne .Values.deployer.domain "") -}}
+{{- $labRepo := .Values.pipelineHooks.labRepoUrl | default $labRepoFallback -}}
+---
+# Lab narrative — fail on non-remediated pins, succeed after .rhlw-*, SBOM in RHTPA.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhacs-lightwell-policy-lab
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pipeline-hooks
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+data:
+  README: |
+    # Lightwell RHACS / pipeline policy lab (issue #13)
+
+    ## Student git (required)
+    PipelineRuns clone **your** application repository on in-cluster Gitea.
+    Discover your URL:
+
+      oc -n gitea get configmap demo-userinfo-gitea \
+        -o jsonpath='{.data.student_repo_url}{"\n"}'
+
+    ## Components
+    - Task `{{ .Values.pipelineHooks.depGate.taskName }}` — Maven .rhlw-* pin gate (OSV-friendly)
+    - Task `{{ .Values.pipelineHooks.taskName }}` — `roxctl image check` (RHACS / Clair-class)
+    - Task `{{ .Values.pipelineHooks.sbom.taskName }}` — syft CycloneDX → RHTPA
+    - Pipeline `{{ .Values.pipelineHooks.pipeline.name }}` — wires the three gates
+
+    ## Failure path (non-remediated pins)
+    1. Use your student repo whose `pom.xml` has `commons-lang3` `{{ .Values.pipelineHooks.depGate.vulnerableVersion }}`
+       without enabling `lightwell-remediated-pins` / `{{ .Values.pipelineHooks.depGate.remediatedVersion }}`.
+    2. Create PipelineRun with `dep-gate-mode=require-remediated` and `pom-path=pom.xml`.
+    3. Expect Task `lightwell-dep-gate` to **fail** with remediation instructions.
+    4. (Optional) Build an image from unpatched deps; with Central policy imported,
+       `roxctl image check` fails on Fixable Critical CVEs when Scanner finds them.
+
+    ## Success path (remediated .rhlw-*)
+    1. In **your** student repo, set default `<commons.lang3.version>` to
+       `{{ .Values.pipelineHooks.depGate.remediatedVersion }}`, commit, and push.
+    2. Re-run PipelineRun — dep-gate **passes**.
+    3. Populate Secret `{{ .Values.pipelineHooks.secretName }}` and re-run — ACS image check runs.
+    4. syft writes CycloneDX; set `rhtpa-url` (and optional token Secret) so SBOM lands in RHTPA,
+       or upload the SBOM workspace file via the RHTPA UI (Module 4).
+
+    ## Central policy (OSV-friendly)
+    Import `central-policy-fixable-critical.json` from ConfigMap
+    `rhacs-lightwell-central-policy` (same namespace) via Central UI → Policy Management,
+    or `roxctl` declarative/API import. Enforce at **BUILD** with FAIL_BUILD_ENFORCEMENT.
+
+  student_repo_url: {{ $labRepo | quote }}
+  student_repo_revision: {{ .Values.pipelineHooks.labRevision | quote }}
+  student_pom_path: {{ .Values.pipelineHooks.pipeline.defaultPomPath | quote }}
+
+  fail_pipelinerun.yaml: |
+    apiVersion: tekton.dev/v1
+    kind: PipelineRun
+    metadata:
+      generateName: lightwell-policy-fail-
+      namespace: {{ .Values.rhacs.namespace }}
+    spec:
+      pipelineRef:
+        name: {{ .Values.pipelineHooks.pipeline.name }}
+      params:
+        - name: repo-url
+          value: {{ $labRepo | quote }}
+        - name: revision
+          value: {{ .Values.pipelineHooks.labRevision | quote }}
+        - name: image
+          value: {{ .Values.pipelineHooks.exampleImage | quote }}
+        - name: dep-gate-mode
+          value: require-remediated
+        - name: pom-path
+          value: {{ .Values.pipelineHooks.pipeline.defaultPomPath | quote }}
+        - name: rhtpa-url
+          value: ""
+      workspaces:
+        - name: source
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 1Gi
+        - name: sbom
+          emptyDir: {}
+    # Student Gitea repo (pom.xml at root; default pin 3.14.0 → fail).
+    # Success: edit/push properties to {{ .Values.pipelineHooks.depGate.remediatedVersion }}
+    # on your student_repo_url, then create a pass PipelineRun with the same pom-path.
+
+  success_notes: |
+    After setting default <commons.lang3.version> to {{ .Values.pipelineHooks.depGate.remediatedVersion }}
+    in your student repo and pushing:
+      oc -n {{ .Values.rhacs.namespace }} create -f <pipelinerun-success.yaml>
+    Verify:
+      - dep-gate result gate-status=passed
+      - acs-image-check result check-status=passed (with CI secrets + Central policy)
+      - syft-sbom-rhtpa result upload-status=uploaded|manual-required
+      - SBOM visible in RHTPA UI
+
+  central_url: {{ $centralUrl | quote }}
+  central_endpoint: {{ $endpoint | quote }}
+  vulnerable_version: {{ .Values.pipelineHooks.depGate.vulnerableVersion | quote }}
+  remediated_version: {{ .Values.pipelineHooks.depGate.remediatedVersion | quote }}
+{{- if .Values.pipelineHooks.centralPolicy.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhacs-lightwell-central-policy
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+data:
+  central-policy-fixable-critical.json: |
+{{ .Files.Get "files/central-policy-fixable-critical.json" | indent 4 }}
+  IMPORT: |
+    Central UI → Platform Configuration / Policy Management → Import JSON
+    Or use roxctl / Central API with a CI token. Enable enforcement for BUILD.
+{{- end }}
+{{- end }}

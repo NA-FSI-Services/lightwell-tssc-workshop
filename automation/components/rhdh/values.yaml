@@ -1,0 +1,98 @@
+# Red Hat Developer Hub — Lightwell TSSC workshop
+# Patterns adapted from RHADS / RHDH Operator install docs.
+# Root App-of-Apps injects rhdh.* and deployer.* (see automation/bootstrap-infra).
+
+rhdh:
+  # Chart-level gate (root-app Application only exists when components.rhdh.enabled)
+  enabled: true
+  # Instance namespace (Backstage CR + app ConfigMaps)
+  namespace: rhdh
+  # Backstage CR name
+  name: developer-hub
+  # CRD apiVersion — RHDH Operator 1.10+ serves v1alpha5 (v1alpha3 is not served)
+  apiVersion: rhdh.redhat.com/v1alpha5
+  replicas: 1
+  route:
+    enabled: true
+  database:
+    enableLocalDb: true
+  # Sync waves inside this chart (operator → config → instance)
+  syncWaves:
+    namespace: "0"
+    operator: "1"
+    config: "2"
+    instance: "3"
+    userinfo: "4"
+
+# OLM install of the RHDH Operator (recommended dedicated namespace)
+operator:
+  enabled: true
+  name: rhdh
+  namespace: rhdh-operator
+  channel: fast
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+  # Empty targetNamespaces ⇒ AllNamespaces (OperatorHub default for RHDH)
+  createOperatorGroup: true
+
+# app-config.yaml content (ConfigMap → Backstage CR)
+appConfig:
+  title: "Lightwell TSSC Workshop — Developer Hub"
+  # When empty, baseUrl is derived as https://developer-hub-<namespace>.apps.<deployer.domain>
+  baseUrl: ""
+  # Catalog locations for Software Templates (Java + Python)
+  catalog:
+    fileLocations:
+      - /opt/app-root/src/catalog/lightwell-java-service.yaml
+      - /opt/app-root/src/catalog/lightwell-python-service.yaml
+
+# dynamic-plugins.yaml — includes defaults + Module 3 publish:gitea plugin
+dynamicPlugins:
+  enabled: true
+  configMapName: dynamic-plugins-rhdh
+  # Prebuilt with: scripts/package-rhdh-gitea-scaffolder-plugin.sh
+  # Release: rhdh-gitea-scaffolder-0.2.23
+  giteaScaffolder:
+    enabled: true
+    package: >-
+      https://github.com/rhpds/lightwell-tssc-workshop/releases/download/rhdh-gitea-scaffolder-0.2.23/backstage-plugin-scaffolder-backend-module-gitea-dynamic-0.2.23.tgz
+    integrity: sha512-7n5pakUPDJPwRBZ8NUMQIZOs753Q2X4tPILG/3EAtDIPHUASYOgDWDx00F1CRrEAQC3LkOiGI0oO2nTehlMsNw==
+
+
+# Software Templates (skeletons under files/skeletons/)
+softwareTemplates:
+  enabled: true
+  configMapName: rhdh-software-templates
+  # Mounted under extraFiles.mountPath
+  mountPath: /opt/app-root/src
+  # Prefer Gitea workshop-templates after seed (see catalog YAML).
+  # Kept for docs / fallbacks — fetch:template URL is substituted via GITEA_HOST_PLACEHOLDER.
+  skeletonUrl: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-java-service
+  skeletonPythonUrl: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-python-service
+
+# publish:gitea — Module 3 learner path (AGENTS.md). Credentials must create repos
+# under each learner org (lw-<username>). Workshop uses Gitea admin by default.
+giteaIntegration:
+  enabled: true
+  secretName: rhdh-gitea-scaffolder
+  username: gitea-admin
+  # Align default with automation/components/gitea values; override in shared envs
+  password: "workshop-gitea-admin-changeme"
+
+# RHDP userinfo ConfigMap
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Developer Hub"
+  instructions: >-
+    Open Developer Hub (rhdh_url). Java: Create → lightwell-java-service →
+    lw-<student_username>/spring-boot-lw-poc (delete Module 2 app repo first —
+    Showroom Module 3). Python: after Module 7 learner seed, Create →
+    lightwell-python-service → lw-<student_username>/fastapi-lw-poc (delete the
+    seeded fastapi-lw-poc first — same Module 2→3 pattern). Org lw-<username> is
+    created in Module 2. Requires integrations.gitea + scaffolder-backend-module-gitea.
+
+# Injected by root-app / field content workload
+deployer:
+  domain: ""
+  apiUrl: ""

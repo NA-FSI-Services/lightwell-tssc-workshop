@@ -1,0 +1,114 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.ciTokenJob.enabled }}
+{{- $endpoint := include "rhacs.centralEndpoint" . }}
+---
+# Mint Central Continuous Integration API token into rhacs-ci-secrets after Central is Ready.
+# Idempotent: skips when rox-api-token is already set. Never commits tokens to Git.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.pipelineHooks.ciTokenJob.jobName }}
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ci-token
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.ciToken | quote }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.pipelineHooks.ciTokenJob.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.pipelineHooks.ciTokenJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "rhacs.labels" . | nindent 8 }}
+        app.kubernetes.io/component: ci-token
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.pipelineHooks.ciTokenJob.serviceAccountName }}
+      containers:
+        - name: mint-ci-token
+          image: {{ .Values.pipelineHooks.ciTokenJob.image | quote }}
+          imagePullPolicy: {{ .Values.pipelineHooks.ciTokenJob.imagePullPolicy | quote }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Values.rhacs.namespace | quote }}
+            - name: SECRET_NAME
+              value: {{ .Values.pipelineHooks.secretName | quote }}
+            - name: TOKEN_NAME
+              value: {{ .Values.pipelineHooks.ciTokenJob.tokenName | quote }}
+            - name: TOKEN_ROLE
+              value: {{ .Values.pipelineHooks.ciTokenJob.role | quote }}
+            - name: WAIT_SECONDS
+              value: {{ .Values.pipelineHooks.ciTokenJob.waitSeconds | quote }}
+            - name: FALLBACK_ENDPOINT
+              value: {{ $endpoint | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              if ! command -v oc >/dev/null 2>&1; then
+                curl -fsSL -o /tmp/oc.tgz \
+                  https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
+                tar -C /usr/local/bin -xzf /tmp/oc.tgz oc
+              fi
+              if ! command -v python3 >/dev/null 2>&1; then
+                dnf install -y -q python3 && dnf clean all
+              fi
+
+              echo "Waiting for Central Route + central-htpasswd (up to ${WAIT_SECONDS}s)..."
+              deadline=$((SECONDS + WAIT_SECONDS))
+              CENTRAL_HOST=""
+              while (( SECONDS < deadline )); do
+                CENTRAL_HOST="$(oc -n "${NAMESPACE}" get route central -o jsonpath='{.spec.host}' 2>/dev/null || true)"
+                if [[ -n "${CENTRAL_HOST}" ]] && oc -n "${NAMESPACE}" get secret central-htpasswd >/dev/null 2>&1; then
+                  break
+                fi
+                sleep 10
+              done
+              if [[ -z "${CENTRAL_HOST}" ]]; then
+                echo "Central Route not ready" >&2
+                exit 1
+              fi
+              if ! oc -n "${NAMESPACE}" get secret central-htpasswd >/dev/null 2>&1; then
+                echo "central-htpasswd missing" >&2
+                exit 1
+              fi
+
+              ENDPOINT="${CENTRAL_HOST}:443"
+              # Prefer live Route host; FALLBACK_ENDPOINT is chart-derived when Route lags.
+              if [[ -z "${ENDPOINT}" || "${ENDPOINT}" == ":443" ]]; then
+                ENDPOINT="${FALLBACK_ENDPOINT}"
+              fi
+
+              existing="$(oc -n "${NAMESPACE}" get secret "${SECRET_NAME}" -o jsonpath='{.data.rox-api-token}' 2>/dev/null || true)"
+              if [[ -n "${existing}" ]]; then
+                echo "Secret ${SECRET_NAME} already has rox-api-token — skipping mint"
+                oc -n "${NAMESPACE}" patch secret "${SECRET_NAME}" --type merge \
+                  -p "{\"stringData\":{\"rox-api-endpoint\":\"${ENDPOINT}\"}}" >/dev/null || true
+                exit 0
+              fi
+
+              ADMIN_PASS="$(oc -n "${NAMESPACE}" get secret central-htpasswd -o jsonpath='{.data.password}' | base64 -d)"
+              echo "Minting API token role='${TOKEN_ROLE}' name='${TOKEN_NAME}' against ${CENTRAL_HOST}..."
+              RESP="$(curl -sk -u "admin:${ADMIN_PASS}" \
+                "https://${CENTRAL_HOST}/v1/apitokens/generate" \
+                -H 'Content-Type: application/json' \
+                -d "{\"name\":\"${TOKEN_NAME}\",\"roles\":[\"${TOKEN_ROLE}\"]}")"
+              TOKEN="$(printf '%s' "${RESP}" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("token") or "")')"
+              if [[ -z "${TOKEN}" ]]; then
+                echo "token mint failed: ${RESP}" >&2
+                exit 1
+              fi
+
+              if oc -n "${NAMESPACE}" get secret "${SECRET_NAME}" >/dev/null 2>&1; then
+                oc -n "${NAMESPACE}" patch secret "${SECRET_NAME}" --type merge \
+                  -p "{\"stringData\":{\"rox-api-endpoint\":\"${ENDPOINT}\",\"rox-api-token\":\"${TOKEN}\"}}"
+              else
+                oc -n "${NAMESPACE}" create secret generic "${SECRET_NAME}" \
+                  --from-literal=rox-api-endpoint="${ENDPOINT}" \
+                  --from-literal=rox-api-token="${TOKEN}"
+              fi
+              echo "Patched Secret ${NAMESPACE}/${SECRET_NAME} (endpoint + token)."
+{{- end }}

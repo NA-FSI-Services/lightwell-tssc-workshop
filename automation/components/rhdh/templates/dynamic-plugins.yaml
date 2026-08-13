@@ -1,0 +1,29 @@
+{{- if and .Values.rhdh.enabled .Values.dynamicPlugins.enabled }}
+---
+# Dynamic plugins overlay. RHDH 1.10 does not ship scaffolder-backend-module-gitea
+# in-image; Module 3 publish:gitea loads a prebuilt dynamic plugin from a GitHub
+# Release (see values.dynamicPlugins.giteaScaffolder).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.dynamicPlugins.configMapName }}
+  namespace: {{ .Values.rhdh.namespace }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
+    rhdh.redhat.com/ext-config-sync: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhdh.syncWaves.config | quote }}
+    rhdh.redhat.com/backstage-name: {{ .Values.rhdh.name | quote }}
+data:
+  dynamic-plugins.yaml: |
+    includes:
+      - dynamic-plugins.default.yaml
+    plugins:
+{{- if .Values.dynamicPlugins.giteaScaffolder.enabled }}
+      - package: {{ .Values.dynamicPlugins.giteaScaffolder.package | quote }}
+        integrity: {{ .Values.dynamicPlugins.giteaScaffolder.integrity | quote }}
+        disabled: false
+{{- else }}
+      []
+{{- end }}
+{{- end }}

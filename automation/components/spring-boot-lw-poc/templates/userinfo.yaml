@@ -1,0 +1,25 @@
+{{- if and .Values.springBootLwPoc.enabled .Values.userInfo.enabled }}
+{{- $appUrl := include "spring-boot-lw-poc.appUrl" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-spring-boot-lw-poc
+  namespace: {{ .Values.springBootLwPoc.namespace }}
+  labels:
+    {{- include "spring-boot-lw-poc.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.springBootLwPoc.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  app_url: {{ $appUrl | quote }}
+  greeting_url: "{{ $appUrl }}/api/greeting"
+  swagger_url: "{{ $appUrl }}/swagger-ui.html"
+  lightwell_stream: {{ .Values.lightwellStream | quote }}
+  source_path: "pom.xml (Gitea spring-boot-lw-poc repo root)"
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}

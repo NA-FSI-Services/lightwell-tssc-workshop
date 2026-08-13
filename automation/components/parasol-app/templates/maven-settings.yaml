@@ -1,0 +1,78 @@
+{{- if and .Values.parasolApp.enabled .Values.mavenSettings.enabled }}
+{{- $nexusUrl := include "parasol-app.nexusUrl" . }}
+---
+# Same Validated / Remediated channel keys as spring-boot-lw-poc and lightwell-repo.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.mavenSettings.configMapName }}
+  namespace: {{ .Values.parasolApp.namespace }}
+  labels:
+    {{- include "parasol-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.parasolApp.syncWaves.config | quote }}
+data:
+  settings.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+      <!--
+        Shared LWN Maven profiles (identical channel names to spring-boot-lw-poc).
+          mvn -s settings.xml -Plightwell-validated clean verify
+          mvn -s settings.xml -Plightwell-remediated clean verify
+        Auth: LW_USERNAME / LW_PASSWORD via env (never commit).
+      -->
+      <servers>
+        <server>
+          <id>{{ .Values.lightwell.validatedRepo }}</id>
+          <username>${env.LW_USERNAME}</username>
+          <password>${env.LW_PASSWORD}</password>
+        </server>
+        <server>
+          <id>{{ .Values.lightwell.remediatedRepo }}</id>
+          <username>${env.LW_USERNAME}</username>
+          <password>${env.LW_PASSWORD}</password>
+        </server>
+      </servers>
+      <profiles>
+        <profile>
+          <id>lightwell-validated</id>
+          <repositories>
+            <repository>
+              <id>{{ .Values.lightwell.validatedRepo }}</id>
+              <name>Lightwell Java Validated</name>
+              <url>{{ $nexusUrl }}/repository/{{ .Values.lightwell.validatedRepo }}/</url>
+              <releases><enabled>true</enabled></releases>
+              <snapshots><enabled>false</enabled></snapshots>
+            </repository>
+          </repositories>
+        </profile>
+        <profile>
+          <id>lightwell-remediated</id>
+          <repositories>
+            <repository>
+              <id>{{ .Values.lightwell.remediatedRepo }}</id>
+              <name>Lightwell Java Remediated (.rhlw-0000X)</name>
+              <url>{{ $nexusUrl }}/repository/{{ .Values.lightwell.remediatedRepo }}/</url>
+              <releases><enabled>true</enabled></releases>
+              <snapshots><enabled>false</enabled></snapshots>
+            </repository>
+          </repositories>
+        </profile>
+      </profiles>
+      <activeProfiles>
+        <activeProfile>lightwell-validated</activeProfile>
+      </activeProfiles>
+    </settings>
+  channels.yaml: |
+    # Must match lightwell-repo / spring-boot-lw-poc naming (no fictional tiers)
+    validated: {{ .Values.lightwell.validatedRepo }}
+    remediated: {{ .Values.lightwell.remediatedRepo }}
+    osv: {{ .Values.lightwell.osvRepo }}
+    nexusUrl: {{ $nexusUrl }}
+    canonical:
+      validated: https://packages.redhat.com/lightwell/java/validated
+      remediated: https://packages.redhat.com/lightwell/java/remediated
+      osv: https://packages.redhat.com/lightwell/osv/java/remediated
+{{- end }}

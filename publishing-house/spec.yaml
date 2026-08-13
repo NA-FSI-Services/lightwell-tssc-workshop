@@ -6,7 +6,7 @@
 # TODO: Eliminate this copy — Scaffolder should pull from template repo directly.
 
 project:
-  slug: "lightwell-tssc-workshop-ph"
+  slug: "lightwell-tssc-workshop"
   owner_email: "treddy@redhat.com"
   content_type: "lab"
   deployment_mode: "rhdp_published"

@@ -1,0 +1,26 @@
+{{- if and .Values.rhtpa.enabled .Values.userInfo.enabled }}
+{{- $serverUrl := include "rhtpa.serverUrl" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-rhtpa
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: "helm"
+  operator_name: {{ .Values.operator.packageName | quote }}
+  rhtpa_namespace: {{ .Values.rhtpa.namespace | quote }}
+  rhtpa_name: {{ .Values.rhtpa.name | quote }}
+  rhtpa_url: {{ $serverUrl | quote }}
+  sbom_format: "CycloneDX"
+  supported_cyclonedx_version: {{ .Values.ingestionInfo.supportedCycloneDxVersion | quote }}
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}

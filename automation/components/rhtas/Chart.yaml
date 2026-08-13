@@ -1,0 +1,9 @@
+apiVersion: v2
+name: rhtas
+description: Red Hat Trusted Artifact Signer (Fulcio, Rekor, TUF) via Securesign CR
+type: application
+version: 0.1.0
+appVersion: "1.3"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/rhpds/lightwell-tssc-workshop

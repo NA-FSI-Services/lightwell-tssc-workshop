@@ -1,0 +1,52 @@
+{{- if .Values.rhdh.enabled }}
+{{- $baseUrl := include "rhdh.baseUrl" . }}
+{{- $giteaHost := printf "gitea.%s" .Values.deployer.domain }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-rhdh
+  namespace: {{ .Values.rhdh.namespace }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhdh.syncWaves.config | quote }}
+data:
+  app-config-rhdh.yaml: |
+    app:
+      title: {{ .Values.appConfig.title | quote }}
+      baseUrl: {{ $baseUrl | quote }}
+    backend:
+      baseUrl: {{ $baseUrl | quote }}
+      cors:
+        origin: {{ $baseUrl | quote }}
+    organization:
+      name: Lightwell TSSC Workshop
+    # Workshop IdP is not configured — Guest only (no GitHub OAuth).
+    # Without signInPage: guest the UI offers a broken GitHub button
+    # (Unknown auth provider 'github').
+    auth:
+      environment: development
+      providers:
+        guest:
+          dangerouslyAllowOutsideDevelopment: true
+    signInPage: guest
+{{- if .Values.giteaIntegration.enabled }}
+    integrations:
+      gitea:
+        - host: {{ $giteaHost | quote }}
+          baseUrl: {{ printf "https://%s" $giteaHost | quote }}
+          username: ${GITEA_USERNAME}
+          password: ${GITEA_PASSWORD}
+{{- end }}
+    catalog:
+      locations:
+{{- if .Values.softwareTemplates.enabled }}
+{{- range .Values.appConfig.catalog.fileLocations }}
+        - type: file
+          target: {{ . | quote }}
+          rules:
+            - allow: [Template]
+{{- end }}
+{{- end }}
+{{- end }}

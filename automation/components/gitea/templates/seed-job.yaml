@@ -1,0 +1,187 @@
+{{- if and .Values.gitea.enabled .Values.seed.enabled }}
+{{- $students := .Values.students | toJson }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.seed.jobName }}
+  namespace: {{ .Values.gitea.namespace }}
+  labels:
+    {{- include "gitea.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seed
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.seed | quote }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.seed.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.seed.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "gitea.labels" . | nindent 8 }}
+        app.kubernetes.io/component: seed
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.seed.serviceAccountName }}
+      containers:
+        - name: seed
+          image: {{ .Values.seed.image | quote }}
+          imagePullPolicy: {{ .Values.seed.imagePullPolicy | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              # ConfigMap volume is read-only — assemble writable seed tree under /tmp.
+              WORKDIR=/tmp/gitea-seed
+              mkdir -p "${WORKDIR}"
+              if ! command -v git >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
+                dnf install -y -q git python3 openssl tar gzip && dnf clean all
+              fi
+              if ! command -v oc >/dev/null 2>&1; then
+                curl -fsSL -o /tmp/oc.tgz \
+                  https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
+                tar -C /usr/local/bin -xzf /tmp/oc.tgz oc
+              fi
+              export SEED_MOUNT=/seed
+              # Java app + gitops templates
+              bash /seed/assemble-repo.sh "${WORKDIR}/repo"
+{{- if .Values.seed.gitops.enabled }}
+              export GITOPS_SOURCE_PATH={{ .Values.seed.gitops.sourcePath | quote }}
+              export OVERLAY_GITOPS_PREFIX=overlay-gitops
+              bash /seed/assemble-gitops-repo.sh "${WORKDIR}/gitops-repo"
+{{- end }}
+{{- if .Values.seed.templates.skeleton.enabled }}
+              export SKELETON_PATH={{ .Values.seed.templates.skeleton.sourcePath | quote }}
+              bash /seed/assemble-skeleton.sh "${WORKDIR}/skeleton"
+{{- end }}
+{{- if .Values.seed.templates.skeletonPython.enabled }}
+              export SKELETON_PATH={{ .Values.seed.templates.skeletonPython.sourcePath | quote }}
+              bash /seed/assemble-skeleton.sh "${WORKDIR}/skeleton-python"
+{{- end }}
+              # Python FastAPI app + gitops templates (#147) — always alongside Java when live.
+              # Reuses one monorepo clone path via assemble scripts (each clones; acceptable for seed Job).
+              if [[ "${SOURCE_MODE:-live}" == "live" ]]; then
+                export SOURCE_PATH={{ .Values.seed.python.sourcePath | quote }}
+                export INCLUDE_OSV_EVAL=false
+                export OVERLAY_PREFIX=overlay-python
+                bash /seed/assemble-repo.sh "${WORKDIR}/python-repo"
+                export GITOPS_SOURCE_PATH={{ .Values.seed.python.gitops.sourcePath | quote }}
+                export OVERLAY_GITOPS_PREFIX=overlay-python-gitops
+                bash /seed/assemble-gitops-repo.sh "${WORKDIR}/python-gitops-repo"
+              else
+                echo "WARNING: SOURCE_MODE=${SOURCE_MODE} — skipping Python templates (require live monorepo isolation)" >&2
+              fi
+              export SEED_DIR="${WORKDIR}"
+              bash /seed/seed-student-repos.sh
+          env:
+            - name: GITEA_URL
+              value: {{ include "gitea.url" . | quote }}
+            - name: GITEA_NAMESPACE
+              value: {{ .Values.gitea.namespace | quote }}
+            - name: GITEA_DEPLOYMENT
+              value: {{ .Values.gitea.name | quote }}
+            - name: REPO_NAME
+              value: {{ .Values.seed.repoName | quote }}
+            - name: REPO_DESCRIPTION
+              value: {{ .Values.seed.repoDescription | quote }}
+            - name: DEFAULT_BRANCH
+              value: {{ .Values.seed.defaultBranch | quote }}
+            - name: TEMPLATES_ORG
+              value: {{ include "gitea.templatesOrgName" . | quote }}
+            - name: TEMPLATES_ORG_FULL_NAME
+              value: {{ .Values.seed.templates.orgFullName | default "Workshop Templates" | quote }}
+            - name: TEMPLATES_ORG_DESCRIPTION
+              value: {{ .Values.seed.templates.orgDescription | default "" | quote }}
+            - name: STUDENTS_JSON
+              value: {{ $students | quote }}
+            - name: SOURCE_MODE
+              value: {{ .Values.seed.source.mode | quote }}
+            - name: SOURCE_REPO_URL
+              value: {{ .Values.seed.source.repoUrl | quote }}
+            - name: SOURCE_REVISION
+              value: {{ .Values.seed.source.revision | quote }}
+            - name: SOURCE_PATH
+              value: {{ .Values.seed.source.path | quote }}
+            - name: SOURCE_GIT_SSL_VERIFY
+              value: {{ .Values.seed.source.gitSslVerify | quote }}
+{{- if .Values.seed.gitops.enabled }}
+            - name: GITOPS_REPO_NAME
+              value: {{ .Values.seed.gitops.repoName | quote }}
+            - name: GITOPS_REPO_DESCRIPTION
+              value: {{ .Values.seed.gitops.repoDescription | quote }}
+            - name: GITOPS_SEED_SUBDIR
+              value: gitops-repo
+{{- end }}
+{{- if .Values.seed.templates.skeleton.enabled }}
+            - name: SKELETON_REPO_NAME
+              value: {{ .Values.seed.templates.skeleton.repoName | quote }}
+            - name: SKELETON_REPO_DESCRIPTION
+              value: {{ .Values.seed.templates.skeleton.repoDescription | quote }}
+            - name: SKELETON_SEED_SUBDIR
+              value: skeleton
+{{- end }}
+{{- if .Values.seed.templates.skeletonPython.enabled }}
+            - name: PYTHON_SKELETON_REPO_NAME
+              value: {{ .Values.seed.templates.skeletonPython.repoName | quote }}
+            - name: PYTHON_SKELETON_REPO_DESCRIPTION
+              value: {{ .Values.seed.templates.skeletonPython.repoDescription | quote }}
+            - name: PYTHON_SKELETON_SEED_SUBDIR
+              value: skeleton-python
+{{- end }}
+            - name: PYTHON_REPO_NAME
+              value: {{ .Values.seed.python.repoName | quote }}
+            - name: PYTHON_REPO_DESCRIPTION
+              value: {{ .Values.seed.python.repoDescription | quote }}
+            - name: PYTHON_SEED_SUBDIR
+              value: python-repo
+            - name: PYTHON_GITOPS_REPO_NAME
+              value: {{ .Values.seed.python.gitops.repoName | quote }}
+            - name: PYTHON_GITOPS_REPO_DESCRIPTION
+              value: {{ .Values.seed.python.gitops.repoDescription | quote }}
+            - name: PYTHON_GITOPS_SEED_SUBDIR
+              value: python-gitops-repo
+            - name: ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: username
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: password
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitea.admin.secretName }}
+                  key: email
+{{- if .Values.seed.source.gitSecretName }}
+            - name: SOURCE_GIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.seed.source.gitSecretName | quote }}
+                  key: username
+            - name: SOURCE_GIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.seed.source.gitSecretName | quote }}
+                  key: password
+{{- end }}
+          volumeMounts:
+            - name: seed
+              mountPath: /seed
+          resources:
+            requests:
+              cpu: {{ .Values.seed.resources.requests.cpu | quote }}
+              memory: {{ .Values.seed.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.seed.resources.limits.cpu | quote }}
+              memory: {{ .Values.seed.resources.limits.memory | quote }}
+      volumes:
+        - name: seed
+          configMap:
+            name: {{ .Values.seed.configMapName }}
+            defaultMode: 0755
+{{- end }}

@@ -1,0 +1,23 @@
+{{- if and .Values.rhtpa.enabled .Values.operator.enabled }}
+{{- $opNs := include "rhtpa.operatorNamespace" . }}
+{{- $existingSub := lookup "operators.coreos.com/v1alpha1" "Subscription" $opNs .Values.operator.name }}
+{{- if not $existingSub.metadata }}
+---
+# RHTPA Operator via OLM — namespace-scoped install (RHADS pattern).
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ .Values.operator.name }}
+  namespace: {{ $opNs }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.operator | quote }}
+spec:
+  channel: {{ .Values.operator.channel }}
+  installPlanApproval: {{ .Values.operator.installPlanApproval }}
+  name: {{ .Values.operator.packageName }}
+  source: {{ .Values.operator.source }}
+  sourceNamespace: {{ .Values.operator.sourceNamespace }}
+{{- end }}
+{{- end }}
