@@ -13,6 +13,7 @@ project:
   initiative_key: "none"
   showroom_type: "classic"
   intake_type: "migration"
+  automation_type: "gitops"
   description: "Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven and PyPI consumption via an enterprise artifact manager, OSV-driven exact-version pins (.rhlw-*), SBOM analysis, and TSSC pipeline controls. This catalog is Java and Python: Modules 1–6 (Java), then Modules 7–9 (FastAPI / PyPI — epic #144, complete). PyPI Remediated is always enabled (seeded .rhlw-* marker)."
   # content_reviewer_email and infra_reviewer_email are assigned by the RHDP team — not set by the author
   jira_ticket: "RHDPCD-908"
@@ -103,6 +104,14 @@ spec:
     gpu_type: ""                       # not applicable
   duration_hours: 4
   audience: "intermediate"    # beginner | intermediate | advanced
+
+development:
+  automation:
+    status: not_started
+  e2e:
+    status: not_started
+  healthCheck:
+    status: not_started
 
 compliance:
   last_hard_check: null
