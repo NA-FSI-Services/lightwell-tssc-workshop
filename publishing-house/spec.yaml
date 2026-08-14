@@ -107,7 +107,8 @@ spec:
 
 development:
   automation:
-    status: in_progress
+    gitops:
+      status: in_progress
   e2e:
     status: not_started
   healthCheck:
