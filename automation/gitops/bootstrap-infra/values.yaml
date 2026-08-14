@@ -1,5 +1,5 @@
 # Lightwell TSSC Workshop — Bootstrap Infra
-# AgnosticV gitops_path: automation/bootstrap-infra
+# AgnosticV gitops_path: automation/gitops/bootstrap-infra
 #
 # Sync wave ordering (IdP → pipelines → operators → student git → config → apps → showroom):
 #    5  — Workshop Keycloak (SSO for RHTPA): keycloak
@@ -19,7 +19,7 @@
 gitops:
   repoUrl: "https://github.com/rhpds/lightwell-tssc-workshop.git"
   revision: "main"
-  basePath: "automation"
+  basePath: "automation/gitops"
 
 # ArgoCD settings
 argocd:
