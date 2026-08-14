@@ -77,7 +77,7 @@ giteaIntegration:
   enabled: true
   secretName: rhdh-gitea-scaffolder
   username: gitea-admin
-  # Align default with automation/components/gitea values; override in shared envs
+  # Align default with automation/gitops/components/gitea values; override in shared envs
   password: "workshop-gitea-admin-changeme"
 
 # RHDP userinfo ConfigMap

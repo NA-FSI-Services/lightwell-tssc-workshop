@@ -11,7 +11,7 @@
 #   40  — Sample apps: spring-boot-lw-poc, fastapi-lw-poc, parasol-app
 #   50  — Showroom lab guide
 #
-# Child charts live under automation/components/<name>/.
+# Child charts live under automation/gitops/components/<name>/.
 
 # ============================================================
 # GitOps Configuration
@@ -32,40 +32,40 @@ argocd:
 components:
 
   # --- Wave 5: Workshop IdP (required before RHTPA) ---
-  # Chart: automation/components/keycloak. Route host sso.<deployer.domain>/realms/tpa.
+  # Chart: automation/gitops/components/keycloak. Route host sso.<deployer.domain>/realms/tpa.
   keycloak:
     enabled: false
     namespace: sso
     syncWave: "5"
 
   # --- Wave 8: OpenShift Pipelines (Tekton) — enable before rhacs Module 5 Tasks ---
-  # Chart: automation/components/pipelines. OLM Subscription into openshift-operators.
+  # Chart: automation/gitops/components/pipelines. OLM Subscription into openshift-operators.
   pipelines:
     enabled: false
     namespace: openshift-operators
     syncWave: "8"
 
   # --- Wave 10: TSSC operators / platform ---
-  # Chart: automation/components/rhtas (#4). Enable when cluster is ready to sync.
+  # Chart: automation/gitops/components/rhtas (#4). Enable when cluster is ready to sync.
   rhtas:
     enabled: false
     namespace: trusted-artifact-signer
     syncWave: "10"
 
-  # Chart: automation/components/rhtpa (#5). Enable when SSO + cluster capacity are ready.
+  # Chart: automation/gitops/components/rhtpa (#5). Enable when SSO + cluster capacity are ready.
   rhtpa:
     enabled: false
     namespace: trusted-profile-analyzer
     syncWave: "10"
 
-  # Chart: automation/components/rhacs (#6). Enable when cluster capacity is ready.
+  # Chart: automation/gitops/components/rhacs (#6). Enable when cluster capacity is ready.
   rhacs:
     enabled: false
     namespace: stackrox
     syncWave: "10"
 
   # --- Wave 15: Student Git (learner repos for Module 5 — not the GitOps monorepo) ---
-  # Chart: automation/components/gitea. Seeds per-student app + gitops remotes; ApplicationSet → lw-poc-<user>.
+  # Chart: automation/gitops/components/gitea. Seeds per-student app + gitops remotes; ApplicationSet → lw-poc-<user>.
   gitea:
     enabled: false
     namespace: gitea
@@ -78,29 +78,29 @@ components:
     # Python twin (#149) — used for RHACS python policy lab ConfigMap examples
     pythonRepoName: fastapi-lw-poc
     requirementsPath: requirements.txt
-    # When non-empty, overrides automation/components/gitea default students list.
+    # When non-empty, overrides automation/gitops/components/gitea default students list.
     # Dev-cluster bootstrap sets a single user1 + generated password (see
     # docs/DEV-CLUSTER-WORKSHOP-USER.md). Leave empty for chart defaults.
     students: []
 
   # --- Wave 20: Artifact manager (validated / remediated / OSV) ---
-  # Chart: automation/components/lightwell-repo (#7). Enable when ready to sync.
+  # Chart: automation/gitops/components/lightwell-repo (#7). Enable when ready to sync.
   lightwellRepo:
     enabled: false
     namespace: lightwell-repo
     syncWave: "20"
-    # Chart directory under automation/components/
+    # Chart directory under automation/gitops/components/
     chartPath: lightwell-repo
 
   # --- Wave 30: Developer Hub ---
-  # Chart: automation/components/rhdh (#3 / #120). Enabled with lab stack for Module 3 scaffold.
+  # Chart: automation/gitops/components/rhdh (#3 / #120). Enabled with lab stack for Module 3 scaffold.
   rhdh:
     enabled: true
     namespace: rhdh
     syncWave: "30"
 
   # --- Wave 40: Sample applications ---
-  # Chart: automation/components/spring-boot-lw-poc (#24). Keep disabled when Gitea gitops
+  # Chart: automation/gitops/components/spring-boot-lw-poc (#24). Keep disabled when Gitea gitops
   # ApplicationSet is the runtime SoT (Module 5 Ex4 / #100 M1). Enable only for monorepo demos.
   springBootLwPoc:
     enabled: false
@@ -108,7 +108,7 @@ components:
     syncWave: "40"
     chartPath: spring-boot-lw-poc
 
-  # Chart: automation/components/fastapi-lw-poc (#146). Keep off until Python Modules 7–9
+  # Chart: automation/gitops/components/fastapi-lw-poc (#146). Keep off until Python Modules 7–9
   # track is ready; Gitea Python templates land in #147.
   fastapiLwPoc:
     enabled: false
@@ -116,7 +116,7 @@ components:
     syncWave: "40"
     chartPath: fastapi-lw-poc
 
-  # Chart: automation/components/parasol-app (#8). Optional; keep off for critical path.
+  # Chart: automation/gitops/components/parasol-app (#8). Optional; keep off for critical path.
   parasolApp:
     # Optional secondary enterprise workload (after spring-boot-lw-poc)
     enabled: false
@@ -131,7 +131,7 @@ components:
     name: showroom
     syncWave: "50"
     content:
-      # Antora: site.yml → docs/modules/ROOT (Modules 1–6); chart automation/components/showroom (#19)
+      # Antora: site.yml → docs/modules/ROOT (Modules 1–6); chart automation/gitops/components/showroom (#19)
       repoUrl: "https://github.com/rhpds/lightwell-tssc-workshop.git"
       repoRef: "main"
       antoraPlaybook: "site.yml"

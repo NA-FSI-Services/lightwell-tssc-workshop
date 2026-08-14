@@ -1,5 +1,5 @@
 # Minimal workshop Keycloak — issuer https://sso.<deployer.domain>/realms/tpa
-# Matches automation/components/rhtpa oidc.* defaults (frontend + cli clients).
+# Matches automation/gitops/components/rhtpa oidc.* defaults (frontend + cli clients).
 
 keycloak:
   enabled: true
@@ -31,7 +31,7 @@ keycloak:
     password: "workshop-keycloak-admin-changeme"
     secretName: keycloak-admin
 
-# Realm + clients aligned with automation/components/rhtpa/values.yaml oidc.*
+# Realm + clients aligned with automation/gitops/components/rhtpa/values.yaml oidc.*
 oidc:
   realm: tpa
   frontendClientId: frontend

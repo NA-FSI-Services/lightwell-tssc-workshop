@@ -1,6 +1,6 @@
 # Software Template — lightwell-java-service (issue #12 / #120)
 # Skeleton: workshop-templates/lightwell-java-service (Gitea; seeded from
-#   automation/components/rhdh/files/skeletons/lightwell-java-service by gitea seed Job)
+#   automation/gitops/components/rhdh/files/skeletons/lightwell-java-service by gitea seed Job)
 # Publish target: in-cluster Gitea only (AGENTS.md Learner Git). Host substituted at install:
 #   GITEA_HOST_PLACEHOLDER → gitea.<deployer.domain>
 # Learner org lw-<studentUsername> (created in Module 2) + repo spring-boot-lw-poc.

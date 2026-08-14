@@ -253,7 +253,7 @@ spec:
             mode: live
             repoUrl: {{ .Values.gitops.repoUrl | quote }}
             revision: {{ .Values.gitops.revision | quote }}
-            path: automation/components/spring-boot-lw-poc/app
+            path: automation/gitops/components/spring-boot-lw-poc/app
 {{- if .Values.components.gitea.students }}
         students:
 {{- toYaml .Values.components.gitea.students | nindent 10 }}

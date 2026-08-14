@@ -72,13 +72,13 @@ seed:
       enabled: true
       repoName: lightwell-java-service
       repoDescription: "RHDH Software Template skeleton (fetch:template; Module 3)"
-      sourcePath: automation/components/rhdh/files/skeletons/lightwell-java-service
+      sourcePath: automation/gitops/components/rhdh/files/skeletons/lightwell-java-service
     # Python twin (#148) — Module 7+ scaffold after learner-seed-python-from-templates.sh.
     skeletonPython:
       enabled: true
       repoName: lightwell-python-service
       repoDescription: "RHDH Software Template skeleton (fetch:template; Module 7+)"
-      sourcePath: automation/components/rhdh/files/skeletons/lightwell-python-service
+      sourcePath: automation/gitops/components/rhdh/files/skeletons/lightwell-python-service
   # Learner repo names (under lw-<username> after Module 2 setup).
   repoName: spring-boot-lw-poc
   repoDescription: "Lightwell TSSC student lab repository (Modules 2–6; pom.xml + tools/osv-eval at root)"
@@ -91,7 +91,7 @@ seed:
     # Injected by root-app from gitops.repoUrl / gitops.revision (operators only — not students).
     repoUrl: ""
     revision: main
-    path: automation/components/spring-boot-lw-poc/app
+    path: automation/gitops/components/spring-boot-lw-poc/app
     # Optional Secret with username/password (or token as password) for private GitOps clones.
     # Leave empty for public repos. Never commit real credentials into values.
     gitSecretName: ""
@@ -101,17 +101,17 @@ seed:
     enabled: true
     repoName: gitops-spring-boot-lw-poc
     repoDescription: "Lightwell TSSC student GitOps chart (Module 6 Ex4 promote)"
-    sourcePath: automation/components/spring-boot-lw-poc
+    sourcePath: automation/gitops/components/spring-boot-lw-poc
   # Python track (#147) — always seeded alongside Java when seed.enabled (even if
   # root-app keeps fastapiLwPoc.enabled=false). Learners create repos in Module 7.
   python:
     repoName: fastapi-lw-poc
     repoDescription: "Lightwell TSSC student FastAPI lab repository (Modules 7–9; requirements.txt at root)"
-    sourcePath: automation/components/fastapi-lw-poc/app
+    sourcePath: automation/gitops/components/fastapi-lw-poc/app
     gitops:
       repoName: gitops-fastapi-lw-poc
       repoDescription: "Lightwell TSSC student FastAPI GitOps chart (Module 9 promote)"
-      sourcePath: automation/components/fastapi-lw-poc
+      sourcePath: automation/gitops/components/fastapi-lw-poc
   resources:
     requests:
       cpu: 100m
