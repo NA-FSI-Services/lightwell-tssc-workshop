@@ -15,10 +15,10 @@
   <artifactId>spring-boot-lw-poc</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <name>spring-boot-lw-poc</name>
-  <description>Lightwell TSSC workshop — Spring Boot / Java 17 Maven PoC (Validated + Remediated)</description>
+  <description>Lightwell TSSC workshop — Spring Boot / Java 21 Maven PoC (Validated + Remediated)</description>
 
   <properties>
-    <java.version>17</java.version>
+    <java.version>21</java.version>
     <!--
       Dual dependency streams (field PoV pattern):
       - Default / lightwell-validated: upstream-parity version from Validated tier

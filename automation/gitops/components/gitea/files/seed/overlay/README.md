@@ -38,5 +38,9 @@ Image build uses OpenShift **BuildConfig** (Dockerfile multi-stage / Maven Centr
 the build — not the learner Maven Secret). Tekton handles policy, ACS (may soft-skip),
 SBOM, and RHTAS cosign.
 
+The seeded Dockerfile is **UBI OpenJDK 21** (V2-13). Track 3: change the runtime `FROM` to
+the mirrored Hummingbird digest (`dest_registry_host` + `hummingbird_source_pullspec`).
+Do not copy a sample `FROM` from Showroom.
+
 See Showroom Module 5 Exercise 3 for copy-paste `oc` / `tkn` steps (lab namespace,
 pull-secret link, PipelineRun).

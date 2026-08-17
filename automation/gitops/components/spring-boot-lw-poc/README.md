@@ -1,6 +1,8 @@
 # charts/components/spring-boot-lw-poc — primary Java sample
 
-Primary learner workload: **Spring Boot / Java 17 / Maven** greeting API with OpenAPI, demonstrating Lightwell Network **Validated** and **Remediated** (`.rhlw-*`) consumption.
+Primary learner workload: **Spring Boot / Java 21 / Maven** greeting API with OpenAPI, demonstrating Lightwell Network **Validated** and **Remediated** (`.rhlw-*`) consumption.
+
+**Dockerfile (V2-13):** seed is UBI `ubi9/openjdk-21` / `ubi9/openjdk-21-runtime` (wrong product). Track 3 replaces the runtime `FROM` with the mirrored Hummingbird digest. Do not ship `hi/openjdk` as the seed.
 
 Parasol (`#8`) remains optional and secondary.
 

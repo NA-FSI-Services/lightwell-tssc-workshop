@@ -11,7 +11,7 @@ metadata:
   name: lightwell-java-service
   title: Lightwell Java Service
   description: >-
-    Spring Boot / Java 17 / Maven microservice golden path with Lightwell Network
+    Spring Boot / Java 21 / Maven microservice golden path with Lightwell Network
     Validated and Remediated Maven profiles, env-based LW_* auth, .rhlw-* pins,
     tools/osv-eval helpers, and a Tekton pipeline that keyless-signs with RHTAS (cosign).
     Publishes to workshop Gitea as lw-student/spring-boot-lw-poc.

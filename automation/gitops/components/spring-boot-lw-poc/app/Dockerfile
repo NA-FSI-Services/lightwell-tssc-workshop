@@ -1,15 +1,17 @@
-# Multi-stage build for spring-boot-lw-poc (Java 17)
+# V2-13 incomplete seed — Track 3 starts on UBI (wrong product).
+# Replace the runtime FROM with the mirrored Hummingbird digest: dest_registry_host
+# from demo-userinfo-lightwell-repo plus the digest in hummingbird_source_pullspec.
+# Do not copy a sample FROM from Showroom (Check fails). Do not put hi/openjdk here.
 # Image build uses Maven Central. Override commons.lang3.version so a learner
-# .rhlw-* default pin (Module 5 dep-gate) does not break Docker package resolution.
-# Learners use settings.xml + LWN/Nexus profiles for local Maven (not this Dockerfile).
-FROM registry.access.redhat.com/ubi9/openjdk-17:1.21 AS build
+# .rhlw-* default pin (dep-gate) does not break Docker package resolution.
+FROM registry.access.redhat.com/ubi9/openjdk-21:1.21 AS build
 USER root
 WORKDIR /build
 COPY pom.xml ./
 COPY src ./src
 RUN mvn -B -DskipTests -Dcommons.lang3.version=3.14.0 package
 
-FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.21
+FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.21
 WORKDIR /deployments
 COPY --from=build /build/target/spring-boot-lw-poc-*.jar /deployments/app.jar
 EXPOSE 8080
