@@ -4,6 +4,7 @@ Welcome to the project spec. Use the navigation to browse the design and module 
 
 - [Design Spec](design.md) — current catalog (v1)
 - [Version 2 development plan](v2-development-plan.md) — seven-track TSSC rewrite (ASK closed)
+- [V2-2 portable admission](v2-2-portable-admission.md) — spike: learner TrustPolicy → ImagePolicy (Kyverno fallback)
 - [GitHub Project: Lightwell TSSC Workshop v2](https://github.com/orgs/NA-FSI-Services/projects/1)
 - [RHDPCD-908](https://redhat.atlassian.net/browse/RHDPCD-908)
 - [Module 1 - Overview](modules/module-01-overview.md)

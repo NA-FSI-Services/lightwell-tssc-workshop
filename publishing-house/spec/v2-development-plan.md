@@ -654,7 +654,7 @@ Not filed (already decided): V2-0, V2-3, V2-4, V2-41, V2-50, V2-57, V2-98.
 |----|-------|------|----------------|
 | V2-0 | Decision log: ASK Q1–Q31 | Epic | **Closed** (this plan) |
 | V2-1 | Spike: RHDP pull + catalog image ID + digest pin + refresh owner + `non_ga_access_plan` + **egress host list** | Spike | **Phase 0 blocker** |
-| V2-2 | Portable admission: Kyverno/RHACS on 4.20; ClusterImagePolicy when catalog moves to 4.21 | Spike | — |
+| V2-2 | Portable admission: Kyverno/RHACS on 4.20; ClusterImagePolicy when catalog moves to 4.21 | Spike | **Closed.** Report: [`v2-2-portable-admission.md`](v2-2-portable-admission.md). Scored file is portable `TrustPolicy`; live gate is namespaced `ImagePolicy`; Kyverno only if CRD/MCO fails; not RHACS (keyless mismatch). |
 | V2-3 | ~~BuildConfig vs Buildah~~ — **closed: BuildConfig** | Spike | — |
 | V2-4 | ~~Artifactory vs Nexus~~ — **closed: Nexus scored, Artifactory callouts** | Spike | — |
 
@@ -670,7 +670,7 @@ Packaging A/B/C is **closed** — see §4.3.
 | V2-13 | Seed Dockerfile on UBI (wrong) so Track 3 requires `FROM` Hummingbird | V2-10 |
 | V2-14 | Tekton task `verify-base-image` (cosign + attestation + SBOM) | V2-10 |
 | V2-15 | Conforma / Enterprise Contract policy bundle + pipeline task | — |
-| V2-16 | Admission: learner trust-policy file → Kyverno/RHACS now, ClusterImagePolicy later | V2-2 |
+| V2-16 | Admission: learner trust-policy file → ImagePolicy now (Kyverno fallback); do not score `ClusterImagePolicy` | V2-2 (closed) |
 | V2-17 | Two GitOps remotes (stage vs prod) + Argo CD Applications; seed prod empty/wrong | V2-0 |
 | V2-18 | Nexus: seed Lightwell GAV-bound VEX/CDX (C+); TPA ingest; no live CSAF gate | — |
 | V2-20 | Showroom: `ec` CLI; userinfo ConfigMap for Hummingbird digest / mirror | V2-10 |
