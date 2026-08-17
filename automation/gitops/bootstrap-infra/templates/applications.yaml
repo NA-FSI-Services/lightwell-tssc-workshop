@@ -254,10 +254,6 @@ spec:
             repoUrl: {{ .Values.gitops.repoUrl | quote }}
             revision: {{ .Values.gitops.revision | quote }}
             path: automation/gitops/components/spring-boot-lw-poc/app
-{{- if .Values.components.gitea.students }}
-        students:
-{{- toYaml .Values.components.gitea.students | nindent 10 }}
-{{- end }}
         deployer:
           domain: {{ .Values.deployer.domain | quote }}
           apiUrl: {{ .Values.deployer.apiUrl | quote }}

@@ -3,8 +3,6 @@
 :toc:
 :toclevels: 2
 
-include::partial$student-username-form.adoc[]
-
 Lightwell Network artifacts travel with supply-chain metadata; your *application* build should too. Every Lightwell-distributed package is built with *Supply-chain Levels for Software Artifacts (SLSA)* Level 3 integrity and signed; Maven packages include CycloneDX *Software Bills of Materials (SBOMs)* and *Vulnerability Exploitability eXchange (VEX)* advisories (Python wheels use *Software Package Data Exchange (SPDX)*). In this module you generate a *CycloneDX* SBOM from the Spring Boot PoC with `syft`, ingest it into *Red Hat Trusted Profile Analyzer (RHTPA)* (also called *TPA*), and learn how *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence, without installing an IDE in Showroom.
 
 Customers submit *dependency manifests* (for example `pom.xml`) and SBOMs for program workflows—not proprietary application source code. Application source stays in the customer environment.

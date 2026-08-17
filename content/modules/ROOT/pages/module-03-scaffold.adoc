@@ -3,15 +3,13 @@
 :toc:
 :toclevels: 2
 
-include::partial$student-username-form.adoc[]
-
-Module 2 used your *learner-owned* Gitea remotes (`lw-@@LW_USER@@/spring-boot-lw-poc`, seeded from `workshop-templates`) to prove enterprise Maven remotes. This module switches to the *developer golden path*: open *Red Hat Developer Hub (RHDH)*, run the Software Template `lightwell-java-service`, and land the same Lightwell Maven dual-stream project in **your** Gitea organization, then re-run Validated and Remediated proofs against workshop Nexus.
+Module 2 used the *learner-owned* Gitea remotes (`lw-student/spring-boot-lw-poc`, seeded from `workshop-templates`) to prove enterprise Maven remotes. This module switches to the *developer golden path*: open *Red Hat Developer Hub (RHDH)*, run the Software Template `lightwell-java-service`, and land the same Lightwell Maven dual-stream project in the Gitea organization `lw-student`, then re-run Validated and Remediated proofs against workshop Nexus.
 
 After this module, Modules 4–6 continue from the *scaffolded* tree (same `student_repo_url`), not from the Module 2 template seed contents.
 
 [NOTE]
 ====
-If you have not finished xref:module-02-maven.adoc[Module 2]'s Gitea organization exercise (org `lw-@@LW_USER@@` + empty/seeded repos), complete that first. Lab charts start Gitea and your user; **you** own the org and repositories.
+If you have not finished xref:module-02-maven.adoc[Module 2]'s Gitea organization exercise (org `lw-student` + empty/seeded repos), complete that first. Lab charts start Gitea and the `student` user; **you** own the org and repositories.
 ====
 
 == Learning objectives
@@ -20,7 +18,7 @@ By the end of this module, you will be able to:
 
 * Open Developer Hub from ConfigMap `demo-userinfo-rhdh` (`rhdh_url`)
 * Create a service from Software Template `lightwell-java-service`
-* Publish the scaffold to in-cluster *Gitea* under *your* org (`lw-@@LW_USER@@`)
+* Publish the scaffold to in-cluster *Gitea* under org `lw-student`
 * Confirm `pom.xml`, `settings.xml`, `tools/osv-eval/`, and `.tekton/` at the Gitea repo root
 * Re-run Maven Validated and Remediated resolution/consumption proofs on the scaffold
 
@@ -28,7 +26,6 @@ By the end of this module, you will be able to:
 
 * Complete xref:module-02-maven.adoc[Module 2] (Gitea org + Maven Validated / Remediated proofs)
 * RHDH Application Healthy; Gitea reachable
-* Set *Your Gitea username* above (must match `demo-userinfo-gitea` → `student_username`)
 * ConfigMaps:
 ** `demo-userinfo-rhdh` (namespace `rhdh`) — `rhdh_url`, `software_template`
 ** `demo-userinfo-gitea` (namespace `gitea`) — `gitea_url`, `student_gitea_org`, `student_username`, `student_password`, `student_repo_url`, `student_repo_name`
@@ -36,9 +33,8 @@ By the end of this module, you will be able to:
 == Lab story
 
 [arabic]
-. Confirm the header username is *pass:q[<span class="lw-student-user">student</span>]* (Apply if you changed it)
-. Delete the existing app repo `lw-@@LW_USER@@/spring-boot-lw-poc` in Gitea (Module 2 seed) so Create can publish a fresh repo with the same name
-. In RHDH, Create → `lightwell-java-service` (Gitea owner/org = `lw-@@LW_USER@@`; repo name `spring-boot-lw-poc`)
+. Delete the existing app repo `lw-student/spring-boot-lw-poc` in Gitea (Module 2 seed) so Create can publish a fresh repo with the same name
+. In RHDH, Create → `lightwell-java-service` (Gitea owner/org = `lw-student`; repo name `spring-boot-lw-poc`)
 . Clone `student_repo_url` and run Validated + Remediated Maven proofs
 
 == Exercise 1: Discover RHDH and Gitea URLs
@@ -56,7 +52,7 @@ oc -n gitea get configmap demo-userinfo-gitea \
 export RHDH_URL="$(oc -n rhdh get configmap demo-userinfo-rhdh -o jsonpath='{.data.rhdh_url}')"
 export GITEA_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')"
 export GITEA_ORG="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_gitea_org}')"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER=student
 export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')"
 export STUDENT_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')"
 export STUDENT_REPO_NAME="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_name}')"
@@ -74,7 +70,7 @@ Expect lines like `RHDH: https://backstage-developer-hub-rhdh.apps.<cluster>/` a
 Open the printed RHDH and Gitea URLs in the browser.
 
 * *RHDH* — choose *Guest* (workshop auth; do not use GitHub — that provider is not configured).
-* *Gitea* — sign in as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from `demo-userinfo-gitea` when prompted.
+* *Gitea* — sign in as `student` with `student_password` from `demo-userinfo-gitea` when prompted.
 
 === Verify
 
@@ -85,11 +81,11 @@ Open the printed RHDH and Gitea URLs in the browser.
 
 == Exercise 2: Delete the seeded app repo
 
-Module 2 left a seeded app repo at `student_repo_url` (`lw-<username>/spring-boot-lw-poc`). The Software Template *creates* a new Gitea repository; it does not force-push over an existing one.
+Module 2 left a seeded app repo at `student_repo_url` (`lw-student/spring-boot-lw-poc`). The Software Template *creates* a new Gitea repository; it does not force-push over an existing one.
 
 In the *Gitea UI*:
 
-. Open organization *`lw-@@LW_USER@@`* → repository *`spring-boot-lw-poc`*
+. Open organization *`lw-student`* → repository *`spring-boot-lw-poc`*
 . *Settings* → *Danger Zone* → *Delete This Repository*
 . Type the repository name to confirm and delete
 
@@ -102,7 +98,7 @@ Or from the Showroom terminal (API delete; uses your student credentials):
 ----
 : "${GITEA_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')}"
 : "${GITEA_ORG:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_gitea_org}')}"
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER=student
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 : "${STUDENT_REPO_NAME:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_name}')}"
 
@@ -120,16 +116,15 @@ Do *not* delete `gitops-spring-boot-lw-poc` (`student_gitops_repo_url`). That th
 === Verify
 
 * The `curl` command returns HTTP `204` (deleted) or `404` (already absent).
-* Navigating to `${GITEA_URL}/lw-@@LW_USER@@/spring-boot-lw-poc` in the browser returns a Gitea 404 page.
-* The `gitops-spring-boot-lw-poc` repository is still visible under the `lw-@@LW_USER@@` organization.
+* Navigating to `${GITEA_URL}/lw-student/spring-boot-lw-poc` in the browser returns a Gitea 404 page.
+* The `gitops-spring-boot-lw-poc` repository is still visible under the `lw-student` organization.
 
 == Exercise 3: Scaffold from Developer Hub
 
 . In RHDH, open *Create* → Software Template *Lightwell Java Service* (`lightwell-java-service`)
 . Fill the form:
 ** *Name* — e.g. `spring-boot-lw-poc` (Kubernetes-safe; lowercase)
-** *Gitea organization* — *`lw-@@LW_USER@@`* (your learner org from Module 2; required for `publish:gitea`)
-** *Gitea student username* — *pass:q[<span class="lw-student-user">student</span>]* (for documentation / catalog metadata alignment)
+** *Gitea organization* — *`lw-student`* (default; required for `publish:gitea`)
 ** *Repository name* — leave as *`spring-boot-lw-poc`*
 ** Optional: leave Maven / Lightwell defaults (`lightwell-validated` active profile)
 . Review → *Create*
@@ -139,16 +134,16 @@ image::module-03-rhdh-scaffold-form.png[RHDH lightwell-java-service publish form
 
 When the scaffolder finishes, the *Repository* link should point at:
 
-`https://gitea.<domain>/lw-@@LW_USER@@/spring-boot-lw-poc`
+`https://gitea.<domain>/lw-student/spring-boot-lw-poc`
 
 That URL must match `student_repo_url` in `demo-userinfo-gitea`.
 
 === Verify
 
 * The RHDH scaffolder shows green checkmarks for all steps (fetch, template, publish, register).
-* The *Repository* link displayed by the scaffolder resolves to `https://gitea.<domain>/lw-@@LW_USER@@/spring-boot-lw-poc`.
+* The *Repository* link displayed by the scaffolder resolves to `https://gitea.<domain>/lw-student/spring-boot-lw-poc`.
 * That URL matches the value of `student_repo_url` from `demo-userinfo-gitea`.
-* The repository is visible under organization *`lw-@@LW_USER@@`* in Gitea.
+* The repository is visible under organization *`lw-student`* in Gitea.
 
 == Exercise 4: Clone the scaffold and prove Maven streams
 
@@ -221,11 +216,11 @@ Teaching proofs match Module 2: repository ids `lightwell-java-validated` / `lig
 |===
 |Path |When you use it |Canonical for later labs?
 
-|Template seed → `lw-<user>/spring-boot-lw-poc` (Module 2)
+|Template seed → `lw-student/spring-boot-lw-poc` (Module 2)
 |Maven / Nexus exercises *before* this module
 |No — replaced in Exercise 2–3
 
-|RHDH scaffold → same `student_repo_url` (org `lw-<user>`)
+|RHDH scaffold → same `student_repo_url` (org `lw-student`)
 |This module + Modules 4–6
 |Yes
 |===
@@ -235,13 +230,13 @@ Teaching proofs match Module 2: repository ids `lightwell-java-validated` / `lig
 **What you accomplished**
 
 * Opened Developer Hub and ran Software Template `lightwell-java-service`
-* Deleted the Module 2 app repo, then published a fresh scaffold into `lw-<username>/spring-boot-lw-poc`
+* Deleted the Module 2 app repo, then published a fresh scaffold into `lw-student/spring-boot-lw-poc`
 * Verified scaffold layout (`tools/osv-eval/`, `.tekton/`) and Maven Validated / Remediated proofs against workshop Nexus
 
 **Key takeaways**
 
-* Golden path is RHDH → *your* Gitea org (`lw-<username>`)
-* `publish:gitea` requires an Organization — that is why Module 2 has you create `lw-<username>`
+* Golden path is RHDH → Gitea org `lw-student`
+* `publish:gitea` requires an Organization — that is why Module 2 has you create `lw-student`
 * `repoName` stays `spring-boot-lw-poc` so `student_repo_url` and Modules 4–6 stay stable
 * Scaffold parity includes OSV helpers and Tekton overlays needed after this module
 

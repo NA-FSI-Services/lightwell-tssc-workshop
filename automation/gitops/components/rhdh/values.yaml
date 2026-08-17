@@ -72,12 +72,12 @@ softwareTemplates:
   skeletonPythonUrl: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-python-service
 
 # publish:gitea — Module 3 learner path (AGENTS.md). Credentials must create repos
-# under each learner org (lw-<username>). Workshop uses Gitea admin by default.
+# under org lw-student. Workshop uses Gitea admin by default.
 giteaIntegration:
   enabled: true
   secretName: rhdh-gitea-scaffolder
   username: gitea-admin
-  # Align default with automation/gitops/components/gitea values; override in shared envs
+  # Align default with automation/gitops/components/gitea values
   password: "workshop-gitea-admin-changeme"
 
 # RHDP userinfo ConfigMap
@@ -86,10 +86,10 @@ userInfo:
   title: "Lightwell TSSC Workshop — Developer Hub"
   instructions: >-
     Open Developer Hub (rhdh_url). Java: Create → lightwell-java-service →
-    lw-<student_username>/spring-boot-lw-poc (delete Module 2 app repo first —
+    lw-student/spring-boot-lw-poc (delete Module 2 app repo first —
     Showroom Module 3). Python: after Module 7 learner seed, Create →
-    lightwell-python-service → lw-<student_username>/fastapi-lw-poc (delete the
-    seeded fastapi-lw-poc first — same Module 2→3 pattern). Org lw-<username> is
+    lightwell-python-service → lw-student/fastapi-lw-poc (delete the
+    seeded fastapi-lw-poc first — same Module 2→3 pattern). Org lw-student is
     created in Module 2. Requires integrations.gitea + scaffolder-backend-module-gitea.
 
 # Injected by root-app / field content workload

@@ -3,7 +3,7 @@
 #   automation/gitops/components/rhdh/files/skeletons/lightwell-java-service by gitea seed Job)
 # Publish target: in-cluster Gitea only (AGENTS.md Learner Git). Host substituted at install:
 #   GITEA_HOST_PLACEHOLDER → gitea.<deployer.domain>
-# Learner org lw-<studentUsername> (created in Module 2) + repo spring-boot-lw-poc.
+# Learner org lw-student (created in Module 2) + repo spring-boot-lw-poc.
 # Upstream publish:gitea requires a Gitea Organization (not a normal user).
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
@@ -14,7 +14,7 @@ metadata:
     Spring Boot / Java 17 / Maven microservice golden path with Lightwell Network
     Validated and Remediated Maven profiles, env-based LW_* auth, .rhlw-* pins,
     tools/osv-eval helpers, and a Tekton pipeline that keyless-signs with RHTAS (cosign).
-    Publishes to workshop Gitea as lw-<student_username>/spring-boot-lw-poc.
+    Publishes to workshop Gitea as lw-student/spring-boot-lw-poc.
   tags:
     - lightwell
     - java
@@ -80,20 +80,13 @@ spec:
             - Remediated (use with lightwell-remediated-pins for .rhlw-*)
     - title: Publication (Gitea)
       required:
-        - studentUsername
+        - repoOwner
       properties:
-        studentUsername:
-          title: Gitea student username
-          type: string
-          description: >-
-            Paste student_username from ConfigMap demo-userinfo-gitea.
-            Publishes under organization lw-<this value> (create that org in Module 2).
-          pattern: '^[a-zA-Z0-9]([a-zA-Z0-9._-]{0,38}[a-zA-Z0-9])?$'
         repoOwner:
           title: Gitea organization
           type: string
           description: >-
-            Must be lw-<student_username> (your Module 2 organization).
+            Workshop organization lw-student (created in Module 2).
             Upstream publish:gitea creates repositories under Organizations only.
           pattern: '^lw-[a-zA-Z0-9]([a-zA-Z0-9._-]{0,38}[a-zA-Z0-9])?$'
           default: lw-student

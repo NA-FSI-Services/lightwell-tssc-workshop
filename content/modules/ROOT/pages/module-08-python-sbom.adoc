@@ -3,8 +3,6 @@
 :toc:
 :toclevels: 2
 
-include::partial$student-username-form.adoc[]
-
 This module continues the **Python track** after xref:module-07-pypi.adoc[Module 7]. You prove a *Remediated* PyPI pin (same *Validated* / *Remediated* tier names as Java), contrast Python *Software Package Data Exchange (SPDX)* inventory with the Java *CycloneDX* path from xref:module-05-sbom.adoc[Module 5], then ingest an application SBOM into *Red Hat Trusted Profile Analyzer (RHTPA)*.
 
 == Learning objectives
@@ -20,7 +18,6 @@ By the end of this module, you will be able to:
 == Prerequisites
 
 * Finish xref:module-07-pypi.adoc[Module 7]: scaffolded `lightwell-python-service` tree at `student_python_repo_url`
-* Set *Your Gitea username* above (must match `demo-userinfo-gitea` → `student_username`)
 * ConfigMaps:
 ** `demo-userinfo-gitea` (namespace `gitea`): `student_python_repo_url`, credentials
 ** `demo-userinfo-lightwell-repo` / `lightwell-pip-settings` (namespace `lightwell-repo`)
@@ -71,7 +68,7 @@ Canonical remote (document even when mirroring): `{python-remediated-url}` (simp
 [source,bash,role=execute]
 ----
 : "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
-export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
+export STUDENT_USER=student
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 rm -rf /tmp/fastapi-lw-poc

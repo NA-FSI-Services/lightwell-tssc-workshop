@@ -3,8 +3,6 @@
 :toc:
 :toclevels: 2
 
-include::partial$student-username-form.adoc[]
-
 Modules 2–5 wired Maven remotes, exact-version `.rhlw-*` pins, and CycloneDX into RHTPA. This module closes the trusted supply-chain loop: Tekton policy gates that *fail* on non-remediated pins and *pass* after remediation, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
 
 Lightwell and *Advanced Cluster Security (ACS)* are complementary: Lightwell remediates application dependencies; ACS (and this workshop’s dep-gate / image-check Tasks) *enforce* that builds and images meet policy before promotion. OSV and VEX (Vulnerability Exploitability eXchange) metadata help *continuous integration (CI)* scanners recognize remediated pins so gates and third-party scanners stay aligned.
@@ -44,7 +42,7 @@ export STUDENT_POM_PATH="$(oc -n gitea get configmap demo-userinfo-gitea \
 echo "STUDENT_REPO_URL=${STUDENT_REPO_URL}"
 ----
 
-Sign in at `gitea_url` with `student_username` / `student_password` from the same ConfigMap when you need the web UI or `git push` credentials. Multi-user claims list additional remotes under `student_repos` in that ConfigMap — always use **your** username’s URL.
+Sign in at `gitea_url` as `student` with `student_password` from the same ConfigMap when you need the web UI or `git push` credentials. Use `student_repo_url` from that ConfigMap — it is the Java app remote for this environment.
 
 == Architecture of the lab pipeline
 
@@ -156,7 +154,7 @@ Showroom `/terminal/` has no global git `user.name` / `user.email`. The block be
 [source,bash,role=execute]
 ----
 : "${STUDENT_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
-export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
+export STUDENT_USER=student
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${STUDENT_REPO_URL#https://}" /tmp/student-lw-poc
@@ -524,7 +522,7 @@ Promotion means: tag the signed lab image into your **product** namespace, commi
 You have **two** Gitea remotes (from ConfigMap `demo-userinfo-gitea`):
 
 * `student_repo_url` — application source + `.tekton/` (Exercises 1–3)
-* `student_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD ApplicationSet syncs this into `student_promote_namespace` (`lw-poc-<username>`)
+* `student_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD Application syncs this into `student_promote_namespace` (`lw-poc-student`)
 
 Runtime desired state for the promoted app is your Gitea gitops repo (`student_gitops_repo_url`).
 ====
@@ -540,7 +538,7 @@ export GITOPS_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_gitops_repo_url}')"
 export ARGO_APP="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_argocd_app}')"
-export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
+export STUDENT_USER=student
 export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_password}')"
 
@@ -549,7 +547,7 @@ echo "GITOPS_REPO_URL=${GITOPS_REPO_URL}"
 echo "ARGO_APP=${ARGO_APP}"
 ----
 
-. Confirm the ApplicationSet child Application exists and is Synced (chart at `replicas: 0`, empty digest → Healthy without ImagePullBackOff):
+. Confirm the Argo CD Application exists and is Synced (chart at `replicas: 0`, empty digest → Healthy without ImagePullBackOff):
 +
 [source,bash,role=execute]
 ----
@@ -676,7 +674,7 @@ Expected: Application shows `Synced` / `Healthy`, one pod is Running in `${PROMO
 |Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image); Tekton from chart `pipelines`
 
 |GitOps
-|`oc tag` lab → `lw-poc-<user>` ImageStream; digest + `replicas: 1` committed to Gitea gitops repo; Argo Application Synced + Healthy; Route responds
+|`oc tag` lab → `lw-poc-student` ImageStream; digest + `replicas: 1` committed to Gitea gitops repo; Argo Application Synced + Healthy; Route responds
 |===
 
 == Module summary

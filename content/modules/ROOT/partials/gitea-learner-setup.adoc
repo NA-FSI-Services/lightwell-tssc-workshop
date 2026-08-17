@@ -3,7 +3,7 @@
 
 == Exercise: Create your Gitea organization and seed lab repositories
 
-Lab automation starts **Gitea** and normally creates your **user account** (`student_username` / `student_password` in ConfigMap `demo-userinfo-gitea`).
+Lab automation starts **Gitea** and normally creates the **user account** `student` (`student_username` / `student_password` in ConfigMap `demo-userinfo-gitea`).
 If sign-in fails, run the ensure-user helper below (uses Secret `gitea-admin`).
 You create the **Organization** and **repositories** you will use for the rest of the workshop, then seed them from operator-prepared **templates** under Gitea org `workshop-templates`.
 
@@ -14,7 +14,7 @@ You create the **Organization** and **repositories** you will use for the rest o
 |Item |Value
 
 |Your organization
-|`lw-@@LW_USER@@` (`student_gitea_org`)
+|`lw-student` (`student_gitea_org`)
 
 |Application repo
 |`spring-boot-lw-poc` → `student_repo_url`
@@ -28,9 +28,9 @@ You create the **Organization** and **repositories** you will use for the rest o
 
 === A. Discover Gitea, ensure your user, and create the organization
 
-Lab install creates your Gitea account when Job `gitea-student-repo-seed` runs (dev-cluster default: *pass:q[<span class="lw-student-user">student</span>]*). Confirm the URL and credentials from the ConfigMap, then ensure the account exists before signing in.
+Lab install creates the Gitea account `student` when Job `gitea-student-repo-seed` runs. Confirm the URL and password from the ConfigMap, then ensure the account exists before signing in.
 
-Discover the Gitea URL and your username (do **not** paste a hardcoded hostname):
+Discover the Gitea URL (do **not** paste a hardcoded hostname):
 
 [source,bash,role=execute]
 ----
@@ -38,11 +38,11 @@ oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='gitea_url={.data.gitea_url}{"\n"}student_username={.data.student_username}{"\n"}'
 ----
 
-Ensure your user can sign in (no-op if the seed Job already created you; otherwise creates/updates via workshop admin Secret `gitea-admin`):
+Expect `student_username=student`. Ensure that user can sign in (no-op if the seed Job already created the account; otherwise creates/updates via workshop admin Secret `gitea-admin`):
 
 [source,bash,role=execute]
 ----
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER=student
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 : "${GITEA_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')}"
 
@@ -52,17 +52,17 @@ chmod +x /tmp/learner-ensure-gitea-user.sh
 /tmp/learner-ensure-gitea-user.sh
 ----
 
-The script prints **Open:** `<gitea_url>`. Open that URL in your browser and sign in as *pass:q[<span class="lw-student-user">student</span>]* with `student_password` from `demo-userinfo-gitea` (same password the script used).
+The script prints **Open:** `<gitea_url>`. Open that URL in your browser and sign in as `student` with `student_password` from `demo-userinfo-gitea` (same password the script used).
 
 . Click **+** → **New Organization**
-. Set **Organization Name** exactly to *`lw-@@LW_USER@@`* (must match `student_gitea_org`)
+. Set **Organization Name** exactly to *`lw-student`* (must match `student_gitea_org`)
 . Visibility: **Public** → **Create Organization**
 
-image::module-02-gitea-new-org.png[Gitea New Organization form for lw-<username>,width=700]
+image::module-02-gitea-new-org.png[Gitea New Organization form for lw-student,width=700]
 
 === B. Create empty repositories
 
-Under organization *`lw-@@LW_USER@@`*:
+Under organization *`lw-student`*:
 
 . **+** → **New Repository** (or **New Repository** from the org page)
 . Name: *`spring-boot-lw-poc`* — leave **Initialize repository** unchecked (empty repo) → **Create**
@@ -76,7 +76,7 @@ Operator Job `gitea-student-repo-seed` already published prepared trees under `w
 
 [source,bash,role=execute]
 ----
-export STUDENT_USER='@@LW_USER@@'
+export STUDENT_USER=student
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 : "${GITEA_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.gitea_url}')}"
 
@@ -86,7 +86,7 @@ chmod +x /tmp/learner-seed.sh
 /tmp/learner-seed.sh
 ----
 
-The script also adds workshop user `gitea-admin` to your org’s **Owners** team so Module 3 RHDH `publish:gitea` can create repositories under *`lw-@@LW_USER@@`*.
+The script also adds workshop user `gitea-admin` to the org’s **Owners** team so Module 3 RHDH `publish:gitea` can create repositories under *`lw-student`*.
 
 Confirm:
 
@@ -98,6 +98,6 @@ curl -sk -o /dev/null -w "%{http_code}\n" \
   "$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')"
 ----
 
-Expect HTTP `200` on the app remote (anonymous clone works for public repos). Open `lw-@@LW_USER@@/spring-boot-lw-poc` in Gitea and confirm `pom.xml` is at the repository root.
+Expect HTTP `200` on the app remote (anonymous clone works for public repos). Open `lw-student/spring-boot-lw-poc` in Gitea and confirm `pom.xml` is at the repository root.
 
 image::module-02-gitea-seeded-app.png[Seeded app repo root showing pom.xml,width=700]

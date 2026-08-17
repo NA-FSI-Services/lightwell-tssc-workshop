@@ -1,8 +1,7 @@
 {{- if and .Values.gitea.enabled .Values.userInfo.enabled }}
 {{- $url := include "gitea.url" . }}
 {{- $templatesOrg := include "gitea.templatesOrgName" . }}
-{{- $primary := index .Values.students 0 }}
-{{- $primaryUser := $primary.username }}
+{{- $primaryUser := .Values.student.username | default "student" }}
 {{- $learnerOrg := include "gitea.learnerOrgName" $primaryUser }}
 {{- $repoName := .Values.seed.repoName }}
 {{- $repoUrl := include "gitea.studentAppRepoUrl" (list . $primaryUser) }}
@@ -33,7 +32,7 @@ data:
   # Expected org/repos after Module 2 learner setup (not auto-created).
   student_gitea_org: {{ $learnerOrg | quote }}
   student_username: {{ $primaryUser | quote }}
-  student_password: {{ $primary.password | quote }}
+  student_password: {{ .Values.student.password | quote }}
   student_repo_url: {{ $repoUrl | quote }}
   student_repo_name: {{ $repoName | quote }}
   student_repo_revision: {{ .Values.seed.defaultBranch | quote }}
@@ -64,11 +63,4 @@ data:
 {{- end }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
-{{- if gt (len .Values.students) 1 }}
-  # Additional students (username|org|app|gitops|promote_ns|python_app|python_gitops|python_promote_ns)
-  student_repos: |
-{{- range .Values.students }}
-    {{ .username }}={{ include "gitea.learnerOrgName" .username }}|{{ include "gitea.studentAppRepoUrl" (list $ .username) }}|{{ include "gitea.studentGitopsRepoUrl" (list $ .username) }}|{{ printf "%s-%s" ($.Values.gitopsAppSet.namespacePrefix | default "lw-poc") .username }}|{{ include "gitea.studentPythonAppRepoUrl" (list $ .username) }}|{{ include "gitea.studentPythonGitopsRepoUrl" (list $ .username) }}|{{ printf "%s-%s" ($.Values.gitopsAppSetPython.namespacePrefix | default "lw-fastapi") .username }}
-{{- end }}
-{{- end }}
 {{- end }}

@@ -38,8 +38,8 @@ Root App-of-Apps places this chart at sync wave **`30`** (after operators / ligh
 Scaffolder steps: `fetch:template` from Gitea `workshop-templates/lightwell-java-service`
 → `publish:gitea` → `catalog:register`.
 
-Learners delete the Module 2 app repo `lw-<username>/spring-boot-lw-poc` first, then Create
-publishes into the **same** learner organization (Showroom Module 3).
+Learners delete the Module 2 app repo `lw-student/spring-boot-lw-poc` first, then Create
+publishes into the **same** organization `lw-student` (Showroom Module 3).
 
 ## Software Template — lightwell-python-service (#148)
 
@@ -52,7 +52,7 @@ publishes into the **same** learner organization (Showroom Module 3).
 | Modules 7–9 | Skeleton `docs/MODULES.md` + template output text |
 
 Scaffolder steps: `fetch:template` from Gitea `workshop-templates/lightwell-python-service`
-→ `publish:gitea` → `catalog:register` into `lw-<username>/fastapi-lw-poc`.
+→ `publish:gitea` → `catalog:register` into `lw-student/fastapi-lw-poc`.
 
 **Learner flow (mirrors Java Module 2→3):** Module 7 runs `learner-seed-python-from-templates.sh`
 first; then delete `fastapi-lw-poc` and re-scaffold with RHDH. Showroom lab steps land in
@@ -63,8 +63,8 @@ first; then delete `fastapi-lw-poc` and re-scaffold with RHDH. Showroom lab step
 `publish:gitea` dynamic plugin (`dynamicPlugins.giteaScaffolder` → GitHub Release
 asset built by `scripts/package-rhdh-gitea-scaffolder-plugin.sh`) and scaffolder
 credentials (Secret `rhdh-gitea-scaffolder`).
-Upstream `publish:gitea` requires a Gitea Organization — learners create `lw-<username>` in
-Module 2; the seed Job only prepares `workshop-templates/` content and student user accounts.
+Upstream `publish:gitea` requires a Gitea Organization — learners create `lw-student` in
+Module 2; the seed Job only prepares `workshop-templates/` content and the student user account.
 
 Skeleton trees (operator / authors — not student clone URLs):
 

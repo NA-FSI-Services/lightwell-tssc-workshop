@@ -1,6 +1,6 @@
 # Scaffolded by the Lightwell TSSC RHDH Software Template (Showroom Module 7+).
 #
-# Publishes to in-cluster Gitea as <student_username>/fastapi-lw-poc
+# Publishes to in-cluster Gitea as lw-student/fastapi-lw-poc
 # (demo-userinfo-gitea → student_python_repo_url). Never use the workshop GitHub
 # monorepo as a learner remote.
 #

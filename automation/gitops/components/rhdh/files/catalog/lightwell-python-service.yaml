@@ -3,7 +3,7 @@
 #   automation/gitops/components/rhdh/files/skeletons/lightwell-python-service by gitea seed Job)
 # Publish target: in-cluster Gitea only (AGENTS.md Learner Git). Host substituted at install:
 #   GITEA_HOST_PLACEHOLDER → gitea.<deployer.domain>
-# Learner org lw-<studentUsername> (created in Module 2) + repo fastapi-lw-poc.
+# Learner org lw-student (created in Module 2) + repo fastapi-lw-poc.
 # Upstream publish:gitea requires a Gitea Organization (not a normal user).
 # Flow: Module 7 learner seed first, then delete fastapi-lw-poc and re-scaffold (Java Module 2→3).
 apiVersion: scaffolder.backstage.io/v1beta3
@@ -15,7 +15,7 @@ metadata:
     FastAPI / Python microservice golden path with Lightwell Network Validated
     and Remediated PyPI indexes, pip.conf helpers, and a hybrid Tekton
     pipeline (dep-gate → BuildConfig → ACS → SBOM → cosign) for Modules 7–9.
-    Publishes to workshop Gitea as lw-<student_username>/fastapi-lw-poc.
+    Publishes to workshop Gitea as lw-student/fastapi-lw-poc.
   tags:
     - lightwell
     - python
@@ -66,20 +66,13 @@ spec:
             - Remediated (use pip-remediated.conf when channel enabled)
     - title: Publication (Gitea)
       required:
-        - studentUsername
+        - repoOwner
       properties:
-        studentUsername:
-          title: Gitea student username
-          type: string
-          description: >-
-            Paste student_username from ConfigMap demo-userinfo-gitea.
-            Publishes under organization lw-<this value> (create that org in Module 2).
-          pattern: '^[a-zA-Z0-9]([a-zA-Z0-9._-]{0,38}[a-zA-Z0-9])?$'
         repoOwner:
           title: Gitea organization
           type: string
           description: >-
-            Must be lw-<student_username> (your Module 2 organization).
+            Workshop organization lw-student (created in Module 2).
             Upstream publish:gitea creates repositories under Organizations only.
           pattern: '^lw-[a-zA-Z0-9]([a-zA-Z0-9._-]{0,38}[a-zA-Z0-9])?$'
           default: lw-student
@@ -142,7 +135,7 @@ spec:
 
           **Before scaffold** — Module 7 learner seed first
           (`learner-seed-python-from-templates.sh`), then delete
-          `lw-<username>/fastapi-lw-poc` so publish:gitea can recreate it
+          `lw-student/fastapi-lw-poc` so publish:gitea can recreate it
           (same pattern as Module 3 for Java).
 
           **Module 7 — PyPI Validated on the scaffold**

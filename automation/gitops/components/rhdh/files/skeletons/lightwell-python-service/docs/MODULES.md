@@ -13,8 +13,8 @@ Software Template `lightwell-python-service` publishes to Gitea `fastapi-lw-poc`
 Clone URL: ConfigMap `demo-userinfo-gitea` → `student_python_repo_url` (not GitHub).
 
 Promote: `student_python_gitops_repo_url` → Argo app `student_python_argocd_app`
-(`lw-fastapi-<username>`).
+(`lw-fastapi-student`).
 
 Flow: Module 7 learner seed (`learner-seed-python-from-templates.sh`) first, then
-delete `lw-<username>/fastapi-lw-poc` and re-publish with this template (Java
+delete `lw-student/fastapi-lw-poc` and re-publish with this template (Java
 Module 2 → Module 3 pattern).

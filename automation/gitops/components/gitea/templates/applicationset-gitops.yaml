@@ -1,58 +1,48 @@
 {{- if and .Values.gitea.enabled .Values.gitopsAppSet.enabled }}
 {{- $giteaUrl := include "gitea.url" . }}
+{{- $user := .Values.student.username | default "student" }}
+{{- $appName := printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $user }}
+{{- $ns := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $user }}
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
-  name: {{ .Values.gitopsAppSet.name }}
+  name: {{ $appName }}
   namespace: {{ .Values.gitopsAppSet.argocdNamespace }}
   labels:
     {{- include "gitea.labels" . | nindent 4 }}
-    app.kubernetes.io/component: gitops-applicationset
+    app.kubernetes.io/component: gitops-application
+    lightwell.workshop/student: {{ $user | quote }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.applicationset | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
-  generators:
-    - list:
-        elements:
-{{- range .Values.students }}
-          - username: {{ .username | quote }}
-{{- end }}
-  template:
-    metadata:
-      name: '{{ .Values.gitopsAppSet.appNamePrefix }}-{{`{{username}}`}}'
-      namespace: {{ .Values.gitopsAppSet.argocdNamespace }}
-      finalizers:
-        - resources-finalizer.argocd.argoproj.io
-      labels:
-        {{- include "gitea.labels" . | nindent 8 }}
-        lightwell.workshop/student: '{{`{{username}}`}}'
-    spec:
-      project: {{ .Values.gitopsAppSet.project | quote }}
-      source:
-        repoURL: '{{ $giteaUrl }}/lw-{{`{{username}}`}}/{{ .Values.seed.gitops.repoName }}.git'
-        targetRevision: {{ .Values.seed.defaultBranch | quote }}
-        path: .
-        helm:
-          values: |
-            springBootLwPoc:
-              enabled: true
-              namespace: {{ .Values.gitopsAppSet.namespacePrefix }}-{{`{{username}}`}}
-              name: spring-boot-lw-poc
-            labDocs:
-              enabled: false
-            userInfo:
-              enabled: false
-            deployer:
-              domain: {{ .Values.deployer.domain | quote }}
-              apiUrl: {{ .Values.deployer.apiUrl | quote }}
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: '{{ .Values.gitopsAppSet.namespacePrefix }}-{{`{{username}}`}}'
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
+  project: {{ .Values.gitopsAppSet.project | quote }}
+  source:
+    repoURL: {{ printf "%s/lw-%s/%s.git" $giteaUrl $user .Values.seed.gitops.repoName | quote }}
+    targetRevision: {{ .Values.seed.defaultBranch | quote }}
+    path: .
+    helm:
+      values: |
+        springBootLwPoc:
+          enabled: true
+          namespace: {{ $ns }}
+          name: spring-boot-lw-poc
+        labDocs:
+          enabled: false
+        userInfo:
+          enabled: false
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $ns | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
 {{- end }}

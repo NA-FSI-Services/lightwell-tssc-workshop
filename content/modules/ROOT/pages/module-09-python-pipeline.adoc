@@ -3,8 +3,6 @@
 :toc:
 :toclevels: 2
 
-include::partial$student-username-form.adoc[]
-
 Modules 7–8 wired PyPI Validated / Remediated, the FastAPI tree in *your* Gitea org, and SPDX / CycloneDX into RHTPA. This module closes the Python trusted supply-chain loop, parallel to xref:module-06-pipeline.adoc[Module 6] for Java: Tekton policy gates that *fail* without the Remediated marker pin and *pass* after it is restored, *Red Hat Advanced Cluster Security (RHACS)* image policy, *keyless* signing with *Red Hat Trusted Artifact Signer (RHTAS)*, and GitOps promotion with Argo CD.
 
 Lightwell and *Advanced Cluster Security (ACS)* stay complementary: Lightwell remediates (or, in this workshop, seeds a demonstrable `.rhlw-*` marker); ACS and the Python dep-gate / image-check Tasks *enforce* policy before promotion.
@@ -51,7 +49,7 @@ echo "STUDENT_PYTHON_REPO_URL=${STUDENT_PYTHON_REPO_URL}"
 echo "STUDENT_PYTHON_REQUIREMENTS_PATH=${STUDENT_PYTHON_REQUIREMENTS_PATH}"
 ----
 
-Sign in at `gitea_url` with `student_username` / `student_password` from the same ConfigMap when you need the web UI or `git push` credentials. Always use **your** username’s Python URLs (`student_python_repo_url` / `student_python_gitops_repo_url`)—do not overwrite the Java `student_repo_url` remote.
+Sign in at `gitea_url` as `student` with `student_password` from the same ConfigMap when you need the web UI or `git push` credentials. Use the Python URLs (`student_python_repo_url` / `student_python_gitops_repo_url`)—do not overwrite the Java `student_repo_url` remote.
 
 == Architecture of the lab Pipeline
 
@@ -110,7 +108,7 @@ Showroom `/terminal/` has no global git `user.name` / `user.email`. The block be
 [source,bash,role=execute]
 ----
 : "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
-export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
+export STUDENT_USER=student
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 rm -rf /tmp/fastapi-lw-poc
@@ -230,7 +228,7 @@ Expected: PipelineRun condition reason `Failed`; `gate-status=failed`; task log 
 [source,bash,role=execute]
 ----
 : "${STUDENT_PYTHON_REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_python_repo_url}')}"
-export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
+export STUDENT_USER=student
 : "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
 
 cd /tmp/fastapi-lw-poc
@@ -569,7 +567,7 @@ Promotion means: tag the signed lab image into your **product** namespace, commi
 You have **2** Python Gitea remotes (from ConfigMap `demo-userinfo-gitea`):
 
 * `student_python_repo_url` — FastAPI application source + `.tekton/` (Exercises 1–3)
-* `student_python_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD ApplicationSet syncs this into `student_python_promote_namespace` (`lw-fastapi-<username>`)
+* `student_python_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD Application syncs this into `student_python_promote_namespace` (`lw-fastapi-student`)
 
 Runtime desired state for the promoted app is your Gitea Python gitops repo (`student_python_gitops_repo_url`).
 ====
@@ -585,7 +583,7 @@ export GITOPS_REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_python_gitops_repo_url}')"
 export ARGO_APP="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_python_argocd_app}')"
-export STUDENT_USER="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')"
+export STUDENT_USER=student
 export STUDENT_PASS="$(oc -n gitea get configmap demo-userinfo-gitea \
   -o jsonpath='{.data.student_password}')"
 
@@ -594,7 +592,7 @@ echo "GITOPS_REPO_URL=${GITOPS_REPO_URL}"
 echo "ARGO_APP=${ARGO_APP}"
 ----
 
-. Confirm the ApplicationSet child Application exists and is Synced (chart at `replicas: 0`, empty digest → Healthy without ImagePullBackOff):
+. Confirm the Argo CD Application exists and is Synced (chart at `replicas: 0`, empty digest → Healthy without ImagePullBackOff):
 +
 [source,bash,role=execute]
 ----
@@ -728,7 +726,7 @@ Expected: Application shows `Synced` / `Healthy`; Deployment shows `1/1` ready r
 |Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea FastAPI repo (learner lab NS image); Tekton from chart `pipelines`
 
 |GitOps
-|`oc tag` lab → `lw-fastapi-<user>` ImageStream; digest + `replicas: 1` committed to Gitea Python gitops repo; Argo Application Synced + Healthy; Route responds
+|`oc tag` lab → `lw-fastapi-student` ImageStream; digest + `replicas: 1` committed to Gitea Python gitops repo; Argo Application Synced + Healthy; Route responds
 |===
 
 == Looking back
@@ -742,8 +740,8 @@ Expected: Application shows `Synced` / `Healthy`; Deployment shows `1/1` ready r
 |`spring-boot-lw-poc-build-sign` + `student_repo_url`
 |`fastapi-lw-poc-build-sign` + `student_python_repo_url`
 
-|Promote to `lw-poc-<user>` / `student_gitops_repo_url`
-|Promote to `lw-fastapi-<user>` / `student_python_gitops_repo_url`
+|Promote to `lw-poc-student` / `student_gitops_repo_url`
+|Promote to `lw-fastapi-student` / `student_python_gitops_repo_url`
 |===
 
 == Module summary

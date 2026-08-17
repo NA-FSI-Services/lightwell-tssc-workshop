@@ -39,15 +39,13 @@ gitea:
     requireSigninView: false
     defaultPrivate: false
 
-# Students who receive seeded application + gitops repositories.
-# Catalog / chart default: one `student` placeholder.
-# Dev-cluster bootstrap overrides to a single `user1` + generated password
-# (docs/DEV-CLUSTER-WORKSHOP-USER.md) — do not rely on this changeme on claims.
-students:
-  - username: student
-    password: "workshop-student-changeme"
-    email: student@workshop.local
-    fullName: Workshop Student
+# Workshop Gitea user. Each catalog claim is a dedicated environment with this
+# single learner account (org lw-student, namespaces lw-poc-student / lw-fastapi-student).
+student:
+  username: student
+  password: "workshop-student-changeme"
+  email: student@workshop.local
+  fullName: Workshop Student
 
 seed:
   enabled: true
@@ -59,14 +57,14 @@ seed:
   imagePullPolicy: IfNotPresent
   backoffLimit: 6
   ttlSecondsAfterFinished: 86400
-  # Operator prepares *template* remotes only. Learners create org lw-<username> + repos
+  # Operator prepares *template* remotes only. The learner creates org lw-student + repos
   # in Showroom Module 2, then seed from templates (AGENTS.md / #120).
   templates:
     org: workshop-templates
     orgFullName: Workshop Templates
     orgDescription: >-
       Operator-prepared app and GitOps trees isolated from the workshop monorepo.
-      Learners clone these into their own lw-<username> organization — never GitHub.
+      Learners clone these into the lw-student organization — never GitHub.
     # RHDH fetch:template sources — public; not learner push targets.
     skeleton:
       enabled: true
@@ -79,7 +77,7 @@ seed:
       repoName: lightwell-python-service
       repoDescription: "RHDH Software Template skeleton (fetch:template; Module 7+)"
       sourcePath: automation/gitops/components/rhdh/files/skeletons/lightwell-python-service
-  # Learner repo names (under lw-<username> after Module 2 setup).
+  # Learner repo names (under lw-student after Module 2 setup).
   repoName: spring-boot-lw-poc
   repoDescription: "Lightwell TSSC student lab repository (Modules 2–6; pom.xml + tools/osv-eval at root)"
   defaultBranch: main
@@ -120,8 +118,8 @@ seed:
       cpu: 500m
       memory: 512Mi
 
-# Per-student Argo CD Applications pointing at learner gitops remotes (#100).
-# Remotes exist after Module 2 learner setup; Argo retries until Healthy.
+# Argo CD Application pointing at the learner gitops remote (#100).
+# Remote exists after Module 2 learner setup; Argo retries until Healthy.
 gitopsAppSet:
   enabled: true
   name: lightwell-student-gitops-sb
@@ -130,7 +128,7 @@ gitopsAppSet:
   appNamePrefix: lw-poc
   namespacePrefix: lw-poc
 
-# Python twin (#149) — Module 9 digest promote (coexists with Java lw-poc-<user>).
+# Python twin (#149) — Module 9 digest promote (coexists with Java lw-poc-student).
 gitopsAppSetPython:
   enabled: true
   name: lightwell-student-gitops-fastapi
@@ -143,14 +141,14 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"
   instructions: >-
-    Lab charts start Gitea and create your user. In Module 2, create organization
-    lw-<student_username> and repos spring-boot-lw-poc + gitops-spring-boot-lw-poc,
+    Lab charts start Gitea and create the student user. In Module 2, create organization
+    lw-student and repos spring-boot-lw-poc + gitops-spring-boot-lw-poc,
     then seed from workshop-templates (see Showroom). student_repo_url is the
     expected Java app remote after that setup. For Modules 7–9, create
     fastapi-lw-poc + gitops-fastapi-lw-poc under the same org and run
     learner-seed-python-from-templates.sh (student_python_repo_url). Optional RHDH
     re-scaffold: Create → lightwell-python-service after deleting fastapi-lw-poc
-    (mirrors Module 3). Credentials: student_username / student_password. Never
+    (mirrors Module 3). Credentials: student / student_password. Never
     clone the workshop GitHub monorepo.
 
 deployer:

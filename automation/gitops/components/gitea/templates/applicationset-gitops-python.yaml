@@ -1,60 +1,49 @@
 {{- if and .Values.gitea.enabled .Values.gitopsAppSetPython.enabled }}
 {{- $giteaUrl := include "gitea.url" . }}
+{{- $user := .Values.student.username | default "student" }}
+{{- $appName := printf "%s-%s" (.Values.gitopsAppSetPython.appNamePrefix | default "lw-fastapi") $user }}
+{{- $ns := printf "%s-%s" (.Values.gitopsAppSetPython.namespacePrefix | default "lw-fastapi") $user }}
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
-  name: {{ .Values.gitopsAppSetPython.name }}
+  name: {{ $appName }}
   namespace: {{ .Values.gitopsAppSetPython.argocdNamespace }}
   labels:
     {{- include "gitea.labels" . | nindent 4 }}
-    app.kubernetes.io/component: gitops-applicationset-python
+    app.kubernetes.io/component: gitops-application-python
+    lightwell.workshop/student: {{ $user | quote }}
     lightwell.redhat.com/language: python
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.applicationset | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
-  generators:
-    - list:
-        elements:
-{{- range .Values.students }}
-          - username: {{ .username | quote }}
-{{- end }}
-  template:
-    metadata:
-      name: '{{ .Values.gitopsAppSetPython.appNamePrefix }}-{{`{{username}}`}}'
-      namespace: {{ .Values.gitopsAppSetPython.argocdNamespace }}
-      finalizers:
-        - resources-finalizer.argocd.argoproj.io
-      labels:
-        {{- include "gitea.labels" . | nindent 8 }}
-        lightwell.workshop/student: '{{`{{username}}`}}'
-        lightwell.redhat.com/language: python
-    spec:
-      project: {{ .Values.gitopsAppSetPython.project | quote }}
-      source:
-        repoURL: '{{ $giteaUrl }}/lw-{{`{{username}}`}}/{{ .Values.seed.python.gitops.repoName }}.git'
-        targetRevision: {{ .Values.seed.defaultBranch | quote }}
-        path: .
-        helm:
-          values: |
-            fastapiLwPoc:
-              enabled: true
-              namespace: {{ .Values.gitopsAppSetPython.namespacePrefix }}-{{`{{username}}`}}
-              name: fastapi-lw-poc
-            labDocs:
-              enabled: false
-            userInfo:
-              enabled: false
-            deployer:
-              domain: {{ .Values.deployer.domain | quote }}
-              apiUrl: {{ .Values.deployer.apiUrl | quote }}
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: '{{ .Values.gitopsAppSetPython.namespacePrefix }}-{{`{{username}}`}}'
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
+  project: {{ .Values.gitopsAppSetPython.project | quote }}
+  source:
+    repoURL: {{ printf "%s/lw-%s/%s.git" $giteaUrl $user (.Values.seed.python.gitops.repoName | default "gitops-fastapi-lw-poc") | quote }}
+    targetRevision: {{ .Values.seed.defaultBranch | quote }}
+    path: .
+    helm:
+      values: |
+        fastapiLwPoc:
+          enabled: true
+          namespace: {{ $ns }}
+          name: fastapi-lw-poc
+        labDocs:
+          enabled: false
+        userInfo:
+          enabled: false
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $ns | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
 {{- end }}
