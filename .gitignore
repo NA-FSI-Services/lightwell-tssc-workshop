@@ -2,3 +2,7 @@
 www/
 .cache/
 .vscode
+
+# Maven / Java build output
+target/
+*.class
