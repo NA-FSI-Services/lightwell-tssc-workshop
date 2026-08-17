@@ -637,14 +637,14 @@ Do not start writing the seven track pages until Phase 0 **exit** (issues filed,
 
 ## 8. Proposed issue backlog
 
-ASK Q1–Q31 is **closed**. GitHub issues are filed (`[V2-*]` titles). Jira stays **[RHDPCD-908](https://redhat.atlassian.net/browse/RHDPCD-908)** (no second RHDPCD).
+ASK Q1–Q31 is **closed**. GitHub issues and the project live on **[NA-FSI-Services/lightwell-tssc-workshop](https://github.com/NA-FSI-Services/lightwell-tssc-workshop)** (`[V2-*]` titles). Jira stays **[RHDPCD-908](https://redhat.atlassian.net/browse/RHDPCD-908)** (no second RHDPCD).
 
 | Tracker | URL |
 |---------|-----|
-| GitHub Project | https://github.com/users/diego-torres/projects/2 |
-| GA milestone | https://github.com/rhpds/lightwell-tssc-workshop/milestone/1 |
-| Later (Epic D) | https://github.com/rhpds/lightwell-tssc-workshop/milestone/2 |
-| **Phase 0 blocker V2-1** | https://github.com/rhpds/lightwell-tssc-workshop/issues/6 |
+| GitHub Project | https://github.com/orgs/NA-FSI-Services/projects/1 |
+| GA milestone | https://github.com/NA-FSI-Services/lightwell-tssc-workshop/milestone/1 |
+| Later (Epic D) | https://github.com/NA-FSI-Services/lightwell-tssc-workshop/milestone/2 |
+| **Phase 0 blocker V2-1** | https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/1 |
 
 Not filed (already decided): V2-0, V2-3, V2-4, V2-41, V2-50, V2-57, V2-98.
 
@@ -828,10 +828,10 @@ Answers here are the Phase 0 decision log (Q1–Q31 **closed**).
 
 **ASK Q1–Q31 is closed.** Tracking:
 
-- Branch: https://github.com/rhpds/lightwell-tssc-workshop/tree/v2
-- Project: https://github.com/users/diego-torres/projects/2
-- GA issues: https://github.com/rhpds/lightwell-tssc-workshop/milestone/1
+- Branch: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/tree/v2
+- Project: https://github.com/orgs/NA-FSI-Services/projects/1
+- GA issues: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/milestone/1
 - Jira (same catalog): https://redhat.atlassian.net/browse/RHDPCD-908
-- Blocker: https://github.com/rhpds/lightwell-tssc-workshop/issues/6
+- Blocker: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/1
 
 `publishing-house/spec.yaml` is still v1 until you explicitly ask to apply it.
