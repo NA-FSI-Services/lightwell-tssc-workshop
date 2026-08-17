@@ -8,7 +8,7 @@
 #   15  — Student Git (Gitea): gitea
 #   20  — Artifact manager / LWN pattern: lightwell-repo
 #   30  — Developer Hub: rhdh
-#   40  — Sample apps: spring-boot-lw-poc, fastapi-lw-poc, parasol-app
+#   40  — Sample apps: spring-boot-lw-poc (scored), fastapi-lw-poc (unused at provision; V2-12), parasol-app
 #   50  — Showroom lab guide
 #
 # Child charts live under automation/gitops/components/<name>/.
@@ -75,9 +75,8 @@ components:
     repoName: spring-boot-lw-poc
     repoRevision: main
     pomPath: pom.xml
-    # Python twin (#149) — used for RHACS python policy lab ConfigMap examples
+    # Python twin names kept for V2-90; not provisioned (V2-12).
     pythonRepoName: fastapi-lw-poc
-    requirementsPath: requirements.txt
 
   # --- Wave 20: Artifact manager (validated / remediated / OSV) ---
   # Chart: automation/gitops/components/lightwell-repo (#7). Enable when ready to sync.
@@ -104,8 +103,8 @@ components:
     syncWave: "40"
     chartPath: spring-boot-lw-poc
 
-  # Chart: automation/gitops/components/fastapi-lw-poc (#146). Keep off until Python Modules 7–9
-  # track is ready; Gitea Python templates land in #147.
+  # Chart: automation/gitops/components/fastapi-lw-poc. Keep off (V2-12). Files stay
+  # in git for V2-44 callouts / V2-90. Do not enable as a second catalog namespace.
   fastapiLwPoc:
     enabled: false
     namespace: fastapi-lw-poc

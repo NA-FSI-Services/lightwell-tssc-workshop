@@ -89,9 +89,9 @@ pipelineHooks:
     watchedArtifact: commons-lang3
     vulnerableVersion: "3.14.0"
     remediatedVersion: "3.14.0.rhlw-00001"
-  # Python twin (#149) — Module 9 fail/pass on requirements.txt lw-workshop-pypi pin
+  # Python twin — files stay in git; off at provision (V2-12 single Java ns).
   pythonDepGate:
-    enabled: true
+    enabled: false
     taskName: lightwell-python-dep-gate
     defaultMode: require-remediated
     watchedPackage: lw-workshop-pypi
@@ -127,7 +127,7 @@ pipelineHooks:
     # Student repos seed pom.xml at repository root (not the monorepo path).
     defaultPomPath: pom.xml
   pythonPipeline:
-    enabled: true
+    enabled: false
     name: lightwell-python-build-policy-gate
     # Student FastAPI repos seed requirements.txt at repository root.
     defaultRequirementsPath: requirements.txt
@@ -143,8 +143,7 @@ userInfo:
     Secret rhacs-ci-secrets is filled by Job rhacs-ci-token-mint (or
     ./scripts/dev-cluster-rhacs-ci-token.sh). Run Pipeline lightwell-build-policy-gate:
     fail on non-remediated Maven pins, pass after .rhlw-* update, then SBOM → RHTPA.
-    Python Modules 8–9: Pipeline lightwell-python-build-policy-gate fails until
-    requirements.txt pins lw-workshop-pypi==1.0.0+rhlw.00001.
+    Python policy Tasks stay in git and are not applied (V2-12).
 
 # Injected by root-app / field content workload
 deployer:

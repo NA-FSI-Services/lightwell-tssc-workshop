@@ -59,8 +59,8 @@ spec:
               export SKELETON_PATH={{ .Values.seed.templates.skeletonPython.sourcePath | quote }}
               bash /seed/assemble-skeleton.sh "${WORKDIR}/skeleton-python"
 {{- end }}
-              # Python FastAPI app + gitops templates (#147) — always alongside Java when live.
-              # Reuses one monorepo clone path via assemble scripts (each clones; acceptable for seed Job).
+{{- if and .Values.seed.python.enabled (ne (.Values.seed.python.sourcePath | default "") "") }}
+              # Python FastAPI templates — off by default (V2-12). Files stay in git.
               if [[ "${SOURCE_MODE:-live}" == "live" ]]; then
                 export SOURCE_PATH={{ .Values.seed.python.sourcePath | quote }}
                 export INCLUDE_OSV_EVAL=false
@@ -72,6 +72,7 @@ spec:
               else
                 echo "WARNING: SOURCE_MODE=${SOURCE_MODE} — skipping Python templates (require live monorepo isolation)" >&2
               fi
+{{- end }}
               export SEED_DIR="${WORKDIR}"
               bash /seed/seed-student-repos.sh
           env:
@@ -135,6 +136,7 @@ spec:
             - name: PYTHON_SKELETON_SEED_SUBDIR
               value: skeleton-python
 {{- end }}
+{{- if .Values.seed.python.enabled }}
             - name: PYTHON_REPO_NAME
               value: {{ .Values.seed.python.repoName | quote }}
             - name: PYTHON_REPO_DESCRIPTION
@@ -147,6 +149,7 @@ spec:
               value: {{ .Values.seed.python.gitops.repoDescription | quote }}
             - name: PYTHON_GITOPS_SEED_SUBDIR
               value: python-gitops-repo
+{{- end }}
             - name: ADMIN_USER
               valueFrom:
                 secretKeyRef:

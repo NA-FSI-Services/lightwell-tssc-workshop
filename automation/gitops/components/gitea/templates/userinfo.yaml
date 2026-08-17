@@ -8,11 +8,6 @@
 {{- $gitopsName := .Values.seed.gitops.repoName | default "gitops-spring-boot-lw-poc" }}
 {{- $gitopsUrl := include "gitea.studentGitopsRepoUrl" (list . $primaryUser) }}
 {{- $promoteNs := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $primaryUser }}
-{{- $pythonRepoName := .Values.seed.python.repoName | default "fastapi-lw-poc" }}
-{{- $pythonRepoUrl := include "gitea.studentPythonAppRepoUrl" (list . $primaryUser) }}
-{{- $pythonGitopsName := .Values.seed.python.gitops.repoName | default "gitops-fastapi-lw-poc" }}
-{{- $pythonGitopsUrl := include "gitea.studentPythonGitopsRepoUrl" (list . $primaryUser) }}
-{{- $pythonPromoteNs := printf "%s-%s" (.Values.gitopsAppSetPython.namespacePrefix | default "lw-fastapi") $primaryUser }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -41,20 +36,25 @@ data:
   student_gitops_repo_name: {{ $gitopsName | quote }}
   student_promote_namespace: {{ $promoteNs | quote }}
   student_argocd_app: {{ printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $primaryUser | quote }}
-  # Python track (#147 / #149) — Module 7+; parallel keys (do not overwrite Java student_repo_url).
-  student_python_repo_url: {{ $pythonRepoUrl | quote }}
-  student_python_repo_name: {{ $pythonRepoName | quote }}
+{{- if .Values.seed.python.enabled }}
+  student_python_repo_url: {{ include "gitea.studentPythonAppRepoUrl" (list . $primaryUser) | quote }}
+  student_python_repo_name: {{ .Values.seed.python.repoName | default "fastapi-lw-poc" | quote }}
   student_python_requirements_path: "requirements.txt"
-  student_python_gitops_repo_url: {{ $pythonGitopsUrl | quote }}
-  student_python_gitops_repo_name: {{ $pythonGitopsName | quote }}
-  student_python_promote_namespace: {{ $pythonPromoteNs | quote }}
+  student_python_gitops_repo_url: {{ include "gitea.studentPythonGitopsRepoUrl" (list . $primaryUser) | quote }}
+  student_python_gitops_repo_name: {{ .Values.seed.python.gitops.repoName | default "gitops-fastapi-lw-poc" | quote }}
+{{- end }}
+{{- if .Values.gitopsAppSetPython.enabled }}
+  student_python_promote_namespace: {{ printf "%s-%s" (.Values.gitopsAppSetPython.namespacePrefix | default "lw-fastapi") $primaryUser | quote }}
   student_python_argocd_app: {{ printf "%s-%s" (.Values.gitopsAppSetPython.appNamePrefix | default "lw-fastapi") $primaryUser | quote }}
+{{- end }}
   # Operator-prepared templates (monorepo isolation) — source for learner-seed-from-templates.sh
   template_gitea_org: {{ $templatesOrg | quote }}
   template_app_repo_url: {{ include "gitea.templateAppRepoUrl" . | quote }}
   template_gitops_repo_url: {{ include "gitea.templateGitopsRepoUrl" . | quote }}
+{{- if .Values.seed.python.enabled }}
   template_python_app_repo_url: {{ include "gitea.templatePythonAppRepoUrl" . | quote }}
   template_python_gitops_repo_url: {{ include "gitea.templatePythonGitopsRepoUrl" . | quote }}
+{{- end }}
 {{- if .Values.seed.templates.skeleton.enabled }}
   template_skeleton_repo_url: {{ include "gitea.templateSkeletonRepoUrl" . | quote }}
 {{- end }}

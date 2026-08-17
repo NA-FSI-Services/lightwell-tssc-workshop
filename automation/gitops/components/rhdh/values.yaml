@@ -41,11 +41,10 @@ appConfig:
   title: "Lightwell TSSC Workshop — Developer Hub"
   # When empty, baseUrl is derived as https://developer-hub-<namespace>.apps.<deployer.domain>
   baseUrl: ""
-  # Catalog locations for Software Templates (Java + Python)
+  # Catalog locations for Software Templates (Java scored; Python files stay in git, V2-12)
   catalog:
     fileLocations:
       - /opt/app-root/src/catalog/lightwell-java-service.yaml
-      - /opt/app-root/src/catalog/lightwell-python-service.yaml
 
 # dynamic-plugins.yaml — includes defaults + Module 3 publish:gitea plugin
 dynamicPlugins:
@@ -69,6 +68,9 @@ softwareTemplates:
   # Prefer Gitea workshop-templates after seed (see catalog YAML).
   # Kept for docs / fallbacks — fetch:template URL is substituted via GITEA_HOST_PLACEHOLDER.
   skeletonUrl: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-java-service
+  # Python template files stay in git; do not publish in the live catalog (V2-12).
+  python:
+    enabled: false
   skeletonPythonUrl: https://GITEA_HOST_PLACEHOLDER/workshop-templates/lightwell-python-service
 
 # publish:gitea — Module 3 learner path (AGENTS.md). Credentials must create repos
@@ -85,12 +87,11 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Developer Hub"
   instructions: >-
-    Open Developer Hub (rhdh_url). Java: Create → lightwell-java-service →
-    lw-student/spring-boot-lw-poc (delete Module 2 app repo first —
-    Showroom Module 3). Python: after Module 7 learner seed, Create →
-    lightwell-python-service → lw-student/fastapi-lw-poc (delete the
-    seeded fastapi-lw-poc first — same Module 2→3 pattern). Org lw-student is
-    created in Module 2. Requires integrations.gitea + scaffolder-backend-module-gitea.
+    Open Developer Hub (rhdh_url). Create → lightwell-java-service →
+    lw-student/spring-boot-lw-poc (delete the seeded app repo first —
+    Showroom). Org lw-student is created before scaffold. Requires
+    integrations.gitea + scaffolder-backend-module-gitea. Python template
+    files stay in git and are not published (V2-12).
 
 # Injected by root-app / field content workload
 deployer:

@@ -40,7 +40,7 @@ gitea:
     defaultPrivate: false
 
 # Workshop Gitea user. Each catalog claim is a dedicated environment with this
-# single learner account (org lw-student, namespaces lw-poc-student / lw-fastapi-student).
+# single learner account (org lw-student, app namespace lw-poc-student).
 student:
   username: student
   password: "workshop-student-changeme"
@@ -71,9 +71,9 @@ seed:
       repoName: lightwell-java-service
       repoDescription: "RHDH Software Template skeleton (fetch:template; Module 3)"
       sourcePath: automation/gitops/components/rhdh/files/skeletons/lightwell-java-service
-    # Python twin (#148) — Module 7+ scaffold after learner-seed-python-from-templates.sh.
+    # Python skeleton files stay in git (V2-44 / V2-90). Do not seed at provision (V2-12).
     skeletonPython:
-      enabled: true
+      enabled: false
       repoName: lightwell-python-service
       repoDescription: "RHDH Software Template skeleton (fetch:template; Module 7+)"
       sourcePath: automation/gitops/components/rhdh/files/skeletons/lightwell-python-service
@@ -100,9 +100,9 @@ seed:
     repoName: gitops-spring-boot-lw-poc
     repoDescription: "Lightwell TSSC student GitOps chart (Module 6 Ex4 promote)"
     sourcePath: automation/gitops/components/spring-boot-lw-poc
-  # Python track (#147) — always seeded alongside Java when seed.enabled (even if
-  # root-app keeps fastapiLwPoc.enabled=false). Learners create repos in Module 7.
+  # Python FastAPI twin — files stay in git; off at provision (V2-12 single Java ns).
   python:
+    enabled: false
     repoName: fastapi-lw-poc
     repoDescription: "Lightwell TSSC student FastAPI lab repository (Modules 7–9; requirements.txt at root)"
     sourcePath: automation/gitops/components/fastapi-lw-poc/app
@@ -128,9 +128,9 @@ gitopsAppSet:
   appNamePrefix: lw-poc
   namespacePrefix: lw-poc
 
-# Python twin (#149) — Module 9 digest promote (coexists with Java lw-poc-student).
+# Python Argo twin — off (V2-12). Do not create lw-fastapi-student.
 gitopsAppSetPython:
-  enabled: true
+  enabled: false
   name: lightwell-student-gitops-fastapi
   argocdNamespace: openshift-gitops
   project: default
@@ -141,15 +141,12 @@ userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"
   instructions: >-
-    Lab charts start Gitea and create the student user. In Module 2, create organization
+    Lab charts start Gitea and create the student user. Create organization
     lw-student and repos spring-boot-lw-poc + gitops-spring-boot-lw-poc,
     then seed from workshop-templates (see Showroom). student_repo_url is the
-    expected Java app remote after that setup. For Modules 7–9, create
-    fastapi-lw-poc + gitops-fastapi-lw-poc under the same org and run
-    learner-seed-python-from-templates.sh (student_python_repo_url). Optional RHDH
-    re-scaffold: Create → lightwell-python-service after deleting fastapi-lw-poc
-    (mirrors Module 3). Credentials: student / student_password. Never
-    clone the workshop GitHub monorepo.
+    expected Java app remote. The scored app namespace is lw-poc-student (V2-12);
+    Python FastAPI is not provisioned. Credentials: student / student_password.
+    Never clone the workshop GitHub monorepo.
 
 deployer:
   domain: ""

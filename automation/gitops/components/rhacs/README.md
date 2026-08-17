@@ -24,13 +24,13 @@ wave-`4` Tasks/Pipeline in this chart sync. See [`charts/components/pipelines`](
 | Artifact | Purpose |
 |----------|---------|
 | Task `lightwell-dep-gate` | Fail when default Maven pin lacks `.rhlw-*` (OSV-friendly / deterministic) |
-| Task `lightwell-python-dep-gate` | Fail when `requirements.txt` lacks `lw-workshop-pypi==*+rhlw.*` |
+| Task `lightwell-python-dep-gate` | In git; **not** applied (`pythonDepGate.enabled=false`, V2-12) |
 | Task `acs-image-check` | `roxctl image check` against Central BUILD policies (Clair/OSV-class) |
 | Task `syft-sbom-rhtpa` | syft CycloneDX SBOM (distroless ENTRYPOINT) + UBI publish/upload to RHTPA |
 | Pipeline `lightwell-build-policy-gate` | clone → Maven dep-gate → ACS check → SBOM |
-| Pipeline `lightwell-python-build-policy-gate` | clone → Python dep-gate → ACS check → SBOM |
+| Pipeline `lightwell-python-build-policy-gate` | In git; **not** applied (`pythonPipeline.enabled=false`) |
 | ConfigMap `rhacs-lightwell-policy-lab` | Java fail / success lab narrative |
-| ConfigMap `rhacs-lightwell-python-policy-lab` | Python fail / success lab narrative |
+| ConfigMap `rhacs-lightwell-python-policy-lab` | In git; **not** applied |
 | ConfigMap `rhacs-lightwell-central-policy` | Importable Fixable Critical BUILD policy JSON |
 
 ### Failure path (non-remediated)
@@ -50,18 +50,9 @@ EOF
 3. Populate CI secrets; import Central Fixable Critical policy for real `roxctl` fails/passes on scanned images.
 4. Confirm SBOM in RHTPA UI (or `upload-status=uploaded` when `rhtpa-url` + token are set).
 
-### Python failure / success (`lw-workshop-pypi`)
+### Python policy gates (not provisioned)
 
-```bash
-# Default fastapi-lw-poc requirements.txt has Validated httpx only (no marker pin)
-oc -n stackrox get configmap rhacs-lightwell-python-policy-lab \
-  -o jsonpath='{.data.fail_pipelinerun\.yaml}' | oc create -f -
-# Expect Task lightwell-python-dep-gate to fail
-```
-
-1. Add `lw-workshop-pypi==1.0.0+rhlw.00001` to `requirements.txt` in the student FastAPI repo and push.
-2. Re-run Pipeline `lightwell-python-build-policy-gate` — python-dep-gate passes.
-3. Full build → sign → GitOps promote uses learner `.tekton/fastapi-lw-poc-build-sign` (Module 9).
+Python Task / Pipeline templates stay in git. Leave `pythonDepGate.enabled` and `pythonPipeline.enabled` false unless V2-90.
 
 ### CI secrets
 

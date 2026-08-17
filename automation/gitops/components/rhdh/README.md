@@ -2,8 +2,8 @@
 
 Deploys Developer Hub for the Lightwell TSSC workshop via the **RHDH Operator** (OLM Subscription) and a `Backstage` custom resource. Ships Software Templates:
 
-- **lightwell-java-service** — Maven + LWN Validated/Remediated profiles, `LW_*` auth placeholders, `.rhlw-*` pins, RHTAS keyless Tekton pipeline (Modules 2–6)
-- **lightwell-python-service** — FastAPI + Validated/Remediated PyPI indexes, pip helpers, stub Tekton for Modules 7–9 (#148)
+- **lightwell-java-service** — Maven + LWN Validated/Remediated profiles, `LW_*` auth placeholders, `.rhlw-*` pins, RHTAS keyless Tekton pipeline (scored path)
+- **lightwell-python-service** — files stay in git; **not** published in the live catalog (V2-12 / V2-90)
 
 ## Sync waves (inside this chart)
 
@@ -21,7 +21,7 @@ Root App-of-Apps places this chart at sync wave **`30`** (after operators / ligh
 
 - **Operator** in `rhdh-operator` (AllNamespaces OperatorGroup + `redhat-operators` Subscription `rhdh`, channel `fast`)
 - **Instance** in `rhdh`: `Backstage` CR `developer-hub`, local PostgreSQL, OpenShift Route
-- **Catalog**: ConfigMap-mounted Templates `lightwell-java-service` and `lightwell-python-service`
+- **Catalog**: ConfigMap-mounted Template `lightwell-java-service` (`softwareTemplates.python.enabled=false`)
 - **Skeletons** (fetched at scaffold time from Gitea `workshop-templates/`): under `files/skeletons/`
 - **Userinfo** labeled for RHDP (`demo.redhat.com/application`, `demo.redhat.com/userinfo`)
 
@@ -41,23 +41,9 @@ Scaffolder steps: `fetch:template` from Gitea `workshop-templates/lightwell-java
 Learners delete the Module 2 app repo `lw-student/spring-boot-lw-poc` first, then Create
 publishes into the **same** organization `lw-student` (Showroom Module 3).
 
-## Software Template — lightwell-python-service (#148)
+## Software Template — lightwell-python-service (not provisioned)
 
-| Concern | Implementation |
-|---------|----------------|
-| PyPI indexes | `pip.conf` (Validated) + `pip-remediated.conf` (Remediated; always on) |
-| Auth | `LW_*` via ConfigMap extract / env (never commit secrets) |
-| Default stream | Template param `lwnProfile` → Dockerfile `LIGHTWELL_STREAM` |
-| Pipeline | `.tekton/` stub until Module 9 Tasks (#149) |
-| Modules 7–9 | Skeleton `docs/MODULES.md` + template output text |
-
-Scaffolder steps: `fetch:template` from Gitea `workshop-templates/lightwell-python-service`
-→ `publish:gitea` → `catalog:register` into `lw-student/fastapi-lw-poc`.
-
-**Learner flow (mirrors Java Module 2→3):** Module 7 runs `learner-seed-python-from-templates.sh`
-first; then delete `fastapi-lw-poc` and re-scaffold with RHDH. Showroom lab steps land in
-[#150](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/150) /
-[#152](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/152).
+Files remain under `files/catalog/` and `files/skeletons/`. Set `softwareTemplates.python.enabled=true` and seed `skeletonPython` only for V2-90. V2-44 is callouts on the Java modules, not a second catalog path.
 
 **Requires** in-cluster Gitea integration (`integrations.gitea`) plus the
 `publish:gitea` dynamic plugin (`dynamicPlugins.giteaScaffolder` → GitHub Release

@@ -4,6 +4,7 @@
 {{- $appName := printf "%s-%s" (.Values.gitopsAppSetPython.appNamePrefix | default "lw-fastapi") $user }}
 {{- $ns := printf "%s-%s" (.Values.gitopsAppSetPython.namespacePrefix | default "lw-fastapi") $user }}
 ---
+# Off by default (V2-12). Do not create a second TSSC app namespace.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

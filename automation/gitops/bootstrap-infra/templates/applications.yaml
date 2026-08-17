@@ -186,12 +186,10 @@ spec:
         pipelineHooks:
 {{- if and .Values.components.gitea.enabled .Values.deployer.domain }}
           labRepoUrl: {{ printf "https://gitea.%s/lw-%s/%s.git" .Values.deployer.domain .Values.components.gitea.studentUsername .Values.components.gitea.repoName | quote }}
-          labPythonRepoUrl: {{ printf "https://gitea.%s/lw-%s/%s.git" .Values.deployer.domain .Values.components.gitea.studentUsername (.Values.components.gitea.pythonRepoName | default "fastapi-lw-poc") | quote }}
+          labPythonRepoUrl: ""
           labRevision: {{ .Values.components.gitea.repoRevision | quote }}
           pipeline:
             defaultPomPath: {{ .Values.components.gitea.pomPath | quote }}
-          pythonPipeline:
-            defaultRequirementsPath: {{ .Values.components.gitea.requirementsPath | default "requirements.txt" | quote }}
 {{- else }}
           labRepoUrl: ""
           labPythonRepoUrl: ""
