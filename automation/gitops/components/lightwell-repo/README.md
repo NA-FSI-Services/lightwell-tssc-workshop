@@ -80,10 +80,30 @@ Override the Commons Lang download URL with env `COMMONS_LANG3_JAR_URL` on the s
 | `1` | Credentials / Nexus admin placeholders, channel / Maven / pip / OSV / seed ConfigMaps |
 | `2` | Nexus Deployment + PVC + Service |
 | `3` | OpenShift Route |
-| `4` | Seed RBAC + Job `lightwell-repo-seed` |
+| `4` | Seed RBAC + Job `lightwell-repo-seed` + oc-mirror PVC/SA/tooling (no Hummingbird pull) |
 | `5` | RHDP userinfo |
 
 Root App-of-Apps places this chart at sync wave **`20`**.
+
+## Dest registry (V2-10)
+
+Nexus **hosted Docker** repo `hummingbird-mirror` is the oc-mirror destination. It is created **empty**. Provision does **not** pull or push `HUMMINGBIRD_JAVA_RUNTIME` (V2-1 pin is userinfo only). Learners run oc-mirror in V2-11.
+
+| Item | Value |
+|------|--------|
+| Docker connector | container/Service port `5000` |
+| Route | `registry-lightwell-repo.<domain>` (TLS edge) |
+| oc-mirror dest | `docker://registry-lightwell-repo.<domain>` |
+| Plugin image | `registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20` (bake into Showroom is V2-20) |
+| Workspace | PVC `oc-mirror-workspace` |
+| Push auth | Secret `nexus-docker-push` (seed Job; admin → dest host) |
+| Tooling | ConfigMap `oc-mirror-tooling` (`README`, learner `job.yaml`) |
+
+Source pin (do not invent):
+
+```
+registry.access.redhat.com/hi/openjdk:21-runtime@sha256:e7c41dc2cba28c49d551c491419e00b75c5aef6c13326cc08765d30e882630ba
+```
 
 ## Credentials
 
@@ -187,5 +207,6 @@ Keep `components.lightwellRepo.enabled: false` until ready to sync.
 - Issue [#7](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/7) — chart scaffold
 - Issue [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11) — seed / proxy content
 - Issue [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145) — PyPI Validated + Remediated (always on)
+- [V2-10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/3) — dest Docker repo + oc-mirror tooling (no pre-mirror)
 - Epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) — Python path Modules 7–9 (Java + Python catalog)
 - OSV toolkit (pin parse + source diff): [`tools/osv-eval/`](../../../tools/osv-eval/) / [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)

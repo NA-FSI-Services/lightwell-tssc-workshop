@@ -1,5 +1,7 @@
 {{- if and .Values.lightwellRepo.enabled .Values.userInfo.enabled }}
 {{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
+{{- $regUrl := include "lightwell-repo.registryUrl" . }}
+{{- $regHost := include "lightwell-repo.registryHost" . }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -39,4 +41,13 @@ data:
   pip_settings_configmap: {{ .Values.pipSettings.configMapName | quote }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- if .Values.channels.dockerMirror.enabled }}
+  dest_registry_host: {{ $regHost | quote }}
+  dest_registry_url: {{ $regUrl | quote }}
+  dest_registry_docker: {{ printf "docker://%s" $regHost | quote }}
+  dest_registry_repo: {{ .Values.channels.dockerMirror.name | quote }}
+  hummingbird_source_pullspec: {{ .Values.ocMirror.sourcePullSpec | quote }}
+  oc_mirror_plugin_image: {{ .Values.ocMirror.pluginImage | quote }}
+  oc_mirror_pre_stage_scored_image: "false"
+{{- end }}
 {{- end }}

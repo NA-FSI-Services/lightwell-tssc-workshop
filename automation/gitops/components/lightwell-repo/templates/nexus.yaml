@@ -33,6 +33,12 @@ spec:
       port: {{ .Values.nexus.service.port }}
       targetPort: {{ .Values.nexus.service.port }}
       protocol: TCP
+{{- if and .Values.nexus.docker.enabled .Values.channels.dockerMirror.enabled }}
+    - name: docker
+      port: {{ .Values.nexus.docker.port }}
+      targetPort: docker
+      protocol: TCP
+{{- end }}
   selector:
     app: {{ .Values.nexus.name }}
 ---
@@ -71,6 +77,10 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.nexus.service.port }}
+{{- if and .Values.nexus.docker.enabled .Values.channels.dockerMirror.enabled }}
+            - name: docker
+              containerPort: {{ .Values.nexus.docker.port }}
+{{- end }}
           env:
             - name: INSTALL4J_ADD_VM_PARAMS
               value: {{ .Values.nexus.javaOpts | quote }}

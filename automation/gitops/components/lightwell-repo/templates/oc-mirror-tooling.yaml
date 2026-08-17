@@ -1,0 +1,159 @@
+{{- if and .Values.lightwellRepo.enabled .Values.ocMirror.enabled .Values.channels.dockerMirror.enabled }}
+{{- $regHost := include "lightwell-repo.registryHost" . }}
+{{- $regUrl := include "lightwell-repo.registryUrl" . }}
+---
+# Empty workspace for learner-run oc-mirror (V2-11). Provision must not fill this with Hummingbird.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.ocMirror.workspace.pvcName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oc-mirror
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.ocMirror.workspace.size | quote }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.ocMirror.serviceAccountName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oc-mirror
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.ocMirror.serviceAccountName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oc-mirror
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps", "persistentvolumeclaims"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.ocMirror.serviceAccountName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oc-mirror
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.ocMirror.serviceAccountName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.ocMirror.serviceAccountName }}
+    namespace: {{ .Values.lightwellRepo.namespace }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.ocMirror.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oc-mirror
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+data:
+  dest_registry_host: {{ $regHost | quote }}
+  dest_registry_url: {{ $regUrl | quote }}
+  dest_repo: {{ .Values.channels.dockerMirror.name | quote }}
+  dest_docker: {{ printf "docker://%s" $regHost | quote }}
+  plugin_image: {{ .Values.ocMirror.pluginImage | quote }}
+  source_pull_spec: {{ .Values.ocMirror.sourcePullSpec | quote }}
+  source_registry: {{ .Values.ocMirror.sourceRegistry | quote }}
+  pre_mirror_scored_image: "false"
+  README: |
+    V2-10 dest + tooling. This cluster does NOT pre-mirror the scored Hummingbird image.
+
+    Dest (empty Docker hosted repo on Nexus):
+      {{ $regUrl }}
+      oc-mirror dest: docker://{{ $regHost }}
+      Nexus repo key: {{ .Values.channels.dockerMirror.name }}
+
+    Source pin (V2-1 — do not invent pull specs):
+      {{ .Values.ocMirror.sourcePullSpec }}
+
+    Binary: {{ .Values.ocMirror.pluginImage }}
+    Bake into Showroom is V2-20. Until then run the Job template in job.yaml
+    AFTER V2-11 supplies the incomplete ImageSet (ConfigMap imageset-configuration).
+
+    Auth: Secret {{ .Values.ocMirror.dockerSecretName }} (written by lightwell-repo-seed).
+    Workspace PVC: {{ .Values.ocMirror.workspace.pvcName }}
+
+    Do not apply a Job that mirrors HUMMINGBIRD_JAVA_RUNTIME at provision.
+  job.yaml: |
+    # Learner-started (V2-11). Not a provision hook.
+    # Requires ConfigMap imageset-configuration (incomplete seed from V2-11).
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: oc-mirror-learner
+      namespace: {{ .Values.lightwellRepo.namespace }}
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ .Values.ocMirror.serviceAccountName }}
+          containers:
+            - name: oc-mirror
+              image: {{ .Values.ocMirror.pluginImage | quote }}
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: DOCKER_CONFIG
+                  value: /docker
+              command: ["oc-mirror"]
+              args:
+                - -c
+                - /imageset/imageset-config.yaml
+                - --workspace
+                - file:///workspace
+                - docker://{{ $regHost }}
+                - --v2
+                - --dest-tls-verify=false
+              volumeMounts:
+                - name: docker
+                  mountPath: /docker
+                  readOnly: true
+                - name: imageset
+                  mountPath: /imageset
+                  readOnly: true
+                - name: workspace
+                  mountPath: /workspace
+          volumes:
+            - name: docker
+              secret:
+                secretName: {{ .Values.ocMirror.dockerSecretName }}
+                items:
+                  - key: .dockerconfigjson
+                    path: config.json
+            - name: imageset
+              configMap:
+                name: imageset-configuration
+            - name: workspace
+              persistentVolumeClaim:
+                claimName: {{ .Values.ocMirror.workspace.pvcName }}
+{{- end }}

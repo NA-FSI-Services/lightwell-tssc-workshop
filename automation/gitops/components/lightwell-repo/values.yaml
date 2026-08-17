@@ -15,6 +15,7 @@ lightwellRepo:
     nexus: "2"
     route: "3"
     seed: "4"
+    ocMirror: "4"
     userinfo: "5"
 
 # Sonatype Nexus Repository Manager 3 (enterprise artifact-manager stand-in)
@@ -35,7 +36,12 @@ nexus:
     host: ""
   persistence:
     enabled: true
-    size: 20Gi
+    # Maven/PyPI seed plus room for learner oc-mirror of one Hummingbird runtime (~259Mi) + signatures/SBOM
+    size: 40Gi
+  # Docker Registry API connector (oc-mirror dest). Dedicated Route; not the Maven UI port.
+  docker:
+    enabled: true
+    port: 5000
   resources:
     requests:
       cpu: 500m
@@ -83,6 +89,14 @@ channels:
     description: "Lightwell Network Python Remediated — exact-version .rhlw-0000X backports"
     remoteUrl: "https://packages.redhat.com/lightwell/python/remediated"
     hostedName: lightwell-python-remediated-hosted
+  # V2-10 dest for learner oc-mirror. Hosted Docker — created empty; never pre-load HUMMINGBIRD_JAVA_RUNTIME.
+  dockerMirror:
+    enabled: true
+    name: hummingbird-mirror
+    type: docker
+    description: "Empty oc-mirror dest (Track 1). Learners push Hummingbird + signatures + SBOM here."
+    httpPort: 5000
+
   # Optional enterprise virtual aggregator (Maven points here in proxied PoV delivery)
   virtualLibsRelease:
     enabled: true
@@ -165,6 +179,20 @@ seed:
       cpu: 500m
       memory: 512Mi
 
+# V2-10 oc-mirror tooling. Do not run a provision Job that mirrors the scored image (V2-11 is learner-run).
+ocMirror:
+  enabled: true
+  # Source pin from V2-1 — documentation / userinfo only. Never pulled by this chart.
+  sourcePullSpec: "registry.access.redhat.com/hi/openjdk:21-runtime@sha256:e7c41dc2cba28c49d551c491419e00b75c5aef6c13326cc08765d30e882630ba"
+  sourceRegistry: "registry.access.redhat.com"
+  pluginImage: "registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20"
+  workspace:
+    pvcName: oc-mirror-workspace
+    size: 20Gi
+  serviceAccountName: oc-mirror
+  dockerSecretName: nexus-docker-push
+  configMapName: oc-mirror-tooling
+
 # RHDP userinfo ConfigMap
 userInfo:
   enabled: true
@@ -177,6 +205,8 @@ userInfo:
     lightwellRepo.mode=proxy and inject LW_USERNAME / LW_PASSWORD.
     Keep channels.pypiRemediated.enabled=true for this Java+Python catalog (seeded marker).
     Maven: ConfigMap lightwell-maven-settings. Python: ConfigMap lightwell-pip-settings.
+    Track 1 dest: empty Docker repo hummingbird-mirror (Route registry-lightwell-repo). Do not
+    pre-mirror HUMMINGBIRD_JAVA_RUNTIME — learners run oc-mirror (V2-11).
 
 # Injected by root-app / field content workload
 deployer:

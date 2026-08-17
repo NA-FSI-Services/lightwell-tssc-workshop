@@ -84,6 +84,16 @@ spec:
               value: {{ .Values.pypiSeed.remediatedPackage | quote }}
             - name: PYPI_REMEDIATED_VERSION
               value: {{ .Values.pypiSeed.remediatedVersion | quote }}
+            - name: DOCKER_MIRROR_ENABLED
+              value: {{ .Values.channels.dockerMirror.enabled | quote }}
+            - name: DOCKER_MIRROR_REPO
+              value: {{ .Values.channels.dockerMirror.name | quote }}
+            - name: DOCKER_HTTP_PORT
+              value: {{ .Values.channels.dockerMirror.httpPort | quote }}
+            - name: REGISTRY_HOST
+              value: {{ include "lightwell-repo.registryHost" . | quote }}
+            - name: DOCKER_SECRET_NAME
+              value: {{ .Values.ocMirror.dockerSecretName | quote }}
             - name: NEXUS_ADMIN_USER
               valueFrom:
                 secretKeyRef:

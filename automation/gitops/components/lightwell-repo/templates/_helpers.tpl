@@ -28,3 +28,16 @@ app.kubernetes.io/part-of: lightwell-tssc-workshop
 https://{{ include "lightwell-repo.nexusHost" . }}
 {{- end -}}
 {{- end -}}
+
+{{/* Docker Registry API host for oc-mirror dest (dedicated Route, not the Nexus UI). */}}
+{{- define "lightwell-repo.registryHost" -}}
+{{- if .Values.deployer.domain -}}
+registry-{{ .Values.lightwellRepo.namespace }}.{{ .Values.deployer.domain }}
+{{- else -}}
+registry-{{ .Values.lightwellRepo.namespace }}.apps.cluster.example.com
+{{- end -}}
+{{- end -}}
+
+{{- define "lightwell-repo.registryUrl" -}}
+https://{{ include "lightwell-repo.registryHost" . }}
+{{- end -}}

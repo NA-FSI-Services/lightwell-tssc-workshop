@@ -23,4 +23,32 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
   wildcardPolicy: None
+{{- if and .Values.nexus.docker.enabled .Values.channels.dockerMirror.enabled }}
+---
+# Docker Registry API for oc-mirror dest (V2-10). Empty hummingbird-mirror repo — do not pre-push Hummingbird.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Values.nexus.name }}-registry
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app: {{ .Values.nexus.name }}
+    app.kubernetes.io/component: oc-mirror-dest
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.route | quote }}
+    haproxy.router.openshift.io/timeout: 15m
+spec:
+  host: {{ include "lightwell-repo.registryHost" . | quote }}
+  to:
+    kind: Service
+    name: {{ .Values.nexus.name }}
+    weight: 100
+  port:
+    targetPort: docker
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}
 {{- end }}

@@ -59,4 +59,7 @@ data:
 
     Live proxy mode uses packages.redhat.com remotes with LW_USERNAME / LW_PASSWORD instead.
     Keep channels.pypiRemediated.enabled=true for this Java+Python workshop (seeded marker).
+
+    V2-10 Docker dest {{ .Values.channels.dockerMirror.name }} is created EMPTY.
+    Do not upload HUMMINGBIRD_JAVA_RUNTIME at seed time.
 {{- end }}

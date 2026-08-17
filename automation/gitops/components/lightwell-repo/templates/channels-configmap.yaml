@@ -53,6 +53,13 @@ data:
         pipSimple: {{ printf "%s/simple" .Values.channels.pypiRemediated.remoteUrl | quote }}
         versionSuffix: ".rhlw-0000X"
         gateNote: "Set enabled=false in proxy mode if live Remediated PyPI is unavailable; seeded mode uses a local .rhlw-* marker wheel."
+      dockerMirror:
+        enabled: {{ .Values.channels.dockerMirror.enabled }}
+        repoKey: {{ .Values.channels.dockerMirror.name }}
+        type: {{ .Values.channels.dockerMirror.type }}
+        description: {{ .Values.channels.dockerMirror.description | quote }}
+        preMirrorScoredImage: false
+        sourcePullSpec: {{ .Values.ocMirror.sourcePullSpec | quote }}
 {{- if .Values.channels.virtualLibsRelease.enabled }}
       virtual:
         repoKey: {{ .Values.channels.virtualLibsRelease.name }}

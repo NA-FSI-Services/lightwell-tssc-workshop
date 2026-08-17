@@ -113,6 +113,38 @@ create_pypi_proxy() {
     -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":true},\"proxy\":{\"remoteUrl\":\"${url}\",\"contentMaxAge\":1440,\"metadataMaxAge\":1440},\"negativeCache\":{\"enabled\":true,\"timeToLive\":1440},\"httpClient\":{\"blocked\":false,\"autoBlock\":true,\"authentication\":{\"type\":\"username\",\"username\":\"${LW_USERNAME}\",\"password\":\"${LW_PASSWORD}\"}}}"
 }
 
+# V2-10: empty Docker dest for learner oc-mirror. Do not upload HUMMINGBIRD_JAVA_RUNTIME.
+create_docker_hosted() {
+  local name="$1"
+  local port="${2:-5000}"
+  log "Docker hosted repo (empty dest): ${name} httpPort=${port}"
+  curl_ok -H 'Content-Type: application/json' \
+    -X POST "${NEXUS_SVC}/service/rest/v1/repositories/docker/hosted" \
+    -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":false,\"writePolicy\":\"ALLOW\"},\"docker\":{\"v1Enabled\":false,\"forceBasicAuth\":false,\"httpPort\":${port}}}"
+}
+
+enable_docker_token_realm() {
+  log "Enabling DockerToken security realm"
+  curl_ok -H 'Content-Type: application/json' \
+    -X PUT "${NEXUS_SVC}/service/rest/v1/security/realms/active" \
+    -d '["NexusAuthenticatingRealm","NexusAuthorizingRealm","DockerToken"]'
+}
+
+write_docker_push_secret() {
+  local host="${REGISTRY_HOST:-}"
+  if [[ -z "${host}" ]] || ! command -v oc >/dev/null 2>&1; then
+    log "Skipping docker-push secret (REGISTRY_HOST or oc missing)"
+    return 0
+  fi
+  local secret="${DOCKER_SECRET_NAME:-nexus-docker-push}"
+  log "Writing Secret ${secret} for dest ${host} (admin push; do not commit)"
+  oc -n "${NAMESPACE}" create secret docker-registry "${secret}" \
+    --docker-server="${host}" \
+    --docker-username="${NEXUS_ADMIN_USER:-admin}" \
+    --docker-password="${NEXUS_ADMIN_PASSWORD}" \
+    --dry-run=client -o yaml | oc -n "${NAMESPACE}" apply -f -
+}
+
 upload_pypi() {
   local repo="$1" wheel="$2"
   log "Upload PyPI wheel $(basename "${wheel}") -> ${repo}"
@@ -392,6 +424,12 @@ create_repos() {
     else
       log "Skipping PyPI Remediated hosted (channels.pypiRemediated.enabled=false)"
     fi
+  fi
+  if [[ "${DOCKER_MIRROR_ENABLED:-true}" == "true" ]]; then
+    create_docker_hosted "${DOCKER_MIRROR_REPO:-hummingbird-mirror}" "${DOCKER_HTTP_PORT:-5000}"
+    enable_docker_token_realm
+    write_docker_push_secret
+    log "Docker dest ${DOCKER_MIRROR_REPO:-hummingbird-mirror} is empty — do not pre-mirror Hummingbird"
   fi
 }
 
