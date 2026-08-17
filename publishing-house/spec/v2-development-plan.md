@@ -584,7 +584,7 @@ Do not start writing the seven track pages until Phase 0 **exit** (issues filed,
 ### Phase 0 — Decisions (1 sprint, no merge to catalog)
 
 - **ASK Q1–Q31 is closed** (this document is the decision log).
-- File epics/issues (section 8) when instructed — GitHub + RHDPCD-908.
+- Issues filed (section 8). GitHub Project + milestones. Jira comment on RHDPCD-908 if the catalog owner has comment permission.
 - **Blocker:** confirm Hummingbird pull on RHDP CNV (Q6 unknown). Spike V2-1 cannot finish without this.
 - Spike V2-1: after pull is approved, resolve `HUMMINGBIRD_JAVA_RUNTIME` from catalog; pin digest; `non_ga_access_plan`; egress hosts.
 - OCP **4.20 now**, portable admission; 4.21 `ClusterImagePolicy` when the item can move.
@@ -637,7 +637,16 @@ Do not start writing the seven track pages until Phase 0 **exit** (issues filed,
 
 ## 8. Proposed issue backlog
 
-ASK Q1–Q31 is **closed**. Do **not** file these until you ask. When filed: GitHub on `rhpds/lightwell-tssc-workshop`; Jira **on RHDPCD-908** (same ticket — comments or sub-tasks). Do not create a second RHDPCD for v2.
+ASK Q1–Q31 is **closed**. GitHub issues are filed (`[V2-*]` titles). Jira stays **[RHDPCD-908](https://redhat.atlassian.net/browse/RHDPCD-908)** (no second RHDPCD).
+
+| Tracker | URL |
+|---------|-----|
+| GitHub Project | https://github.com/users/diego-torres/projects/2 |
+| GA milestone | https://github.com/rhpds/lightwell-tssc-workshop/milestone/1 |
+| Later (Epic D) | https://github.com/rhpds/lightwell-tssc-workshop/milestone/2 |
+| **Phase 0 blocker V2-1** | https://github.com/rhpds/lightwell-tssc-workshop/issues/6 |
+
+Not filed (already decided): V2-0, V2-3, V2-4, V2-41, V2-50, V2-57, V2-98.
 
 ### Epic A — Decisions and packaging
 
@@ -817,12 +826,12 @@ Answers here are the Phase 0 decision log (Q1–Q31 **closed**).
 
 ## 12. Suggested next step
 
-**ASK Q1–Q31 is closed.** This plan is the decision log. `publishing-house/spec.yaml` is still v1 until you explicitly ask to apply it.
+**ASK Q1–Q31 is closed.** Tracking:
 
-**Still open (not ASK):** V2-1 Phase 0 blocker — RHDP Hummingbird/Hardened Images pull, catalog image ID, digest pin, refresh owner, `non_ga_access_plan`, bot/learner egress hosts.
+- Branch: https://github.com/rhpds/lightwell-tssc-workshop/tree/v2
+- Project: https://github.com/users/diego-torres/projects/2
+- GA issues: https://github.com/rhpds/lightwell-tssc-workshop/milestone/1
+- Jira (same catalog): https://redhat.atlassian.net/browse/RHDPCD-908
+- Blocker: https://github.com/rhpds/lightwell-tssc-workshop/issues/6
 
-When you want to proceed, typical next moves:
-
-1. File the section 8 backlog on GitHub and RHDPCD-908.
-2. Start spike V2-1 (or content outlines with placeholders).
-3. Apply the plan into `spec.yaml` / `design.md` / module outlines.
+`publishing-house/spec.yaml` is still v1 until you explicitly ask to apply it.
