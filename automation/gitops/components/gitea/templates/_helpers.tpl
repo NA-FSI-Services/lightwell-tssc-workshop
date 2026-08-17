@@ -23,15 +23,14 @@ https://{{ include "gitea.routeHost" . }}
 {{- .Values.seed.templates.org | default "workshop-templates" -}}
 {{- end -}}
 
-{{/* Learner-owned org convention: lw-<username> (created by the student in Module 2). */}}
+{{/* Learner-owned org convention: lw-student (created by the learner in Module 2). */}}
 {{- define "gitea.learnerOrgName" -}}
 {{- $user := . -}}
 {{- printf "lw-%s" $user -}}
 {{- end -}}
 
 {{- define "gitea.primaryStudent" -}}
-{{- $s := index .Values.students 0 -}}
-{{- $s.username -}}
+{{- .Values.student.username | default "student" -}}
 {{- end -}}
 
 {{- define "gitea.studentAppRepoUrl" -}}

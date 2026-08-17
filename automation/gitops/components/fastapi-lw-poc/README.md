@@ -66,7 +66,7 @@ Default `replicas: 0` and empty `image.digest` keep Argo **Healthy** before prom
 1. Prefer digest pin after Module 9 promote: set `image.digest: sha256:…` and `replicas: 1`.
 2. When `image.repository` is empty, the image is derived as `{registry}/{namespace}/{name}`.
 3. Chart renders an ImageStream for `oc tag` promote into the product namespace.
-4. **Workshop runtime path:** leave root-app `components.fastapiLwPoc.enabled=false` until the Python track is ready; Gitea (#147) will seed a thin chart (no `./app`) for learner ApplicationSet promote. Enable the monorepo Application only for non-Gitea demos.
+4. **Workshop runtime path:** leave root-app `components.fastapiLwPoc.enabled=false` until the Python track is ready; Gitea (#147) seeds a thin chart (no `./app`) for Argo Application `lw-fastapi-student`. Enable the monorepo Application only for non-Gitea demos.
 
 ## Sync waves
 

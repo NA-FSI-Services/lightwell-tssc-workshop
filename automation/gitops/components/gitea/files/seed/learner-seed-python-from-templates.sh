@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Learner helper (Module 7): after you create empty FastAPI + gitops repos under lw-<username>,
+# Learner helper (Module 7): after you create empty FastAPI + gitops repos under lw-student,
 # copy operator-prepared Python templates into your remotes (never clone GitHub).
 #
 # Usage (Showroom terminal):
 #   oc -n gitea get configmap gitea-student-repo-seed \
 #     -o jsonpath='{.data.learner-seed-python-from-templates\.sh}' > /tmp/learner-seed-python.sh
 #   chmod +x /tmp/learner-seed-python.sh
-#   export STUDENT_USER=... STUDENT_PASS=...   # from demo-userinfo-gitea
+#   export STUDENT_USER=student STUDENT_PASS=...   # password from demo-userinfo-gitea
 #   /tmp/learner-seed-python.sh
 #
 # Env (optional overrides; defaults read from demo-userinfo-gitea when oc works):
@@ -20,7 +20,7 @@ cm_get() {
 }
 
 : "${GITEA_URL:=$(cm_get '{.data.gitea_url}')}"
-: "${STUDENT_USER:=$(cm_get '{.data.student_username}')}"
+: "${STUDENT_USER:=student}"
 : "${STUDENT_PASS:=$(cm_get '{.data.student_password}')}"
 : "${LEARNER_ORG:=$(cm_get '{.data.student_gitea_org}')}"
 : "${REPO_NAME:=$(cm_get '{.data.student_python_repo_name}')}"

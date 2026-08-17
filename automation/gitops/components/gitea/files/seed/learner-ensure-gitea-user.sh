@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# Learner helper: discover Gitea URL/credentials and ensure your workshop user exists.
-# Provisioning Job gitea-student-repo-seed normally creates students from values.students
-# (dev-cluster: user1). If login fails or your claim used a different username, this
-# script creates/updates the account via Secret gitea-admin (workshop operator admin).
+# Learner helper: discover Gitea URL/credentials and ensure the workshop user exists.
+# Provisioning Job gitea-student-repo-seed normally creates user `student` from values.student.
+# If login fails, this script creates/updates the account via Secret gitea-admin.
 #
 # Usage (Showroom terminal):
 #   oc -n gitea get configmap gitea-student-repo-seed \
 #     -o jsonpath='{.data.learner-ensure-gitea-user\.sh}' > /tmp/learner-ensure-gitea-user.sh
 #   chmod +x /tmp/learner-ensure-gitea-user.sh
-#   export STUDENT_USER='@@LW_USER@@'   # optional; defaults to demo-userinfo-gitea
+#   export STUDENT_USER=student   # optional; this is the default
 #   /tmp/learner-ensure-gitea-user.sh
 #
 # Env (optional):
@@ -30,7 +29,7 @@ secret_get() {
 }
 
 : "${GITEA_URL:=$(cm_get '{.data.gitea_url}')}"
-: "${STUDENT_USER:=$(cm_get '{.data.student_username}')}"
+: "${STUDENT_USER:=student}"
 : "${STUDENT_PASS:=$(cm_get '{.data.student_password}')}"
 : "${STUDENT_EMAIL:=${STUDENT_USER}@workshop.local}"
 : "${STUDENT_FULL_NAME:=Workshop User ${STUDENT_USER}}"

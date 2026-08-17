@@ -2,13 +2,13 @@
 # DRAFT — Generated at intake. The automation procedure refines this during development.
 # See the automation manifest format guide for field reference.
 
-approach: both  # ansible (setup) + gitops (per-learner Helm/ArgoCD resources)
+approach: both  # ansible (setup) + gitops (Helm/Argo CD resources for the dedicated environment)
 
 infrastructure:
   type: ocp-cnv           # per-student topology on CNV
   ocp_version: "4.20"
-  multi_user: true
-  users_per_deployment: 1  # per-student — each learner gets dedicated namespaces
+  multi_user: false
+  users_per_deployment: 1  # per-student — each learner gets a dedicated environment (user `student`)
 
 operators:
   # Pre-installed by automation — learners USE these, not install them
@@ -25,15 +25,15 @@ applications:
     notes: proxies packages.redhat.com/lightwell/* validated, remediated, and OSV tiers
   - name: Gitea
     namespace: gitea
-    notes: per-learner source repos (spring-boot-lw-poc, lw-fastapi) and gitops Helm repos
+    notes: source repos (spring-boot-lw-poc, fastapi-lw-poc) and gitops Helm repos under org lw-student
   - name: Keycloak / SSO
     namespace: sso
     notes: OIDC provider for RHTPA; TPA realm pre-configured
 
 seed_data:
-  - Per-learner namespaces lw-poc-<username> and lw-fastapi-<username>
-  - ConfigMaps per namespace (lightwell-channels, demo-userinfo-rhdh, lightwell-pip-settings, demo-userinfo-gitea, demo-userinfo-keycloak)
-  - Seeded Gitea repos per learner (spring-boot-lw-poc, lw-fastapi, gitops-java, gitops-fastapi)
+  - Namespaces lw-poc-student and lw-fastapi-student
+  - ConfigMaps (lightwell-channels, demo-userinfo-rhdh, lightwell-pip-settings, demo-userinfo-gitea, demo-userinfo-keycloak)
+  - Seeded Gitea template remotes; learner org lw-student (spring-boot-lw-poc, fastapi-lw-poc, gitops-java, gitops-fastapi)
   - Tekton Pipeline definitions (lightwell-dep-gate Java, lightwell-python-dep-gate Python)
   - RHDH Software Templates (lightwell-java-service, lightwell-python-service)
   - OSV evaluation scripts pre-staged in tools/osv-eval/scripts/

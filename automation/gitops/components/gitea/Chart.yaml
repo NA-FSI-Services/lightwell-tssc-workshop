@@ -1,6 +1,6 @@
 apiVersion: v2
 name: gitea
-description: In-cluster Gitea for per-student lab repositories (Module 5 pipelines / GitOps)
+description: In-cluster Gitea for the lab student repositories (Modules 2–9 pipelines / GitOps)
 type: application
 version: 0.1.0
 appVersion: "1.22.3"

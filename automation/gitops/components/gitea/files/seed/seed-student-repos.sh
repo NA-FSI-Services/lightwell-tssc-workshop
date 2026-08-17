@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Operator seed: admin + student *users*, plus prepared *template* remotes only.
-# Learners create org lw-<username> and repos in Showroom Module 2, then run
-# learner-seed-from-templates.sh to copy template content into their remotes.
+# Operator seed: admin + student *user*, plus prepared *template* remotes only.
+# The learner creates org lw-student and repos in Showroom Module 2, then runs
+# learner-seed-from-templates.sh to copy template content into those remotes.
 set -euo pipefail
 
 : "${GITEA_URL:?}"
@@ -13,7 +13,10 @@ set -euo pipefail
 : "${REPO_NAME:?}"
 : "${REPO_DESCRIPTION:?}"
 : "${DEFAULT_BRANCH:?}"
-: "${STUDENTS_JSON:?}"
+: "${STUDENT_USERNAME:?}"
+: "${STUDENT_PASSWORD:?}"
+: "${STUDENT_EMAIL:=${STUDENT_USERNAME}@workshop.local}"
+: "${STUDENT_FULL_NAME:=Workshop Student}"
 : "${SEED_DIR:=/seed}"
 : "${TEMPLATES_ORG:=workshop-templates}"
 : "${TEMPLATES_ORG_FULL_NAME:=Workshop Templates}"
@@ -234,28 +237,8 @@ push_seed_tree() {
 
 ensure_user "${ADMIN_USER}" "${ADMIN_PASSWORD}" "${ADMIN_EMAIL}" "Gitea Admin" "true"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "ERROR: python3 required to parse STUDENTS_JSON" >&2
-  exit 1
-fi
-
-python3 - <<'PY' >"${WORKDIR}/students.tsv"
-import json, os
-students = json.loads(os.environ["STUDENTS_JSON"])
-for s in students:
-    print("\t".join([
-        s["username"],
-        s["password"],
-        s.get("email", f'{s["username"]}@workshop.local'),
-        s.get("fullName", s["username"]),
-    ]))
-PY
-
-while IFS=$'\t' read -r user pass email full_name; do
-  [[ -z "${user}" ]] && continue
-  ensure_user "${user}" "${pass}" "${email}" "${full_name}" "false"
-  echo "Learner ${user} ready — org lw-${user} + repos are created by the student in Module 2"
-done <"${WORKDIR}/students.tsv"
+ensure_user "${STUDENT_USERNAME}" "${STUDENT_PASSWORD}" "${STUDENT_EMAIL}" "${STUDENT_FULL_NAME}" "false"
+echo "Learner ${STUDENT_USERNAME} ready — org lw-${STUDENT_USERNAME} + repos are created by the student in Module 2"
 
 # Prepared file systems from monorepo isolation → template remotes only
 ensure_org "${TEMPLATES_ORG}" "${TEMPLATES_ORG_FULL_NAME}" "${TEMPLATES_ORG_DESCRIPTION}"

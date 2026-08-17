@@ -3,8 +3,6 @@
 :toc:
 :toclevels: 2
 
-include::partial$student-username-form.adoc[]
-
 When a *Common Vulnerabilities and Exposures (CVE)* lands against a library you cannot casually upgrade, Lightwell Network publishes a *Remediated* artifact on the same upstream version line with a sequential `.rhlw-0000X` suffix. *Open Source Vulnerabilities (OSV)* records for the Java remediated stream tell you which pin to use. Subscribers discover new remediated packages by polling the Lightwell OSV feed (additional push notifications are a future platform topic, not required for this lab).
 
 In this module you run the field *proof-of-value (PoV)* evaluation loop: inspect the OSV record, read `fixed`, compare upstream vs remediated sources, update the Spring Boot *proof-of-concept (PoC)* pin, then rebuild with Remediated Maven profiles.
@@ -25,7 +23,7 @@ Complete xref:module-02-maven.adoc[Module 2] (Maven / Nexus) and xref:module-03-
 
 You need:
 
-* Your Gitea **`lw-<username>/spring-boot-lw-poc`** clone from the Module 3 scaffold (`student_repo_url` → `/tmp/spring-boot-lw-poc`), which includes `tools/osv-eval/` at repo root, **and**
+* Your Gitea **`lw-student/spring-boot-lw-poc`** clone from the Module 3 scaffold (`student_repo_url` → `/tmp/spring-boot-lw-poc`), which includes `tools/osv-eval/` at repo root, **and**
 * In-cluster ConfigMap `lightwell-sample-osv` (preferred sample OSV JSON)
 
 Reuse Module 2’s writable Maven local repo in Showroom (home is often not writable):

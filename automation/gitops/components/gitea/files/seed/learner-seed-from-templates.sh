@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Learner helper: after you create org lw-<username> and empty repos in the Gitea UI,
+# Learner helper: after you create org lw-student and empty repos in the Gitea UI,
 # copy operator-prepared template content into your remotes (never clone GitHub).
 #
 # Usage (Showroom terminal):
 #   oc -n gitea get configmap gitea-student-repo-seed \
 #     -o jsonpath='{.data.learner-seed-from-templates\.sh}' > /tmp/learner-seed.sh
 #   chmod +x /tmp/learner-seed.sh
-#   export STUDENT_USER=... STUDENT_PASS=...   # from demo-userinfo-gitea
+#   export STUDENT_USER=student STUDENT_PASS=...   # password from demo-userinfo-gitea
 #   /tmp/learner-seed.sh
 #
 # Env (optional overrides; defaults read from demo-userinfo-gitea when oc works):
@@ -19,7 +19,7 @@ cm_get() {
 }
 
 : "${GITEA_URL:=$(cm_get '{.data.gitea_url}')}"
-: "${STUDENT_USER:=$(cm_get '{.data.student_username}')}"
+: "${STUDENT_USER:=student}"
 : "${STUDENT_PASS:=$(cm_get '{.data.student_password}')}"
 : "${LEARNER_ORG:=$(cm_get '{.data.student_gitea_org}')}"
 : "${REPO_NAME:=$(cm_get '{.data.student_repo_name}')}"
