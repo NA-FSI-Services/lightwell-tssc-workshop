@@ -1,0 +1,18 @@
+{{- if and .Values.lightwellRepo.enabled .Values.ocMirror.enabled .Values.channels.dockerMirror.enabled }}
+---
+# V2-11 incomplete ImageSet. Learner must replace REPLACE_ME before starting oc-mirror-learner.
+# Provision does not run oc-mirror. Worked example lives on oc-mirror-tooling (different image).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.ocMirror.imageSet.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oc-mirror
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+data:
+  {{ .Values.ocMirror.imageSet.key }}: |
+{{ .Files.Get "files/oc-mirror/imageset-config.yaml" | indent 4 }}
+{{- end }}

@@ -1,0 +1,9 @@
+# Incomplete ImageSet (V2-11). Scored file — not the Showroom worked example.
+# Replace additionalImages[0].name with the V2-1 digest pin from
+# ConfigMap demo-userinfo-lightwell-repo key hummingbird_source_pullspec.
+# Copying example-imageset.yaml from oc-mirror-tooling still fails the Check.
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v2alpha1
+mirror:
+  additionalImages:
+    - name: REPLACE_ME_HUMMINGBIRD_PULLSPEC

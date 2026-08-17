@@ -49,5 +49,8 @@ data:
   hummingbird_source_pullspec: {{ .Values.ocMirror.sourcePullSpec | quote }}
   oc_mirror_plugin_image: {{ .Values.ocMirror.pluginImage | quote }}
   oc_mirror_pre_stage_scored_image: "false"
+  imageset_configmap: {{ .Values.ocMirror.imageSet.configMapName | quote }}
+  imageset_key: {{ .Values.ocMirror.imageSet.key | quote }}
+  oc_mirror_job_configmap: {{ .Values.ocMirror.configMapName | quote }}
 {{- end }}
 {{- end }}

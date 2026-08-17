@@ -665,7 +665,7 @@ Packaging A/B/C is **closed** — see §4.3.
 | ID | Title | Depends on |
 |----|-------|------------|
 | V2-10 | Dest registry + oc-mirror tooling; **do not** pre-stage the scored Hummingbird image | V2-1 (closed). Dest = Nexus hosted Docker `hummingbird-mirror` (empty). |
-| V2-11 | oc-mirror v2 in Showroom; incomplete ImageSet seed; learner-run (no pre-mirror of scored image) | V2-1 |
+| V2-11 | oc-mirror v2 in Showroom; incomplete ImageSet seed; learner-run (no pre-mirror of scored image) | V2-1 / V2-10. Seed: `REPLACE_ME_HUMMINGBIRD_PULLSPEC`; learner Job; signatures default-on. |
 | V2-12 | Remove v1 Java/Python dual-path flags; single TSSC app namespace | V2-0 |
 | V2-13 | Seed Dockerfile on UBI (wrong) so Track 3 requires `FROM` Hummingbird | V2-10 |
 | V2-14 | Tekton task `verify-base-image` (cosign + attestation + SBOM) | V2-10 |

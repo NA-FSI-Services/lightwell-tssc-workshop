@@ -85,8 +85,10 @@ data:
   source_pull_spec: {{ .Values.ocMirror.sourcePullSpec | quote }}
   source_registry: {{ .Values.ocMirror.sourceRegistry | quote }}
   pre_mirror_scored_image: "false"
+  imageset_configmap: {{ .Values.ocMirror.imageSet.configMapName | quote }}
+  imageset_key: {{ .Values.ocMirror.imageSet.key | quote }}
   README: |
-    V2-10 dest + tooling. This cluster does NOT pre-mirror the scored Hummingbird image.
+    V2-10 dest + V2-11 incomplete ImageSet. This cluster does NOT pre-mirror the scored Hummingbird image.
 
     Dest (empty Docker hosted repo on Nexus):
       {{ $regUrl }}
@@ -96,17 +98,30 @@ data:
     Source pin (V2-1 — do not invent pull specs):
       {{ .Values.ocMirror.sourcePullSpec }}
 
-    Binary: {{ .Values.ocMirror.pluginImage }}
-    Bake into Showroom is V2-20. Until then run the Job template in job.yaml
-    AFTER V2-11 supplies the incomplete ImageSet (ConfigMap imageset-configuration).
+    Incomplete ImageSet (scored — edit this, not example-imageset.yaml):
+      oc -n {{ .Values.lightwellRepo.namespace }} edit configmap {{ .Values.ocMirror.imageSet.configMapName }}
+      Replace REPLACE_ME_HUMMINGBIRD_PULLSPEC with the source pin above (digest, not :latest).
+
+    Run oc-mirror from Showroom (Job; binary bake is V2-20):
+      oc -n {{ .Values.lightwellRepo.namespace }} get configmap {{ .Values.ocMirror.configMapName }} \
+        -o jsonpath='{.data.job\.yaml}' | oc create -f -
 
     Auth: Secret {{ .Values.ocMirror.dockerSecretName }} (written by lightwell-repo-seed).
     Workspace PVC: {{ .Values.ocMirror.workspace.pvcName }}
+    Signatures: Job does not pass --remove-signatures (oc-mirror v2 default includes them).
 
     Do not apply a Job that mirrors HUMMINGBIRD_JAVA_RUNTIME at provision.
+  example-imageset.yaml: |
+    # Worked example ONLY — different image from the scored ConfigMap.
+    # Pasting this into imageset-configuration still fails the Check.
+    kind: ImageSetConfiguration
+    apiVersion: mirror.openshift.io/v2alpha1
+    mirror:
+      additionalImages:
+        - name: registry.access.redhat.com/ubi9/ubi-minimal:latest
   job.yaml: |
     # Learner-started (V2-11). Not a provision hook.
-    # Requires ConfigMap imageset-configuration (incomplete seed from V2-11).
+    # Requires ConfigMap {{ .Values.ocMirror.imageSet.configMapName }} (incomplete seed; learner edits first).
     apiVersion: batch/v1
     kind: Job
     metadata:
@@ -152,7 +167,10 @@ data:
                     path: config.json
             - name: imageset
               configMap:
-                name: imageset-configuration
+                name: {{ .Values.ocMirror.imageSet.configMapName }}
+                items:
+                  - key: {{ .Values.ocMirror.imageSet.key }}
+                    path: imageset-config.yaml
             - name: workspace
               persistentVolumeClaim:
                 claimName: {{ .Values.ocMirror.workspace.pvcName }}
