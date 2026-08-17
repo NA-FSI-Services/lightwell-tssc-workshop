@@ -2,7 +2,8 @@
 
 Welcome to the project spec. Use the navigation to browse the design and module outlines.
 
-- [Design Spec](design.md)
+- [Design Spec](design.md) — current catalog (v1)
+- [Version 2 development plan](v2-development-plan.md) — seven-track TSSC rewrite (draft)
 - [Module 1 - Overview](modules/module-01-overview.md)
 - [Module 2 - Maven](modules/module-02-maven.md)
 - [Module 3 - Scaffold](modules/module-03-scaffold.md)
