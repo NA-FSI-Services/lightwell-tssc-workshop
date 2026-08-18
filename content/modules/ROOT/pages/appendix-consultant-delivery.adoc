@@ -122,8 +122,8 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 |5.2 scores tightened Conforma; `skip-att-sig-check` stays true. Chains is mapping (xref:appendix-konflux-mapping.adoc[Konflux mapping]), not SLSA L3 on this claim.
 
 |Key-based / disconnected verify
-|Scored (later in this workshop)
-|5.3 mirrored TUF + `--key`. Cluster stays networked. Disconnected media transfer is a playbook later in this workshop, not 5.3.
+|Scored
+|xref:module-14-disconnected-verify.adoc[5.3] second signature (`sign --key` / `verify --key`) on the 5.1 digest. Cluster stays networked. Media list: xref:appendix-disconnected-playbook.adoc[disconnected transfer].
 
 |Author Conforma policies
 |Scored
@@ -162,7 +162,7 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 
 |Physical media / data diode
 |Playbook
-|Cannot do air-gap physics on this connected claim. Disconnected-transfer playbook later in this workshop (not 5.3).
+|Cannot do air-gap physics on this connected claim. xref:appendix-disconnected-playbook.adoc[Simulated media drop] (not the 5.3 Check).
 
 |Delta-sync via oc-mirror statefile
 |Thin / not a separate Check
@@ -176,12 +176,12 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 |Client engagement activity |Treatment |This lab
 
 |Pre-download TUF root for disconnected cosign
-|Scored (later in this workshop)
-|5.3. Seeded trust path is empty/wrong until you copy it.
+|Playbook
+|xref:appendix-disconnected-playbook.adoc[Simulated media drop] copies TUF `root.json` + PEMs. Not the 5.3 Check (5.3 is `--key`).
 
 |`cosign verify` per image
 |Scored
-|1.1 published Hummingbird; 1.2 dest; 5.1 app keyless; 5.3 app key-based.
+|1.1 published Hummingbird; 1.2 dest; xref:module-12-sign-keyless.adoc[5.1] app keyless; xref:module-14-disconnected-verify.adoc[5.3] app key-based.
 
 |Verify SLSA + SBOM authenticity
 |Scored (policy) + callout
@@ -251,4 +251,4 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts]
 * xref:appendix-konflux-mapping.adoc[Konflux mapping] — names used in client engagements → cluster objects
-* 5.3 mirrored TUF and key-based verify, plus a disconnected-transfer playbook — later in this workshop
+* xref:appendix-disconnected-playbook.adoc[Disconnected transfer] — simulated media drop (not a diode)

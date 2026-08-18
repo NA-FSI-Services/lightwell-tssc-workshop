@@ -3,7 +3,7 @@
 :toc:
 :toclevels: 2
 
-Sign the *app* digest you built in xref:module-11-build-sbom.adoc[4.4] — not the Hummingbird base. This Check is *keyless* RHTAS (Fulcio, Rekor, TUF) plus `cosign verify` on *that* digest. Key-based / mirrored-TUF verify is a *second* Check (5.3). Do not treat keyless-only as Track 5 done.
+Sign the *app* digest you built in xref:module-11-build-sbom.adoc[4.4] — not the Hummingbird base. This Check is *keyless* RHTAS (Fulcio, Rekor, TUF) plus `cosign verify` on *that* digest. Key-based sign + `--key` verify is a *second* Check (xref:module-14-disconnected-verify.adoc[5.3]). Do not treat keyless-only as Track 5 done.
 
 The seeded pipeline already has task `cosign-sign-keyless`. Placeholders in the PipelineRun (`apps.<domain>`) fail that task until you fill live Fulcio / Rekor / TUF URLs.
 
@@ -14,14 +14,14 @@ By the end of this module, you will be able to:
 * Discover Fulcio, Rekor, and TUF from cluster userinfo (do not invent Route hosts)
 * Get `cosign-sign-keyless` to Succeeded on the learner-built app image
 * `cosign verify` that digest with the pipeline SA identity and Kubernetes OIDC issuer
-* Leave TUF-on-disk / `--key` verify for 5.3
+* Leave key-based sign + `--key` verify for xref:module-14-disconnected-verify.adoc[5.3]
 
 == Keyless vs keys
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/65
 image::FIXME-keyless-rhtas-vs-keys.png[Keyless RHTAS Fulcio Rekor TUF versus later key-based verify,width=700,link=self,window=blank]
 
-Keyless is the *connected* PoV path: the pipeline SA presents an OIDC token, Fulcio issues a short-lived cert, Rekor records the signature, TUF distributes the trust root. Customers who cannot reach Fulcio at verify time still need 5.3.
+Keyless is the *connected* PoV path: the pipeline SA presents an OIDC token, Fulcio issues a short-lived cert, Rekor records the signature, TUF distributes the trust root. Customers who cannot reach Fulcio at verify time still need xref:module-14-disconnected-verify.adoc[5.3].
 
 == Delivery note
 
@@ -70,7 +70,7 @@ Wait until `cosign-sign-keyless` Succeeded. ACS may still fail; this Check is th
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/66
 image::FIXME-pipelinerun-cosign-sign-keyless.png[PipelineRun graph with cosign-sign-keyless Succeeded,width=700,link=self,window=blank]
 
-Do *not* `oc tag` into staging here (Track 6). Do *not* copy TUF onto a lab trust path (5.3).
+Do *not* `oc tag` into staging here (Track 6). Do *not* generate a Showroom key pair or `cosign sign --key` here (xref:module-14-disconnected-verify.adoc[5.3]).
 
 == Check: `cosign verify` on the app digest
 
@@ -105,5 +105,5 @@ Python signs the same way (RHTAS keyless on the FastAPI digest). Not scored here
 
 == Key takeaways
 
-* Keyless is the connected path; 5.3 still exists for disconnected *procedure*.
+* Keyless is the connected path; xref:module-14-disconnected-verify.adoc[5.3] adds a key-based signature on the same digest.
 * You signed the *app*, not only Hummingbird.

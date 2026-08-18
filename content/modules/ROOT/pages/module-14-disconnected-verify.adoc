@@ -1,0 +1,109 @@
+= 5.3 Disconnected verify
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+xref:module-12-sign-keyless.adoc[5.1] already signed the *app* digest keylessly with RHTAS. This Check is a *second* signature on *that same digest*: you generate a cosign key pair on Showroom, `cosign sign --key`, then `cosign verify --key`. Do not treat keyless-only as Track 5 done.
+
+This cluster stays *networked*. You are practicing the disconnected *procedure* (keys you can carry), not a physical air-gap. Mirrored TUF for keyless verifiers, and a simulated media drop, live in xref:appendix-disconnected-playbook.adoc[Appendix: disconnected transfer].
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Generate a cosign key pair under `~/lab-trust` (not the worked-example path)
+* Attach a key-based signature to the 5.1 app digest without uploading a Rekor tlog
+* `cosign verify --key` that digest with `~/lab-trust/cosign.pub`
+* Explain that this claim is still on the network
+
+== Why a second signature
+
+Keyless (5.1) needs Fulcio at *sign* time and a TUF root at *verify* time. Customers who cannot reach Fulcio still need a public key they control. You add that signature here. Admission in xref:module-15-gitops-admission.adoc[6.1] still trusts the *keyless* pipeline SA identity, not this Showroom key.
+
+The two-column picture is on xref:module-12-sign-keyless.adoc[5.1 Keyless vs keys].
+
+== Delivery note
+
+*Customers* in a disconnected plant verify with keys (and a mirrored TUF root for *keyless* artifacts). *You* generate the pair on this terminal and sign the digest you already built. *Red Hat* does not operate a data diode on RHDP.
+
+== Discover the 5.1 digest
+
+`cosign` is already on Showroom `PATH`. Private keys never go in Git or a screenshot.
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+IMAGE="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
+oc -n "${BUILD_NS}" get istag spring-boot-lw-poc:latest \
+  -o jsonpath='{.image.dockerImageReference}{"\n"}'
+ls ~/lab-trust 2>/dev/null || echo 'lab-trust empty (expected before your change)'
+----
+
+== Worked example (not the Check)
+
+[source,bash]
+----
+# Worked example ONLY — different directory and key name. Do not use as the Check.
+mkdir -p ~/example-not-lab-trust
+# COSIGN_PASSWORD="" cosign generate-key-pair  (would write demo.pub here)
+cosign verify --key ~/example-not-lab-trust/demo.pub \
+  --insecure-ignore-tlog \
+  image-registry.openshift-image-registry.svc:5000/example/not-your-app:latest
+----
+
+== Your change: key pair, sign `--key`
+
+Empty password is for this lab terminal only so the execute block is non-interactive. Do not reuse that pattern in a customer plant. Do not commit `cosign.key`.
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+IMAGE="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
+mkdir -p ~/lab-trust
+cd ~/lab-trust
+if [[ ! -f cosign.key ]]; then
+  COSIGN_PASSWORD="" cosign generate-key-pair
+fi
+export HOME=/tmp/lab-home
+mkdir -p "${HOME}"
+cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  image-registry.openshift-image-registry.svc:5000
+COSIGN_PASSWORD="" cosign sign --key ~/lab-trust/cosign.key \
+  --tlog-upload=false \
+  --allow-http-registry --allow-insecure-registry \
+  "${IMAGE}"
+----
+
+Pass when `~/lab-trust/cosign.pub` exists and `sign` exits 0. Copying the worked-example path fails the Check.
+
+== Check: `cosign verify --key`
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+IMAGE="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
+test -f ~/lab-trust/cosign.pub
+test ! -f ~/example-not-lab-trust/demo.pub || echo 'example path present (ok if unused)'
+cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  image-registry.openshift-image-registry.svc:5000
+cosign verify --key ~/lab-trust/cosign.pub \
+  --insecure-ignore-tlog \
+  --allow-http-registry --allow-insecure-registry \
+  "${IMAGE}"
+----
+
+Pass when that command exits 0 on *your* app digest using `~/lab-trust/cosign.pub`. 5.1 keyless verify must still be possible; do not strip the Fulcio signature.
+
+Honor system: Track 6 still opens.
+
+== Callout
+
+TUF `root.json` and Fulcio/Rekor PEMs are *not* this Check. Pack them in the xref:appendix-disconnected-playbook.adoc[simulated media drop] so you can say “mirrored TUF” without claiming this cluster is air-gapped.
+
+Python can take the same `--key` pair on the FastAPI digest. Not scored here.
+
+== Key takeaways
+
+* Track 5 is keyless *and* a key-based signature you created.
+* The private key stays on Showroom. Never Git.
+* This is not a data diode. The playbook is the transfer story.

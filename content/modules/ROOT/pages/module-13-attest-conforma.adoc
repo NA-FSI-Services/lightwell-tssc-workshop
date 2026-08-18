@@ -92,7 +92,7 @@ Pass when the builder validate fails, the app digest passes, the live Pipeline i
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/68
 image::FIXME-conforma-fail-then-pass.png[Conforma fail on openjdk-21-builder then pass on signed app digest,width=700,link=self,window=blank]
 
-Honor system: 5.3 still opens. Track 6 still opens.
+Honor system: xref:module-14-disconnected-verify.adoc[5.3] still opens. Track 6 still opens.
 
 == Callout
 

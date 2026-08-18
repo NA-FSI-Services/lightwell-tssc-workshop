@@ -1,0 +1,82 @@
+= Appendix: disconnected transfer
+:toc:
+:toclevels: 2
+
+This page is a *simulated media drop* on Showroom. The claim stays on the network. There is no USB, no data diode, and no `dd` to physical media.
+
+Ungated. No Validate Job.
+
+The scored key-based signature is xref:module-14-disconnected-verify.adoc[5.3] (`~/lab-trust`). This appendix is what you would *carry* to a verifier that cannot reach Fulcio or the TUF Route.
+
+== Honesty
+
+Say this in the room: *RHDP cannot do air-gap physics.* You still walk the file list consultants use on a real diode: TUF root, Fulcio CA, Rekor public key, the app public key from 5.3, digest, SBOM.
+
+== What would go on the media
+
+| Artifact | Why a disconnected verifier needs it | Where you get it here |
+|----------|--------------------------------------|------------------------|
+| TUF `root.json` | Keyless verify without the live TUF Route | `tuf_url_hint` `/root.json` |
+| Fulcio CA PEM | Keyless identity / admission materials | Secret `rhtas-tuf-keys` in `tssc-admission` |
+| Rekor public key | Transparency log verify when a tlog exists | Same Secret |
+| `cosign.pub` | Key-based verify from xref:module-14-disconnected-verify.adoc[5.3] | `~/lab-trust/cosign.pub` |
+| App digest | What you verify (the 5.1 BuildConfig image) | ImageStream in `lw-poc-build` |
+| SBOM (optional) | Inventory on the far side of the diode | 4.4 / 7.1 workspace or TPA export |
+
+Do not put `cosign.key` on the drop. Public key only.
+
+== Simulated drop: `~/media-drop`
+
+Create the folder. Copy the files. List them. That is the whole “transfer.”
+
+[source,bash,role=execute]
+----
+mkdir -p ~/media-drop
+TUF="$(oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o jsonpath='{.data.tuf_url_hint}')"
+curl -fsSk -o ~/media-drop/root.json "${TUF}/root.json"
+oc -n tssc-admission extract secret/rhtas-tuf-keys \
+  --keys=fulcio_v1.crt.pem --keys=rekor.pub \
+  --to ~/media-drop --confirm
+if [[ -f ~/lab-trust/cosign.pub ]]; then
+  cp ~/lab-trust/cosign.pub ~/media-drop/cosign.pub
+else
+  echo 'Run 5.3 first so cosign.pub exists'
+fi
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+oc -n "${BUILD_NS}" get istag spring-boot-lw-poc:latest \
+  -o jsonpath='{.image.dockerImageReference}' > ~/media-drop/app-digest.txt
+ls -l ~/media-drop
+----
+
+Expect `root.json`, `fulcio_v1.crt.pem`, `rekor.pub`, `cosign.pub` (after 5.3), and `app-digest.txt`. Do not `git add` this folder. Do not paste PEMs into Gitea.
+
+A customer drop would also include the *image layers* (oc-mirror / `skopeo copy` to media). This claim already has the image in the in-cluster registry — you record the digest instead of writing a tarball.
+
+== Far-side verify (talking, then optional)
+
+On a real diode, the far side would `cosign initialize` from the copied TUF root for *keyless* artifacts, and `cosign verify --key cosign.pub` for the 5.3 signature. You already ran `--key` verify in 5.3 against the live registry. Repeating it from `~/media-drop/cosign.pub` is optional practice:
+
+[source,bash]
+----
+# Optional — same Check as 5.3, public key from the drop folder.
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+IMAGE="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
+cosign verify --key ~/media-drop/cosign.pub \
+  --insecure-ignore-tlog \
+  --allow-http-registry --allow-insecure-registry \
+  "${IMAGE}"
+----
+
+That still talks to the in-cluster registry. It does *not* prove air-gap.
+
+== What not to say
+
+* Do not say this cluster is disconnected or that `~/media-drop` *is* a diode.
+* Do not skip 5.3 and call the drop the Check.
+* Do not commit private keys or `workshop_password` into the drop or Git.
+
+== Related
+
+* xref:module-14-disconnected-verify.adoc[5.3 Disconnected verify] — scored `--key` sign + verify
+* xref:module-12-sign-keyless.adoc[5.1 Sign (keyless)] — connected Fulcio path
+* xref:appendix-consultant-delivery.adoc[Consultant delivery map]
