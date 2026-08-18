@@ -14,7 +14,8 @@ everywhere (see [AGENTS.md](../../../AGENTS.md)).
 | Job `gitea-student-repo-seed` | Create admin + `student` user; push **template** trees only |
 | ConfigMap script `learner-seed-from-templates.sh` | Learner copies Java templates → `lw-student` repos |
 | ConfigMap script `learner-ensure-gitea-user.sh` | Learner ensures Gitea login user `student` exists (via `gitea-admin`) |
-| Application `lw-poc-student` | Argo App from the learner **Java** gitops remote (the scored TSSC app namespace) |
+| Application `lw-poc-student` | Argo App from the learner **stage** GitOps remote (`lw-poc-student`) |
+| Application `lw-poc-prod` | Argo App from the learner **prod** GitOps remote (`lw-poc-prod`, V2-17) |
 | GitOps overlay `admission/trust-policy.yaml` | Track 6.1 scored TrustPolicy (V2-16); seed is `enforce: false` |
 | ConfigMap `demo-userinfo-gitea` | RHDP userinfo (expected URLs, templates, credentials) |
 
@@ -26,7 +27,7 @@ Python FastAPI chart, overlays, and RHDH template files **stay in git** and are 
 ### Learner model
 
 1. Lab scripts / charts **start Gitea** and create the student user.
-2. Learners discover `gitea_url` via `oc`, run `learner-ensure-gitea-user.sh` if needed, then create organization **`lw-student`** and empty repos **`spring-boot-lw-poc`** + **`gitops-spring-boot-lw-poc`**.
+2. Learners discover `gitea_url` via `oc`, run `learner-ensure-gitea-user.sh` if needed, then create organization **`lw-student`** and empty repos **`spring-boot-lw-poc`**, **`gitops-spring-boot-lw-poc`** (stage), and **`gitops-prod-spring-boot-lw-poc`** (prod).
 3. Learner runs `learner-seed-from-templates.sh` to push operator-prepared content from **`workshop-templates/`** into those repos.
 4. RHDH `publish:gitea` targets the same learner org.
 
@@ -34,12 +35,15 @@ Python FastAPI chart, overlays, and RHDH template files **stay in git** and are 
 |------|--------|
 | Learner org | `lw-student` (`student_gitea_org`) |
 | Java app repo | `lw-student/spring-boot-lw-poc` (`student_repo_url`) |
-| Java GitOps repo | `lw-student/gitops-spring-boot-lw-poc` (`student_gitops_repo_url`) |
+| Java stage GitOps repo | `lw-student/gitops-spring-boot-lw-poc` (`student_gitops_repo_url`) |
+| Java prod GitOps repo | `lw-student/gitops-prod-spring-boot-lw-poc` (`student_prod_gitops_repo_url`) |
 | Template org | `workshop-templates` |
 | Java app template | `workshop-templates/spring-boot-lw-poc` |
-| Java GitOps template | `workshop-templates/gitops-spring-boot-lw-poc` |
+| Java stage GitOps template | `workshop-templates/gitops-spring-boot-lw-poc` |
+| Java prod GitOps template | `workshop-templates/gitops-prod-spring-boot-lw-poc` (wrong digest seed) |
 | RHDH Java skeleton | `workshop-templates/lightwell-java-service` (`fetch:template`) |
-| Promote NS / Argo app | `lw-poc-student` (single TSSC app namespace) |
+| Stage NS / Argo app | `lw-poc-student` |
+| Prod NS / Argo app | `lw-poc-prod` |
 
 ## Path isolation (monorepo → template remotes)
 
@@ -47,8 +51,9 @@ Default `seed.source.mode=live`: the seed Job clones the **workshop GitOps URL**
 (`seed.source.repoUrl`, injected from root-app `gitops.repoUrl`), then:
 
 1. **Java app template** — copies `seed.source.path` to `workshop-templates/spring-boot-lw-poc`, includes `tools/osv-eval/`, overlays `.tekton/`
-2. **Java GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`, overlays `admission/trust-policy.yaml` (V2-16 seed)
-3. **RHDH Java skeleton** — copies `seed.templates.skeleton` to `workshop-templates/lightwell-java-service`
+2. **Java stage GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`, overlays `admission/trust-policy.yaml` (V2-16 seed)
+3. **Java prod GitOps template** — same chart isolation to `workshop-templates/gitops-prod-spring-boot-lw-poc`; digest seed `sha256:REPLACE_ME_PROD_DIGEST`; **no** TrustPolicy (V2-17)
+4. **RHDH Java skeleton** — copies `seed.templates.skeleton` to `workshop-templates/lightwell-java-service`
 
 Python FastAPI assemble (`seed.python`) and `skeletonPython` are **off** (V2-12). Overlay files stay in the chart.
 
@@ -63,10 +68,14 @@ template only (offline chart tests). GitOps seed requires `live` mode.
 
 ## Digest promote
 
+**Stage (6.1):**
+
 1. Pipeline builds/signs into **lab** NS (`student-lab`)
 2. Student `oc tag`s into `lw-poc-student` ImageStream
-3. Student commits `image.digest` + `replicas: 1` to Gitea gitops remote
+3. Student commits `image.digest` + `replicas: 1` to **stage** Gitea gitops remote
 4. Argo Application `lw-poc-student` syncs → Healthy Route
+
+**Prod (6.2 / V2-17):** second Gitea remote. Seed digest is `sha256:REPLACE_ME_PROD_DIGEST`. Learner commits the signed digest to `student_prod_gitops_repo_url`. Application `lw-poc-prod` must keep sourcing the **prod** remote (Check fails if it tracks stage). Not two Helm files in one repo.
 
 Monorepo `components.springBootLwPoc` stays **disabled** (runtime SoT is Gitea).
 `components.fastapiLwPoc` stays **disabled** (not a second catalog namespace).
@@ -90,13 +99,17 @@ Root-app Application wave: **`15`** (after TSSC operators, before RHDH / sample 
 | `seed.templates.skeletonPython.enabled` | `false` | Off at provision (V2-12); files stay in git |
 | `seed.templates.skeletonPython.repoName` | `lightwell-python-service` | Under templates org when enabled |
 | `seed.repoName` | `spring-boot-lw-poc` | Learner + template Java app name |
-| `seed.gitops.enabled` | `true` | Second remote (Java GitOps) |
-| `seed.gitops.repoName` | `gitops-spring-boot-lw-poc` | Learner + template Java gitops name |
+| `seed.gitops.enabled` | `true` | Stage Java GitOps remote |
+| `seed.gitops.repoName` | `gitops-spring-boot-lw-poc` | Learner + template **stage** gitops name |
+| `seed.gitops.prod.enabled` | `true` | Second remote (V2-17) |
+| `seed.gitops.prod.repoName` | `gitops-prod-spring-boot-lw-poc` | Learner + template **prod** gitops name |
 | `seed.python.enabled` | `false` | Off at provision (V2-12) |
 | `seed.python.repoName` | `fastapi-lw-poc` | Unused unless `seed.python.enabled` |
 | `seed.python.gitops.repoName` | `gitops-fastapi-lw-poc` | Unused unless `seed.python.enabled` |
-| `gitopsAppSet.enabled` | `true` | Argo Application `lw-poc-student` in `openshift-gitops` |
-| `gitopsAppSet.namespacePrefix` | `lw-poc` | Product NS = `lw-poc-student` |
+| `gitopsAppSet.enabled` | `true` | Argo Application `lw-poc-student` (stage) in `openshift-gitops` |
+| `gitopsAppSet.namespacePrefix` | `lw-poc` | Stage NS = `lw-poc-student` |
+| `gitopsAppSetProd.enabled` | `true` | Argo Application `lw-poc-prod` sources the prod remote |
+| `gitopsAppSetProd.namespace` | `lw-poc-prod` | Matches V2-16 admission prod ns |
 | `gitopsAppSetPython.enabled` | `false` | Do not create `lw-fastapi-student` |
 | `seed.source.mode` | `live` | `live` isolate from GitOps repo; `embedded` Java app fallback |
 | `seed.source.repoUrl` | `""` | Injected by root-app from `gitops.repoUrl` |

@@ -50,6 +50,11 @@ data:
 {{ .Files.Get "files/seed/overlay-gitops/PROMOTE.md" | indent 4 }}
   overlay-gitops-admission-trust-policy.yaml: |
 {{ .Files.Get "files/seed/overlay-gitops/admission/trust-policy.yaml" | indent 4 }}
+  # Prod GitOps overlay (V2-17) — second remote; wrong digest; no TrustPolicy
+  overlay-gitops-prod-README.md: |
+{{ .Files.Get "files/seed/overlay-gitops-prod/README.md" | indent 4 }}
+  overlay-gitops-prod-PROMOTE.md: |
+{{ .Files.Get "files/seed/overlay-gitops-prod/PROMOTE.md" | indent 4 }}
 {{- if .Values.seed.python.enabled }}
   # Python track — FastAPI app + gitops overlays (off at provision; V2-12)
   overlay-python-README.md: |

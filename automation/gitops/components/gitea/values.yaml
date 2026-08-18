@@ -94,12 +94,17 @@ seed:
     # Leave empty for public repos. Never commit real credentials into values.
     gitSecretName: ""
     gitSslVerify: true
-  # Second template remote: thin Helm chart (minus ./app) for Module 6 Ex4 promote (#100).
+  # Stage template remote: thin Helm chart (minus ./app) for Track 6.1 / Module 6 Ex4 (#100).
   gitops:
     enabled: true
     repoName: gitops-spring-boot-lw-poc
-    repoDescription: "Lightwell TSSC student GitOps chart (Module 6 Ex4 promote)"
+    repoDescription: "Lightwell TSSC student stage GitOps chart (Track 6.1)"
     sourcePath: automation/gitops/components/spring-boot-lw-poc
+    # Prod is a second Gitea remote (V2-17 / Q25), not a second values file.
+    prod:
+      enabled: true
+      repoName: gitops-prod-spring-boot-lw-poc
+      repoDescription: "Lightwell TSSC student prod GitOps chart (Track 6.2); seed digest is wrong"
   # Python FastAPI twin — files stay in git; off at provision (V2-12 single Java ns).
   python:
     enabled: false
@@ -118,7 +123,7 @@ seed:
       cpu: 500m
       memory: 512Mi
 
-# Argo CD Application pointing at the learner gitops remote (#100).
+# Argo CD Application pointing at the learner **stage** gitops remote (#100 / V2-17).
 # Remote exists after Module 2 learner setup; Argo retries until Healthy.
 gitopsAppSet:
   enabled: true
@@ -127,6 +132,14 @@ gitopsAppSet:
   project: default
   appNamePrefix: lw-poc
   namespacePrefix: lw-poc
+
+# Prod Argo Application (V2-17). Namespace matches admission chart lw-poc-prod.
+gitopsAppSetProd:
+  enabled: true
+  argocdNamespace: openshift-gitops
+  project: default
+  appName: lw-poc-prod
+  namespace: lw-poc-prod
 
 # Python Argo twin — off (V2-12). Do not create lw-fastapi-student.
 gitopsAppSetPython:
@@ -142,11 +155,12 @@ userInfo:
   title: "Lightwell TSSC Workshop — Student Git (Gitea)"
   instructions: >-
     Lab charts start Gitea and create the student user. Create organization
-    lw-student and repos spring-boot-lw-poc + gitops-spring-boot-lw-poc,
-    then seed from workshop-templates (see Showroom). student_repo_url is the
-    expected Java app remote. The scored app namespace is lw-poc-student (V2-12);
-    Python FastAPI is not provisioned. Credentials: student / student_password.
-    Never clone the workshop GitHub monorepo.
+    lw-student and repos spring-boot-lw-poc, gitops-spring-boot-lw-poc (stage),
+    and gitops-prod-spring-boot-lw-poc (prod), then seed from workshop-templates
+    (see Showroom). student_repo_url is the expected Java app remote. Stage
+    namespace is lw-poc-student; prod is lw-poc-prod (V2-17). Python FastAPI is
+    not provisioned. Credentials: student / student_password. Never clone the
+    workshop GitHub monorepo.
 
 deployer:
   domain: ""

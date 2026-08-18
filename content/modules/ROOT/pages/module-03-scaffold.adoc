@@ -110,14 +110,16 @@ Expect HTTP `204`. A `404` means the repo is already gone; continue.
 
 [NOTE]
 ====
-Do *not* delete `gitops-spring-boot-lw-poc` (`student_gitops_repo_url`). That thin Helm chart is for xref:module-06-pipeline.adoc[Module 6] promote.
+Do *not* delete `gitops-spring-boot-lw-poc` (`student_gitops_repo_url`) or
+`gitops-prod-spring-boot-lw-poc` (`student_prod_gitops_repo_url`). Those thin Helm
+charts are for xref:module-06-pipeline.adoc[Module 6] stage and prod promote.
 ====
 
 === Verify
 
 * The `curl` command returns HTTP `204` (deleted) or `404` (already absent).
 * Navigating to `${GITEA_URL}/lw-student/spring-boot-lw-poc` in the browser returns a Gitea 404 page.
-* The `gitops-spring-boot-lw-poc` repository is still visible under the `lw-student` organization.
+* The `gitops-spring-boot-lw-poc` and `gitops-prod-spring-boot-lw-poc` repositories are still visible under the `lw-student` organization.
 
 == Exercise 3: Scaffold from Developer Hub
 

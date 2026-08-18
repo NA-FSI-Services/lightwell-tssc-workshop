@@ -1,27 +1,31 @@
-{{- if and .Values.gitea.enabled .Values.gitopsAppSet.enabled }}
+{{- if and .Values.gitea.enabled .Values.seed.gitops.enabled .Values.seed.gitops.prod.enabled .Values.gitopsAppSetProd.enabled }}
 {{- $giteaUrl := include "gitea.url" . }}
 {{- $user := .Values.student.username | default "student" }}
-{{- $appName := printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $user }}
-{{- $ns := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $user }}
+{{- $appName := .Values.gitopsAppSetProd.appName | default "lw-poc-prod" }}
+{{- $ns := .Values.gitopsAppSetProd.namespace | default "lw-poc-prod" }}
+{{- $repo := .Values.seed.gitops.prod.repoName | default "gitops-prod-spring-boot-lw-poc" }}
 ---
+# V2-17: prod Application sources the prod Gitea remote (not stage).
+# Seed digest is sha256:REPLACE_ME_PROD_DIGEST — Check fails until the learner
+# commits their signed digest here. Check also fails if this app tracks stage.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: {{ $appName }}
-  namespace: {{ .Values.gitopsAppSet.argocdNamespace }}
+  namespace: {{ .Values.gitopsAppSetProd.argocdNamespace }}
   labels:
     {{- include "gitea.labels" . | nindent 4 }}
-    app.kubernetes.io/component: gitops-application
+    app.kubernetes.io/component: gitops-application-prod
     lightwell.workshop/student: {{ $user | quote }}
-    lightwell.workshop/env: stage
+    lightwell.workshop/env: prod
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.gitea.syncWaves.applicationset | quote }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: {{ .Values.gitopsAppSet.project | quote }}
+  project: {{ .Values.gitopsAppSetProd.project | quote }}
   source:
-    repoURL: {{ printf "%s/lw-%s/%s.git" $giteaUrl $user .Values.seed.gitops.repoName | quote }}
+    repoURL: {{ printf "%s/lw-%s/%s.git" $giteaUrl $user $repo | quote }}
     targetRevision: {{ .Values.seed.defaultBranch | quote }}
     path: .
     helm:

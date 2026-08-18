@@ -7,7 +7,10 @@
 {{- $repoUrl := include "gitea.studentAppRepoUrl" (list . $primaryUser) }}
 {{- $gitopsName := .Values.seed.gitops.repoName | default "gitops-spring-boot-lw-poc" }}
 {{- $gitopsUrl := include "gitea.studentGitopsRepoUrl" (list . $primaryUser) }}
+{{- $gitopsProdName := .Values.seed.gitops.prod.repoName | default "gitops-prod-spring-boot-lw-poc" }}
+{{- $gitopsProdUrl := include "gitea.studentProdGitopsRepoUrl" (list . $primaryUser) }}
 {{- $promoteNs := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $primaryUser }}
+{{- $prodNs := .Values.gitopsAppSetProd.namespace | default "lw-poc-prod" }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -37,6 +40,12 @@ data:
   student_trust_policy_path: "admission/trust-policy.yaml"
   student_promote_namespace: {{ $promoteNs | quote }}
   student_argocd_app: {{ printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $primaryUser | quote }}
+{{- if .Values.seed.gitops.prod.enabled }}
+  student_prod_gitops_repo_url: {{ $gitopsProdUrl | quote }}
+  student_prod_gitops_repo_name: {{ $gitopsProdName | quote }}
+  student_prod_namespace: {{ $prodNs | quote }}
+  student_prod_argocd_app: {{ .Values.gitopsAppSetProd.appName | default "lw-poc-prod" | quote }}
+{{- end }}
 {{- if .Values.seed.python.enabled }}
   student_python_repo_url: {{ include "gitea.studentPythonAppRepoUrl" (list . $primaryUser) | quote }}
   student_python_repo_name: {{ .Values.seed.python.repoName | default "fastapi-lw-poc" | quote }}
@@ -52,6 +61,9 @@ data:
   template_gitea_org: {{ $templatesOrg | quote }}
   template_app_repo_url: {{ include "gitea.templateAppRepoUrl" . | quote }}
   template_gitops_repo_url: {{ include "gitea.templateGitopsRepoUrl" . | quote }}
+{{- if .Values.seed.gitops.prod.enabled }}
+  template_prod_gitops_repo_url: {{ include "gitea.templateProdGitopsRepoUrl" . | quote }}
+{{- end }}
 {{- if .Values.seed.python.enabled }}
   template_python_app_repo_url: {{ include "gitea.templatePythonAppRepoUrl" . | quote }}
   template_python_gitops_repo_url: {{ include "gitea.templatePythonGitopsRepoUrl" . | quote }}

@@ -50,6 +50,10 @@ spec:
               export GITOPS_SOURCE_PATH={{ .Values.seed.gitops.sourcePath | quote }}
               export OVERLAY_GITOPS_PREFIX=overlay-gitops
               bash /seed/assemble-gitops-repo.sh "${WORKDIR}/gitops-repo"
+{{- if .Values.seed.gitops.prod.enabled }}
+              export OVERLAY_GITOPS_PREFIX=overlay-gitops-prod
+              bash /seed/assemble-gitops-repo.sh "${WORKDIR}/gitops-prod-repo"
+{{- end }}
 {{- end }}
 {{- if .Values.seed.templates.skeleton.enabled }}
               export SKELETON_PATH={{ .Values.seed.templates.skeleton.sourcePath | quote }}
@@ -119,6 +123,14 @@ spec:
               value: {{ .Values.seed.gitops.repoDescription | quote }}
             - name: GITOPS_SEED_SUBDIR
               value: gitops-repo
+{{- if .Values.seed.gitops.prod.enabled }}
+            - name: GITOPS_PROD_REPO_NAME
+              value: {{ .Values.seed.gitops.prod.repoName | quote }}
+            - name: GITOPS_PROD_REPO_DESCRIPTION
+              value: {{ .Values.seed.gitops.prod.repoDescription | quote }}
+            - name: GITOPS_PROD_SEED_SUBDIR
+              value: gitops-prod-repo
+{{- end }}
 {{- end }}
 {{- if .Values.seed.templates.skeleton.enabled }}
             - name: SKELETON_REPO_NAME

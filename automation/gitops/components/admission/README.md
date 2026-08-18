@@ -8,7 +8,7 @@ gate. Provision does **not** apply a correct `ImagePolicy`.
 | Resource | Purpose |
 |----------|---------|
 | Namespace `tssc-admission` | Jobs, scripts, TUF Secret, userinfo |
-| Namespace `lw-poc-prod` | Empty prod ns for ImagePolicy (V2-17 adds the prod GitOps remote) |
+| Namespace `lw-poc-prod` | Empty prod ns for ImagePolicy; V2-17 adds Application `lw-poc-prod` from the prod GitOps remote |
 | Job `rhtas-tuf-copy` | Copies Fulcio CA + Rekor key from RHTAS TUF into Secret `rhtas-tuf-keys` |
 | CronJob `trust-policy-apply` | Reads `admission/trust-policy.yaml`; applies ImagePolicy when `enforce: true` |
 | ConfigMap `demo-userinfo-admission` | Issuer hint, namespaces, unsigned-deny teaching note |

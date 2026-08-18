@@ -11,7 +11,8 @@
 #
 # Env (optional overrides; defaults read from demo-userinfo-gitea when oc works):
 #   GITEA_URL, STUDENT_USER, STUDENT_PASS, LEARNER_ORG, REPO_NAME, GITOPS_REPO_NAME
-#   TEMPLATE_APP_URL, TEMPLATE_GITOPS_URL, DEFAULT_BRANCH
+#   GITOPS_PROD_REPO_NAME, TEMPLATE_APP_URL, TEMPLATE_GITOPS_URL
+#   TEMPLATE_PROD_GITOPS_URL, DEFAULT_BRANCH
 set -euo pipefail
 
 cm_get() {
@@ -24,8 +25,10 @@ cm_get() {
 : "${LEARNER_ORG:=$(cm_get '{.data.student_gitea_org}')}"
 : "${REPO_NAME:=$(cm_get '{.data.student_repo_name}')}"
 : "${GITOPS_REPO_NAME:=$(cm_get '{.data.student_gitops_repo_name}')}"
+: "${GITOPS_PROD_REPO_NAME:=$(cm_get '{.data.student_prod_gitops_repo_name}')}"
 : "${TEMPLATE_APP_URL:=$(cm_get '{.data.template_app_repo_url}')}"
 : "${TEMPLATE_GITOPS_URL:=$(cm_get '{.data.template_gitops_repo_url}')}"
+: "${TEMPLATE_PROD_GITOPS_URL:=$(cm_get '{.data.template_prod_gitops_repo_url}')}"
 : "${DEFAULT_BRANCH:=$(cm_get '{.data.student_repo_revision}')}"
 
 : "${GITEA_URL:?Set GITEA_URL or ensure demo-userinfo-gitea exists}"
@@ -34,9 +37,11 @@ cm_get() {
 : "${LEARNER_ORG:=lw-${STUDENT_USER}}"
 : "${REPO_NAME:=spring-boot-lw-poc}"
 : "${GITOPS_REPO_NAME:=gitops-spring-boot-lw-poc}"
+: "${GITOPS_PROD_REPO_NAME:=gitops-prod-spring-boot-lw-poc}"
 : "${DEFAULT_BRANCH:=main}"
 : "${TEMPLATE_APP_URL:=${GITEA_URL%/}/workshop-templates/${REPO_NAME}.git}"
 : "${TEMPLATE_GITOPS_URL:=${GITEA_URL%/}/workshop-templates/${GITOPS_REPO_NAME}.git}"
+: "${TEMPLATE_PROD_GITOPS_URL:=${GITEA_URL%/}/workshop-templates/${GITOPS_PROD_REPO_NAME}.git}"
 : "${GITEA_SCAFFOLDER_USER:=gitea-admin}"
 
 API="${GITEA_URL%/}/api/v1"
@@ -124,9 +129,11 @@ mirror_push() {
 
 echo "Learner org:     ${LEARNER_ORG}"
 echo "App repo:        ${LEARNER_ORG}/${REPO_NAME}"
-echo "GitOps repo:     ${LEARNER_ORG}/${GITOPS_REPO_NAME}"
+echo "Stage GitOps:    ${LEARNER_ORG}/${GITOPS_REPO_NAME}"
+echo "Prod GitOps:     ${LEARNER_ORG}/${GITOPS_PROD_REPO_NAME}"
 echo "Template app:    ${TEMPLATE_APP_URL}"
-echo "Template gitops: ${TEMPLATE_GITOPS_URL}"
+echo "Template stage:  ${TEMPLATE_GITOPS_URL}"
+echo "Template prod:   ${TEMPLATE_PROD_GITOPS_URL}"
 
 # Org must already exist (created in Gitea UI per Module 2)
 org_code="$(curl -sk -o /tmp/gitea-org-check.json -w '%{http_code}' \
@@ -146,6 +153,11 @@ mirror_push "${TEMPLATE_APP_URL}" "${LEARNER_ORG}" "${REPO_NAME}"
 if [[ -n "${GITOPS_REPO_NAME}" && -n "${TEMPLATE_GITOPS_URL}" ]]; then
   require_repo "${LEARNER_ORG}" "${GITOPS_REPO_NAME}"
   mirror_push "${TEMPLATE_GITOPS_URL}" "${LEARNER_ORG}" "${GITOPS_REPO_NAME}"
+fi
+
+if [[ -n "${GITOPS_PROD_REPO_NAME}" && -n "${TEMPLATE_PROD_GITOPS_URL}" ]]; then
+  require_repo "${LEARNER_ORG}" "${GITOPS_PROD_REPO_NAME}"
+  mirror_push "${TEMPLATE_PROD_GITOPS_URL}" "${LEARNER_ORG}" "${GITOPS_PROD_REPO_NAME}"
 fi
 
 echo "Done. App remote: ${GITEA_URL%/}/${LEARNER_ORG}/${REPO_NAME}.git"

@@ -19,8 +19,11 @@ You create the **Organization** and **repositories** you will use for the rest o
 |Application repo
 |`spring-boot-lw-poc` → `student_repo_url`
 
-|GitOps repo
+|GitOps repo (stage)
 |`gitops-spring-boot-lw-poc` → `student_gitops_repo_url`
+
+|GitOps repo (prod)
+|`gitops-prod-spring-boot-lw-poc` → `student_prod_gitops_repo_url`
 
 |Template org (read-only)
 |`workshop-templates`
@@ -66,7 +69,8 @@ Under organization *`lw-student`*:
 
 . **+** → **New Repository** (or **New Repository** from the org page)
 . Name: *`spring-boot-lw-poc`* — leave **Initialize repository** unchecked (empty repo) → **Create**
-. Repeat for *`gitops-spring-boot-lw-poc`* (also empty / no README)
+. Repeat for *`gitops-spring-boot-lw-poc`* (stage GitOps; also empty / no README)
+. Repeat for *`gitops-prod-spring-boot-lw-poc`* (prod GitOps; also empty / no README)
 
 image::module-02-gitea-new-repos.png[Empty spring-boot-lw-poc and gitops repos under learner org,width=700]
 

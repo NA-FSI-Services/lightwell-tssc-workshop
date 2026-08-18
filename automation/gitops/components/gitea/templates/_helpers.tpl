@@ -57,6 +57,19 @@ https://{{ include "gitea.routeHost" . }}
 {{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
 {{- end -}}
 
+{{- define "gitea.studentProdGitopsRepoUrl" -}}
+{{- $root := index . 0 -}}
+{{- $user := index . 1 -}}
+{{- $org := include "gitea.learnerOrgName" $user -}}
+{{- $repo := $root.Values.seed.gitops.prod.repoName | default "gitops-prod-spring-boot-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" $root) $org $repo -}}
+{{- end -}}
+
+{{- define "gitea.templateProdGitopsRepoUrl" -}}
+{{- $repo := .Values.seed.gitops.prod.repoName | default "gitops-prod-spring-boot-lw-poc" -}}
+{{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}
+{{- end -}}
+
 {{- define "gitea.templateSkeletonRepoUrl" -}}
 {{- $repo := .Values.seed.templates.skeleton.repoName | default "lightwell-java-service" -}}
 {{- printf "%s/%s/%s.git" (include "gitea.url" .) (include "gitea.templatesOrgName" .) $repo -}}

@@ -25,6 +25,9 @@ set -euo pipefail
 GITOPS_REPO_NAME="${GITOPS_REPO_NAME:-}"
 GITOPS_REPO_DESCRIPTION="${GITOPS_REPO_DESCRIPTION:-Lightwell TSSC student GitOps chart (Module 6 promote)}"
 GITOPS_SEED_SUBDIR="${GITOPS_SEED_SUBDIR:-gitops-repo}"
+GITOPS_PROD_REPO_NAME="${GITOPS_PROD_REPO_NAME:-}"
+GITOPS_PROD_REPO_DESCRIPTION="${GITOPS_PROD_REPO_DESCRIPTION:-Lightwell TSSC student prod GitOps chart (Track 6.2)}"
+GITOPS_PROD_SEED_SUBDIR="${GITOPS_PROD_SEED_SUBDIR:-gitops-prod-repo}"
 SKELETON_REPO_NAME="${SKELETON_REPO_NAME:-}"
 SKELETON_REPO_DESCRIPTION="${SKELETON_REPO_DESCRIPTION:-RHDH Software Template skeleton (Module 3)}"
 SKELETON_SEED_SUBDIR="${SKELETON_SEED_SUBDIR:-skeleton}"
@@ -250,8 +253,15 @@ echo "TEMPLATE_APP_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${REPO_NAME}.git"
 if [[ -n "${GITOPS_REPO_NAME}" ]]; then
   ensure_org_repo "${TEMPLATES_ORG}" "${GITOPS_REPO_NAME}" "${GITOPS_REPO_DESCRIPTION} (template)"
   push_seed_tree "${TEMPLATES_ORG}" "${GITOPS_REPO_NAME}" "${GITOPS_SEED_SUBDIR}" \
-    "Operator template: Lightwell GitOps chart for learner seed (Module 6)"
+    "Operator template: Lightwell stage GitOps chart for learner seed (Track 6.1)"
   echo "TEMPLATE_GITOPS_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${GITOPS_REPO_NAME}.git"
+fi
+
+if [[ -n "${GITOPS_PROD_REPO_NAME}" && -d "${SEED_DIR}/${GITOPS_PROD_SEED_SUBDIR}" ]]; then
+  ensure_org_repo "${TEMPLATES_ORG}" "${GITOPS_PROD_REPO_NAME}" "${GITOPS_PROD_REPO_DESCRIPTION} (template)"
+  push_seed_tree "${TEMPLATES_ORG}" "${GITOPS_PROD_REPO_NAME}" "${GITOPS_PROD_SEED_SUBDIR}" \
+    "Operator template: Lightwell prod GitOps chart (Track 6.2; digest seed is wrong)"
+  echo "TEMPLATE_PROD_GITOPS_URL=${GITEA_URL%/}/${TEMPLATES_ORG}/${GITOPS_PROD_REPO_NAME}.git"
 fi
 
 if [[ -n "${SKELETON_REPO_NAME}" && -d "${SEED_DIR}/${SKELETON_SEED_SUBDIR}" ]]; then
