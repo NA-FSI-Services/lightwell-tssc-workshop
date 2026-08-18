@@ -1,0 +1,22 @@
+# Seeded incomplete. Do not change apiVersion/kind.
+# Track 6.1: fill identity, digest, scopes; set enforce: true.
+# Do not apply kind: ClusterImagePolicy. Do not copy admission-docs examples.
+apiVersion: tssc.workshop/v1
+kind: TrustPolicy
+metadata:
+  name: prod-admission
+spec:
+  # Seeded disabled. Check requires true after identity is filled.
+  enforce: false
+  # Registry/repo the gate applies to (internal dest from Track 1 / app build).
+  scopes:
+    - REPLACE_ME_REGISTRY/REPLACE_ME_REPO
+  identity:
+    # Must match the Fulcio OIDC issuer used at sign time (Track 5.1).
+    issuer: REPLACE_ME_OIDC_ISSUER
+    # Fulcio subject. ImagePolicy field name is signedEmail; value may be an SA URI.
+    subject: REPLACE_ME_IDENTITY
+  # Signed app digest the learner recorded in Track 5 (sha256:…).
+  digest: sha256:REPLACE_ME
+  signedIdentity:
+    matchPolicy: MatchRepoDigestOrExact

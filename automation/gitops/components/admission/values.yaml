@@ -1,0 +1,77 @@
+# Portable admission — Lightwell TSSC workshop (V2-16)
+# Learner edits TrustPolicy in Gitea. Chart does not apply a correct ImagePolicy
+# at provision. Root-app injects admission.*, rhtas.*, gitea.*, deployer.*.
+
+admission:
+  enabled: true
+  namespace: tssc-admission
+  # auto = ImagePolicy CRD present → native; else Kyverno ClusterPolicy.
+  # imagepolicy | kyverno force one backend. Do not set TechPreviewNoUpgrade.
+  backend: auto
+  policyName: tssc-prod-admission
+  stageNamespace: lw-poc-student
+  # Empty until V2-17 wires the prod GitOps remote. ImagePolicy still targets it.
+  prodNamespace: lw-poc-prod
+  createProdNamespace: true
+  syncWaves:
+    namespace: "0"
+    rbac: "1"
+    scripts: "1"
+    tufCopy: "2"
+    apply: "3"
+    userinfo: "4"
+
+rhtas:
+  namespace: trusted-artifact-signer
+  name: trusted-artifact-signer
+  tufService: tuf
+  tufPort: 80
+
+gitea:
+  namespace: gitea
+  userInfoConfigMap: demo-userinfo-gitea
+  gitopsRepoUrl: ""
+  gitopsRepoPath: admission/trust-policy.yaml
+  studentUsername: student
+
+tufCopy:
+  enabled: true
+  jobName: rhtas-tuf-copy
+  serviceAccountName: rhtas-tuf-copy
+  secretName: rhtas-tuf-keys
+  image: registry.access.redhat.com/ubi9/ubi:latest
+  imagePullPolicy: IfNotPresent
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400
+  waitSeconds: 900
+
+apply:
+  enabled: true
+  cronJobName: trust-policy-apply
+  serviceAccountName: trust-policy-apply
+  schedule: "*/2 * * * *"
+  image: registry.access.redhat.com/ubi9/ubi:latest
+  imagePullPolicy: IfNotPresent
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  waitSeconds: 120
+
+kyverno:
+  # Do not install the community operator unless ImagePolicy CRD is missing
+  # or MCO drain fails the timing test on a CNV claim.
+  install: false
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Admission (Track 6.1)"
+  instructions: >-
+    Edit admission/trust-policy.yaml in the learner GitOps repo (not this
+    cluster object). Seed is enforce: false with REPLACE_ME placeholders.
+    When enforce is true and placeholders are gone, a CronJob renders
+    namespaced ImagePolicy in the stage and prod namespaces. Do not apply
+    kind: ClusterImagePolicy. Do not use RHACS for this gate. Unsigned
+    deny is a pull failure (ImagePullBackOff), not oc apply stderr.
+
+deployer:
+  domain: ""
+  apiUrl: ""

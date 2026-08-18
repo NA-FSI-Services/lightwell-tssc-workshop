@@ -4,7 +4,7 @@
 # Sync wave ordering (IdP → pipelines → operators → student git → config → apps → showroom):
 #    5  — Workshop Keycloak (SSO for RHTPA): keycloak
 #    8  — OpenShift Pipelines (Tekton CRDs for Module 5 / RHACS Tasks): pipelines
-#   10  — TSSC operators / platform: rhtas, rhtpa, rhacs
+#   10  — TSSC operators / platform: rhtas, rhtpa, rhacs, admission
 #   15  — Student Git (Gitea): gitea
 #   20  — Artifact manager / LWN pattern: lightwell-repo
 #   30  — Developer Hub: rhdh
@@ -62,6 +62,13 @@ components:
   rhacs:
     enabled: false
     namespace: stackrox
+    syncWave: "10"
+
+  # Chart: automation/gitops/components/admission (V2-16). Enable with rhtas.
+  # Learner TrustPolicy → namespaced ImagePolicy. Do not score ClusterImagePolicy.
+  admission:
+    enabled: false
+    namespace: tssc-admission
     syncWave: "10"
 
   # --- Wave 15: Student Git (learner repos for Module 5 — not the GitOps monorepo) ---

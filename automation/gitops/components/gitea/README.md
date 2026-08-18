@@ -15,6 +15,7 @@ everywhere (see [AGENTS.md](../../../AGENTS.md)).
 | ConfigMap script `learner-seed-from-templates.sh` | Learner copies Java templates → `lw-student` repos |
 | ConfigMap script `learner-ensure-gitea-user.sh` | Learner ensures Gitea login user `student` exists (via `gitea-admin`) |
 | Application `lw-poc-student` | Argo App from the learner **Java** gitops remote (the scored TSSC app namespace) |
+| GitOps overlay `admission/trust-policy.yaml` | Track 6.1 scored TrustPolicy (V2-16); seed is `enforce: false` |
 | ConfigMap `demo-userinfo-gitea` | RHDP userinfo (expected URLs, templates, credentials) |
 
 Default student in the **chart**: `student` / workshop password placeholder.
@@ -46,7 +47,7 @@ Default `seed.source.mode=live`: the seed Job clones the **workshop GitOps URL**
 (`seed.source.repoUrl`, injected from root-app `gitops.repoUrl`), then:
 
 1. **Java app template** — copies `seed.source.path` to `workshop-templates/spring-boot-lw-poc`, includes `tools/osv-eval/`, overlays `.tekton/`
-2. **Java GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`
+2. **Java GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`, overlays `admission/trust-policy.yaml` (V2-16 seed)
 3. **RHDH Java skeleton** — copies `seed.templates.skeleton` to `workshop-templates/lightwell-java-service`
 
 Python FastAPI assemble (`seed.python`) and `skeletonPython` are **off** (V2-12). Overlay files stay in the chart.

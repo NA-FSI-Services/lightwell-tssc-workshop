@@ -1,0 +1,18 @@
+{{- if .Values.admission.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admission-scripts
+  namespace: {{ .Values.admission.namespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scripts
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.scripts | quote }}
+data:
+  copy-tuf-keys.sh: |
+{{ .Files.Get "files/copy-tuf-keys.sh" | indent 4 }}
+  apply-trust-policy.sh: |
+{{ .Files.Get "files/apply-trust-policy.sh" | indent 4 }}
+{{- end }}

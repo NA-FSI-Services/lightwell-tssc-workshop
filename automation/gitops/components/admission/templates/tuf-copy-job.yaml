@@ -1,0 +1,56 @@
+{{- if and .Values.admission.enabled .Values.tufCopy.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.tufCopy.jobName }}
+  namespace: {{ .Values.admission.namespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tuf-copy
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.tufCopy | quote }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.tufCopy.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.tufCopy.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "admission.labels" . | nindent 8 }}
+        app.kubernetes.io/component: tuf-copy
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.tufCopy.serviceAccountName }}
+      containers:
+        - name: copy-tuf-keys
+          image: {{ .Values.tufCopy.image | quote }}
+          imagePullPolicy: {{ .Values.tufCopy.imagePullPolicy | quote }}
+          command:
+            - /bin/bash
+            - /scripts/copy-tuf-keys.sh
+          env:
+            - name: RHTAS_NAMESPACE
+              value: {{ .Values.rhtas.namespace | quote }}
+            - name: RHTAS_NAME
+              value: {{ .Values.rhtas.name | quote }}
+            - name: TUF_SERVICE
+              value: {{ .Values.rhtas.tufService | quote }}
+            - name: TUF_PORT
+              value: {{ .Values.rhtas.tufPort | quote }}
+            - name: ADMISSION_NAMESPACE
+              value: {{ .Values.admission.namespace | quote }}
+            - name: SECRET_NAME
+              value: {{ .Values.tufCopy.secretName | quote }}
+            - name: WAIT_SECONDS
+              value: {{ .Values.tufCopy.waitSeconds | quote }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: admission-scripts
+            defaultMode: 0755
+{{- end }}

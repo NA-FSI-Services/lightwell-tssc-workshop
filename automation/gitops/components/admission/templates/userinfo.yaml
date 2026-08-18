@@ -1,0 +1,38 @@
+{{- if and .Values.admission.enabled .Values.userInfo.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-admission
+  namespace: {{ .Values.admission.namespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: helm
+  backend: {{ .Values.admission.backend | quote }}
+  scored_kind: TrustPolicy
+  scored_api_version: tssc.workshop/v1
+  scored_path: {{ .Values.gitea.gitopsRepoPath | quote }}
+  live_kind: ImagePolicy
+  live_api_group: config.openshift.io
+  do_not_score: ClusterImagePolicy
+  policy_name: {{ .Values.admission.policyName | quote }}
+  stage_namespace: {{ .Values.admission.stageNamespace | quote }}
+  prod_namespace: {{ .Values.admission.prodNamespace | quote }}
+  oidc_issuer_hint: "https://kubernetes.default.svc"
+  identity_seed: REPLACE_ME_IDENTITY
+  fulcio_url_hint: {{ include "admission.fulcioUrlHint" . | quote }}
+  rekor_url_hint: {{ include "admission.rekorUrlHint" . | quote }}
+  tuf_url_hint: {{ include "admission.tufUrlHint" . | quote }}
+  unsigned_deny_hint: >-
+    oc apply of an unsigned Deployment can succeed. The pod fails at pull
+    (ImagePullBackOff / signature verification). Check pod phase and events,
+    not only apply stderr. Kyverno fallback denies at admission instead.
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}

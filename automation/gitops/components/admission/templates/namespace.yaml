@@ -1,0 +1,24 @@
+{{- if .Values.admission.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.admission.namespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.namespace | quote }}
+{{- if .Values.admission.createProdNamespace }}
+---
+# Empty prod namespace for Track 6.1 ImagePolicy. V2-17 adds the prod GitOps remote.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.admission.prodNamespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+    lightwell.workshop/role: prod
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.namespace | quote }}
+{{- end }}
+{{- end }}

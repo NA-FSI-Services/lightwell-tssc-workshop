@@ -219,6 +219,57 @@ spec:
       - RespectIgnoreDifferences=true
 {{- end }}
 
+{{- if .Values.components.admission.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-admission
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "root-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.components.admission.syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: {{ .Values.gitops.basePath }}/components/admission
+    helm:
+      valuesObject:
+        admission:
+          enabled: {{ .Values.components.admission.enabled }}
+          namespace: {{ .Values.components.admission.namespace }}
+        rhtas:
+          namespace: {{ .Values.components.rhtas.namespace | default "trusted-artifact-signer" }}
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.components.admission.namespace }}
+  # TUF copy Job fills fulcio_v1.crt.pem / rekor.pub; do not let Helm wipe them.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: rhtas-tuf-keys
+      jsonPointers:
+        - /data
+        - /stringData
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+{{- end }}
+
 {{- if .Values.components.gitea.enabled }}
 ---
 apiVersion: argoproj.io/v1alpha1

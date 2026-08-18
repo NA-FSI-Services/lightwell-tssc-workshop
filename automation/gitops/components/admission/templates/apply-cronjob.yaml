@@ -1,0 +1,70 @@
+{{- if and .Values.admission.enabled .Values.apply.enabled }}
+---
+# Polls the learner GitOps TrustPolicy. Does not apply a correct ImagePolicy at provision.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.apply.cronJobName }}
+  namespace: {{ .Values.admission.namespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+    app.kubernetes.io/component: trust-policy-apply
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.apply | quote }}
+spec:
+  schedule: {{ .Values.apply.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.apply.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.apply.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            {{- include "admission.labels" . | nindent 12 }}
+            app.kubernetes.io/component: trust-policy-apply
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ .Values.apply.serviceAccountName }}
+          containers:
+            - name: apply-trust-policy
+              image: {{ .Values.apply.image | quote }}
+              imagePullPolicy: {{ .Values.apply.imagePullPolicy | quote }}
+              command:
+                - /bin/bash
+                - /scripts/apply-trust-policy.sh
+              env:
+                - name: BACKEND
+                  value: {{ .Values.admission.backend | quote }}
+                - name: POLICY_NAME
+                  value: {{ .Values.admission.policyName | quote }}
+                - name: STAGE_NAMESPACE
+                  value: {{ .Values.admission.stageNamespace | quote }}
+                - name: PROD_NAMESPACE
+                  value: {{ .Values.admission.prodNamespace | quote }}
+                - name: ADMISSION_NAMESPACE
+                  value: {{ .Values.admission.namespace | quote }}
+                - name: TUF_SECRET_NAME
+                  value: {{ .Values.tufCopy.secretName | quote }}
+                - name: GITEA_NAMESPACE
+                  value: {{ .Values.gitea.namespace | quote }}
+                - name: GITEA_USERINFO_CM
+                  value: {{ .Values.gitea.userInfoConfigMap | quote }}
+                - name: GITOPS_REPO_URL
+                  value: {{ .Values.gitea.gitopsRepoUrl | quote }}
+                - name: GITOPS_REPO_PATH
+                  value: {{ .Values.gitea.gitopsRepoPath | quote }}
+                - name: REKOR_URL_HINT
+                  value: {{ include "admission.rekorUrlHint" . | quote }}
+                - name: WAIT_SECONDS
+                  value: {{ .Values.apply.waitSeconds | quote }}
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+          volumes:
+            - name: scripts
+              configMap:
+                name: admission-scripts
+                defaultMode: 0755
+{{- end }}

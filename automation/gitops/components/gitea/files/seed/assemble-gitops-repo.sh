@@ -57,6 +57,12 @@ apply_gitops_overlay() {
   if [[ -f "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-PROMOTE.md" ]]; then
     cp "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-PROMOTE.md" "${ROOT}/PROMOTE.md"
   fi
+  # V2-16: seeded broken TrustPolicy (enforce: false, REPLACE_ME_*).
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-admission-trust-policy.yaml" ]]; then
+    mkdir -p "${ROOT}/admission"
+    cp "${SEED_MOUNT}/${OVERLAY_GITOPS_PREFIX}-admission-trust-policy.yaml" \
+      "${ROOT}/admission/trust-policy.yaml"
+  fi
 }
 
 patch_gitops_values() {

@@ -1,0 +1,67 @@
+{{- if .Values.admission.enabled }}
+---
+# Worked examples are not paste-identical (wrong path, ClusterImagePolicy, fake identity).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admission-docs
+  namespace: {{ .Values.admission.namespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docs
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.userinfo | quote }}
+data:
+  scored_path: {{ .Values.gitea.gitopsRepoPath | quote }}
+  live_kind: ImagePolicy
+  README: |
+    V2-16. The scored file is admission/trust-policy.yaml in the learner
+    GitOps repo (kind: TrustPolicy). A CronJob renders namespaced ImagePolicy
+    in {{ .Values.admission.stageNamespace }} and {{ .Values.admission.prodNamespace }}
+    only when enforce is true and REPLACE_ME is gone.
+
+    Do not apply kind: ClusterImagePolicy. Do not use RHACS Trusted image
+    signers for this gate (public keys only; Track 5.1 is keyless). Do not
+    enable TechPreviewNoUpgrade. Kyverno is the fallback if the ImagePolicy
+    CRD is missing or MCO drain fails a CNV timing test.
+
+    Fulcio CA and Rekor key come from Secret {{ .Values.tufCopy.secretName }}
+    (copied from RHTAS TUF). Do not paste PEMs.
+
+    Unsigned deny: pod ImagePullBackOff / signature error, not oc apply.
+    Do not copy inspect-cluster-image-policy-snippet.yaml or
+    example-trust-policy.yaml.
+  example-trust-policy.yaml: |
+    # Worked example ONLY — different path, truncated, fake identity.
+    # Paste-identical copy still fails the Check.
+    apiVersion: tssc.workshop/v1
+    kind: TrustPolicy
+    metadata:
+      name: example-not-scored
+    spec:
+      enforce: false
+      scopes:
+        - quay.io/example/not-the-lab-repo
+      identity:
+        issuer: https://example.invalid/oidc
+        subject: student@example.invalid
+      digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+  inspect-cluster-image-policy-snippet.yaml: |
+    # Inspect-only. Not the scored object. Do not oc apply this.
+    # Same four learner fields, cluster-scoped kind (not used for the gate).
+    apiVersion: config.openshift.io/v1
+    kind: ClusterImagePolicy
+    metadata:
+      name: example-not-openshift
+    spec:
+      scopes:
+        - registry.example.invalid/workshop
+      policy:
+        rootOfTrust:
+          policyType: FulcioCAWithRekor
+          fulcioCAWithRekor:
+            fulcioSubject:
+              oidcIssuer: https://example.invalid/oidc
+              signedEmail: not-the-pipeline-sa
+{{- end }}
