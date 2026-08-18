@@ -5,7 +5,7 @@ Deploys the **Showroom** split-screen learner experience for this workshop:
 | Pane | Source |
 |------|--------|
 | Lab guide | Antora build of `site.yml` → `docs/modules/ROOT` (Modules 1–6 Java + Modules 7–9 Python; epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144)) |
-| Terminal | `quay.io/rhpds/openshift-showroom-terminal-ocp` proxied at `/terminal/` |
+| Terminal | `quay.io/rhpds/openshift-showroom-terminal-ocp` plus init-copy of `cosign`, `ec`, `oc-mirror` from `registry.redhat.io` (V2-20). `syft` is **not** baked. |
 
 Promoted from `examples/helm/components/showroom` for issue [#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19). Image pins follow [docs/SHOWROOM-UPDATE-SPEC.md](../../../docs/SHOWROOM-UPDATE-SPEC.md).
 
@@ -43,8 +43,25 @@ Root App-of-Apps places this chart at sync wave **`50`** (last).
 ConfigMap `demo-userinfo-showroom` exposes:
 
 * `showroom_url` — primary access link (matches hello-world / field-content pattern)
+* `gitea_url` — in-cluster Gitea (not egress)
+* `hummingbird_source_pullspec` — V2-1 digest pin (do not invent pull specs)
+* `dest_registry_host` / `dest_registry_docker` — empty Nexus Docker dest for learner oc-mirror
+* `lab_clis` — `cosign,ec,oc-mirror` on PATH (`/usr/local/bin`); `syft_baked=false`
+* `do_not_curl_github` — Q22; never download CLIs from github.com at runtime
 * `modules`, `lab_entry`, `access_instructions`
 * Labels: `demo.redhat.com/application: lightwell-tssc-workshop`, `demo.redhat.com/userinfo: ""`
+
+## Terminal CLIs (V2-20)
+
+Init containers copy binaries from the same images the pipelines chart already pins:
+
+| CLI | Image |
+|-----|--------|
+| `cosign` | `registry.redhat.io/rhtas/cosign-rhel9:1.3.0` |
+| `ec` | `registry.redhat.io/rhtas/ec-rhel9:1.3.0` |
+| `oc-mirror` | `registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20` |
+
+Files land at `/usr/local/bin/{cosign,ec,oc-mirror}` via `emptyDir` + `subPath` (login shells keep default PATH). **Do not** curl `github.com` for these. **`syft` is deferred** until a bake registry exists (no Red Hat CLI image).
 
 ## Nookbag / zero-touch
 
@@ -73,4 +90,5 @@ helm template lightwell charts/root-app \
 
 - Modules: `docs/modules/ROOT/pages/module-0{1..5}-*.adoc`
 - Issue [#19](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/19)
+- [V2-20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/12) — Showroom CLIs + Hummingbird/gitea userinfo
 - [charts/root-app/README.md](../../root-app/README.md)

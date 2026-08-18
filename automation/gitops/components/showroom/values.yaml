@@ -34,6 +34,18 @@ showroom:
     # `oc -n lightwell-repo|stackrox|…` commands work from /terminal/.
     # Required for Field Content / RHDP catalog (namespace-local edit is not enough).
     labClusterAccess: true
+    # V2-20: copy CLIs from already-pinned registry.redhat.io images (no github.com).
+    # syft has no Red Hat CLI image — deferred until a bake registry exists.
+    tools:
+      enabled: true
+      mountDir: /usr/local/bin
+      items:
+        - name: cosign
+          image: registry.redhat.io/rhtas/cosign-rhel9:1.3.0
+        - name: ec
+          image: registry.redhat.io/rhtas/ec-rhel9:1.3.0
+        - name: oc-mirror
+          image: registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20
     resources:
       requests:
         cpu: "500m"
@@ -44,6 +56,15 @@ showroom:
 
   pvc:
     size: 5Gi
+
+# Discovery for Showroom userinfo (must match V2-1 pin + gitea / lightwell-repo charts)
+lab:
+  giteaHostPrefix: gitea
+  lightwellRepoNamespace: lightwell-repo
+  destRegistryRepo: hummingbird-mirror
+  hummingbirdSourcePullSpec: "registry.access.redhat.com/hi/openjdk:21-runtime@sha256:e7c41dc2cba28c49d551c491419e00b75c5aef6c13326cc08765d30e882630ba"
+  hummingbirdAmd64Manifest: "sha256:dd3ce6562cc9bd752c5c1424b740397cbf8ca08c036d50311acfa19c756cdf37"
+  hummingbirdSourceRegistry: "registry.access.redhat.com"
 
 # Injected by root-app / field-content
 deployer:
@@ -60,4 +81,6 @@ userInfo:
   title: "Lightwell Software Supply Chain Security Workshop"
   instructions: >-
     Open Showroom for Modules 1–6 (split-screen guide + terminal).
-    Use the terminal pane for oc / tkn / mvn / syft. Never commit LW_USERNAME / LW_PASSWORD.
+    Use the terminal pane for oc / tkn / mvn / cosign / ec / oc-mirror.
+    syft is not baked yet (no Red Hat CLI image). Never curl github.com for CLIs.
+    Never commit LW_USERNAME / LW_PASSWORD.

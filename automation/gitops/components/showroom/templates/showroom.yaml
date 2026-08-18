@@ -113,6 +113,10 @@ data:
     # Student Git (Module 5) — discover live values from demo-userinfo-gitea in ns gitea
     gitea_namespace: gitea
     student_git_userinfo: demo-userinfo-gitea
+    gitea_url: {{ include "showroom.giteaUrl" . | quote }}
+    hummingbird_source_pullspec: {{ .Values.lab.hummingbirdSourcePullSpec | quote }}
+    dest_registry_host: {{ include "showroom.destRegistryHost" . | quote }}
+    dest_registry_docker: {{ printf "docker://%s" (include "showroom.destRegistryHost" .) | quote }}
 ---
 # PVC must share the Deployment sync wave. gp3-csi uses WaitForFirstConsumer —
 # a PVC-only earlier wave stays Pending forever and deadlocks App-of-Apps sync.
@@ -175,6 +179,38 @@ spec:
     spec:
       serviceAccountName: {{ .Values.showroom.name }}
       initContainers:
+      {{- if and .Values.showroom.terminal.enabled .Values.showroom.terminal.tools.enabled }}
+      {{- range .Values.showroom.terminal.tools.items }}
+      - name: copy-{{ .name }}
+        image: {{ .image | quote }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -eu
+            dest="/lab-bin/{{ .name }}"
+            for c in "/usr/bin/{{ .name }}" "/usr/local/bin/{{ .name }}"; do
+              if [ -x "$c" ]; then
+                cp -a "$c" "$dest"
+                chmod 0755 "$dest"
+                ls -l "$dest"
+                exit 0
+              fi
+            done
+            src="$(command -v {{ .name }} 2>/dev/null || true)"
+            if [ -n "$src" ] && [ -x "$src" ]; then
+              cp -a "$src" "$dest"
+              chmod 0755 "$dest"
+              ls -l "$dest"
+              exit 0
+            fi
+            echo "ERROR: {{ .name }} not found in image {{ .image }}" >&2
+            exit 1
+        volumeMounts:
+          - name: lab-bin
+            mountPath: /lab-bin
+      {{- end }}
+      {{- end }}
       - name: git-cloner
         image: {{ .Values.showroom.content.gitClonerImage | quote }}
         env:
@@ -273,9 +309,20 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        {{- if .Values.showroom.terminal.tools.enabled }}
+        - name: PATH
+          value: "{{ .Values.showroom.terminal.tools.mountDir }}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        {{- end }}
         volumeMounts:
         - name: terminal-lab-user-home
           mountPath: /home/lab-user
+        {{- if .Values.showroom.terminal.tools.enabled }}
+        {{- range .Values.showroom.terminal.tools.items }}
+        - name: lab-bin
+          mountPath: {{ printf "%s/%s" $.Values.showroom.terminal.tools.mountDir .name | quote }}
+          subPath: {{ .name | quote }}
+        {{- end }}
+        {{- end }}
         ports:
         - containerPort: 7681
           protocol: TCP
@@ -304,6 +351,10 @@ spec:
       - name: terminal-lab-user-home
         persistentVolumeClaim:
           claimName: {{ .Values.showroom.name }}-terminal-lab-user-home
+      {{- if and .Values.showroom.terminal.enabled .Values.showroom.terminal.tools.enabled }}
+      - name: lab-bin
+        emptyDir: {}
+      {{- end }}
 ---
 apiVersion: route.openshift.io/v1
 kind: Route

@@ -20,3 +20,37 @@ Route host — RHDP userinfo pattern showroom.<deployer.domain>
 {{- define "showroom.url" -}}
 https://{{ include "showroom.routeHost" . }}
 {{- end -}}
+
+{{- define "showroom.giteaHost" -}}
+{{- if .Values.deployer.domain -}}
+{{ .Values.lab.giteaHostPrefix }}.{{ .Values.deployer.domain }}
+{{- else -}}
+{{ .Values.lab.giteaHostPrefix }}.apps.cluster.example.com
+{{- end -}}
+{{- end -}}
+
+{{- define "showroom.giteaUrl" -}}
+https://{{ include "showroom.giteaHost" . }}
+{{- end -}}
+
+{{- define "showroom.destRegistryHost" -}}
+{{- if .Values.deployer.domain -}}
+registry-{{ .Values.lab.lightwellRepoNamespace }}.{{ .Values.deployer.domain }}
+{{- else -}}
+registry-{{ .Values.lab.lightwellRepoNamespace }}.apps.cluster.example.com
+{{- end -}}
+{{- end -}}
+
+{{- define "showroom.destRegistryUrl" -}}
+https://{{ include "showroom.destRegistryHost" . }}
+{{- end -}}
+
+{{- define "showroom.labClis" -}}
+{{- $names := list -}}
+{{- if and .Values.showroom.terminal.enabled .Values.showroom.terminal.tools.enabled }}
+{{- range .Values.showroom.terminal.tools.items }}
+{{- $names = append $names .name -}}
+{{- end }}
+{{- end }}
+{{- join "," $names -}}
+{{- end -}}

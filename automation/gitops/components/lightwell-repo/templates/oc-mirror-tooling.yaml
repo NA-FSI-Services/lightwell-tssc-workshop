@@ -102,7 +102,7 @@ data:
       oc -n {{ .Values.lightwellRepo.namespace }} edit configmap {{ .Values.ocMirror.imageSet.configMapName }}
       Replace REPLACE_ME_HUMMINGBIRD_PULLSPEC with the source pin above (digest, not :latest).
 
-    Run oc-mirror from Showroom (Job; binary bake is V2-20):
+    Run oc-mirror from Showroom (binary is copied onto PATH by V2-20; do not curl github.com):
       oc -n {{ .Values.lightwellRepo.namespace }} get configmap {{ .Values.ocMirror.configMapName }} \
         -o jsonpath='{.data.job\.yaml}' | oc create -f -
 
