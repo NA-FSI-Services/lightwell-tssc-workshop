@@ -1,0 +1,202 @@
+---
+# Fresh-claim negatives. Learner gates must still be incomplete.
+# Pass-path (mirrored Hummingbird, cosign verify, unsigned deny) is V2-54.
+
+- name: ImageSet seed still has REPLACE_ME
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - configmap
+      - "{{ imageset_configmap }}"
+      - -n
+      - "{{ repo_namespace }}"
+      - -o
+      - "jsonpath={.data['imageset-config.yaml']}"
+  register: imageset_data
+  changed_when: false
+
+- name: ImageSet is still incomplete
+  ansible.builtin.assert:
+    that:
+      - imageset_placeholder in imageset_data.stdout
+    fail_msg: >-
+      imageset-configuration no longer contains {{ imageset_placeholder }}
+      (not a fresh claim; pass-path is V2-54)
+
+- name: oc-mirror-learner Job must not exist
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - job
+      - "{{ oc_mirror_job }}"
+      - -n
+      - "{{ repo_namespace }}"
+  register: mirror_job
+  failed_when: false
+  changed_when: false
+
+- name: Learner oc-mirror Job has not run
+  ansible.builtin.assert:
+    that:
+      - mirror_job.rc != 0
+    fail_msg: >-
+      Job {{ oc_mirror_job }} exists — dest hummingbird-mirror may already
+      be filled (not a fresh claim)
+
+- name: Read build-egress NetworkPolicy
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - networkpolicy
+      - "{{ build_policy }}"
+      - -n
+      - "{{ build_namespace }}"
+      - -o
+      - json
+  register: build_np_raw
+  changed_when: false
+
+- name: build-egress is still too open
+  ansible.builtin.assert:
+    that:
+      - "'Egress' in (build_np.spec.policyTypes | default([]))"
+      - build_np.spec.egress | default([]) | length >= 1
+      - item.to | default([]) | length == 0
+      - item.ports | default([]) | length == 0
+    fail_msg: >-
+      {{ build_policy }} is no longer allow-all egress (Track 4.3 already
+      tightened; pass-path is V2-54)
+  vars:
+    build_np: "{{ build_np_raw.stdout | from_json }}"
+  loop: "{{ (build_np_raw.stdout | from_json).spec.egress }}"
+  loop_control:
+    label: allow-all egress rule
+
+- name: TrustPolicy seed is still enforce false
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - configmap
+      - "{{ gitea_seed_configmap }}"
+      - -n
+      - "{{ gitea_namespace }}"
+      - -o
+      - "jsonpath={.data['overlay-gitops-admission-trust-policy.yaml']}"
+  register: trust_seed
+  changed_when: false
+
+- name: Admission seed has not been completed
+  ansible.builtin.assert:
+    that:
+      - "'enforce: false' in trust_seed.stdout"
+      - "'REPLACE_ME_IDENTITY' in trust_seed.stdout"
+    fail_msg: Gitea TrustPolicy seed is no longer incomplete (not a fresh claim)
+
+- name: Look up ImagePolicy CRD
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - crd
+      - imagepolicies.config.openshift.io
+  register: imagepolicy_crd
+  failed_when: false
+  changed_when: false
+
+- name: List ImagePolicy in stage and prod
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - imagepolicy.config.openshift.io
+      - -n
+      - "{{ item }}"
+      - -o
+      - "jsonpath={.items[*].metadata.name}"
+  loop:
+    - "{{ stage_namespace }}"
+    - "{{ prod_namespace }}"
+  register: live_imagepolicies
+  failed_when: false
+  changed_when: false
+  when: imagepolicy_crd.rc == 0
+
+- name: Unsigned deny is not live (no ImagePolicy)
+  ansible.builtin.assert:
+    that:
+      - admission_policy not in (item.stdout | default(''))
+    fail_msg: >-
+      ImagePolicy {{ admission_policy }} is already applied in
+      {{ item.item }} — unsigned deny is live (pass-path is V2-54)
+  loop: "{{ live_imagepolicies.results | default([]) }}"
+  when:
+    - imagepolicy_crd.rc == 0
+    - not (item.skipped | default(false))
+
+- name: PipelineRuns in the build namespace
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - pipelinerun
+      - -n
+      - "{{ build_namespace }}"
+      - --no-headers
+  register: build_prs
+  failed_when: false
+  changed_when: false
+
+- name: No PipelineRun has run in the build namespace
+  ansible.builtin.assert:
+    that:
+      - build_prs.stdout | trim | length == 0
+    fail_msg: >-
+      A PipelineRun exists in {{ build_namespace }} — there may be a signed
+      app image (cosign verify pass-path is V2-54)
+
+- name: Stage ImageStream for the app
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - imagestream
+      - "{{ app_imagestream }}"
+      - -n
+      - "{{ stage_namespace }}"
+      - -o
+      - "jsonpath={.status.tags[*].items[*].image}"
+  register: stage_is
+  failed_when: false
+  changed_when: false
+
+- name: Stage ImageStream has no promoted digest
+  ansible.builtin.assert:
+    that:
+      - stage_is.rc != 0 or (stage_is.stdout | trim | length == 0)
+    fail_msg: >-
+      {{ app_imagestream }} in {{ stage_namespace }} already has a digest
+      (cosign verify / promote already happened; pass-path is V2-54)
+
+- name: Conforma seed is still too permissive
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - configmap
+      - "{{ conforma_configmap }}"
+      - -n
+      - "{{ tasks_namespace }}"
+      - -o
+      - "jsonpath={.data.skip-image-sig-check}"
+  register: conforma_skip
+  changed_when: false
+
+- name: Conforma signature skip is still true
+  ansible.builtin.assert:
+    that:
+      - conforma_skip.stdout | trim == "true"
+    fail_msg: conforma-policy seed is no longer skip-image-sig-check=true

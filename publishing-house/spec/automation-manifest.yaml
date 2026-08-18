@@ -39,5 +39,7 @@ seed_data:
   - OSV evaluation scripts pre-staged in tools/osv-eval/scripts/
 
 notes: >
+  qa-automation healthcheck confirms provisioned objects; e2e asserts the
+  fresh-claim negatives (no Solve). Pass-path is in-cluster Validate Jobs (V2-54).
   External services required: packages.redhat.com (Lightwell registry, proxied via Nexus),
   github.com (cosign binary download from sigstore/cosign releases during student exercises).

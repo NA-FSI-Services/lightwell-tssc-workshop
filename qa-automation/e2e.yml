@@ -1,13 +1,27 @@
 ---
-# E2E — End-to-end test
-# Runs all module solve + validate sequences to verify the full lab
-# works from start to finish without manual intervention.
+# E2E — Fresh-claim negative suite (V2-22)
+#
+# Classic Showroom has no Solve. This playbook does not run oc-mirror, sign, or
+# enforce admission. It asserts the provisioned incomplete state:
+#   - ImageSet still REPLACE_ME; oc-mirror-learner Job absent
+#   - no signed app image (no PipelineRun / stage digest) so cosign verify
+#     cannot succeed yet
+#   - unsigned deny is not live (TrustPolicy enforce: false, no ImagePolicy)
+#
+# Pass-path for those three gates is in-cluster Validate Jobs (V2-54).
+#
+# Exit 0 = fresh claim matches the seed. Non-zero = stack missing or a
+# learner/support already completed a track.
 
-- name: "End-to-End Test"
+- name: Environment Health Check
+  import_playbook: healthcheck.yml
+
+- name: Fresh-claim negative e2e
   hosts: localhost
   connection: local
   gather_facts: false
+  vars_files:
+    - vars/v2.yml
   tasks:
-    - name: "TODO: Implement end-to-end test sequence"
-      ansible.builtin.debug:
-        msg: "Replace this task with your e2e test implementation"
+    - name: Learner gates are still incomplete
+      ansible.builtin.include_tasks: tasks/negative.yml

@@ -1,0 +1,115 @@
+---
+# Shared by healthcheck. Expects vars/v2.yml already loaded.
+# Existence only — do not require learner gates to pass.
+
+- name: oc is on PATH
+  ansible.builtin.command: oc version --client
+  register: oc_client
+  changed_when: false
+  failed_when: oc_client.rc != 0
+  vars:
+    ansible_command_warnings: false
+
+- name: Cluster API is reachable
+  ansible.builtin.command: oc whoami
+  register: oc_whoami
+  changed_when: false
+
+- name: Required namespaces exist
+  ansible.builtin.command: oc get namespace {{ item }}
+  loop:
+    - "{{ build_namespace }}"
+    - "{{ stage_namespace }}"
+    - "{{ prod_namespace }}"
+    - "{{ repo_namespace }}"
+    - "{{ admission_namespace }}"
+    - "{{ gitea_namespace }}"
+    - "{{ tasks_namespace }}"
+    - "{{ showroom_namespace }}"
+  changed_when: false
+
+- name: Tekton Pipeline CRD exists
+  ansible.builtin.command: oc get crd pipelines.tekton.dev
+  changed_when: false
+
+- name: NetworkPolicy build-egress exists
+  ansible.builtin.command: >-
+    oc get networkpolicy {{ build_policy }} -n {{ build_namespace }}
+  changed_when: false
+
+- name: NetworkPolicy app-operate exists on stage and prod
+  ansible.builtin.command: >-
+    oc get networkpolicy {{ operate_policy }} -n {{ item }}
+  loop:
+    - "{{ stage_namespace }}"
+    - "{{ prod_namespace }}"
+  changed_when: false
+
+- name: Incomplete ImageSet ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ imageset_configmap }} -n {{ repo_namespace }}
+  changed_when: false
+
+- name: oc-mirror tooling ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ oc_mirror_tooling }} -n {{ repo_namespace }}
+  changed_when: false
+
+- name: oc-mirror workspace PVC exists
+  ansible.builtin.command: >-
+    oc get pvc {{ oc_mirror_pvc }} -n {{ repo_namespace }}
+  changed_when: false
+
+- name: TrustPolicy apply CronJob exists
+  ansible.builtin.command: >-
+    oc get cronjob {{ apply_cronjob }} -n {{ admission_namespace }}
+  changed_when: false
+
+- name: Gitea seed ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ gitea_seed_configmap }} -n {{ gitea_namespace }}
+  changed_when: false
+
+- name: Gitea userinfo exposes build and stage namespaces
+  ansible.builtin.command: >-
+    oc get configmap {{ gitea_userinfo }} -n {{ gitea_namespace }}
+    -o json
+  register: gitea_userinfo_json
+  changed_when: false
+
+- name: Gitea userinfo keys match V2-21 namespaces
+  ansible.builtin.assert:
+    that:
+      - (gitea_userinfo_json.stdout | from_json).data.student_build_namespace == build_namespace
+      - (gitea_userinfo_json.stdout | from_json).data.student_promote_namespace == stage_namespace
+      - (gitea_userinfo_json.stdout | from_json).data.student_argocd_app == stage_namespace
+    fail_msg: >-
+      demo-userinfo-gitea must point build at {{ build_namespace }} and
+      stage at {{ stage_namespace }}
+
+- name: verify-base-image Task exists
+  ansible.builtin.command: >-
+    oc get task.tekton.dev {{ verify_task }} -n {{ tasks_namespace }}
+  changed_when: false
+
+- name: conforma-policy Task exists
+  ansible.builtin.command: >-
+    oc get task.tekton.dev {{ conforma_task }} -n {{ tasks_namespace }}
+  changed_when: false
+
+- name: Showroom userinfo lists lab CLIs
+  ansible.builtin.command: >-
+    oc get configmap {{ showroom_userinfo }} -n {{ showroom_namespace }}
+    -o json
+  register: showroom_userinfo_json
+  changed_when: false
+
+- name: Showroom userinfo has dest mirror and does not bake syft
+  ansible.builtin.assert:
+    that:
+      - "'cosign' in (showroom_userinfo_json.stdout | from_json).data.lab_clis"
+      - "'ec' in (showroom_userinfo_json.stdout | from_json).data.lab_clis"
+      - "'oc-mirror' in (showroom_userinfo_json.stdout | from_json).data.lab_clis"
+      - (showroom_userinfo_json.stdout | from_json).data.syft_baked == "false"
+      - (showroom_userinfo_json.stdout | from_json).data.dest_registry_repo == dest_repo
+    fail_msg: demo-userinfo-showroom missing dest hummingbird-mirror or lab CLIs

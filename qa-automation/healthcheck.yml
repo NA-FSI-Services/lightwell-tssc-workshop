@@ -1,15 +1,20 @@
 ---
 # HEALTHCHECK — Quick environment readiness check
-# Runs post-provisioning to verify the lab environment is functional.
+# Runs post-provisioning to verify the v2 GitOps stack is present.
 # Should complete in under 60 seconds.
 #
 # Exit 0 = healthy, non-zero = unhealthy.
+#
+# Does not require learner gates to pass. Fresh-claim negatives live in e2e.yml.
+# Expects components.networkPolicy, admission, gitea, lightwell-repo, and
+# pipelines enabled on the claim.
 
-- name: "Environment Health Check"
+- name: Environment Health Check
   hosts: localhost
   connection: local
   gather_facts: false
+  vars_files:
+    - vars/v2.yml
   tasks:
-    - name: "TODO: Implement health checks"
-      ansible.builtin.debug:
-        msg: "Replace this task with checks that verify the environment is ready"
+    - name: Provisioned v2 objects exist
+      ansible.builtin.include_tasks: tasks/provision.yml

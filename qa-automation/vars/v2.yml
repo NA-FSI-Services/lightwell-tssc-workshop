@@ -1,0 +1,35 @@
+# Shared names for V2-22 health / negative e2e.
+# Fresh-claim contract: seeds stay incomplete; unsigned deny is not live.
+
+build_namespace: lw-poc-build
+stage_namespace: lw-poc-staging
+prod_namespace: lw-poc-prod
+gitea_namespace: gitea
+admission_namespace: tssc-admission
+repo_namespace: lightwell-repo
+tasks_namespace: lightwell-tasks
+showroom_namespace: showroom
+
+build_policy: build-egress
+operate_policy: app-operate
+admission_policy: tssc-prod-admission
+
+imageset_configmap: imageset-configuration
+imageset_key: imageset-config.yaml
+oc_mirror_tooling: oc-mirror-tooling
+oc_mirror_pvc: oc-mirror-workspace
+oc_mirror_job: oc-mirror-learner
+dest_repo: hummingbird-mirror
+imageset_placeholder: REPLACE_ME_HUMMINGBIRD_PULLSPEC
+
+apply_cronjob: trust-policy-apply
+gitea_seed_configmap: gitea-student-repo-seed
+gitea_userinfo: demo-userinfo-gitea
+showroom_userinfo: demo-userinfo-showroom
+trust_policy_seed_key: overlay-gitops-admission-trust-policy.yaml
+
+verify_task: verify-base-image
+conforma_task: conforma-policy
+conforma_configmap: conforma-policy
+
+app_imagestream: spring-boot-lw-poc
