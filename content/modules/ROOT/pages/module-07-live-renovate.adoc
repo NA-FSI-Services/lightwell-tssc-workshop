@@ -1,0 +1,87 @@
+= 3.3 Live Renovate
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+A live Renovate CronJob must open a pull request on `lw-student/spring-boot-lw-poc` that updates stale `lightwell-pins.properties`. You *review and merge* that PR. A hand-edited commit, or copying the worked example, fails the Check.
+
+MintMaker is the SoW / mapping name for this bot. This cluster does *not* install hosted Konflux MintMaker.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Identify a PR authored by `renovate-bot` (not `student`)
+* Merge it without recreating the pin change as a manual commit
+* Map “MintMaker” in a statement of work to this in-cluster bot
+
+== Why a bot PR
+
+Consultants do not babysit Maven pins by hand. Renovate (or MintMaker on hosted Konflux) opens PRs against *enterprise git* when a vetted version exists. Here the git is Gitea; learners never use `github.com` for this Check.
+
+Stale seed (do not “fix” these yourself):
+
+* `commons-lang3=3.14.0.rhlw-00000` → remediated `3.14.0.rhlw-00001` in Nexus
+* `hummingbird-digest` all-zero → dest digest after 1.2 (Docker bump may lag if dest was empty)
+
+The CronJob retries about every 20 minutes.
+
+== Delivery note (SoW)
+
+*Customers* run Renovate or MintMaker against their GitHub/GitLab. *Red Hat* does not operate that bot in this claim beyond the workshop CronJob. *You* merge like a developer on a PoV.
+
+== Confirm the bot is on the claim
+
+The chart is *default-off*. If the CronJob is missing, the claim did not enable `components.renovate` — tell an instructor; do not fake a PR.
+
+[source,bash,role=execute]
+----
+oc -n renovate get cronjob
+oc -n renovate get configmap demo-userinfo-renovate -o yaml
+oc -n renovate get configmap renovate-docs \
+  -o jsonpath='{.data.example-renovate-pr\.md}'
+----
+
+The worked example author is `student` and the file is `pom.xml` / Jackson — that is *not* the Check.
+
+== Your change: merge the renovate-bot PR
+
+. In Gitea, open `lw-student/spring-boot-lw-poc` → *Pull Requests*.
+. The scored PR author is `renovate-bot`. Files must include `lightwell-pins.properties`.
+. Review, then merge on Gitea (do not `git commit` the same hunk as `student`).
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/55
+image::FIXME-gitea-renovate-bot-pr.png[Gitea pull request authored by renovate-bot on lightwell-pins.properties,width=700,link=self,window=blank]
+
+If no PR yet: wait for the next CronJob; check Job logs in namespace `renovate`. Maven bump should appear once Nexus remotes are up. Dest Docker bump needs 1.2. Retry. Do *not* push a student commit that edits the pins file.
+
+.After merge, refresh the clone
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git fetch origin
+git checkout main
+git pull --ff-only origin main
+git log -1 --format='%an %ae %s'
+cat lightwell-pins.properties
+----
+
+== Check: merged commit is the bot
+
+Pass when:
+
+* Latest merge (or the merge commit) author is `renovate-bot`, not `student`
+* `lightwell-pins.properties` moved off `rhlw-00000` / all-zero digest
+* You did not recreate that diff as a hand commit
+
+Honor system: Track 4 still opens. Validate Jobs will wait with retry — they still reject a seeded or student-authored pin bump.
+
+== Callout
+
+Python / pip-tools “Renovate” against `requirements.txt` is the same idea. Not scored here.
+
+== Key takeaways
+
+* Consultants run Renovate against enterprise git; this cluster uses Gitea.
+* No `github.com` for learners.
+* Binding `FROM` / pom default was 3.2; this Check is *who* changed the pins file.

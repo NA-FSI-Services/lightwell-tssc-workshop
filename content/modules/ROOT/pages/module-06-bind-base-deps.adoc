@@ -1,0 +1,105 @@
+= 3.2 Bind base and deps in source
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+The seeded `Dockerfile` is *UBI OpenJDK 21* (wrong product for this PoV). `lightwell-pins.properties` is *stale on purpose* for 3.3. Your job in 3.2 is to commit, on `lw-student/spring-boot-lw-poc`:
+
+* Runtime `FROM` → the *mirrored* Hummingbird digest you recorded in xref:module-02-hummingbird-mirror.adoc[1.2]
+* Default Maven pin → the Track 2 remediated GAV (`3.14.0.rhlw-00001` from `LW-DEMO-0002`)
+
+Do *not* hand-edit `lightwell-pins.properties` (that file is the 3.3 bot Check). Do *not* copy a sample `FROM` from Showroom.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Replace runtime `FROM` UBI with the dest Hummingbird digest pin
+* Put the Lightwell pin on the *default* `pom.xml` property in the learner repo
+* Leave the pins file for Renovate
+
+== Why seed is UBI
+
+If the template already `FROM` Hummingbird, Track 3 is a screenshot. Consultants must bind the *internal* digest they mirrored — the same trust boundary as 1.2.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49
+image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird versus dest digest used in Dockerfile FROM,width=700,link=self,window=blank]
+
+== Delivery note (SoW)
+
+*Customers* pin base images in git (digest, not `:latest`). *You* use dest registry coordinates, not `registry.access.redhat.com` on the runtime stage.
+
+== Clone the learner app remote
+
+[source,bash,role=execute]
+----
+export STUDENT_USER=student
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+: "${REPO_URL:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')}"
+rm -rf /tmp/spring-boot-lw-poc
+git clone "${REPO_URL}" /tmp/spring-boot-lw-poc
+cd /tmp/spring-boot-lw-poc
+git remote -v
+grep -n FROM Dockerfile
+grep commons.lang3.version pom.xml | head -20
+cat lightwell-pins.properties
+----
+
+Expect runtime `FROM` `ubi9/openjdk-21-runtime` and a default `commons.lang3.version` that is *not* yet `3.14.0.rhlw-00001`. Pins file should still show `3.14.0.rhlw-00000` and an all-zero Hummingbird digest.
+
+.Dest host (runtime FROM registry) — combine with the dest digest you recorded in 1.2
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
+  -o jsonpath='dest={.data.dest_registry_host}{"\n"}repo={.data.dest_registry_repo}{"\n"}'
+----
+
+== Worked example (not the Check)
+
+[source,dockerfile]
+----
+# Worked example ONLY — fake registry. Pasting this as FROM still fails.
+FROM registry.example.invalid/not-hummingbird:latest
+----
+
+== Your change: runtime FROM + default pin
+
+. Change *only* the runtime stage `FROM` (leave the `AS build` UBI line). Use dest host + the *internal* digest from 1.2 Job logs — not the published `registry.access.redhat.com` pin from 1.1, and not `:latest`.
+
+. Change the *default* `<commons.lang3.version>` in `pom.xml` to the Track 2 pin (`3.14.0.rhlw-00001`). Do not stop at a profile that is never activated. You already practiced this on a Showroom-local pom; this commit is the scored git copy.
+
+. Do *not* edit `lightwell-pins.properties`.
+
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git add Dockerfile pom.xml
+git status
+git diff --cached
+git commit -m "Bind dest Hummingbird runtime and Lightwell default pin"
+git push origin HEAD
+----
+
+== Check: committed files on the learner remote
+
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git fetch
+git show HEAD:Dockerfile | grep -E '^FROM '
+git show HEAD:pom.xml | grep -A1 commons.lang3.version | head -20
+git show HEAD:lightwell-pins.properties
+----
+
+Pass when:
+
+* Runtime `FROM` is dest registry + digest (not `ubi9/openjdk-21-runtime`, not the worked-example host)
+* Default pom property is `3.14.0.rhlw-00001`
+* `lightwell-pins.properties` is still stale (bot work)
+
+Honor system: 3.3 still opens. Still-UBI runtime `FROM` fails this Check.
+
+== Key takeaways
+
+* Source of truth is the learner repo, not the operator template.
+* 3.3 still requires a *bot* PR on the pins file.
