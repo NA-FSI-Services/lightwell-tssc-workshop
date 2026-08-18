@@ -75,6 +75,8 @@ spec:
         - name: pom-path
           value: pom.xml
 
+    # V2-14: Task verify-base-image (namespace lightwell-tasks) is NOT in this seed.
+    # Learner wires it so it runs before this step. Do not copy example-pipeline-snippet.yaml.
     - name: openshift-build
       runAfter: [lightwell-dep-gate]
       workspaces:

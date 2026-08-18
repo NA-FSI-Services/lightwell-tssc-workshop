@@ -1,0 +1,51 @@
+{{- if and .Values.pipelines.enabled .Values.verifyBaseImage.enabled }}
+---
+# Worked example is not paste-identical (wrong image, wrong runAfter, different task name).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.verifyBaseImage.taskName }}-docs
+  namespace: {{ .Values.verifyBaseImage.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: verify-base-image
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+data:
+  task_name: {{ .Values.verifyBaseImage.taskName | quote }}
+  task_namespace: {{ .Values.verifyBaseImage.namespace | quote }}
+  seeded_pipeline_includes_task: "false"
+  README: |
+    V2-14 Task {{ .Values.verifyBaseImage.taskName }} is applied in namespace
+    {{ .Values.verifyBaseImage.namespace }}. The seeded Pipeline
+    spring-boot-lw-poc-build-sign does NOT call it.
+
+    Wire it in Gitea .tekton/pipeline.yaml so it runs BEFORE openshift-build
+    (after clone / dep-gate). Pass the mirrored Hummingbird digest (not UBI).
+    Identity and OIDC issuer come from Red Hat's published Hummingbird signer —
+    do not invent strings and do not copy example-pipeline-snippet.yaml.
+
+    Image build stays OpenShift BuildConfig (no Buildah).
+  example-pipeline-snippet.yaml: |
+    # Worked example ONLY — paste-identical copy still fails the Check.
+    # Wrong image (UBI), wrong runAfter (after ACS), different step name.
+    - name: check-published-base
+      runAfter: [acs-image-check]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: {{ .Values.verifyBaseImage.taskName }}
+          - name: namespace
+            value: {{ .Values.verifyBaseImage.namespace }}
+      params:
+        - name: image
+          value: registry.access.redhat.com/ubi9/ubi-minimal:latest
+        - name: certificate-identity-regexp
+          value: https://example.invalid/not-hummingbird
+        - name: certificate-oidc-issuer
+          value: https://example.invalid/oidc
+{{- end }}

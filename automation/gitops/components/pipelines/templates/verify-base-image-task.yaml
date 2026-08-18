@@ -1,0 +1,110 @@
+{{- if and .Values.pipelines.enabled .Values.verifyBaseImage.enabled }}
+---
+# V2-14. Learner wires this Task into spring-boot-lw-poc-build-sign (not seeded).
+# Image build stays OpenShift BuildConfig. Do not invent Hummingbird signer strings.
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ .Values.verifyBaseImage.taskName }}
+  namespace: {{ .Values.verifyBaseImage.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: verify-base-image
+    lightwell.redhat.com/gate: verify-base
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+spec:
+  description: >-
+    Verify a Hummingbird base (cosign signature, in-toto attestation, SBOM OCI
+    artifact) before OpenShift BuildConfig starts. UBI FROM must fail.
+  params:
+    - name: image
+      type: string
+      default: ""
+      description: Pull spec to verify (mirrored Hummingbird digest, not UBI).
+    - name: certificate-identity-regexp
+      type: string
+      default: {{ .Values.verifyBaseImage.certificateIdentityRegexp | quote }}
+    - name: certificate-oidc-issuer
+      type: string
+      default: {{ .Values.verifyBaseImage.certificateOidcIssuer | quote }}
+    - name: attestation-type
+      type: string
+      default: {{ .Values.verifyBaseImage.attestationType | quote }}
+    - name: insecure-skip-tlog
+      type: string
+      default: {{ .Values.verifyBaseImage.insecureSkipTlog | quote }}
+  results:
+    - name: verify-status
+      type: string
+      description: passed | failed
+  steps:
+    - name: verify
+      computeResources: {}
+      image: {{ .Values.verifyBaseImage.cosignImage | quote }}
+      env:
+        - name: IMAGE
+          value: $(params.image)
+        - name: IDENTITY
+          value: $(params.certificate-identity-regexp)
+        - name: ISSUER
+          value: $(params.certificate-oidc-issuer)
+        - name: ATTESTATION_TYPE
+          value: $(params.attestation-type)
+        - name: SKIP_TLOG
+          value: $(params.insecure-skip-tlog)
+        - name: HOME
+          value: /tmp
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        STATUS="$(results.verify-status.path)"
+        fail() { echo -n "failed" > "${STATUS}"; echo "ERROR: $*" >&2; exit 1; }
+
+        [[ -n "${IMAGE}" && "${IMAGE}" != REPLACE_ME* ]] || fail "image param is empty or REPLACE_ME"
+        [[ -n "${IDENTITY}" && "${IDENTITY}" != REPLACE_ME* ]] || fail "certificate-identity-regexp is a placeholder"
+        [[ -n "${ISSUER}" && "${ISSUER}" != REPLACE_ME* ]] || fail "certificate-oidc-issuer is a placeholder"
+        if echo "${IMAGE}" | grep -Eq 'ubi9/openjdk|ubi9/ubi'; then
+          fail "image looks like UBI — Track 3 must FROM mirrored Hummingbird first"
+        fi
+
+        REGISTRY_FLAGS=(--allow-insecure-registry --allow-http-registry)
+        VERIFY_FLAGS=("${REGISTRY_FLAGS[@]}")
+        if [[ "${SKIP_TLOG}" == "true" ]]; then
+          VERIFY_FLAGS+=(--insecure-skip-tlog)
+        fi
+
+        echo "=== verify-base-image (cosign + attestation + SBOM) ==="
+        echo "image=${IMAGE}"
+
+        cosign verify \
+          --certificate-identity-regexp="${IDENTITY}" \
+          --certificate-oidc-issuer="${ISSUER}" \
+          "${VERIFY_FLAGS[@]}" \
+          "${IMAGE}" \
+          || fail "cosign verify failed (signature)"
+
+        cosign verify-attestation \
+          --type="${ATTESTATION_TYPE}" \
+          --certificate-identity-regexp="${IDENTITY}" \
+          --certificate-oidc-issuer="${ISSUER}" \
+          "${VERIFY_FLAGS[@]}" \
+          "${IMAGE}" \
+          || fail "cosign verify-attestation failed (type=${ATTESTATION_TYPE})"
+
+        if ! cosign download sbom "${REGISTRY_FLAGS[@]}" "${IMAGE}" > /tmp/base.sbom 2>/tmp/sbom.err; then
+          if ! cosign verify-attestation \
+            --type=cyclonedx \
+            --certificate-identity-regexp="${IDENTITY}" \
+            --certificate-oidc-issuer="${ISSUER}" \
+            "${VERIFY_FLAGS[@]}" \
+            "${IMAGE}" >/tmp/base.sbom 2>>/tmp/sbom.err; then
+            cat /tmp/sbom.err >&2
+            fail "no SBOM OCI artifact (cosign download sbom / cyclonedx attestation)"
+          fi
+        fi
+        [[ -s /tmp/base.sbom ]] || fail "SBOM artifact was empty"
+        echo "SBOM bytes=$(wc -c < /tmp/base.sbom)"
+        echo -n "passed" > "${STATUS}"
+        echo "Base image verified"
+{{- end }}

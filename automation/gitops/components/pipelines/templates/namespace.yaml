@@ -1,0 +1,12 @@
+{{- if and .Values.pipelines.enabled .Values.verifyBaseImage.enabled }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.verifyBaseImage.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: verify-base-image
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+{{- end }}

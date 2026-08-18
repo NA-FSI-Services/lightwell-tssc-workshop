@@ -668,7 +668,7 @@ Packaging A/B/C is **closed** — see §4.3.
 | V2-11 | oc-mirror v2 in Showroom; incomplete ImageSet seed; learner-run (no pre-mirror of scored image) | V2-1 / V2-10. Seed: `REPLACE_ME_HUMMINGBIRD_PULLSPEC`; learner Job; signatures default-on. |
 | V2-12 | Remove v1 Java/Python dual-path flags; single TSSC app namespace | V2-0. Scored NS = `lw-poc-student`. Python seed/Argo/RHDH/RHACS gates off; files stay in git. |
 | V2-13 | Seed Dockerfile on UBI (wrong) so Track 3 requires `FROM` Hummingbird | V2-10. Seed: `ubi9/openjdk-21` + `ubi9/openjdk-21-runtime` (not `hi/openjdk`). |
-| V2-14 | Tekton task `verify-base-image` (cosign + attestation + SBOM) | V2-10 |
+| V2-14 | Tekton task `verify-base-image` (cosign + attestation + SBOM) | V2-10. Task in `lightwell-tasks`; **not** in seeded pipeline. |
 | V2-15 | Conforma / Enterprise Contract policy bundle + pipeline task | — |
 | V2-16 | Admission: learner trust-policy file → ImagePolicy now (Kyverno fallback); do not score `ClusterImagePolicy` | V2-2 (closed) |
 | V2-17 | Two GitOps remotes (stage vs prod) + Argo CD Applications; seed prod empty/wrong | V2-0 |

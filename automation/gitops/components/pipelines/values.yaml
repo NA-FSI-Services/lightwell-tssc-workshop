@@ -7,7 +7,22 @@ pipelines:
   enabled: true
   syncWaves:
     operator: "1"
-    userinfo: "2"
+    tasks: "2"
+    userinfo: "3"
+
+# V2-14: Task is in-cluster; seeded learner pipeline does NOT reference it.
+verifyBaseImage:
+  enabled: true
+  namespace: lightwell-tasks
+  taskName: verify-base-image
+  # Same image as learner sign step. Pull uses the PipelineRun SA (lab ns).
+  cosignImage: registry.redhat.io/rhtas/cosign-rhel9:1.3.0
+  # Do not invent Hummingbird signer strings. Learner passes real identity in pipeline params.
+  certificateIdentityRegexp: "REPLACE_ME_HUMMINGBIRD_IDENTITY"
+  certificateOidcIssuer: "REPLACE_ME_HUMMINGBIRD_OIDC_ISSUER"
+  attestationType: slsaprovenance
+  insecureSkipTlog: "true"
+
 
 # OLM install into openshift-operators (AllNamespaces; OperatorGroup already exists)
 operator:
@@ -31,7 +46,9 @@ userInfo:
   instructions: >-
     OpenShift Pipelines provides Tekton CRDs (Pipeline, Task, PipelineRun) used by
     Module 5 student .tekton overlays and RHACS policy-gate Tasks in stackrox.
-    After the Operator is Ready, confirm: oc get crd pipelines.tekton.dev
+    After the Operator is Ready, confirm: oc get crd pipelines.tekton.dev.
+    Task verify-base-image lives in lightwell-tasks (V2-14). It is not in the
+    seeded spring-boot-lw-poc-build-sign pipeline — wire it before openshift-build.
 
 deployer:
   domain: ""

@@ -20,6 +20,20 @@ Root-app places this Application at **wave 8** (after Keycloak wave 5, before
 components.pipelines.enabled=true
 ```
 
+## V2-14 verify-base-image
+
+Task `verify-base-image` in namespace `lightwell-tasks` checks cosign signature,
+attestation, and SBOM **before** BuildConfig. It is **not** referenced from the
+seeded learner Pipeline (`spring-boot-lw-poc-build-sign`). Wire it in Gitea
+`.tekton/pipeline.yaml`. Identity/issuer stay `REPLACE_ME_*` until the learner
+passes Red Hat's published Hummingbird signer (do not invent; do not paste
+`example-pipeline-snippet.yaml` from ConfigMap `verify-base-image-docs`).
+
+Image build stays **OpenShift BuildConfig**.
+
+Cluster resolver for this Task is the same pattern as RHACS Tasks in `stackrox`
+(`kind=task`, `namespace=lightwell-tasks`).
+
 ## Notes
 
 - Installs into `openshift-operators` (shared OperatorGroup — do not create another).
