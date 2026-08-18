@@ -5,7 +5,7 @@
 
 A live Renovate CronJob must open a pull request on `lw-student/spring-boot-lw-poc` that updates stale `lightwell-pins.properties`. You *review and merge* that PR. A hand-edited commit, or copying the worked example, fails the Check.
 
-MintMaker is the name customers use for this bot in client engagements. This cluster does *not* install hosted Konflux MintMaker.
+MintMaker is the name customers use for this bot in client engagements. This cluster does *not* install hosted Konflux MintMaker. Full term map: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
 
 == Learning objectives
 
@@ -13,7 +13,7 @@ By the end of this module, you will be able to:
 
 * Identify a PR authored by `renovate-bot` (not `student`)
 * Merge it without recreating the pin change as a manual commit
-* Map “MintMaker” in a statement of work to this in-cluster bot
+* Map “MintMaker” in a client engagement to this in-cluster bot
 
 == Why a bot PR
 

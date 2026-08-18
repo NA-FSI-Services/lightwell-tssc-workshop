@@ -85,4 +85,4 @@ Honor system: 4.2 still opens.
 == Key takeaways
 
 * Hermetic starts in source, before NP and prefetch.
-* Mapping: Konflux hermetic source policies → this Check.
+* Mapping: Konflux hermetic source policies → this Check. Product names: xref:appendix-konflux-mapping.adoc[Konflux mapping].

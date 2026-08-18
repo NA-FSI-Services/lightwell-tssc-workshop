@@ -15,11 +15,11 @@ image::FIXME-seven-track-tssc-flow.png[Seven-track TSSC flow this map hangs on,w
 |-----------|---------|
 | *Scored* | Gated Check. You clicked it. |
 | *Callout* | One sentence on a scored page. No extra Check. |
-| *Mapping* | Product name used in a client engagement → cluster object. Konflux terms: V2-39 appendix (not this page). |
+| *Mapping* | Product name used in a client engagement → cluster object. Konflux terms: xref:appendix-konflux-mapping.adoc[Konflux mapping] (not this page). |
 | *Playbook* | Procedure / talking points. Not executed on this connected RHDP claim. |
-| *Out of RHDP / Epic D* | Cannot be honest on this topology, or deferred past v2 GA. |
+| *Not on this claim* | Cannot be honest on this topology. Not a workshop procedure. |
 
-You did *not* click every engagement activity. Use the *Playbook* / *Epic D* rows when a customer asks.
+You did *not* click every engagement activity. Use the *Playbook* / *Not on this claim* rows when a customer asks.
 
 == Publish verified images (Hummingbird)
 
@@ -53,11 +53,11 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 
 |Dual arch amd64 + arm64
 |Callout
-|One sentence on 1.1. Check is amd64. Hands-on dual-arch: Epic D (V2-95).
+|One sentence on 1.1. Check is amd64. Hands-on dual-arch is not on this claim.
 
 |Publish to RH registry → customer Artifactory
 |Scored mirror + callout
-|xref:module-02-hummingbird-mirror.adoc[1.2] into in-cluster dest. Artifactory install: V2-45 callouts / Epic D V2-93.
+|xref:module-02-hummingbird-mirror.adoc[1.2] into in-cluster dest. Artifactory is a callout only; it is not installed on this claim.
 |===
 
 == Pull trusted artifacts into build
@@ -68,7 +68,7 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 
 |Artifactory virtual repos → Lightwell only
 |Scored Nexus + callout
-|xref:module-03-enterprise-proxy.adoc[2.1]. Artifactory pattern: V2-45. No Artifactory on the claim.
+|xref:module-03-enterprise-proxy.adoc[2.1]. Artifactory pattern is a callout. No Artifactory on the claim.
 
 |Pull signed Hummingbird for app builds
 |Scored
@@ -76,7 +76,7 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 
 |Hermetic Konflux / Hermeto
 |Scored + mapping
-|xref:module-09-prefetch.adoc[4.2] Task `prefetch-dependencies`. Not Konflux. Term map: V2-39.
+|xref:module-09-prefetch.adoc[4.2] Task `prefetch-dependencies`. Not Konflux. Term map: xref:appendix-konflux-mapping.adoc[Konflux mapping].
 
 |Conforma reject unapproved transitives
 |Scored
@@ -103,7 +103,7 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 
 |Tekton Konflux pipelines
 |Mapping
-|OpenShift Pipelines under real names. V2-39. Do not install Konflux.
+|OpenShift Pipelines under real names. xref:appendix-konflux-mapping.adoc[Konflux mapping]. Do not install Konflux.
 
 |Buildah rootless OCI builds
 |Mapping
@@ -119,11 +119,11 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 
 |SLSA L3 / Tekton Chains
 |Callout + Conforma
-|5.2 scores tightened Conforma; `skip-att-sig-check` stays true. Chains is mapping (V2-39), not SLSA L3 on this claim.
+|5.2 scores tightened Conforma; `skip-att-sig-check` stays true. Chains is mapping (xref:appendix-konflux-mapping.adoc[Konflux mapping]), not SLSA L3 on this claim.
 
 |Key-based / disconnected verify
-|Scored (page pending)
-|5.3 mirrored TUF + `--key` (V2-40). Cluster stays networked. Diode / media transfer is the V2-40 playbook appendix, not 5.3.
+|Scored (later in this workshop)
+|5.3 mirrored TUF + `--key`. Cluster stays networked. Disconnected media transfer is a playbook later in this workshop, not 5.3.
 
 |Author Conforma policies
 |Scored
@@ -139,7 +139,7 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 
 |bootc-image-builder → VM disk
 |Callout
-|Same signed digest, different runtime. One sentence on 6.1. No VM in the claim. Hands-on: Epic D (V2-94).
+|Same signed digest, different runtime. One sentence on 6.1. No VM in the claim. Hands-on bootc is not this workshop.
 |===
 
 == Mirror and transfer (disconnected ingestion)
@@ -158,11 +158,11 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 
 |Mirror Lightwell Maven / pip indexes
 |Scored Java + Python callout
-|xref:module-03-enterprise-proxy.adoc[2.1] `settings.xml`. Python: V2-44.
+|xref:module-03-enterprise-proxy.adoc[2.1] `settings.xml`. Python is a callout, not a second scored path.
 
 |Physical media / data diode
 |Playbook
-|Cannot do air-gap physics on RHDP. V2-40 diode appendix (not 5.3).
+|Cannot do air-gap physics on this connected claim. Disconnected-transfer playbook later in this workshop (not 5.3).
 
 |Delta-sync via oc-mirror statefile
 |Thin / not a separate Check
@@ -176,8 +176,8 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 |Client engagement activity |Treatment |This lab
 
 |Pre-download TUF root for disconnected cosign
-|Scored (page pending)
-|5.3 / V2-40. Seeded trust path is empty/wrong until the learner copies it.
+|Scored (later in this workshop)
+|5.3. Seeded trust path is empty/wrong until you copy it.
 
 |`cosign verify` per image
 |Scored
@@ -231,24 +231,24 @@ You did *not* click every engagement activity. Use the *Playbook* / *Epic D* row
 |7.2 `acs-image-check` not skipped. Not the 6.1 admission gate.
 
 |SIEM / SOAR
-|Out of RHDP
-|Epic D (V2-96). No playbook page in v2 GA.
+|Not on this claim
+|No workshop procedure. Do not invent a SIEM on this topology.
 
 |Satellite + bootc upgrades
 |Callout
-|Same digest story on 6.1. Hands-on VM: Epic D (V2-94).
+|Same digest story on 6.1. Hands-on VM is not this workshop.
 |===
 
 == What this cluster is not
 
 * Not Project Hummingbird’s Fedora / Konflux factory
-* Not hosted Konflux (Pipelines + mapping appendix)
+* Not hosted Konflux (Pipelines + xref:appendix-konflux-mapping.adoc[Konflux mapping])
 * Not a physical air-gap or data diode
 * Not a second Python or Artifactory *product* path (callouts only)
-* Not an unassisted customer PoV exam — enablement checklist is V2-46
+* Not an unassisted customer PoV exam — the enablement checklist is after the workshop, not a live exam
 
 == Related appendices
 
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts]
-* Konflux names used in client engagements → cluster objects: V2-39
-* Mirrored TUF + key-based verify, plus diode playbook: V2-40
+* xref:appendix-konflux-mapping.adoc[Konflux mapping] — names used in client engagements → cluster objects
+* 5.3 mirrored TUF and key-based verify, plus a disconnected-transfer playbook — later in this workshop

@@ -3,7 +3,7 @@
 :toc:
 :toclevels: 2
 
-Sign the *app* digest you built in xref:module-11-build-sbom.adoc[4.4] — not the Hummingbird base. This Check is *keyless* RHTAS (Fulcio, Rekor, TUF) plus `cosign verify` on *that* digest. Key-based / mirrored-TUF verify is a *second* Check (5.3 / V2-40). Do not treat keyless-only as Track 5 done.
+Sign the *app* digest you built in xref:module-11-build-sbom.adoc[4.4] — not the Hummingbird base. This Check is *keyless* RHTAS (Fulcio, Rekor, TUF) plus `cosign verify` on *that* digest. Key-based / mirrored-TUF verify is a *second* Check (5.3). Do not treat keyless-only as Track 5 done.
 
 The seeded pipeline already has task `cosign-sign-keyless`. Placeholders in the PipelineRun (`apps.<domain>`) fail that task until you fill live Fulcio / Rekor / TUF URLs.
 

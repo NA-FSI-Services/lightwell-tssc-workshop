@@ -48,7 +48,7 @@ oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57
 image::FIXME-tpa-gav-vex-ingested.png[TPA UI after ingesting GAV-bound VEX for LW-DEMO-0002,width=700,link=self,window=blank]
 
-. Write `~/track-7-2-blast-radius.txt` (Showroom-local). Placeholders fail. Allowed tokens (V2-59 will grade these later):
+. Write `~/track-7-2-blast-radius.txt` (Showroom-local). Placeholders fail. Allowed tokens (the Check grades these):
 
 [source,text]
 ----
@@ -78,8 +78,8 @@ Pass when: Nexus GAV files were ingested; the report has the scored id + GAV + v
 == Callouts (not Checks)
 
 * Hummingbird / RHEL CSAF = OS layer. Do not score it.
-* Python SPDX/VEX analogue is text only (V2-44).
-* Artifactory can host the same GAV-bound files (V2-45).
+* Python SPDX/VEX analogue is text only.
+* Artifactory can host the same GAV-bound files; it is not installed on this claim.
 
 == Key takeaways
 

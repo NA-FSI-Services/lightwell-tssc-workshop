@@ -20,7 +20,7 @@ By the end of this module, you will be able to:
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/63
 image::FIXME-hermeto-vs-prefetch-task.png[Konflux Hermeto versus workshop Task prefetch-dependencies,width=700,link=self,window=blank]
 
-Do not pull `quay.io/konflux-ci/hermeto`. Do not rename the cluster object `hermeto`.
+Do not pull `quay.io/konflux-ci/hermeto`. Do not rename the cluster object `hermeto`. Full term map: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
 
 == Delivery note
 

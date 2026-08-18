@@ -20,7 +20,7 @@ By the end of this module, you will be able to:
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/52
 image::FIXME-gitops-stage-vs-prod-remotes.png[Stage versus prod Gitea remotes — promotion is a commit to the second remote,width=700,link=self,window=blank]
 
-Konflux *Release Service* maps to this commit. Do not “fix” a broken prod app by pointing Argo at stage.
+Konflux *Release Service* maps to this commit (xref:appendix-konflux-mapping.adoc[Konflux mapping]). Do not “fix” a broken prod app by pointing Argo at stage.
 
 == Delivery note
 
@@ -63,7 +63,7 @@ Pass when:
 * ImagePolicy from 6.1 is still present; unsigned still denied
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
-image::FIXME-argo-stage-healthy-prod-seed.png[Argo Applications console — after this Check, lw-poc-prod is Healthy from the prod remote (dry-run recapture of #56),width=700,link=self,window=blank]
+image::FIXME-argo-stage-healthy-prod-seed.png[Argo Applications console — after this Check, lw-poc-prod is Healthy from the prod remote,width=700,link=self,window=blank]
 
 Honor system: Track 7 still opens.
 

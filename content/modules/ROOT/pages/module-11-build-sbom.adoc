@@ -15,7 +15,7 @@ By the end of this module, you will be able to:
 
 == BuildConfig vs Buildah
 
-Konflux “build” on hosted Konflux is often Buildah. This claim maps that control to Binary BuildConfig started from Tekton (`oc start-build --from-dir`). Do not add a Buildah task.
+Konflux “build” on hosted Konflux is often Buildah. This claim maps that control to Binary BuildConfig started from Tekton (`oc start-build --from-dir`). Do not add a Buildah task. Full term map: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
 
 == Delivery note
 

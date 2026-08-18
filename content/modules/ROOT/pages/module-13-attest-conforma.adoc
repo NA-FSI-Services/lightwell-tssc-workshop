@@ -5,7 +5,7 @@
 
 Konflux *Conforma* (Enterprise Contract) is an `ec validate` policy on the image after sign. This claim maps that control to Task `conforma-policy` in namespace `lightwell-tasks`. The Task is *not* in the seeded pipeline. The seeded ConfigMap is *too permissive* (signature checks skipped, identity `.*`, CVE 999). Argo reverts edits to that object — copy it to `lw-poc-build` and tighten the *copy*.
 
-This Check is fail-then-pass on *signatures + policy*, not SLSA L3. There is no Tekton Chains on this claim and no `cosign attest` step. Leave `skip-att-sig-check=true`. Mapping appendix: Konflux Conforma → this Task; Chains / in-toto → callout.
+This Check is fail-then-pass on *signatures + policy*, not SLSA L3. There is no Tekton Chains on this claim and no `cosign attest` step. Leave `skip-att-sig-check=true`. Mapping: Konflux Conforma → this Task; Chains / in-toto → callout. Full table: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
 
 == Learning objectives
 
@@ -92,7 +92,7 @@ Pass when the builder validate fails, the app digest passes, the live Pipeline i
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/68
 image::FIXME-conforma-fail-then-pass.png[Conforma fail on openjdk-21-builder then pass on signed app digest,width=700,link=self,window=blank]
 
-Honor system: 5.3 (V2-40) still opens. Track 6 still opens.
+Honor system: 5.3 still opens. Track 6 still opens.
 
 == Callout
 

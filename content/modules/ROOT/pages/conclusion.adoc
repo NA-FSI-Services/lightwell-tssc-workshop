@@ -4,8 +4,6 @@
 This page is a placeholder for the final page of your lab.
 Replace this page with your actual conclusion content.
 
-TIP: If this is a Publishing House project (see `publishing-house/spec.yaml`), don't write this by hand. Once every module's `status` is `complete`, ask the `rhdp-publishing-house-skills:writer-helper` skill to generate the conclusion for you -- it pulls learning objectives and references straight from your module outlines.
-
 == What You've Learned
 
 // TODO: Recap the learning objectives from every module.
