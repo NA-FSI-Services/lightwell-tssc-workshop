@@ -19,7 +19,7 @@ By the end of this module, you will be able to:
 
 *TPA* is the SBOM / advisory system of record. *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence. This Check is TPA. No IDE in Showroom.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* keep promoted artifacts in a SoR (TPA, Dependency Track, …). *You* ingest *this* digest — not a laptop folder and not a Hummingbird CSAF feed.
 

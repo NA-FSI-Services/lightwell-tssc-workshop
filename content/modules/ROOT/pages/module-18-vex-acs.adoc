@@ -22,7 +22,7 @@ image::FIXME-vex-library-vs-os-layer.png[Library Lightwell GAV VEX versus OS-lay
 
 Consultants over-claim when they quote RHEL/Hummingbird CSAF for a *library* CVE. The scored layer is the `.rhlw-*` GAV you pinned in xref:module-04-remediated-pin.adoc[2.2].
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* get VEX that travels with the remediated GAV. *You* pull it from the enterprise proxy (Nexus) and put it in the SoR. *Red Hat* CSAF is a different layer.
 

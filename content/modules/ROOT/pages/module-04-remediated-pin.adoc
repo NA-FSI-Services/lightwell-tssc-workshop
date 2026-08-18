@@ -28,7 +28,7 @@ Upstream `3.14.0` stays affected. The Lightwell pin is the `fixed` event. Track 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/59
 image::FIXME-osv-fixed-to-rhlw-pin.png[OSV fixed event mapped to a Maven default .rhlw pin,width=700,link=self,window=blank]
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* pin what OSV `fixed` names. *You* do not invent a qualifier. *Red Hat* publishes the remediated GAV; consultants do not rebuild `commons-lang3` from source in the PoV.
 

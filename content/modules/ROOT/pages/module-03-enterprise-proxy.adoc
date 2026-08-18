@@ -40,7 +40,7 @@ image::FIXME-artifact-direct-proxied-seeded.png[Direct packages.redhat.com versu
 
 Do *not* copy v1 `module-02-direct-vs-proxy.png` (different framing). The diagram above is the Track 2 visual.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* already run Nexus or Artifactory. *You* wire remotes/virtuals at Lightwell Validated and Remediated. *Red Hat* operates `packages.redhat.com`. Nexus in this claim is an RHDP stand-in, not the product you sell.
 

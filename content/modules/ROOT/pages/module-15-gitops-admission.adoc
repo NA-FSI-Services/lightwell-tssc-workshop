@@ -31,7 +31,7 @@ oc -n tssc-admission get configmap demo-userinfo-admission \
   -o jsonpath='scored={.data.scored_kind}{"\n"}live={.data.live_kind}{"\n"}hint={.data.unsigned_deny_hint}{"\n"}'
 ----
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* promote a signed digest with GitOps and admit only that identity. *You* commit to Gitea and fill TrustPolicy; the cluster renders `ImagePolicy`. A production VM is the *same digest* on a different runtime (bootc / Satellite) — callout only, no VM in this claim.
 

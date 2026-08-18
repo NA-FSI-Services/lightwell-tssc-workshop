@@ -22,7 +22,7 @@ image::FIXME-conforma-seed-vs-tightened.png[Too-permissive Conforma seed versus 
 
 A pipeline that always passes is a demo, not a gate. You own the policy. Do not fetch a bundle from `quay.io` or `github.com`.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* on hosted Konflux attach Conforma to the build. *You* sell the *control* (unsigned / wrong-identity images fail) implemented as a namespaced Task plus a ConfigMap *you* tightened.
 

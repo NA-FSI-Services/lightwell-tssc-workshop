@@ -5,7 +5,7 @@
 
 A live Renovate CronJob must open a pull request on `lw-student/spring-boot-lw-poc` that updates stale `lightwell-pins.properties`. You *review and merge* that PR. A hand-edited commit, or copying the worked example, fails the Check.
 
-MintMaker is the SoW / mapping name for this bot. This cluster does *not* install hosted Konflux MintMaker.
+MintMaker is the name customers use for this bot in client engagements. This cluster does *not* install hosted Konflux MintMaker.
 
 == Learning objectives
 
@@ -26,7 +26,7 @@ Stale seed (do not “fix” these yourself):
 
 The CronJob retries about every 20 minutes.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* run Renovate or MintMaker against their GitHub/GitLab. *Red Hat* does not operate that bot in this claim beyond the workshop CronJob. *You* merge like a developer on a PoV.
 

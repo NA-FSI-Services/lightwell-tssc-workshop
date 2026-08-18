@@ -13,7 +13,7 @@ By the end of this module, you will be able to:
 
 * Wire `prefetch-dependencies` with the correct `runAfter` (after clone / dep-gate, *before* `openshift-build`)
 * Fail if `settings.xml` still points at public Central
-* Map SoW “Hermeto” to this Task name
+* Map the client-engagement name “Hermeto” to this Task name
 
 == Mapping vs Konflux
 
@@ -22,7 +22,7 @@ image::FIXME-hermeto-vs-prefetch-task.png[Konflux Hermeto versus workshop Task p
 
 Do not pull `quay.io/konflux-ci/hermeto`. Do not rename the cluster object `hermeto`.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* on hosted Konflux get Hermeto. *You* sell the *control* (offline resolve from a trusted proxy), implemented here as a namespaced Task.
 

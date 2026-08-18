@@ -32,7 +32,7 @@ image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird digest vers
 Python / other Hummingbird runtimes are a *callout* on the same TSSC story. This Check is the Java `hi/openjdk` pin from userinfo only.
 ====
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* subscribe to Hardened Images and pin digests in their catalogs. *Red Hat* operates the factory and signing keys. *You* (this lab) consume the published pin, verify it, then mirror — you do not rebuild `openjdk` from source.
 

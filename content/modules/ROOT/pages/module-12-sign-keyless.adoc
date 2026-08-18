@@ -23,7 +23,7 @@ image::FIXME-keyless-rhtas-vs-keys.png[Keyless RHTAS Fulcio Rekor TUF versus lat
 
 Keyless is the *connected* PoV path: the pipeline SA presents an OIDC token, Fulcio issues a short-lived cert, Rekor records the signature, TUF distributes the trust root. Customers who cannot reach Fulcio at verify time still need 5.3.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* get a signed image from CI (Sigstore / TAS). *You* prove *your* BuildConfig digest verifies keylessly against *this* cluster’s RHTAS. Admission (`oc tag` / ImagePolicy) is Track 6.
 

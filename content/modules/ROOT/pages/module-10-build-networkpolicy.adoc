@@ -20,7 +20,7 @@ By the end of this module, you will be able to:
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/51
 image::FIXME-np-build-vs-app-operate.png[build-egress hermetic versus app-operate on staging and prod,width=700,link=self,window=blank]
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* isolate CI namespaces. *You* do not reuse the same NetworkPolicy on runtime namespaces.
 

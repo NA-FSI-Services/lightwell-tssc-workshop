@@ -27,7 +27,7 @@ image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird digest vers
 Python base images follow the same pin-and-mirror idea. This Check is the Java `hi/openjdk` dest only.
 ====
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* run `oc-mirror` (often on a bastion) into an internal registry. *This lab* uses Nexus hosted Docker `hummingbird-mirror` and Route `registry-lightwell-repo` as that dest. You still own the ImageSet and the run.
 

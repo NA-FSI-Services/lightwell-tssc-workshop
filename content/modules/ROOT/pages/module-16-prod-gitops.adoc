@@ -22,7 +22,7 @@ image::FIXME-gitops-stage-vs-prod-remotes.png[Stage versus prod Gitea remotes �
 
 Konflux *Release Service* maps to this commit. Do not “fix” a broken prod app by pointing Argo at stage.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* promote by merging to a prod GitOps repo (or Release). *You* push the digest you already signed. Unsigned deny from 6.1 must still hold.
 

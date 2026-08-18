@@ -24,9 +24,9 @@ Consultants do not ship from an operator template. The golden path is: copy a pr
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/60
 image::FIXME-gitea-templates-vs-learner-org.png[workshop-templates versus learner-owned lw-student remotes,width=700,link=self,window=blank]
 
-== Delivery note (SoW)
+== Delivery note
 
-*Customers* use GitHub, GitLab, or Bitbucket plus a software template (often RHDH). *This lab* uses Gitea so there is no `github.com` for learners. MintMaker in a SoW maps to the in-cluster Renovate bot you meet in 3.3.
+*Customers* use GitHub, GitLab, or Bitbucket plus a software template (often RHDH). *This lab* uses Gitea so there is no `github.com` for learners. MintMaker in a client engagement maps to the in-cluster Renovate bot you meet in 3.3.
 
 == Discover Gitea (never paste a hostname from this page)
 

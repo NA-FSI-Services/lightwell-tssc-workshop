@@ -17,7 +17,7 @@ By the end of this module, you will be able to:
 
 Konflux “build” on hosted Konflux is often Buildah. This claim maps that control to Binary BuildConfig started from Tekton (`oc start-build --from-dir`). Do not add a Buildah task.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* get a signed, SBOMed image from CI. *You* prove the image landed and an SBOM exists. Admission and GitOps promotion are later tracks.
 

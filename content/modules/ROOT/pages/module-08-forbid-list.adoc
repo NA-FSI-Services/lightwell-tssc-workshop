@@ -29,7 +29,7 @@ grep -nE 'FROM |curl |repo.maven.apache.org|registry.access.redhat.com|registry.
 
 Expect at least: build-stage `FROM` UBI on `registry.access.redhat.com`, and `repo.maven.apache.org` in `settings.xml`.
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* enforce hermetic *source* policies (Konflux “no network in the Containerfile”). *You* grep and fix git. The cluster NetworkPolicy is a later gate.
 

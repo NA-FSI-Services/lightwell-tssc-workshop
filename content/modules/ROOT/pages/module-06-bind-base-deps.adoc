@@ -25,7 +25,7 @@ If the template already `FROM` Hummingbird, Track 3 is a screenshot. Consultants
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49
 image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird versus dest digest used in Dockerfile FROM,width=700,link=self,window=blank]
 
-== Delivery note (SoW)
+== Delivery note
 
 *Customers* pin base images in git (digest, not `:latest`). *You* use dest registry coordinates, not `registry.access.redhat.com` on the runtime stage.
 
