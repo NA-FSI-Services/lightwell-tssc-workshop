@@ -1,0 +1,156 @@
+{{- if and .Values.pipelines.enabled .Values.conformaPolicy.enabled }}
+---
+# V2-15. Learner wires this Task after cosign-sign-keyless (not seeded).
+# Policy is a local file from a ConfigMap. No quay.io / github.com policy fetch.
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ .Values.conformaPolicy.taskName }}
+  namespace: {{ .Values.conformaPolicy.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: conforma-policy
+    lightwell.redhat.com/gate: conforma
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+spec:
+  description: >-
+    Run ec validate image against a learner-owned Conforma policy ConfigMap.
+    Seeded policy skips signatures and sets CVE 999. Unsigned FROM must fail
+    after the learner tightens the copy in the lab namespace.
+  params:
+    - name: image
+      type: string
+      default: ""
+      description: App image to validate (signed digest after cosign-sign-keyless).
+    - name: policy-configmap
+      type: string
+      default: {{ .Values.conformaPolicy.configMapName | quote }}
+    - name: policy-namespace
+      type: string
+      default: {{ .Values.conformaPolicy.namespace | quote }}
+      description: Namespace of the policy ConfigMap. Do not leave the Argo seed.
+    - name: rekor-url
+      type: string
+      default: ""
+  results:
+    - name: verify-status
+      type: string
+      description: passed | failed
+  volumes:
+    - name: policy-files
+      emptyDir: {}
+  steps:
+    - name: fetch-policy
+      computeResources: {}
+      image: {{ .Values.conformaPolicy.oseCliImage | quote }}
+      env:
+        - name: POLICY_CONFIGMAP
+          value: $(params.policy-configmap)
+        - name: POLICY_NAMESPACE
+          value: $(params.policy-namespace)
+      volumeMounts:
+        - name: policy-files
+          mountPath: /policy
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        echo "Extracting ConfigMap ${POLICY_CONFIGMAP} from ${POLICY_NAMESPACE}"
+        oc extract "configmap/${POLICY_CONFIGMAP}" \
+          -n "${POLICY_NAMESPACE}" \
+          --to=/policy \
+          --confirm
+        ls -l /policy
+    - name: validate
+      computeResources: {}
+      image: {{ .Values.conformaPolicy.ecImage | quote }}
+      env:
+        - name: IMAGE
+          value: $(params.image)
+        - name: POLICY_NAMESPACE
+          value: $(params.policy-namespace)
+        - name: SEED_NAMESPACE
+          value: {{ .Values.conformaPolicy.namespace | quote }}
+        - name: REKOR_URL
+          value: $(params.rekor-url)
+        - name: HOME
+          value: /tmp
+        - name: COSIGN_INSECURE
+          value: "true"
+      volumeMounts:
+        - name: policy-files
+          mountPath: /policy
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        STATUS="$(results.verify-status.path)"
+        fail() { echo -n "failed" > "${STATUS}"; echo "ERROR: $*" >&2; exit 1; }
+
+        [[ -n "${IMAGE}" && "${IMAGE}" != REPLACE_ME* ]] || fail "image param is empty or REPLACE_ME"
+        [[ -f /policy/policy.yaml ]] || fail "policy.yaml missing from ConfigMap"
+        [[ -f /policy/rules.rego ]] || fail "rules.rego missing from ConfigMap"
+        [[ -f /policy/data.yaml ]] || fail "data.yaml missing from ConfigMap"
+
+        read_key() {
+          local f="/policy/$1" d="$2"
+          if [[ -f "${f}" ]]; then
+            tr -d '[:space:]' < "${f}"
+          else
+            printf '%s' "${d}"
+          fi
+        }
+
+        SKIP_IMG="$(read_key skip-image-sig-check true)"
+        SKIP_ATT="$(read_key skip-att-sig-check true)"
+        IDENTITY="$(read_key certificate-identity-regexp '.*')"
+        ISSUER="$(read_key certificate-oidc-issuer-regexp '.*')"
+        IGNORE_REKOR="$(read_key ignore-rekor true)"
+
+        mkdir -p /tmp/ec
+        cp /policy/policy.yaml /policy/rules.rego /policy/data.yaml /tmp/ec/
+
+        if [[ -f /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]]; then
+          export SSL_CERT_FILE=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+        fi
+
+        CMD=(
+          ec validate image
+          --image="${IMAGE}"
+          --policy=/tmp/ec/policy.yaml
+          --strict=true
+          --show-successes
+          --info
+          --output=text
+          --certificate-identity-regexp="${IDENTITY}"
+          --certificate-oidc-issuer-regexp="${ISSUER}"
+          --extra-rule-data="certificate_identity_regexp=${IDENTITY}"
+          --extra-rule-data="certificate_oidc_issuer_regexp=${ISSUER}"
+        )
+        if [[ "${SKIP_IMG}" == "true" ]]; then
+          CMD+=(--skip-image-sig-check)
+        fi
+        if [[ "${SKIP_ATT}" == "true" ]]; then
+          CMD+=(--skip-att-sig-check)
+        fi
+        if [[ "${IGNORE_REKOR}" == "true" ]]; then
+          CMD+=(--ignore-rekor)
+        fi
+        if [[ -n "${REKOR_URL}" ]]; then
+          CMD+=(--rekor-url="${REKOR_URL}")
+        fi
+
+        echo "=== conforma-policy (ec validate image) ==="
+        echo "image=${IMAGE}"
+        echo "policy-namespace=${POLICY_NAMESPACE}"
+        echo "skip-image-sig-check=${SKIP_IMG} skip-att-sig-check=${SKIP_ATT}"
+        echo "identity=${IDENTITY}"
+
+        if [[ "${POLICY_NAMESPACE}" == "${SEED_NAMESPACE}" ]]; then
+          echo "WARN: still using the Argo seed ConfigMap in ${SEED_NAMESPACE}."
+          echo "Copy it to the lab namespace and pass policy-namespace / policy-configmap."
+        fi
+
+        "${CMD[@]}" || fail "ec validate image failed (unsigned FROM or policy still too weak/wrong)"
+        echo -n "passed" > "${STATUS}"
+        echo "Conforma policy passed"
+{{- end }}

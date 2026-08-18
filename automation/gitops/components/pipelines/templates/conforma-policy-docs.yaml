@@ -1,0 +1,80 @@
+{{- if and .Values.pipelines.enabled .Values.conformaPolicy.enabled }}
+---
+# Worked example is not paste-identical (wrong task name, wrong runAfter, fake identity).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.conformaPolicy.taskName }}-docs
+  namespace: {{ .Values.conformaPolicy.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: conforma-policy
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+data:
+  task_name: {{ .Values.conformaPolicy.taskName | quote }}
+  task_namespace: {{ .Values.conformaPolicy.namespace | quote }}
+  seed_configmap: {{ .Values.conformaPolicy.configMapName | quote }}
+  seeded_pipeline_includes_task: "false"
+  lab_namespace: {{ .Values.conformaPolicy.labNamespace | quote }}
+  README: |
+    V2-15 Task {{ .Values.conformaPolicy.taskName }} is applied in namespace
+    {{ .Values.conformaPolicy.namespace }}. The seeded Pipeline
+    spring-boot-lw-poc-build-sign does NOT call it.
+
+    ConfigMap {{ .Values.conformaPolicy.configMapName }} is the too-permissive
+    seed (skip-image-sig-check=true, CVE 999, identity .*, exclude *). Argo
+    reverts edits to that object.
+
+    Copy it into {{ .Values.conformaPolicy.labNamespace }}, turn skip flags
+    off, set identity to the RHTAS app signer (not a wildcard, not the
+    Hummingbird placeholder), drop the exclude-all, lower restrict_max_cve_score,
+    and pin allowed_registry_prefixes to the internal registry.
+
+    Wire the Task in Gitea .tekton/pipeline.yaml AFTER cosign-sign-keyless.
+    Point policy-namespace / policy-configmap at YOUR copy. Unsigned FROM
+    must fail; the learner-built signed image must pass.
+
+    Do not copy example-pipeline-snippet.yaml or example-policy.yaml.
+    No quay.io / github.com policy fetch. Image build stays OpenShift BuildConfig.
+  example-pipeline-snippet.yaml: |
+    # Worked example ONLY — paste-identical copy still fails the Check.
+    # Wrong task name, wrong runAfter (before sign), fake identity, skip left on.
+    - name: verify-enterprise-contract
+      runAfter: [clone]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: verify-enterprise-contract
+          - name: namespace
+            value: enterprise-contract-service
+      params:
+        - name: image
+          value: docker.io/library/java:latest
+        - name: policy-configmap
+          value: {{ .Values.conformaPolicy.configMapName }}
+        - name: policy-namespace
+          value: {{ .Values.conformaPolicy.namespace }}
+  example-policy.yaml: |
+    # Worked example ONLY — not the scored ConfigMap.
+    # Fake identity, CVE 0 (wrong), skip left true, java package only.
+    name: example-not-scored
+    identity:
+      subjectRegExp: https://example.invalid/not-the-app-signer
+      issuerRegExp: https://example.invalid/oidc
+    sources:
+      - name: example
+        policy:
+          - file::/home/lab-user/ec/rules.rego
+        data:
+          - file::/home/lab-user/ec/data.yaml
+        config:
+          include:
+            - java
+          exclude:
+            - workshop
+{{- end }}

@@ -34,6 +34,22 @@ Image build stays **OpenShift BuildConfig**.
 Cluster resolver for this Task is the same pattern as RHACS Tasks in `stackrox`
 (`kind=task`, `namespace=lightwell-tasks`).
 
+## V2-15 conforma-policy
+
+Task `conforma-policy` in namespace `lightwell-tasks` runs `ec validate image`
+against a **local** policy file from a ConfigMap. It is **not** referenced from
+the seeded learner Pipeline. Wire it in Gitea `.tekton/pipeline.yaml` so it
+runs **after** `cosign-sign-keyless`.
+
+ConfigMap `conforma-policy` is the too-permissive seed (`skip-image-sig-check=true`,
+CVE threshold `999`, identity `.*`, all workshop rules excluded). Argo reverts
+edits to that object — copy it to `lw-poc-student`, tighten the copy, and pass
+`policy-namespace` / `policy-configmap`. Fail path: unsigned `FROM`. Pass path:
+learner-signed app image. Do not copy `example-pipeline-snippet.yaml` from
+ConfigMap `conforma-policy-docs`. Do not fetch policy from quay.io or GitHub.
+
+Image build stays **OpenShift BuildConfig**.
+
 ## Notes
 
 - Installs into `openshift-operators` (shared OperatorGroup — do not create another).

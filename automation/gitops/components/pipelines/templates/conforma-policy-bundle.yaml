@@ -1,0 +1,157 @@
+{{- if and .Values.pipelines.enabled .Values.conformaPolicy.enabled }}
+---
+# V2-15 seed. Too permissive on purpose. Argo owns this object — copy it to the
+# lab namespace and tighten the copy. Editing this ConfigMap is reverted.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.conformaPolicy.configMapName }}
+  namespace: {{ .Values.conformaPolicy.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: conforma-policy
+    lightwell.redhat.com/gate: conforma
+    lightwell.redhat.com/seed: too-permissive
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+data:
+  skip-image-sig-check: {{ .Values.conformaPolicy.skipImageSigCheck | quote }}
+  skip-att-sig-check: {{ .Values.conformaPolicy.skipAttSigCheck | quote }}
+  certificate-identity-regexp: {{ .Values.conformaPolicy.certificateIdentityRegexp | quote }}
+  certificate-oidc-issuer-regexp: {{ .Values.conformaPolicy.certificateOidcIssuerRegexp | quote }}
+  ignore-rekor: {{ .Values.conformaPolicy.ignoreRekor | quote }}
+  policy.yaml: |
+    name: lightwell-workshop-too-permissive
+    description: >-
+      V2-15 seed. Signature checks skipped, CVE threshold 999, every workshop
+      rule excluded. Copy this ConfigMap to the lab namespace and tighten.
+      Do not leave identity as .* and do not paste example-policy.yaml.
+    identity:
+      subjectRegExp: {{ .Values.conformaPolicy.certificateIdentityRegexp | quote }}
+      issuerRegExp: {{ .Values.conformaPolicy.certificateOidcIssuerRegexp | quote }}
+    sources:
+      - name: workshop
+        policy:
+          - file::/tmp/ec/rules.rego
+        data:
+          - file::/tmp/ec/data.yaml
+        config:
+          include:
+            - "*"
+          exclude:
+            - "*"
+  data.yaml: |
+    restrict_max_cve_score: {{ .Values.conformaPolicy.restrictMaxCveScore }}
+    allowed_registry_prefixes:
+      - "docker.io/"
+      - "*"
+  rules.rego: |
+    package workshop
+
+    import future.keywords.contains
+    import future.keywords.if
+    import future.keywords.in
+
+    # METADATA
+    # title: CVE threshold is still the seed stub
+    # description: Seeded restrict_max_cve_score is 999. Lower it.
+    # custom:
+    #   short_name: cve_threshold_too_high
+    deny contains result if {
+      data.restrict_max_cve_score >= 999
+      result := {
+        "code": "workshop.cve_threshold_too_high",
+        "msg": "restrict_max_cve_score is still 999 (seeded stub). Lower it."
+      }
+    }
+
+    # METADATA
+    # title: Wildcard registry allow-list
+    # description: Seed allows docker.io and *. Pin to the internal registry.
+    # custom:
+    #   short_name: wildcard_registry
+    deny contains result if {
+      some prefix in data.allowed_registry_prefixes
+      prefix == "*"
+      result := {
+        "code": "workshop.wildcard_registry",
+        "msg": "allowed_registry_prefixes still includes * — pin to the internal registry"
+      }
+    }
+
+    # METADATA
+    # title: Signer identity is a wildcard
+    # description: Seed identity is .*. Use the RHTAS app signer, not a wildcard.
+    # custom:
+    #   short_name: identity_wildcard
+    deny contains result if {
+      ident := object.get(data, "certificate_identity_regexp", ".*")
+      ident == ".*"
+      result := {
+        "code": "workshop.identity_wildcard",
+        "msg": "certificate identity is still .* — set the RHTAS app signer identity"
+      }
+    }
+
+    # METADATA
+    # title: Image must be signed
+    # description: Unsigned FROM / unsigned app digest must fail.
+    # custom:
+    #   short_name: image_signed
+    deny contains result if {
+      not workshop_signatures_present
+      result := {
+        "code": "workshop.image_signed",
+        "msg": "image has no verified signatures — unsigned FROM is not allowed"
+      }
+    }
+
+    workshop_signatures_present if {
+      count(object.get(object.get(input, "image", {}), "signatures", [])) > 0
+    }
+
+    workshop_signatures_present if {
+      count(object.get(input, "signatures", [])) > 0
+    }
+
+    workshop_signatures_present if {
+      count(object.get(input, "attestations", [])) > 0
+    }
+---
+# PipelineRun SA in the lab ns must read the seed ConfigMap to copy it.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: read-conforma-policy
+  namespace: {{ .Values.conformaPolicy.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: conforma-policy
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames:
+      - {{ .Values.conformaPolicy.configMapName | quote }}
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-conforma-policy
+  namespace: {{ .Values.conformaPolicy.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: conforma-policy
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-conforma-policy
+subjects:
+  - kind: Group
+    apiGroup: rbac.authorization.k8s.io
+    name: system:serviceaccounts:{{ .Values.conformaPolicy.labNamespace }}
+{{- end }}

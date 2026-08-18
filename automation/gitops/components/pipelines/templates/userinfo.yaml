@@ -23,6 +23,14 @@ data:
   hummingbird_certificate_identity_regexp: {{ .Values.verifyBaseImage.certificateIdentityRegexp | quote }}
   hummingbird_certificate_oidc_issuer: {{ .Values.verifyBaseImage.certificateOidcIssuer | quote }}
 {{- end }}
+{{- if .Values.conformaPolicy.enabled }}
+  conforma_policy_task: {{ .Values.conformaPolicy.taskName | quote }}
+  conforma_policy_namespace: {{ .Values.conformaPolicy.namespace | quote }}
+  conforma_policy_configmap: {{ .Values.conformaPolicy.configMapName | quote }}
+  conforma_policy_in_seeded_pipeline: "false"
+  conforma_policy_seed_skip_image_sig_check: {{ .Values.conformaPolicy.skipImageSigCheck | quote }}
+  conforma_policy_seed_max_cve_score: {{ .Values.conformaPolicy.restrictMaxCveScore | quote }}
+{{- end }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
   deployment_type: helm

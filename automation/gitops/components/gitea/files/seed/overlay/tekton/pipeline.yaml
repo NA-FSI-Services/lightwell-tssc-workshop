@@ -212,3 +212,7 @@ spec:
           value: $(params.cosign-rekor-url)
         - name: tuf-url
           value: $(params.cosign-tuf-url)
+
+    # V2-15: Task conforma-policy (namespace lightwell-tasks) is NOT in this seed.
+    # Learner copies ConfigMap conforma-policy, tightens it, and wires the Task
+    # after this step. Do not copy example-pipeline-snippet.yaml.

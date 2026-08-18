@@ -497,7 +497,7 @@ v2 is primarily an **automation + content** change on the existing GitOps bootst
 | **Dockerfiles / RHDH skeletons** | Track 3 **starts** on UBI (wrong `FROM`). Learner changes to mirrored Hummingbird. Do not ship the scored Dockerfile as the seed. | 30 / 40 |
 | **Tekton** | New tasks: `verify-base-image`, `conforma-policy`, `attach-sbom-oci`, **Hermeto prefetch (4.2 scored)**. Image build stays **OpenShift BuildConfig** (no Buildah). | 8 / 40 |
 | **Renovate** | Live bot in-cluster vs Gitea (3.3). Seed stale Lightwell + Hummingbird pins. SoW MintMaker → this bot. | 40 |
-| **Conforma / Enterprise Contract** | Policy bundle ConfigMap (signed Hummingbird identity, Lightwell pin already covered by dep-gate). Fail path: unsigned `FROM`. | 10 |
+| **Conforma / Enterprise Contract** | Policy bundle ConfigMap in `lightwell-tasks` (too permissive: skip signatures, CVE 999). Task `conforma-policy` **not** in seeded pipeline. Fail path: unsigned `FROM`. No quay.io policy fetch. | 8 |
 | **Admission** | **4.20 GA:** Kyverno and/or RHACS. **4.21 later:** `ClusterImagePolicy`. Learner edits one trust-policy file (identity/issuer/digest); a chart renders the active API. Enforce on app (and prod) namespace. | 10 |
 | **RHTPA** | Ingest path for learner-uploaded Lightwell GAV VEX/CDX (**C+**). Do **not** enable live CSAF as the Track 7 gate. Optional CSAF off or inspect-only. Seed VEX beside the Nexus remediated GAV. | 10 |
 | **RHTAS** | Keyless path **and** materials for scored key-based/TUF verify (5.3): exportable TUF root, lab signing key or documented RHTAS key-based mode. Seeded TUF path is empty/wrong until the learner copies it. | 10 |
@@ -669,7 +669,7 @@ Packaging A/B/C is **closed** — see §4.3.
 | V2-12 | Remove v1 Java/Python dual-path flags; single TSSC app namespace | V2-0. Scored NS = `lw-poc-student`. Python seed/Argo/RHDH/RHACS gates off; files stay in git. |
 | V2-13 | Seed Dockerfile on UBI (wrong) so Track 3 requires `FROM` Hummingbird | V2-10. Seed: `ubi9/openjdk-21` + `ubi9/openjdk-21-runtime` (not `hi/openjdk`). |
 | V2-14 | Tekton task `verify-base-image` (cosign + attestation + SBOM) | V2-10. Task in `lightwell-tasks`; **not** in seeded pipeline. |
-| V2-15 | Conforma / Enterprise Contract policy bundle + pipeline task | — |
+| V2-15 | Conforma / Enterprise Contract policy bundle + pipeline task | Task in `lightwell-tasks`; weak ConfigMap; **not** in seeded pipeline. Local `ec validate`; no quay.io fetch. |
 | V2-16 | Admission: learner trust-policy file → ImagePolicy now (Kyverno fallback); do not score `ClusterImagePolicy` | V2-2 (closed) |
 | V2-17 | Two GitOps remotes (stage vs prod) + Argo CD Applications; seed prod empty/wrong | V2-0 |
 | V2-18 | Nexus: seed Lightwell GAV-bound VEX/CDX (C+); TPA ingest; no live CSAF gate | — |
