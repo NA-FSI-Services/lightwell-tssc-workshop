@@ -23,6 +23,10 @@
 * xref:module-12-sign-keyless.adoc[5.1 Sign (keyless)]
 * xref:module-13-attest-conforma.adoc[5.2 Attest + Conforma]
 
+.Track 6 — Production container
+* xref:module-15-gitops-admission.adoc[6.1 GitOps + admission]
+* xref:module-16-prod-gitops.adoc[6.2 Promote to prod repo]
+
 .Java track
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]

@@ -1,0 +1,77 @@
+= 6.2 Promote to prod repo
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Production is a *second Gitea remote* (`student_prod_gitops_repo_url` → `lw-student/gitops-prod-spring-boot-lw-poc`), not a second Helm file in the stage repo. Seed digest is `sha256:REPLACE_ME_PROD_DIGEST`; `replicas: 0`; there is *no* TrustPolicy on the prod tree (admission already landed on `lw-poc-prod` from 6.1).
+
+You commit the *same signed digest* used on stage. Check fails if Application `lw-poc-prod` still tracks the stage remote.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* `oc tag` the signed image into `lw-poc-prod` and commit digest + `replicas: 1` to the *prod* GitOps remote
+* Keep `lw-poc-prod` `.spec.source.repoURL` on the prod remote
+* Leave the stage Application and TrustPolicy file alone
+
+== Why two remotes
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/52
+image::FIXME-gitops-stage-vs-prod-remotes.png[Stage versus prod Gitea remotes — promotion is a commit to the second remote,width=700,link=self,window=blank]
+
+Konflux *Release Service* maps to this commit. Do not “fix” a broken prod app by pointing Argo at stage.
+
+== Delivery note (SoW)
+
+*Customers* promote by merging to a prod GitOps repo (or Release). *You* push the digest you already signed. Unsigned deny from 6.1 must still hold.
+
+== Your change: prod tag + prod commit
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+PROD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_prod_namespace}')"
+PROD_GITOPS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_prod_gitops_repo_url}')"
+echo "PROD_NS=${PROD_NS}"
+echo "PROD_GITOPS=${PROD_GITOPS}"
+oc tag "${BUILD_NS}/spring-boot-lw-poc:latest" "${PROD_NS}/spring-boot-lw-poc:latest"
+oc -n "${PROD_NS}" get istag spring-boot-lw-poc:latest \
+  -o jsonpath='{.image.metadata.name}{"\n"}'
+----
+
+Clone `student_prod_gitops_repo_url` (password from `student_password` jsonpath — do not commit it). Replace `sha256:REPLACE_ME_PROD_DIGEST` with that digest; set `replicas: 1`. Commit and push *this* remote only. Do not copy `values.yaml` or `PROMOTE.md` from the stage clone.
+
+== Check: prod Application sources prod
+
+[source,bash,role=execute]
+----
+PROD_GITOPS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_prod_gitops_repo_url}')"
+oc -n openshift-gitops get applications.argoproj.io lw-poc-prod \
+  -o jsonpath='repo={.spec.source.repoURL}{"\n"}sync={.status.sync.status}{"\n"}health={.status.health.status}{"\n"}'
+oc -n openshift-gitops get applications.argoproj.io lw-poc-prod \
+  -o jsonpath='{.spec.source.repoURL}{"\n"}' | grep -F 'gitops-prod-spring-boot-lw-poc' \
+  && echo 'prod remote OK' || echo 'STILL TRACKING STAGE OR WRONG REPO'
+echo "expected prefix ${PROD_GITOPS}"
+oc -n lw-poc-prod get deploy,pods,route,imagepolicy
+----
+
+Pass when:
+
+* `lw-poc-prod` `.spec.source.repoURL` is `student_prod_gitops_repo_url` (contains `gitops-prod-spring-boot-lw-poc`, *not* `gitops-spring-boot-lw-poc.git` without `-prod-`)
+* Application is Synced / Healthy on the signed digest (`REPLACE_ME_PROD_DIGEST` gone)
+* ImagePolicy from 6.1 is still present; unsigned still denied
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
+image::FIXME-argo-stage-healthy-prod-seed.png[Argo Applications console — after this Check, lw-poc-prod is Healthy from the prod remote (dry-run recapture of #56),width=700,link=self,window=blank]
+
+Honor system: Track 7 still opens.
+
+== Callout
+
+Python prod GitOps is a second remote the same way. Not scored here.
+
+== Key takeaways
+
+* Promotion is a git commit to a second remote, not a second values file.
+* Do not retarget prod Argo at stage.
