@@ -1,0 +1,108 @@
+{{- if and .Values.pipelines.enabled .Values.prefetchDependencies.enabled }}
+---
+# V2-23. Learner wires this Task into spring-boot-lw-poc-build-sign (not seeded).
+# Workshop Maven prefetch against Nexus. Not quay.io/konflux-ci/hermeto.
+# Image build stays OpenShift BuildConfig. Mapping: Konflux Hermeto → this Task.
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ .Values.prefetchDependencies.taskName }}
+  namespace: {{ .Values.prefetchDependencies.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: prefetch-dependencies
+    lightwell.redhat.com/gate: prefetch
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+spec:
+  description: >-
+    Prefetch declared Maven dependencies into the source workspace using only
+    in-cluster Nexus. Public Central or undeclared fetches fail. Not Hermeto.
+  params:
+    - name: pom-path
+      type: string
+      default: {{ .Values.prefetchDependencies.pomPath | quote }}
+    - name: settings-path
+      type: string
+      default: {{ .Values.prefetchDependencies.settingsPath | quote }}
+    - name: prefetch-dir
+      type: string
+      default: {{ .Values.prefetchDependencies.prefetchDir | quote }}
+      description: Directory under the source workspace (Binary BuildConfig sees it).
+    - name: maven-profile
+      type: string
+      default: {{ .Values.prefetchDependencies.mavenProfile | quote }}
+  workspaces:
+    - name: source
+      description: Cloned app repo (pom.xml + settings.xml).
+  results:
+    - name: prefetch-status
+      type: string
+      description: passed | failed
+  steps:
+    - name: prefetch
+      computeResources: {}
+      image: {{ .Values.prefetchDependencies.mavenImage | quote }}
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: POM_PATH
+          value: $(params.pom-path)
+        - name: SETTINGS_PATH
+          value: $(params.settings-path)
+        - name: PREFETCH_DIR
+          value: $(params.prefetch-dir)
+        - name: MAVEN_PROFILE
+          value: $(params.maven-profile)
+        - name: HOME
+          value: /tmp
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        STATUS="$(results.prefetch-status.path)"
+        fail() { echo -n "failed" > "${STATUS}"; echo "ERROR: $*" >&2; exit 1; }
+
+        [[ -f "${POM_PATH}" ]] || fail "pom not found: ${POM_PATH}"
+        [[ -f "${SETTINGS_PATH}" ]] || fail "settings not found: ${SETTINGS_PATH} — copy in-cluster Nexus settings (not Central)"
+
+        FORBIDDEN='repo\.maven\.apache\.org|repo1\.maven\.org|maven\.google\.com|jitpack\.io'
+        if grep -E "${FORBIDDEN}" "${SETTINGS_PATH}" "${POM_PATH}"; then
+          fail "public Maven host in settings/pom — prefetch is Nexus-only (seed still has Central)"
+        fi
+        if ! grep -Eq '<mirrorOf>\s*(\*|external:\*)\s*</mirrorOf>' "${SETTINGS_PATH}"; then
+          fail "settings.xml needs <mirrorOf>*</mirrorOf> (or external:*) to Nexus — otherwise plugins hit Central"
+        fi
+        if ! grep -Eq 'lightwell-repo|/repository/lightwell' "${SETTINGS_PATH}"; then
+          fail "settings.xml must use in-cluster Nexus (lightwell-repo), not packages.redhat.com or Central"
+        fi
+
+        OUT="$(workspaces.source.path)/${PREFETCH_DIR}"
+        mkdir -p "${OUT}"
+        echo "=== prefetch-dependencies (Maven go-offline → Nexus) ==="
+        echo "pom=${POM_PATH} settings=${SETTINGS_PATH} repoLocal=${OUT}"
+
+        PROFILE_ARGS=()
+        if [[ -n "${MAVEN_PROFILE}" ]]; then
+          PROFILE_ARGS=(-P"${MAVEN_PROFILE}")
+        fi
+
+        mvn -B -s "${SETTINGS_PATH}" \
+          -Dmaven.repo.local="${OUT}" \
+          "${PROFILE_ARGS[@]}" \
+          -DskipTests \
+          dependency:go-offline \
+          || fail "mvn dependency:go-offline failed (declared deps must resolve from Nexus)"
+
+        mvn -B -s "${SETTINGS_PATH}" \
+          -Dmaven.repo.local="${OUT}" \
+          "${PROFILE_ARGS[@]}" \
+          -o \
+          -DskipTests \
+          dependency:resolve \
+          || fail "undeclared or missing deps — mvn -o dependency:resolve failed after prefetch"
+
+        JAR_COUNT="$(find "${OUT}" -name '*.jar' | wc -l | tr -d ' ')"
+        [[ "${JAR_COUNT}" -gt 0 ]] || fail "prefetch directory ${PREFETCH_DIR} has no jars"
+        echo "prefetched_jars=${JAR_COUNT}" > "${OUT}/PREFETCHED"
+        echo -n "passed" > "${STATUS}"
+        echo "Prefetch complete (${JAR_COUNT} jars) → ${PREFETCH_DIR}"
+{{- end }}

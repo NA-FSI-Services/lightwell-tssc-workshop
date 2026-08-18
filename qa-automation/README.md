@@ -11,7 +11,7 @@ Post-provision readiness (< 60s). Confirms the v2 GitOps objects exist:
 - NetworkPolicy `build-egress` / `app-operate`
 - Incomplete ImageSet ConfigMap, oc-mirror tooling + PVC
 - CronJob `trust-policy-apply`
-- Tasks `verify-base-image` / `conforma-policy`
+- Tasks `verify-base-image` / `conforma-policy` / `prefetch-dependencies`
 - Showroom CLI userinfo (`cosign`, `ec`, `oc-mirror`; `syft_baked=false`)
 
 Does **not** require a mirrored Hummingbird image, a signature, or unsigned deny.

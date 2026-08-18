@@ -79,7 +79,8 @@ spec:
 
     # OpenShift Binary BuildConfig (Dockerfile multi-stage) — replaces buildah.
     # V2-14: Task verify-base-image (namespace lightwell-tasks) is NOT in this seed.
-    # Learner wires it so it runs before this step. Do not copy example-pipeline-snippet.yaml.
+    # V2-23: Task prefetch-dependencies is NOT in this seed (not named hermeto).
+    # Learner wires both so they run before this step. Do not copy example-pipeline-snippet.yaml.
     - name: openshift-build
       runAfter: [lightwell-dep-gate]
       workspaces:

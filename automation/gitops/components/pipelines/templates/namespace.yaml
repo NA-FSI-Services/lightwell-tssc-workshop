@@ -1,4 +1,4 @@
-{{- if and .Values.pipelines.enabled (or .Values.verifyBaseImage.enabled .Values.conformaPolicy.enabled) }}
+{{- if and .Values.pipelines.enabled (or .Values.verifyBaseImage.enabled .Values.conformaPolicy.enabled .Values.prefetchDependencies.enabled) }}
 ---
 apiVersion: v1
 kind: Namespace

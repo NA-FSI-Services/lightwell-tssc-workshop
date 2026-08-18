@@ -97,6 +97,11 @@
     oc get task.tekton.dev {{ conforma_task }} -n {{ tasks_namespace }}
   changed_when: false
 
+- name: prefetch-dependencies Task exists
+  ansible.builtin.command: >-
+    oc get task.tekton.dev {{ prefetch_task }} -n {{ tasks_namespace }}
+  changed_when: false
+
 - name: Showroom userinfo lists lab CLIs
   ansible.builtin.command: >-
     oc get configmap {{ showroom_userinfo }} -n {{ showroom_namespace }}

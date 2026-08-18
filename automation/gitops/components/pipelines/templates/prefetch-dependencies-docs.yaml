@@ -1,0 +1,57 @@
+{{- if and .Values.pipelines.enabled .Values.prefetchDependencies.enabled }}
+---
+# Worked example is not paste-identical (Konflux name, pip, wrong runAfter).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.prefetchDependencies.taskName }}-docs
+  namespace: {{ .Values.prefetchDependencies.namespace }}
+  labels:
+    {{- include "pipelines.labels" . | nindent 4 }}
+    app.kubernetes.io/component: prefetch-dependencies
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.pipelines.syncWaves.tasks | quote }}
+data:
+  task_name: {{ .Values.prefetchDependencies.taskName | quote }}
+  task_namespace: {{ .Values.prefetchDependencies.namespace | quote }}
+  seeded_pipeline_includes_task: "false"
+  konflux_mapping: "Hermeto → prefetch-dependencies (Maven / Nexus). Not a Konflux install."
+  prefetch_dir: {{ .Values.prefetchDependencies.prefetchDir | quote }}
+  README: |
+    V2-23 Task {{ .Values.prefetchDependencies.taskName }} is applied in namespace
+    {{ .Values.prefetchDependencies.namespace }}. The seeded Pipeline
+    spring-boot-lw-poc-build-sign does NOT call it.
+
+    This is the Track 4.2 prefetch Check. Mapping appendix: Konflux Hermeto →
+    this Task. The cluster object is not named hermeto. Do not pull
+    quay.io/konflux-ci/hermeto.
+
+    Wire it in Gitea .tekton/pipeline.yaml AFTER clone / dep-gate and BEFORE
+    openshift-build. Point settings.xml at in-cluster Nexus with mirrorOf *
+    (the seed still lists repo.maven.apache.org). Prefetch writes
+    {{ .Values.prefetchDependencies.prefetchDir }} into the source workspace
+    so Binary BuildConfig can consume it. Dockerfile mvn -o is Track 4 content
+    (V2-34) — do not copy example-pipeline-snippet.yaml.
+
+    Image build stays OpenShift BuildConfig (no Buildah).
+  example-pipeline-snippet.yaml: |
+    # Worked example ONLY — paste-identical copy still fails the Check.
+    # Wrong name (hermeto), pip, runAfter ACS (too late).
+    - name: hermeto
+      runAfter: [acs-image-check]
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: hermeto
+          - name: namespace
+            value: konflux-build-ns
+      params:
+        - name: package-manager
+          value: pip
+        - name: prefetch-dir
+          value: /opt/cachi2
+{{- end }}

@@ -50,6 +50,23 @@ ConfigMap `conforma-policy-docs`. Do not fetch policy from quay.io or GitHub.
 
 Image build stays **OpenShift BuildConfig**.
 
+## V2-23 prefetch-dependencies
+
+Task `prefetch-dependencies` in namespace `lightwell-tasks` is the Track 4.2
+**Hermeto analogue**: Maven `go-offline` against in-cluster Nexus, then
+`mvn -o dependency:resolve`. It is **not** `quay.io/konflux-ci/hermeto` and is
+**not** a `ClusterTask`. Mapping appendix: Konflux Hermeto → this Task.
+
+It is **not** referenced from the seeded learner Pipeline. Wire it in Gitea
+`.tekton/pipeline.yaml` after `lightwell-dep-gate` and before `openshift-build`.
+The seed `settings.xml` still lists `repo.maven.apache.org` and has no
+`mirrorOf *` — the Task fails until the learner points settings at Nexus only.
+Prefetch writes `.m2-offline` into the source workspace (Binary BuildConfig
+`--from-dir`). Dockerfile `mvn -o` is Track 4 content (V2-34). Do not copy
+`example-pipeline-snippet.yaml` from ConfigMap `prefetch-dependencies-docs`.
+
+Image build stays **OpenShift BuildConfig**.
+
 ## Notes
 
 - Installs into `openshift-operators` (shared OperatorGroup — do not create another).

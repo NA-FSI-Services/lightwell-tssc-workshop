@@ -31,6 +31,13 @@ data:
   conforma_policy_seed_skip_image_sig_check: {{ .Values.conformaPolicy.skipImageSigCheck | quote }}
   conforma_policy_seed_max_cve_score: {{ .Values.conformaPolicy.restrictMaxCveScore | quote }}
 {{- end }}
+{{- if .Values.prefetchDependencies.enabled }}
+  prefetch_dependencies_task: {{ .Values.prefetchDependencies.taskName | quote }}
+  prefetch_dependencies_namespace: {{ .Values.prefetchDependencies.namespace | quote }}
+  prefetch_dependencies_in_seeded_pipeline: "false"
+  prefetch_dir: {{ .Values.prefetchDependencies.prefetchDir | quote }}
+  konflux_mapping_hermeto: "prefetch-dependencies"
+{{- end }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
   deployment_type: helm

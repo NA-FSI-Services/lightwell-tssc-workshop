@@ -31,5 +31,6 @@ trust_policy_seed_key: overlay-gitops-admission-trust-policy.yaml
 verify_task: verify-base-image
 conforma_task: conforma-policy
 conforma_configmap: conforma-policy
+prefetch_task: prefetch-dependencies
 
 app_imagestream: spring-boot-lw-poc
