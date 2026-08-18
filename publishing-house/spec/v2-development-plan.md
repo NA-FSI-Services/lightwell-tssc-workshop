@@ -681,6 +681,8 @@ Packaging A/B/C is **closed** — see §4.3.
 
 ### Epic C — Content (seven tracks)
 
+Student instructions and explainers. If a diagram or screenshot would teach a point faster than prose, file a **separate** `[visual]` GitHub issue (prompt for an agent, or a dry-run screenshot brief) — do not bury artwork TODOs in the track issue. See `.cursor/rules/content-visuals.mdc`. V2-42’s seven-track diagram is the first planned visual.
+
 | ID | Title | Depends on |
 |----|-------|------------|
 | V2-30 | Spec: new LOs, coverage-first module list, design.md; `duration_hours` TBD | V2-0 |

@@ -1,0 +1,37 @@
+---
+description: When writing student instructions or explainers, file a separate GitHub issue with a generation prompt or screenshot brief wherever a picture would teach better than prose.
+globs: content/**/*.adoc,publishing-house/spec/modules/**/*.md,publishing-house/spec/design.md
+alwaysApply: false
+---
+
+# Content visuals (Epic C)
+
+When drafting Showroom student instructions, explainers, or track outlines, do **not** leave a visual hole as a TODO in the same content issue. If a diagram or screenshot would teach the point faster than prose, **file a separate GitHub issue** on `NA-FSI-Services/lightwell-tssc-workshop` and keep writing.
+
+Applies to Epic C (V2-30…46, including V2-42’s seven-track diagram) and Epic E content pages (V2-55, V2-56). Not for platform/GitOps charts.
+
+## When to file
+
+File when the learner must **see** a UI, topology, or before/after that a procedure dump cannot carry: consoles (Nexus, Gitea, Argo CD, RHDH, TPA, ACS), pipeline graphs, pin/digest flow, NetworkPolicy, admission deny, Renovate PR. Skip decorative images and anything the Check already grades from live objects.
+
+## How to file
+
+- Title: `[visual] <parent ID> — <what to capture>` (example: `[visual] V2-31 — oc-mirror ImageSet after REPLACE_ME is filled`).
+- Labels: `v2`, `v2-content`. Link the parent content issue. Do **not** invent a new `V2-N` plan ID.
+- In AsciiDoc, leave a placeholder and the issue number — do not invent a screenshot or commit a fake PNG:
+
+```
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/N
+image::FIXME-<slug>.png[<descriptive alt>,width=700,link=self,window=blank]
+```
+
+Assets land in `content/modules/ROOT/images/`. Macros need descriptive alt text and `link=self,window=blank`.
+
+## Issue body (required)
+
+Pick **one** and make it executable by someone who did not write the page:
+
+1. **Generate (agent)** — what to draw; labels and arrows; in/out of scope; style (simple diagram, not marketing); suggested filename; where it is cited (`*.adoc` section).
+2. **Screenshot (dry-run user)** — claim/UI path; exact moment in the procedure; what must be visible; what to redact (`student_password`, tokens, `LW_*`); suggested filename.
+
+Do not generate or paste the image in the content issue. Do not wait for the visual before shipping the prose.

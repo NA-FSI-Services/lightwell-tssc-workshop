@@ -22,6 +22,8 @@ during intake.
 Showroom AsciiDoc content lives in [content/](content/). The Antora component descriptor
 is at `content/antora.yml` and modules are in `content/modules/ROOT/pages/`.
 
+When writing student instructions or explainers (Epic C, plus Epic E Validate-Job copy): if a diagram or screenshot would teach better than prose, file a **separate** `[visual]` GitHub issue with a generation prompt or dry-run screenshot brief. See `.cursor/rules/content-visuals.mdc`. Do not invent images or block the page on artwork.
+
 ## Automation
 Pattern-specific automation directories are created by `scaffold.py`:
 
