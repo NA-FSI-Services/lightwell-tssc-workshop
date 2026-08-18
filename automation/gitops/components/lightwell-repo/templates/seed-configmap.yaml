@@ -25,8 +25,16 @@ data:
 {{ .Files.Get "files/seed/spring-core-5.3.18.cdx.json" | indent 4 }}
   spring-core-5.3.18.rhlw-00003.cdx.json: |
 {{ .Files.Get "files/seed/spring-core-5.3.18.rhlw-00003.cdx.json" | indent 4 }}
+  commons-lang3-3.14.0.cdx.json: |
+{{ .Files.Get "files/seed/commons-lang3-3.14.0.cdx.json" | indent 4 }}
+  commons-lang3-3.14.0.rhlw-00001.cdx.json: |
+{{ .Files.Get "files/seed/commons-lang3-3.14.0.rhlw-00001.cdx.json" | indent 4 }}
+  commons-lang3-3.14.0.rhlw-00001.vex.json: |
+{{ .Files.Get "files/seed/commons-lang3-3.14.0.rhlw-00001.vex.json" | indent 4 }}
   {{ .Values.sampleOsv.vulnerabilityId }}.json: |
 {{ .Files.Get "files/seed/LW-DEMO-0001.json" | indent 4 }}
+  {{ .Values.sampleVex.vulnerabilityId }}.json: |
+{{ .Files.Get "files/seed/LW-DEMO-0002.json" | indent 4 }}
   workshop-stub.jar.b64: |
 {{ .Files.Get "files/seed/workshop-stub.jar.b64" | indent 4 }}
   lw_workshop_pypi-remediated.whl.b64: |
@@ -48,6 +56,18 @@ data:
     CycloneDX (raw repo):
       sbom/java/validated/.../5.3.18.cdx.json
       sbom/java/remediated/.../5.3.18.rhlw-00003.cdx.json
+      sbom/java/validated/org.apache.commons/commons-lang3/3.14.0.cdx.json
+      sbom/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.cdx.json
+
+    Track 7 scored VEX (Q12 C+ — GAV-bound, not live CSAF):
+      Maven classifier beside {{ .Values.sampleVex.packageName }}:{{ .Values.sampleVex.remediatedVersion }}
+        {{ .Values.sampleVex.mavenCdxClassifier }} / {{ .Values.sampleVex.mavenVexClassifier }}
+      Raw OSV:
+        {{ .Values.sampleVex.rawCdxPath }}
+        {{ .Values.sampleVex.rawVexPath }}
+        osv/java/remediated/{{ .Values.sampleVex.vulnerabilityId }}.json
+      Learner pulls from Nexus and ingests to TPA. Do not pre-ingest. Do not enable redhat-csaf as the Check.
+      Python SPDX/VEX analogue is Track 8 text only (no second GAV seed).
 
     PyPI Validated (wheel fetched at seed time when channels.pypiValidated.enabled):
       {{ .Values.pypiSeed.package }}=={{ .Values.pypiSeed.version }}

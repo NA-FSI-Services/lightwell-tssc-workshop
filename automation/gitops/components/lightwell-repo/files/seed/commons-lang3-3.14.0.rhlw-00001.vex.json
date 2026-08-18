@@ -1,0 +1,37 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://workshop.local/vex/LW-DEMO-0002",
+  "author": "Lightwell TSSC Workshop",
+  "role": "document creator",
+  "timestamp": "2026-01-15T00:00:00.000000000Z",
+  "version": 1,
+  "tooling": "seeded-mirror 0.1.0",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "LW-DEMO-0002"
+      },
+      "timestamp": "2026-01-15T00:00:00.000000000Z",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.commons/commons-lang3@3.14.0"
+        }
+      ],
+      "status": "affected",
+      "action_statement": "Validated coordinate 3.14.0 is still affected. Pin org.apache.commons:commons-lang3:3.14.0.rhlw-00001 from the Lightwell Remediated channel."
+    },
+    {
+      "vulnerability": {
+        "name": "LW-DEMO-0002"
+      },
+      "timestamp": "2026-01-15T00:00:00.000000000Z",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.commons/commons-lang3@3.14.0.rhlw-00001"
+        }
+      ],
+      "status": "fixed",
+      "action_statement": "Remediated via Lightwell exact-version pin 3.14.0.rhlw-00001. Blast-radius: this finding is fixed through Lightwell, not still-open upstream. Workshop seed (Q12 C+) — do not use live Red Hat CSAF as the Track 7 Check."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.6.0",
+  "id": "LW-DEMO-0002",
+  "modified": "2026-01-15T00:00:00Z",
+  "published": "2026-01-15T00:00:00Z",
+  "summary": "Demo OSV record for Lightwell GAV-bound VEX (commons-lang3 Track 2 pin)",
+  "details": "Workshop sample — not a real CVE. Track 7 scores this id bound to org.apache.commons:commons-lang3. Upstream 3.14.0 stays affected; 3.14.0.rhlw-00001 is fixed via the Lightwell pin. Distinct from LW-DEMO-0001 (spring-core resolution stub).",
+  "affected": [
+    {
+      "package": {
+        "ecosystem": "Maven",
+        "name": "org.apache.commons:commons-lang3",
+        "purl": "pkg:maven/org.apache.commons/commons-lang3@3.14.0"
+      },
+      "ranges": [
+        {
+          "type": "ECOSYSTEM",
+          "events": [
+            {
+              "introduced": "0"
+            },
+            {
+              "fixed": "3.14.0.rhlw-00001"
+            }
+          ]
+        }
+      ],
+      "versions": [
+        "3.14.0"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "type": "WEB",
+      "url": "https://packages.redhat.com/lightwell/osv/java/remediated"
+    },
+    {
+      "type": "WEB",
+      "url": "https://console.redhat.com/lightwell"
+    }
+  ],
+  "database_specific": {
+    "lightwell_tier": "remediated",
+    "lightwell_base_version": "3.14.0",
+    "lightwell_remediated_version": "3.14.0.rhlw-00001",
+    "osv_path": "osv/java/remediated/LW-DEMO-0002.json",
+    "vex_path": "vex/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.vex.json",
+    "workshop_note": "Seeded by lightwell-repo (V2-18 / C+). Learner pulls CDX+VEX from Nexus and ingests to TPA. Do not enable live CSAF as the Track 7 Check."
+  }
+}

@@ -68,6 +68,14 @@ data:
           - {{ .Values.channels.validated.name }}
           - {{ .Values.channels.remediated.name }}
 {{- end }}
+    scoredVex:
+      vulnerabilityId: {{ .Values.sampleVex.vulnerabilityId }}
+      gav: {{ printf "%s:%s" .Values.sampleVex.packageName .Values.sampleVex.remediatedVersion | quote }}
+      mavenClassifiers: [{{ .Values.sampleVex.mavenCdxClassifier }}, {{ .Values.sampleVex.mavenVexClassifier }}]
+      rawCdxPath: {{ .Values.sampleVex.rawCdxPath | quote }}
+      rawVexPath: {{ .Values.sampleVex.rawVexPath | quote }}
+      liveCsafGate: {{ .Values.sampleVex.liveCsafGate }}
+      note: "Track 7 Check uses this GAV-bound VEX. Learner ingests to TPA. Do not enable redhat-csaf."
     credentialsSecret: {{ .Values.credentials.secretName }}
     env:
       LW_USERNAME: from-secret

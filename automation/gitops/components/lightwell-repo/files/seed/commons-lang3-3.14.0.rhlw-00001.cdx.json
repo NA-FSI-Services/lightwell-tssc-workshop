@@ -1,0 +1,68 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:d4444444-4444-4444-8444-444444444444",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-01-15T00:00:00Z",
+    "component": {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-lang3@3.14.0.rhlw-00001",
+      "group": "org.apache.commons",
+      "name": "commons-lang3",
+      "version": "3.14.0.rhlw-00001",
+      "purl": "pkg:maven/org.apache.commons/commons-lang3@3.14.0.rhlw-00001",
+      "properties": [
+        {
+          "name": "lightwell:tier",
+          "value": "remediated"
+        },
+        {
+          "name": "lightwell:baseVersion",
+          "value": "3.14.0"
+        },
+        {
+          "name": "lightwell:remediatedVersion",
+          "value": "3.14.0.rhlw-00001"
+        },
+        {
+          "name": "lightwell:osvId",
+          "value": "LW-DEMO-0002"
+        }
+      ]
+    },
+    "tools": [
+      {
+        "vendor": "Lightwell TSSC Workshop",
+        "name": "seeded-mirror",
+        "version": "0.1.0"
+      }
+    ]
+  },
+  "components": [],
+  "vulnerabilities": [
+    {
+      "id": "LW-DEMO-0002",
+      "source": {
+        "name": "Lightwell-OSV-Demo",
+        "url": "https://packages.redhat.com/lightwell/osv/java/remediated"
+      },
+      "ratings": [
+        {
+          "method": "other",
+          "severity": "medium",
+          "score": 5.0
+        }
+      ],
+      "analysis": {
+        "state": "resolved",
+        "detail": "Remediated via Lightwell exact-version pin 3.14.0.rhlw-00001. Upstream 3.14.0 remains affected. Workshop seed for Track 7 blast-radius — not a live CVE."
+      },
+      "affects": [
+        {
+          "ref": "pkg:maven/org.apache.commons/commons-lang3@3.14.0.rhlw-00001"
+        }
+      ]
+    }
+  ]
+}

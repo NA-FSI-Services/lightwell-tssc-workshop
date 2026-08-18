@@ -1,0 +1,41 @@
+{{- if and .Values.lightwellRepo.enabled .Values.sampleVex.enabled }}
+{{- $nexusUrl := include "lightwell-repo.nexusUrl" . }}
+---
+# Track 7 scored OpenVEX + CDX (Q12 C+). Bound to the Track 2 Lightwell GAV.
+# Learner pulls from Nexus and ingests to TPA. Do not pre-ingest. Live CSAF is not the gate.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.sampleVex.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  {{ .Values.sampleVex.vulnerabilityId }}.vex.json: |
+{{ .Files.Get "files/seed/commons-lang3-3.14.0.rhlw-00001.vex.json" | indent 4 }}
+  {{ .Values.sampleVex.vulnerabilityId }}.cdx.json: |
+{{ .Files.Get "files/seed/commons-lang3-3.14.0.rhlw-00001.cdx.json" | indent 4 }}
+  README: |
+    Scored VEX for Track 7 (Q12 C+).
+
+    GAV: {{ .Values.sampleVex.packageName }}:{{ .Values.sampleVex.remediatedVersion }}
+    Id:  {{ .Values.sampleVex.vulnerabilityId }}
+    Blast radius: {{ .Values.sampleVex.vulnerabilityId }} is fixed via the Lightwell pin,
+    not still-open upstream {{ .Values.sampleVex.baseVersion }}.
+
+    Beside the Maven GAV (classifiers {{ .Values.sampleVex.mavenCdxClassifier }} / {{ .Values.sampleVex.mavenVexClassifier }}):
+      {{ $nexusUrl }}/repository/{{ .Values.channels.remediated.name }}/org/apache/commons/commons-lang3/{{ .Values.sampleVex.remediatedVersion }}/commons-lang3-{{ .Values.sampleVex.remediatedVersion }}-cdx.json
+      {{ $nexusUrl }}/repository/{{ .Values.channels.remediated.name }}/org/apache/commons/commons-lang3/{{ .Values.sampleVex.remediatedVersion }}/commons-lang3-{{ .Values.sampleVex.remediatedVersion }}-vex.json
+
+    Same files in raw OSV repo {{ .Values.channels.osv.name }}:
+      {{ $nexusUrl }}/repository/{{ .Values.channels.osv.name }}/{{ .Values.sampleVex.rawCdxPath }}
+      {{ $nexusUrl }}/repository/{{ .Values.channels.osv.name }}/{{ .Values.sampleVex.rawVexPath }}
+      {{ $nexusUrl }}/repository/{{ .Values.channels.osv.name }}/osv/java/remediated/{{ .Values.sampleVex.vulnerabilityId }}.json
+
+    Ingest path: learner uploads these to TPA. Provision does not pre-ingest.
+    Do not enable trustedProfileAnalyzer.importers.redhatCsaf as the Track 7 Check.
+    Hummingbird / Red Hat CSAF is OS-layer VEX (callout only).
+    Python SPDX/VEX analogue is Track 8 text only — no second GAV seed.
+{{- end }}

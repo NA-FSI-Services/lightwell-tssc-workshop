@@ -100,7 +100,8 @@ trustedProfileAnalyzer:
       period: 1d
       source: "https://github.com/github/advisory-database"
     redhatCsaf:
-      # Heavy feed — off by default for workshop footprint
+      # Heavy feed — off. V2-18 / Q12 C+: do not enable as the Track 7 Check.
+      # Hummingbird / Red Hat CSAF is OS-layer VEX (callout only).
       enabled: false
       description: "All Red Hat CSAF / VEX-related advisories"
       fetchRetries: 50
@@ -124,15 +125,21 @@ ingestionInfo:
   enabled: true
   # Trustify 3 accepts CycloneDX from syft (commonly specVersion 1.5/1.6); 1.4 remains fine
   supportedCycloneDxVersion: "1.4+"
+  # Q12 C+: scored ingest is learner-uploaded Lightwell GAV CDX+VEX from Nexus
+  scoredSource: "nexus-gav-vex"
+  liveCsafGate: false
+  scoredVexId: "LW-DEMO-0002"
+  scoredVexGav: "org.apache.commons:commons-lang3:3.14.0.rhlw-00001"
 
 # RHDP userinfo ConfigMap
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — Trusted Profile Analyzer"
   instructions: >-
-    RHTPA is the SBOM / VEX system of record. Upload CycloneDX SBOMs (syft) via
-    the TPA UI or API. RHDA is the optional IDE shift-left client on a laptop —
-    not installed in Showroom (see docs/rhda-rhtpa-shift-left.md).
+    RHTPA is the SBOM / VEX system of record. Track 7 Check: upload the Lightwell
+    GAV-bound CDX+VEX from Nexus (commons-lang3:3.14.0.rhlw-00001 / LW-DEMO-0002).
+    Do not enable redhat-csaf as the Check. RHDA is the optional IDE shift-left
+    client on a laptop — not installed in Showroom (see docs/rhda-rhtpa-shift-left.md).
 
 # Injected by root-app / field content workload
 deployer:

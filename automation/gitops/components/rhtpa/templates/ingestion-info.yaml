@@ -15,13 +15,24 @@ data:
   server_url: {{ $serverUrl | quote }}
   supported_cyclonedx_version: {{ .Values.ingestionInfo.supportedCycloneDxVersion | quote }}
   sbom_formats: "CycloneDX JSON (preferred for workshop syft output)"
-  vex_advisory_formats: "CSAF / VEX advisories; CVE list v5; OSV (GitHub Advisory Database)"
+  vex_advisory_formats: "OpenVEX + CycloneDX vulnerabilities[] bound to the Track 2 Lightwell GAV; optional CVE list v5 / OSV importers (not the Check)"
+  scored_source: {{ .Values.ingestionInfo.scoredSource | quote }}
+  scored_vex_id: {{ .Values.ingestionInfo.scoredVexId | quote }}
+  scored_vex_gav: {{ .Values.ingestionInfo.scoredVexGav | quote }}
+  live_csaf_gate: {{ .Values.ingestionInfo.liveCsafGate | quote }}
   upload_hint: >-
-    Generate a CycloneDX SBOM with syft from the Spring Boot PoC, then upload via the
-    TPA UI or REST API authenticated with the cli OIDC client.
+    Track 7 Check: pull CDX+VEX for {{ .Values.ingestionInfo.scoredVexGav }} from Nexus
+    (Maven classifiers cdx/vex, or the raw OSV GAV paths), then upload via the TPA UI
+    or REST API authenticated with the cli OIDC client. Do not enable the redhat-csaf
+    importer as the Check. Provision does not pre-ingest these files into TPA.
   importers: >-
     Enabled by default: cve (CVE list v5), osv-github (OSV advisories).
-    Disabled by default (heavy): redhat-csaf, redhat-sboms — enable via values when needed.
+    Disabled and not the Track 7 gate: redhat-csaf, redhat-sboms.
+    Scored VEX is the Lightwell GAV seed in Nexus ({{ .Values.ingestionInfo.scoredVexId }}),
+    ingested by the learner — not a live CSAF feed.
+  os_layer_callout: >-
+    Hummingbird / Red Hat CSAF is OS-layer VEX (layer map only). Python SPDX/VEX
+    analogue is Track 8 text — no second GAV seed.
   rhda_note: >-
     RHDA (IDE) is the shift-left client; RHTPA is the SBOM system of record.
     Showroom uses TPA UI + syft only — no IDE in-cluster. Instructors may demo

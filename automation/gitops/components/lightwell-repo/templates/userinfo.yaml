@@ -36,6 +36,14 @@ data:
   pypi_seed_package: {{ printf "%s==%s" .Values.pypiSeed.package .Values.pypiSeed.version | quote }}
   pypi_seed_remediated: {{ printf "%s==%s" .Values.pypiSeed.remediatedPackage .Values.pypiSeed.remediatedVersion | quote }}
   version_suffix_example: {{ .Values.sampleOsv.remediatedVersion | quote }}
+  scored_vex_id: {{ .Values.sampleVex.vulnerabilityId | quote }}
+  scored_vex_gav: {{ printf "%s:%s" .Values.sampleVex.packageName .Values.sampleVex.remediatedVersion | quote }}
+  scored_vex_base_version: {{ .Values.sampleVex.baseVersion | quote }}
+  scored_vex_maven_cdx: {{ printf "%s/repository/%s/org/apache/commons/commons-lang3/%s/commons-lang3-%s-cdx.json" $nexusUrl .Values.channels.remediated.name .Values.sampleVex.remediatedVersion .Values.sampleVex.remediatedVersion | quote }}
+  scored_vex_maven_vex: {{ printf "%s/repository/%s/org/apache/commons/commons-lang3/%s/commons-lang3-%s-vex.json" $nexusUrl .Values.channels.remediated.name .Values.sampleVex.remediatedVersion .Values.sampleVex.remediatedVersion | quote }}
+  scored_vex_raw_cdx: {{ printf "%s/repository/%s/%s" $nexusUrl .Values.channels.osv.name .Values.sampleVex.rawCdxPath | quote }}
+  scored_vex_raw_vex: {{ printf "%s/repository/%s/%s" $nexusUrl .Values.channels.osv.name .Values.sampleVex.rawVexPath | quote }}
+  live_csaf_gate: {{ .Values.sampleVex.liveCsafGate | quote }}
   credentials_secret: {{ .Values.credentials.secretName | quote }}
   maven_settings_configmap: {{ .Values.mavenSettings.configMapName | quote }}
   pip_settings_configmap: {{ .Values.pipSettings.configMapName | quote }}

@@ -18,7 +18,7 @@ Do **not** invent alternate channel names such as `upstream-untrusted` / `lightw
 
 | `lightwellRepo.mode` | When to use | Behavior |
 |----------------------|-------------|----------|
-| **`seeded`** (default) | RHDP / offline / deterministic labs | Nexus **hosted** repos; Job `lightwell-repo-seed` uploads curated Maven stubs, OSV JSON, CycloneDX SBOMs, and PyPI wheels |
+| **`seeded`** (default) | RHDP / offline / deterministic labs | Nexus **hosted** repos; Job `lightwell-repo-seed` uploads curated Maven stubs, OSV JSON, CycloneDX SBOMs, GAV-bound OpenVEX, and PyPI wheels |
 | **`proxy`** | Live LWN membership available | Nexus **proxy** repos to canonical `packages.redhat.com` URLs using Secret `lightwell-network-credentials` (`LW_USERNAME` / `LW_PASSWORD`) |
 
 Set mode in values (or root-app overlay). Never commit real `LW_*` values.
@@ -56,12 +56,33 @@ osv/java/remediated/LW-DEMO-0001.json
 
 `affected[].ranges[].events[].fixed` → `5.3.18.rhlw-00003`.
 
+```text
+osv/java/remediated/LW-DEMO-0002.json
+```
+
+`affected[].ranges[].events[].fixed` → `3.14.0.rhlw-00001` (Track 7 scored id; distinct from spring-core).
+
 **CycloneDX** (same raw repo):
 
 ```text
 sbom/java/validated/org.springframework/spring-core/5.3.18.cdx.json
 sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json
+sbom/java/validated/org.apache.commons/commons-lang3/3.14.0.cdx.json
+sbom/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.cdx.json
+vex/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.vex.json
 ```
+
+**Track 7 scored VEX (Q12 C+)** — bound to the Track 2 pin, not a generic TPA fixture and not live CSAF:
+
+| Item | Value |
+|------|-------|
+| GAV | `org.apache.commons:commons-lang3:3.14.0.rhlw-00001` |
+| Id | `LW-DEMO-0002` |
+| Maven sidecars | classifiers `cdx` / `vex` next to the remediated GAV |
+| Blast radius | `LW-DEMO-0002` is **fixed via Lightwell**; upstream `3.14.0` stays affected |
+| Ingest | Learner pulls from Nexus and uploads to TPA. Provision does **not** pre-ingest |
+| Not the gate | `trustedProfileAnalyzer.importers.redhatCsaf` stays `false` |
+| Callout only | Hummingbird / Red Hat CSAF = OS-layer VEX; Python SPDX/VEX analogue is Track 8 text (no second seed) |
 
 **PyPI** (Modules 7–9):
 
@@ -223,7 +244,7 @@ Keep `components.lightwellRepo.enabled: false` until ready to sync.
 ## Related
 
 - Issue [#7](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/7) — chart scaffold
-- Issue [#11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11) — seed / proxy content
+- [V2-18](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/11) — GAV-bound CDX+VEX seed (C+); no live CSAF gate
 - Issue [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145) — PyPI Validated + Remediated (always on)
 - [V2-10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/3) — dest Docker repo + oc-mirror tooling (no pre-mirror)
 - [V2-11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/4) — incomplete ImageSet + learner-run Job

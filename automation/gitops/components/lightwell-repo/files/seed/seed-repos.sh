@@ -155,15 +155,29 @@ upload_pypi() {
 
 upload_maven() {
   local repo="$1" group_id="$2" artifact_id="$3" version="$4" pom="$5" jar="$6"
+  local cdx="${7:-}" vex="${8:-}"
   log "Upload Maven ${group_id}:${artifact_id}:${version} -> ${repo}"
+  local form=(
+    -F "maven2.groupId=${group_id}"
+    -F "maven2.artifactId=${artifact_id}"
+    -F "maven2.version=${version}"
+    -F "maven2.asset1=@${jar}"
+    -F "maven2.asset1.extension=jar"
+    -F "maven2.asset2=@${pom}"
+    -F "maven2.asset2.extension=pom"
+  )
+  local n=3
+  if [[ -n "${cdx}" ]]; then
+    log "  sidecar classifier=cdx ${cdx}"
+    form+=(-F "maven2.asset${n}=@${cdx}" -F "maven2.asset${n}.classifier=cdx" -F "maven2.asset${n}.extension=json")
+    n=$((n + 1))
+  fi
+  if [[ -n "${vex}" ]]; then
+    log "  sidecar classifier=vex ${vex}"
+    form+=(-F "maven2.asset${n}=@${vex}" -F "maven2.asset${n}.classifier=vex" -F "maven2.asset${n}.extension=json")
+  fi
   curl_ok -H 'accept: application/json' \
-    -F "maven2.groupId=${group_id}" \
-    -F "maven2.artifactId=${artifact_id}" \
-    -F "maven2.version=${version}" \
-    -F "maven2.asset1=@${jar}" \
-    -F "maven2.asset1.extension=jar" \
-    -F "maven2.asset2=@${pom}" \
-    -F "maven2.asset2.extension=pom" \
+    "${form[@]}" \
     "${NEXUS_SVC}/service/rest/v1/components?repository=${repo}"
 }
 
@@ -322,7 +336,9 @@ delete_maven_gavi() {
     "${artifact_id}-${version}.jar.sha1" \
     "${artifact_id}-${version}.pom.sha1" \
     "${artifact_id}-${version}.jar.md5" \
-    "${artifact_id}-${version}.pom.md5"; do
+    "${artifact_id}-${version}.pom.md5" \
+    "${artifact_id}-${version}-cdx.json" \
+    "${artifact_id}-${version}-vex.json"; do
     curl_ok -X DELETE "${base}/${f}"
   done
 }
@@ -345,18 +361,31 @@ seed_content() {
     "${SEED_DIR}/spring-core-5.3.18.rhlw-00003.pom" "${work}/stub.jar"
 
   # Experiment B — compile-capable consumption (Spring Boot PoC clean verify)
+  # V2-18 / C+: attach GAV-bound CDX (+ OpenVEX on remediated) beside the Track 2 pin.
   delete_maven_gavi "${validated_repo}" "org.apache.commons" "commons-lang3" "3.14.0"
   delete_maven_gavi "${remediated_repo}" "org.apache.commons" "commons-lang3" "3.14.0.rhlw-00001"
   upload_maven "${validated_repo}" "org.apache.commons" "commons-lang3" "3.14.0" \
-    "${SEED_DIR}/commons-lang3-3.14.0.pom" "${work}/commons-lang3.jar"
+    "${SEED_DIR}/commons-lang3-3.14.0.pom" "${work}/commons-lang3.jar" \
+    "${SEED_DIR}/commons-lang3-3.14.0.cdx.json"
   upload_maven "${remediated_repo}" "org.apache.commons" "commons-lang3" "3.14.0.rhlw-00001" \
-    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.pom" "${work}/commons-lang3.jar"
+    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.pom" "${work}/commons-lang3.jar" \
+    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.cdx.json" \
+    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.vex.json"
 
   upload_raw "${osv_repo}" "${OSV_PATH}" "${SEED_DIR}/${OSV_ID}.json"
+  local vex_osv_id="${VEX_OSV_ID:-LW-DEMO-0002}"
+  upload_raw "${osv_repo}" "osv/java/remediated/${vex_osv_id}.json" \
+    "${SEED_DIR}/${vex_osv_id}.json"
   upload_raw "${osv_repo}" "sbom/java/validated/org.springframework/spring-core/5.3.18.cdx.json" \
     "${SEED_DIR}/spring-core-5.3.18.cdx.json"
   upload_raw "${osv_repo}" "sbom/java/remediated/org.springframework/spring-core/5.3.18.rhlw-00003.cdx.json" \
     "${SEED_DIR}/spring-core-5.3.18.rhlw-00003.cdx.json"
+  upload_raw "${osv_repo}" "sbom/java/validated/org.apache.commons/commons-lang3/3.14.0.cdx.json" \
+    "${SEED_DIR}/commons-lang3-3.14.0.cdx.json"
+  upload_raw "${osv_repo}" "sbom/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.cdx.json" \
+    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.cdx.json"
+  upload_raw "${osv_repo}" "vex/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.vex.json" \
+    "${SEED_DIR}/commons-lang3-3.14.0.rhlw-00001.vex.json"
 
   # Python / PyPI — Validated always (when channel enabled); Remediated required (enabled=true)
   # Wheel filenames MUST be PEP 427 (e.g. httpx-0.27.2-py3-none-any.whl). Nexus simple
@@ -381,7 +410,8 @@ seed_content() {
     upload_pypi "${pypi_remediated}" "${remediated_wheel}"
   fi
 
-  log "Seeded Maven (stubs + compile-capable commons-lang3) + OSV (${OSV_PATH}) + CycloneDX SBOMs + PyPI"
+  log "Seeded Maven (stubs + commons-lang3 CDX/VEX) + OSV (${OSV_PATH}, ${vex_osv_id}) + CycloneDX + PyPI"
+  log "Do not pre-ingest VEX into TPA — learner pulls from Nexus in Track 7. Do not enable live CSAF as the Check."
 }
 
 create_repos() {

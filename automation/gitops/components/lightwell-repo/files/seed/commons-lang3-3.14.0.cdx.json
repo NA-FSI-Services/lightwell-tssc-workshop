@@ -1,0 +1,60 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:c3333333-3333-4333-8333-333333333333",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-01-15T00:00:00Z",
+    "component": {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-lang3@3.14.0",
+      "group": "org.apache.commons",
+      "name": "commons-lang3",
+      "version": "3.14.0",
+      "purl": "pkg:maven/org.apache.commons/commons-lang3@3.14.0",
+      "properties": [
+        {
+          "name": "lightwell:tier",
+          "value": "validated"
+        },
+        {
+          "name": "lightwell:osvId",
+          "value": "LW-DEMO-0002"
+        }
+      ]
+    },
+    "tools": [
+      {
+        "vendor": "Lightwell TSSC Workshop",
+        "name": "seeded-mirror",
+        "version": "0.1.0"
+      }
+    ]
+  },
+  "components": [],
+  "vulnerabilities": [
+    {
+      "id": "LW-DEMO-0002",
+      "source": {
+        "name": "Lightwell-OSV-Demo",
+        "url": "https://packages.redhat.com/lightwell/osv/java/remediated"
+      },
+      "ratings": [
+        {
+          "method": "other",
+          "severity": "medium",
+          "score": 5.0
+        }
+      ],
+      "analysis": {
+        "state": "exploitable",
+        "detail": "Workshop seed: validated 3.14.0 is still affected. Remediate via Lightwell pin 3.14.0.rhlw-00001 — not still-open upstream."
+      },
+      "affects": [
+        {
+          "ref": "pkg:maven/org.apache.commons/commons-lang3@3.14.0"
+        }
+      ]
+    }
+  ]
+}

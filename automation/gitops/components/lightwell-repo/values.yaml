@@ -149,6 +149,20 @@ sampleOsv:
   # Path shape inside raw OSV repo (matches packages.redhat.com/lightwell/osv/java/remediated)
   rawPath: "osv/java/remediated/LW-DEMO-0001.json"
 
+# Track 7 scored VEX/CDX (Q12 C+) — bound to Track 2 commons-lang3 pin, not CSAF
+sampleVex:
+  enabled: true
+  configMapName: lightwell-sample-vex
+  packageName: "org.apache.commons:commons-lang3"
+  baseVersion: "3.14.0"
+  remediatedVersion: "3.14.0.rhlw-00001"
+  vulnerabilityId: "LW-DEMO-0002"
+  mavenCdxClassifier: "cdx"
+  mavenVexClassifier: "vex"
+  rawCdxPath: "sbom/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.cdx.json"
+  rawVexPath: "vex/java/remediated/org.apache.commons/commons-lang3/3.14.0.rhlw-00001.vex.json"
+  liveCsafGate: false
+
 # Repository bootstrap notes (REST sketch) — Job lightwell-repo-seed automates create + seed
 bootstrap:
   enabled: true
