@@ -250,3 +250,4 @@ Remind the room: no Hummingbird factory, no hosted Konflux, no physical air-gap,
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts]
 * xref:appendix-konflux-mapping.adoc[Konflux mapping] — names used in client engagements → cluster objects
 * xref:appendix-disconnected-playbook.adoc[Disconnected transfer] — simulated media drop (not a diode)
+* xref:appendix-instructor-runbook.adoc[Instructor two-day grouping] — envelope, not a timer

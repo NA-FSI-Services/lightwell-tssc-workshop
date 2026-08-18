@@ -77,7 +77,7 @@ Lab (hands-on)
 
 Tracks are the **story**. Modules are gated Check points. `duration_min` is untimed until dry run.
 
-Suggested **content grouping** (not a timer): Day 1 = tracks 1–3. Day 2 = tracks 4–7. Rebalance after dry runs (V2-43).
+Suggested **content grouping** (not a timer): Day 1 = tracks 1–3. Day 2 = tracks 4–7. Instructor page: `content/modules/ROOT/pages/appendix-instructor-runbook.adoc` (V2-43). Rebalance that page after dry runs; do not cut gated Checks.
 
 | Module | Track | Title | Gate |
 |--------|-------|-------|------|

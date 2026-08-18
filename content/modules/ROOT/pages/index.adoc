@@ -96,4 +96,4 @@ Do the *Your change*. Run the *Check*. Then continue.
 
 Open xref:module-01-hummingbird-verify.adoc[1.1 Verify Hummingbird] when you are ready to work.
 
-Consultant maps: xref:appendix-consultant-delivery.adoc[delivery map], xref:appendix-konflux-mapping.adoc[Konflux mapping], xref:appendix-disconnected-playbook.adoc[disconnected transfer]. Concepts: xref:appendix-lightwell-concepts.adoc[Lightwell concepts], xref:appendix-acronyms.adoc[acronym glossary].
+Consultant maps: xref:appendix-consultant-delivery.adoc[delivery map], xref:appendix-konflux-mapping.adoc[Konflux mapping], xref:appendix-disconnected-playbook.adoc[disconnected transfer]. Instructors: xref:appendix-instructor-runbook.adoc[two-day grouping] (envelope, not a timer). Concepts: xref:appendix-lightwell-concepts.adoc[Lightwell concepts], xref:appendix-acronyms.adoc[acronym glossary].

@@ -330,7 +330,7 @@ Each row is its own **Your change** + **Check**. Applied to the live spec in V2-
 | 7.1 SBOM system of record | 7 | Ingest / label promoted digest in TPA |
 | 7.2 VEX blast radius + ACS | 7 | **C+:** VEX for the Track 2 `.rhlw-*` GAV (Nexus-packaged / GAV-seeded); report says CVE fixed via Lightwell; Hummingbird/CSAF callout; ACS on |
 
-Suggested **content grouping** for a two-day event (not a timer): Day 1 = tracks 1–3 (trusted inputs + source). Day 2 = tracks 4–7 (build through operate). Rebalance after dry runs.
+Suggested **content grouping** for a two-day event (not a timer): Day 1 = tracks 1–3 (trusted inputs + source). Day 2 = tracks 4–7 (build through operate). Instructor page: `appendix-instructor-runbook.adoc` (V2-43). Rebalance after dry runs.
 
 Mirroring sits in **Track 1**. VEX / blast-radius sits in **Track 7**.
 
@@ -698,7 +698,7 @@ Student instructions and explainers. If a diagram or screenshot would teach a po
 | V2-40 | Track 5.3: mirrored TUF + key-based cosign Check (plus diode playbook appendix) | V2-35 |
 | V2-41 | ~~Appendix bootc/Satellite~~ — **dropped.** Callout on 6.1. SIEM stays Epic D (V2-96). 6.2 is **prod GitOps repo** (Q25), not VM. | Q14 |
 | V2-42 | Ungated intro (`index.adoc`): seven-track diagram, what this is not, honor system; retire v1 nav | V2-30 |
-| V2-43 | Instructor two-day content grouping (not a timer); revise after dry runs | V2-0 |
+| V2-43 | Instructor two-day content grouping (not a timer); revise after dry runs | V2-0. Page: `appendix-instructor-runbook.adoc`. Visual: #72. |
 | V2-44 | Python equivalent callouts on every Java gated module (not a second path) | V2-31…37 |
 | V2-45 | Artifactory equivalent callouts on Nexus/Lightwell modules (not a second product) | V2-32 |
 | V2-46 | Internal enablement checklist (seven tracks); scored after the workshop — not a live PoV | V2-31…37 |
