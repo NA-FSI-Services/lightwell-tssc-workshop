@@ -4,7 +4,7 @@
 # Sync wave ordering (IdP → pipelines → operators → student git → config → apps → showroom):
 #    5  — Workshop Keycloak (SSO for RHTPA): keycloak
 #    8  — OpenShift Pipelines (Tekton CRDs for Module 5 / RHACS Tasks): pipelines
-#   10  — TSSC operators / platform: rhtas, rhtpa, rhacs, admission
+#   10  — TSSC operators / platform: rhtas, rhtpa, rhacs, admission, networkpolicy
 #   15  — Student Git (Gitea): gitea
 #   20  — Artifact manager / LWN pattern: lightwell-repo
 #   30  — Developer Hub: rhdh
@@ -71,8 +71,15 @@ components:
     namespace: tssc-admission
     syncWave: "10"
 
+  # Chart: automation/gitops/components/networkpolicy (V2-21). Enable with admission.
+  # Creates lw-poc-build / lw-poc-staging / lw-poc-prod. Seed: too-open hermetic + open operate.
+  networkPolicy:
+    enabled: false
+    namespace: lw-poc-build
+    syncWave: "10"
+
   # --- Wave 15: Student Git (learner repos for Module 5 — not the GitOps monorepo) ---
-  # Chart: automation/gitops/components/gitea. Seeds the student app + gitops remotes; Application → lw-poc-student.
+  # Chart: automation/gitops/components/gitea. Seeds the student app + gitops remotes; Application → lw-poc-staging.
   gitea:
     enabled: false
     namespace: gitea
@@ -103,7 +110,7 @@ components:
 
   # --- Wave 40: Sample applications ---
   # Chart: automation/gitops/components/spring-boot-lw-poc (#24). Keep disabled when Gitea gitops
-  # Argo Application lw-poc-student is the runtime SoT (Module 6 Ex4 / #100 M1). Enable only for monorepo demos.
+  # Argo Application lw-poc-staging is the runtime SoT (Module 6 Ex4 / #100 M1). Enable only for monorepo demos.
   springBootLwPoc:
     enabled: false
     namespace: spring-boot-lw-poc

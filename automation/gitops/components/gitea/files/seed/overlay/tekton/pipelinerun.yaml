@@ -15,7 +15,7 @@ spec:
       value: STUDENT_REPO_URL_PLACEHOLDER
     - name: revision
       value: main
-    # Learner lab namespace ImageStream (not GitOps spring-boot-lw-poc NS — see #100)
+    # Build namespace ImageStream (lw-poc-build; not GitOps stage NS — see V2-21)
     - name: image-url
       value: image-registry.openshift-image-registry.svc:5000/<lab-namespace>/spring-boot-lw-poc:latest
     - name: buildconfig-name

@@ -40,7 +40,7 @@ gitea:
     defaultPrivate: false
 
 # Workshop Gitea user. Each catalog claim is a dedicated environment with this
-# single learner account (org lw-student, app namespace lw-poc-student).
+# single learner account (org lw-student, stage namespace lw-poc-staging).
 student:
   username: student
   password: "workshop-student-changeme"
@@ -132,6 +132,10 @@ gitopsAppSet:
   project: default
   appNamePrefix: lw-poc
   namespacePrefix: lw-poc
+  # V2-21: stage is named, not prefix+username (was lw-poc-student).
+  appName: lw-poc-staging
+  namespace: lw-poc-staging
+  buildNamespace: lw-poc-build
 
 # Prod Argo Application (V2-17). Namespace matches admission chart lw-poc-prod.
 gitopsAppSetProd:
@@ -158,7 +162,7 @@ userInfo:
     lw-student and repos spring-boot-lw-poc, gitops-spring-boot-lw-poc (stage),
     and gitops-prod-spring-boot-lw-poc (prod), then seed from workshop-templates
     (see Showroom). student_repo_url is the expected Java app remote. Stage
-    namespace is lw-poc-student; prod is lw-poc-prod (V2-17). Python FastAPI is
+    namespace is lw-poc-staging; build is lw-poc-build (V2-21); prod is lw-poc-prod (V2-17). Python FastAPI is
     not provisioned. Credentials: student / student_password. Never clone the
     workshop GitHub monorepo.
 

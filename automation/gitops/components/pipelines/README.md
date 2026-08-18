@@ -43,7 +43,7 @@ runs **after** `cosign-sign-keyless`.
 
 ConfigMap `conforma-policy` is the too-permissive seed (`skip-image-sig-check=true`,
 CVE threshold `999`, identity `.*`, all workshop rules excluded). Argo reverts
-edits to that object — copy it to `lw-poc-student`, tighten the copy, and pass
+edits to that object — copy it to `lw-poc-build`, tighten the copy, and pass
 `policy-namespace` / `policy-configmap`. Fail path: unsigned `FROM`. Pass path:
 learner-signed app image. Do not copy `example-pipeline-snippet.yaml` from
 ConfigMap `conforma-policy-docs`. Do not fetch policy from quay.io or GitHub.

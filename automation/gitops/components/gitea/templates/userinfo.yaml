@@ -9,7 +9,9 @@
 {{- $gitopsUrl := include "gitea.studentGitopsRepoUrl" (list . $primaryUser) }}
 {{- $gitopsProdName := .Values.seed.gitops.prod.repoName | default "gitops-prod-spring-boot-lw-poc" }}
 {{- $gitopsProdUrl := include "gitea.studentProdGitopsRepoUrl" (list . $primaryUser) }}
-{{- $promoteNs := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $primaryUser }}
+{{- $promoteNs := .Values.gitopsAppSet.namespace | default (printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $primaryUser) }}
+{{- $stageApp := .Values.gitopsAppSet.appName | default (printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $primaryUser) }}
+{{- $buildNs := .Values.gitopsAppSet.buildNamespace | default "lw-poc-build" }}
 {{- $prodNs := .Values.gitopsAppSetProd.namespace | default "lw-poc-prod" }}
 ---
 apiVersion: v1
@@ -39,7 +41,8 @@ data:
   student_gitops_repo_name: {{ $gitopsName | quote }}
   student_trust_policy_path: "admission/trust-policy.yaml"
   student_promote_namespace: {{ $promoteNs | quote }}
-  student_argocd_app: {{ printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $primaryUser | quote }}
+  student_argocd_app: {{ $stageApp | quote }}
+  student_build_namespace: {{ $buildNs | quote }}
 {{- if .Values.seed.gitops.prod.enabled }}
   student_prod_gitops_repo_url: {{ $gitopsProdUrl | quote }}
   student_prod_gitops_repo_name: {{ $gitopsProdName | quote }}

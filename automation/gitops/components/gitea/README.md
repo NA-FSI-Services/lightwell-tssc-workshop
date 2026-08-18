@@ -14,7 +14,7 @@ everywhere (see [AGENTS.md](../../../AGENTS.md)).
 | Job `gitea-student-repo-seed` | Create admin + `student` user; push **template** trees only |
 | ConfigMap script `learner-seed-from-templates.sh` | Learner copies Java templates → `lw-student` repos |
 | ConfigMap script `learner-ensure-gitea-user.sh` | Learner ensures Gitea login user `student` exists (via `gitea-admin`) |
-| Application `lw-poc-student` | Argo App from the learner **stage** GitOps remote (`lw-poc-student`) |
+| Application `lw-poc-staging` | Argo App from the learner **stage** GitOps remote (`lw-poc-staging`) |
 | Application `lw-poc-prod` | Argo App from the learner **prod** GitOps remote (`lw-poc-prod`, V2-17) |
 | GitOps overlay `admission/trust-policy.yaml` | Track 6.1 scored TrustPolicy (V2-16); seed is `enforce: false` |
 | ConfigMap `demo-userinfo-gitea` | RHDP userinfo (expected URLs, templates, credentials) |
@@ -42,7 +42,8 @@ Python FastAPI chart, overlays, and RHDH template files **stay in git** and are 
 | Java stage GitOps template | `workshop-templates/gitops-spring-boot-lw-poc` |
 | Java prod GitOps template | `workshop-templates/gitops-prod-spring-boot-lw-poc` (wrong digest seed) |
 | RHDH Java skeleton | `workshop-templates/lightwell-java-service` (`fetch:template`) |
-| Stage NS / Argo app | `lw-poc-student` |
+| Build NS | `lw-poc-build` (PipelineRuns / BuildConfig; V2-21) |
+| Stage NS / Argo app | `lw-poc-staging` |
 | Prod NS / Argo app | `lw-poc-prod` |
 
 ## Path isolation (monorepo → template remotes)
@@ -70,10 +71,10 @@ template only (offline chart tests). GitOps seed requires `live` mode.
 
 **Stage (6.1):**
 
-1. Pipeline builds/signs into **lab** NS (`student-lab`)
-2. Student `oc tag`s into `lw-poc-student` ImageStream
+1. Pipeline builds/signs into **build** NS (`lw-poc-build`)
+2. Student `oc tag`s into `lw-poc-staging` ImageStream
 3. Student commits `image.digest` + `replicas: 1` to **stage** Gitea gitops remote
-4. Argo Application `lw-poc-student` syncs → Healthy Route
+4. Argo Application `lw-poc-staging` syncs → Healthy Route
 
 **Prod (6.2 / V2-17):** second Gitea remote. Seed digest is `sha256:REPLACE_ME_PROD_DIGEST`. Learner commits the signed digest to `student_prod_gitops_repo_url`. Application `lw-poc-prod` must keep sourcing the **prod** remote (Check fails if it tracks stage). Not two Helm files in one repo.
 
@@ -106,8 +107,10 @@ Root-app Application wave: **`15`** (after TSSC operators, before RHDH / sample 
 | `seed.python.enabled` | `false` | Off at provision (V2-12) |
 | `seed.python.repoName` | `fastapi-lw-poc` | Unused unless `seed.python.enabled` |
 | `seed.python.gitops.repoName` | `gitops-fastapi-lw-poc` | Unused unless `seed.python.enabled` |
-| `gitopsAppSet.enabled` | `true` | Argo Application `lw-poc-student` (stage) in `openshift-gitops` |
-| `gitopsAppSet.namespacePrefix` | `lw-poc` | Stage NS = `lw-poc-student` |
+| `gitopsAppSet.enabled` | `true` | Argo Application `lw-poc-staging` (stage) in `openshift-gitops` |
+| `gitopsAppSet.appName` | `lw-poc-staging` | Named stage Application (not prefix+username) |
+| `gitopsAppSet.namespace` | `lw-poc-staging` | Stage app ns (was `lw-poc-student`) |
+| `gitopsAppSet.buildNamespace` | `lw-poc-build` | Hermetic pipeline ns (V2-21) |
 | `gitopsAppSetProd.enabled` | `true` | Argo Application `lw-poc-prod` sources the prod remote |
 | `gitopsAppSetProd.namespace` | `lw-poc-prod` | Matches V2-16 admission prod ns |
 | `gitopsAppSetPython.enabled` | `false` | Do not create `lw-fastapi-student` |

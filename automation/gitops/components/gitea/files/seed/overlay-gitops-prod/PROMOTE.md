@@ -1,6 +1,6 @@
 # Promote to prod (Track 6.2)
 
-Stage GitOps (`student_gitops_repo_url` → Application `lw-poc-student`) is
+Stage GitOps (`student_gitops_repo_url` → Application `lw-poc-staging`) is
 **not** production. Do not retarget Application `lw-poc-prod` at the stage remote.
 
 After Track 5 keyless sign and Track 6.1 unsigned deny:

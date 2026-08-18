@@ -1,8 +1,8 @@
 {{- if and .Values.gitea.enabled .Values.gitopsAppSet.enabled }}
 {{- $giteaUrl := include "gitea.url" . }}
 {{- $user := .Values.student.username | default "student" }}
-{{- $appName := printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $user }}
-{{- $ns := printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $user }}
+{{- $appName := .Values.gitopsAppSet.appName | default (printf "%s-%s" (.Values.gitopsAppSet.appNamePrefix | default "lw-poc") $user) }}
+{{- $ns := .Values.gitopsAppSet.namespace | default (printf "%s-%s" (.Values.gitopsAppSet.namespacePrefix | default "lw-poc") $user) }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application

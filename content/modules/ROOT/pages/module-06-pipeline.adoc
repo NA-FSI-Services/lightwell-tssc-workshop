@@ -522,7 +522,7 @@ Promotion means: tag the signed lab image into your **product** namespace, commi
 You have **two** Gitea remotes (from ConfigMap `demo-userinfo-gitea`):
 
 * `student_repo_url` — application source + `.tekton/` (Exercises 1–3)
-* `student_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD Application syncs this into `student_promote_namespace` (`lw-poc-student`)
+* `student_gitops_repo_url` — thin Helm chart (no `./app`); Argo CD Application syncs this into `student_promote_namespace` (`lw-poc-staging`)
 
 Runtime desired state for the promoted app is your Gitea gitops repo (`student_gitops_repo_url`).
 ====
@@ -674,7 +674,7 @@ Expected: Application shows `Synced` / `Healthy`, one pod is Running in `${PROMO
 |Keyless `cosign sign` succeeds; `cosign verify` with claim-proven identity; hybrid BuildConfig PipelineRun from Gitea student repo (learner lab NS image); Tekton from chart `pipelines`
 
 |GitOps
-|`oc tag` lab → `lw-poc-student` ImageStream; digest + `replicas: 1` committed to Gitea gitops repo; Argo Application Synced + Healthy; Route responds
+|`oc tag` lab → `lw-poc-staging` ImageStream; digest + `replicas: 1` committed to Gitea gitops repo; Argo Application Synced + Healthy; Route responds
 |===
 
 == Module summary

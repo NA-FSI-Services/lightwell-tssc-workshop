@@ -1,0 +1,35 @@
+{{- if and .Values.networkPolicy.enabled .Values.userInfo.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-networkpolicy
+  namespace: {{ .Values.build.namespace }}
+  labels:
+    {{- include "networkpolicy.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.networkPolicy.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: helm
+  build_namespace: {{ .Values.build.namespace | quote }}
+  stage_namespace: {{ .Values.stage.namespace | quote }}
+  prod_namespace: {{ .Values.prod.namespace | quote }}
+  track4_policy: {{ .Values.build.policyName | quote }}
+  track6_policy: {{ .Values.stage.policyName | quote }}
+  track4_seed: too-open
+  track6_seed: open
+  allow_dns_namespace: {{ .Values.allow.dnsNamespace | quote }}
+  allow_dns_port: {{ .Values.allow.dnsPort | quote }}
+  allow_registry_namespace: {{ .Values.allow.registryNamespace | quote }}
+  allow_registry_port: {{ .Values.allow.registryPort | quote }}
+  allow_nexus_namespace: {{ .Values.allow.nexusNamespace | quote }}
+  allow_nexus_http_port: {{ .Values.allow.nexusHttpPort | quote }}
+  allow_nexus_docker_port: {{ .Values.allow.nexusDockerPort | quote }}
+  allow_gitea_namespace: {{ .Values.allow.giteaNamespace | quote }}
+  do_not_copy: example-hermetic-egress.yaml
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}

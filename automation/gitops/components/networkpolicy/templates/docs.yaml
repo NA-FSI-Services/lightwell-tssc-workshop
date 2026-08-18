@@ -1,0 +1,59 @@
+{{- if .Values.networkPolicy.enabled }}
+---
+# Worked example is not paste-identical (fake ns, extra public CIDR, different name).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: networkpolicy-docs
+  namespace: {{ .Values.build.namespace }}
+  labels:
+    {{- include "networkpolicy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docs
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.networkPolicy.syncWaves.userinfo | quote }}
+data:
+  track4_namespace: {{ .Values.build.namespace | quote }}
+  track6_namespaces: {{ printf "%s,%s" .Values.stage.namespace .Values.prod.namespace | quote }}
+  README: |
+    V2-21. Two policies, two Checks. Do not merge Track 4 and Track 6.
+
+    Track 4.3 (hermetic): NetworkPolicy {{ .Values.build.policyName }} in
+    {{ .Values.build.namespace }} is seeded too open (allow-all egress).
+    Tighten it to deny-egress with DNS + internal registry + Nexus. In-cluster
+    Gitea is internal git clone, not a public registry. registry.redhat.io is
+    not on the scored allow-list.
+
+    Track 6 (operate): NetworkPolicy {{ .Values.stage.policyName }} on
+    {{ .Values.stage.namespace }} and {{ .Values.prod.namespace }} stays
+    operate (seeded open). Do not copy the hermetic build policy onto app ns.
+
+    Apply .tekton / BuildConfig in {{ .Values.build.namespace }}. oc tag the
+    signed image into {{ .Values.stage.namespace }}. ImagePolicy (Track 6.1)
+    targets staging + prod only — not the build namespace.
+
+    Do not copy example-hermetic-egress.yaml.
+  example-hermetic-egress.yaml: |
+    # Worked example ONLY — fake namespace, extra public CIDR, different name.
+    # Paste-identical copy still fails the Check.
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: example-hermetic-egress
+      namespace: example-build-ns
+    spec:
+      podSelector: {}
+      policyTypes:
+        - Egress
+      egress:
+        - to:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: openshift-dns
+          ports:
+            - protocol: UDP
+              port: 5353
+        - to:
+            - ipBlock:
+                cidr: 8.8.8.8/32
+{{- end }}

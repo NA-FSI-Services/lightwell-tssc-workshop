@@ -1,0 +1,47 @@
+# V2-21 — two policies, two Checks. Do not merge Track 4 and Track 6.
+# Build ns is hermetic (seeded too open). App ns is operate (seeded open).
+
+networkPolicy:
+  enabled: true
+  syncWaves:
+    namespace: "0"
+    policy: "1"
+    userinfo: "2"
+
+build:
+  namespace: lw-poc-build
+  policyName: build-egress
+  # Seed allows all egress so the claim still works. Learner tightens (Track 4.3).
+  seedTooOpen: true
+
+stage:
+  namespace: lw-poc-staging
+  policyName: app-operate
+
+prod:
+  namespace: lw-poc-prod
+  policyName: app-operate
+
+# In-cluster allow-list taught in docs (not applied at provision).
+allow:
+  dnsNamespace: openshift-dns
+  dnsPort: 5353
+  registryNamespace: openshift-image-registry
+  registryPort: 5000
+  nexusNamespace: lightwell-repo
+  nexusHttpPort: 8081
+  nexusDockerPort: 5000
+  giteaNamespace: gitea
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — NetworkPolicy (Tracks 4.3 and 6)"
+  instructions: >-
+    Track 4.3: tighten NetworkPolicy build-egress in lw-poc-build to deny-egress
+    with DNS + internal registry + Nexus (Gitea is in-cluster git). Seed is too
+    open. Track 6: app-operate on lw-poc-staging and lw-poc-prod stays operate
+    (seeded open). Do not merge the two Checks. Do not copy the worked example.
+
+deployer:
+  domain: ""
+  apiUrl: ""

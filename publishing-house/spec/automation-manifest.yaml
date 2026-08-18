@@ -31,7 +31,7 @@ applications:
     notes: OIDC provider for RHTPA; TPA realm pre-configured
 
 seed_data:
-  - Namespaces lw-poc-student and lw-fastapi-student
+  - Namespaces lw-poc-build (pipelines), lw-poc-staging (stage app), lw-poc-prod (prod app); Python twin lw-fastapi-student stays off (V2-12)
   - ConfigMaps (lightwell-channels, demo-userinfo-rhdh, lightwell-pip-settings, demo-userinfo-gitea, demo-userinfo-keycloak)
   - Seeded Gitea template remotes; learner org lw-student (spring-boot-lw-poc, fastapi-lw-poc, gitops-java, gitops-fastapi)
   - Tekton Pipeline definitions (lightwell-dep-gate Java, lightwell-python-dep-gate Python)

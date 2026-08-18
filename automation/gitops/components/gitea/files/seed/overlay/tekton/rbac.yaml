@@ -1,4 +1,4 @@
-# Apply once in your learner lab namespace before PipelineRuns / builds.
+# Apply once in lw-poc-build (student_build_namespace) before PipelineRuns / builds.
 # Module 5 Ex3 — use Gitea student remotes from demo-userinfo-gitea.
 ---
 apiVersion: v1

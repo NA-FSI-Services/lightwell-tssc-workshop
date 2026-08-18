@@ -219,7 +219,7 @@ That tree includes `pom.xml` (dual-stream version properties + `lightwell-remedi
 ====
 Module 2 does *not* attach to a running Spring Boot Deployment; you validate Maven remotes from the **Showroom terminal** (`mvn` + `java` + `oc` are already installed there).
 
-A GitOps app may already exist (`lw-poc-student` from Gitea) scaled to `replicas: 0` until you publish and promote an image in xref:module-06-pipeline.adoc[Module 6 Exercise 4]. That runtime path is out of scope here.
+A GitOps app may already exist (`lw-poc-staging` from Gitea) scaled to `replicas: 0` until you publish and promote an image in xref:module-06-pipeline.adoc[Module 6 Exercise 4]. That runtime path is out of scope here.
 ====
 
 === Find and enter the Showroom terminal container

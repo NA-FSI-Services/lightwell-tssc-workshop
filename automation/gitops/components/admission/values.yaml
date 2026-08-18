@@ -9,7 +9,7 @@ admission:
   # imagepolicy | kyverno force one backend. Do not set TechPreviewNoUpgrade.
   backend: auto
   policyName: tssc-prod-admission
-  stageNamespace: lw-poc-student
+  stageNamespace: lw-poc-staging
   # Empty until V2-17 wires the prod GitOps remote. ImagePolicy still targets it.
   prodNamespace: lw-poc-prod
   createProdNamespace: true

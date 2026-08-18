@@ -86,7 +86,7 @@ Intermediate to Advanced
 
 ## Environment
 
-**Learner view:** Learners access the lab via RHDP Showroom. Each catalog claim provisions a dedicated OpenShift environment with one lab user (`student`). When the lab starts, operators and services are already running: OpenShift Pipelines, OpenShift GitOps (Argo CD), Red Hat Advanced Cluster Security, Red Hat Trusted Profile Analyzer, Red Hat Developer Hub, Keycloak (SSO), Gitea, Nexus, Red Hat Trusted Artifact Signer, and an OpenShift BuildConfig. Namespaces `lw-poc-student` (Java) and `lw-fastapi-student` (Python) are pre-created with ConfigMaps containing discovery URLs. The Gitea organization is `lw-student`. Learners interact through a combination of the Showroom terminal (oc CLI, mvn, pip, cosign, syft, curl, git) and GUIs (RHDH, RHTPA, Argo CD console, OpenShift Console).
+**Learner view:** Learners access the lab via RHDP Showroom. Each catalog claim provisions a dedicated OpenShift environment with one lab user (`student`). When the lab starts, operators and services are already running: OpenShift Pipelines, OpenShift GitOps (Argo CD), Red Hat Advanced Cluster Security, Red Hat Trusted Profile Analyzer, Red Hat Developer Hub, Keycloak (SSO), Gitea, Nexus, Red Hat Trusted Artifact Signer, and an OpenShift BuildConfig. Namespaces `lw-poc-build` (pipelines), `lw-poc-staging` (Java stage), and `lw-poc-prod` (Java prod) are pre-created. Python twin `lw-fastapi-student` is not provisioned (V2-12). ConfigMaps contain discovery URLs. The Gitea organization is `lw-student`. Learners interact through a combination of the Showroom terminal (oc CLI, mvn, pip, cosign, syft, curl, git) and GUIs (RHDH, RHTPA, Argo CD console, OpenShift Console).
 
 **Automation needed:** Yes
 
@@ -96,7 +96,7 @@ The following must be provisioned before learners begin:
 - Nexus instance configured with Lightwell proxy repositories (validated, remediated, OSV tiers) backed by packages.redhat.com/lightwell/*
 - Gitea instance with seeded Java (`lw-student/spring-boot-lw-poc`) and Python (`lw-student/fastapi-lw-poc`) template remotes (learner copies into org `lw-student` in Module 2 / 7)
 - ConfigMaps: lightwell-channels, demo-userinfo-rhdh, demo-userinfo-keycloak, lightwell-pip-settings, demo-userinfo-gitea
-- Namespaces: lw-poc-student, lw-fastapi-student
+- Namespaces: lw-poc-build, lw-poc-staging, lw-poc-prod
 - Tekton Pipeline definitions: dep-gate (Java), lightwell-python-dep-gate (Python)
 - GitOps Helm repositories seeded in Gitea under org `lw-student`
 - RHDH Software Templates loaded: lightwell-java-service, lightwell-python-service

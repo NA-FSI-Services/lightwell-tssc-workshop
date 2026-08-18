@@ -270,6 +270,47 @@ spec:
       - RespectIgnoreDifferences=true
 {{- end }}
 
+{{- if .Values.components.networkPolicy.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-networkpolicy
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "root-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.components.networkPolicy.syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: {{ .Values.gitops.basePath }}/components/networkpolicy
+    helm:
+      valuesObject:
+        networkPolicy:
+          enabled: {{ .Values.components.networkPolicy.enabled }}
+        build:
+          namespace: {{ .Values.components.networkPolicy.namespace }}
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.components.networkPolicy.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+{{- end }}
+
 {{- if .Values.components.gitea.enabled }}
 ---
 apiVersion: argoproj.io/v1alpha1

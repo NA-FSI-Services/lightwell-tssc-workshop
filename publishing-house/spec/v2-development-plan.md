@@ -503,7 +503,7 @@ v2 is primarily an **automation + content** change on the existing GitOps bootst
 | **RHTAS** | Keyless path **and** materials for scored key-based/TUF verify (5.3): exportable TUF root, lab signing key or documented RHTAS key-based mode. Seeded TUF path is empty/wrong until the learner copies it. | 10 |
 | **Nexus** | Unchanged Lightwell proxy (scored). Artifactory = callouts only (§4.2.2). Optional hosted raw repo for mirrored SBOMs. | 20 |
 | **Showroom binaries** | Keep `cosign`, `syft`. Add `oc-mirror` (v2) and `ec`. **Bake in the image** — do not download from `github.com` at runtime. | 50 |
-| **NetworkPolicy** | **Track 4 (scored):** default-deny egress on **build** ns + allow DNS/registry/Nexus. **Track 6:** app-ns operate policy (seeded open). | 40 |
+| **NetworkPolicy** | **Track 4 (scored):** default-deny egress on **build** ns + allow DNS/registry/Nexus. **Track 6:** app-ns operate policy (seeded open). Chart at wave **10** so `lw-poc-build` / `lw-poc-staging` exist before Gitea Argo (wave 15). | 10 |
 | **Evaluation / honor-system Check** | In-cluster Validate Jobs per gated module. Classic Showroom. Seed **incomplete** lab assets. No UI lock; **no Solve** (learner or instructor). | 50 |
 
 ### 5.2 Provisioning constraints to solve early
@@ -666,7 +666,7 @@ Packaging A/B/C is **closed** — see §4.3.
 |----|-------|------------|
 | V2-10 | Dest registry + oc-mirror tooling; **do not** pre-stage the scored Hummingbird image | V2-1 (closed). Dest = Nexus hosted Docker `hummingbird-mirror` (empty). |
 | V2-11 | oc-mirror v2 in Showroom; incomplete ImageSet seed; learner-run (no pre-mirror of scored image) | V2-1 / V2-10. Seed: `REPLACE_ME_HUMMINGBIRD_PULLSPEC`; learner Job; signatures default-on. |
-| V2-12 | Remove v1 Java/Python dual-path flags; single TSSC app namespace | V2-0. Scored NS = `lw-poc-student`. Python seed/Argo/RHDH/RHACS gates off; files stay in git. |
+| V2-12 | Remove v1 Java/Python dual-path flags; single TSSC app namespace | V2-0. Scored NS = `lw-poc-staging`. Python seed/Argo/RHDH/RHACS gates off; files stay in git. |
 | V2-13 | Seed Dockerfile on UBI (wrong) so Track 3 requires `FROM` Hummingbird | V2-10. Seed: `ubi9/openjdk-21` + `ubi9/openjdk-21-runtime` (not `hi/openjdk`). |
 | V2-14 | Tekton task `verify-base-image` (cosign + attestation + SBOM) | V2-10. Task in `lightwell-tasks`; **not** in seeded pipeline. |
 | V2-15 | Conforma / Enterprise Contract policy bundle + pipeline task | Task in `lightwell-tasks`; weak ConfigMap; **not** in seeded pipeline. Local `ec validate`; no quay.io fetch. |

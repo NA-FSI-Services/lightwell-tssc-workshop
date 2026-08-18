@@ -19,7 +19,7 @@ gate. Provision does **not** apply a correct `ImagePolicy`.
 | Layer | Kind | Where |
 |-------|------|--------|
 | Learner edit | `TrustPolicy` (`tssc.workshop/v1`) | Gitea `admission/trust-policy.yaml` |
-| Live gate (default) | namespaced `ImagePolicy` | `lw-poc-student` and `lw-poc-prod` |
+| Live gate (default) | namespaced `ImagePolicy` | `lw-poc-staging` and `lw-poc-prod` |
 | Fallback | Kyverno `ClusterPolicy` | only if ImagePolicy CRD is missing or `admission.backend=kyverno` |
 | Not scored | `ClusterImagePolicy` | inspect snippet in `admission-docs` only |
 | Not this gate | RHACS Trusted image signers | keyless Fulcio identity is not a public-key match |
@@ -62,7 +62,7 @@ TUF copy waits for Securesign Ready. Apply CronJob retries until Gitea exists.
 |-----|---------|-------|
 | `admission.enabled` | `true` | Chart gate |
 | `admission.backend` | `auto` | Native ImagePolicy preferred |
-| `admission.stageNamespace` | `lw-poc-student` | Track 6 stage |
+| `admission.stageNamespace` | `lw-poc-staging` | Track 6 stage |
 | `admission.prodNamespace` | `lw-poc-prod` | Empty until V2-17 |
 | `admission.policyName` | `tssc-prod-admission` | Never `openshift*` |
 | `kyverno.install` | `false` | Do not ship the community operator |

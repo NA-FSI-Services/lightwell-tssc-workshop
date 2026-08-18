@@ -1,0 +1,43 @@
+{{- if .Values.networkPolicy.enabled }}
+---
+# Track 6 operate seed — open on purpose. Not the Track 4.3 hermetic Check.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.stage.policyName }}
+  namespace: {{ .Values.stage.namespace }}
+  labels:
+    {{- include "networkpolicy.labels" . | nindent 4 }}
+    lightwell.workshop/gate: operate-app
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.networkPolicy.syncWaves.policy | quote }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.prod.policyName }}
+  namespace: {{ .Values.prod.namespace }}
+  labels:
+    {{- include "networkpolicy.labels" . | nindent 4 }}
+    lightwell.workshop/gate: operate-app
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.networkPolicy.syncWaves.policy | quote }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+{{- end }}

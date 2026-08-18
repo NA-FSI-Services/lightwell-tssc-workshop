@@ -49,7 +49,7 @@ Default `replicas: 0` and empty `image.digest` keep Argo **Healthy** before prom
 1. Prefer digest pin after Module 5 Ex4: set `image.digest: sha256:…` and `replicas: 1`.
 2. When `image.repository` is empty, the image is derived as `{registry}/{namespace}/{name}`.
 3. Chart renders an ImageStream for `oc tag` promote into the product namespace.
-4. **Workshop runtime path (#100):** leave root-app `components.springBootLwPoc.enabled=false`; Gitea seeds a thin chart (no `./app`) and Argo Application `lw-poc-student` syncs it. Enable the monorepo Application only for non-Gitea demos.
+4. **Workshop runtime path (#100):** leave root-app `components.springBootLwPoc.enabled=false`; Gitea seeds a thin chart (no `./app`) and Argo Application `lw-poc-staging` syncs it. Enable the monorepo Application only for non-Gitea demos.
 
 ## Sync waves
 

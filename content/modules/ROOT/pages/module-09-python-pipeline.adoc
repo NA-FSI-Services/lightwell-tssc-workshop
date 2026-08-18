@@ -740,7 +740,7 @@ Expected: Application shows `Synced` / `Healthy`; Deployment shows `1/1` ready r
 |`spring-boot-lw-poc-build-sign` + `student_repo_url`
 |`fastapi-lw-poc-build-sign` + `student_python_repo_url`
 
-|Promote to `lw-poc-student` / `student_gitops_repo_url`
+|Promote to `lw-poc-staging` / `student_gitops_repo_url`
 |Promote to `lw-fastapi-student` / `student_python_gitops_repo_url`
 |===
 

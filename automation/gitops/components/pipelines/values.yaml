@@ -29,7 +29,7 @@ conformaPolicy:
   namespace: lightwell-tasks
   taskName: conforma-policy
   configMapName: conforma-policy
-  labNamespace: lw-poc-student
+  labNamespace: lw-poc-build
   # Same RHTAS stream as cosign-rhel9:1.3.0. Pull uses the PipelineRun SA (lab ns).
   ecImage: registry.redhat.io/rhtas/ec-rhel9:1.3.0
   oseCliImage: registry.redhat.io/openshift4/ose-cli:latest

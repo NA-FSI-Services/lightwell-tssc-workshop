@@ -1,6 +1,6 @@
 # Promote (Module 5 Exercise 4)
 
-After a successful signed build in your **lab** namespace:
+After a successful signed build in `lw-poc-build` (`student_build_namespace`):
 
 1. Tag the image into the product namespace ImageStream (see Showroom Ex4 for exact `oc` commands).
 2. Read the ImageStream digest (`sha256:…`).

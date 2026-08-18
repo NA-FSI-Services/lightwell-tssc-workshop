@@ -1,0 +1,24 @@
+{{- if and .Values.networkPolicy.enabled .Values.build.seedTooOpen }}
+---
+# Track 4.3 seed — too open. Learner replaces egress with DNS + registry + Nexus.
+# Namespace-wide (podSelector {}). Do not copy example-hermetic-egress.yaml.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.build.policyName }}
+  namespace: {{ .Values.build.namespace }}
+  labels:
+    {{- include "networkpolicy.labels" . | nindent 4 }}
+    lightwell.workshop/gate: hermetic-build
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.networkPolicy.syncWaves.policy | quote }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+    - {}
+{{- end }}

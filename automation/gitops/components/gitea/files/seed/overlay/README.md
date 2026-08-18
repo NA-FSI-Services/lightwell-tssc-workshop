@@ -42,5 +42,8 @@ The seeded Dockerfile is **UBI OpenJDK 21** (V2-13). Track 3: change the runtime
 the mirrored Hummingbird digest (`dest_registry_host` + `hummingbird_source_pullspec`).
 Do not copy a sample `FROM` from Showroom.
 
-See Showroom Module 5 Exercise 3 for copy-paste `oc` / `tkn` steps (lab namespace,
+Apply `.tekton/` and the BuildConfig in `lw-poc-build` (`student_build_namespace`).
+Promote with `oc tag` into `lw-poc-staging` (`student_promote_namespace`).
+
+See Showroom Module 5 Exercise 3 for copy-paste `oc` / `tkn` steps (build namespace,
 pull-secret link, PipelineRun).
