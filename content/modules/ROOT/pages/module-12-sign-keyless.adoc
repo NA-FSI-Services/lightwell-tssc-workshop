@@ -1,0 +1,109 @@
+= 5.1 Sign (keyless)
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Sign the *app* digest you built in xref:module-11-build-sbom.adoc[4.4] — not the Hummingbird base. This Check is *keyless* RHTAS (Fulcio, Rekor, TUF) plus `cosign verify` on *that* digest. Key-based / mirrored-TUF verify is a *second* Check (5.3 / V2-40). Do not treat keyless-only as Track 5 done.
+
+The seeded pipeline already has task `cosign-sign-keyless`. Placeholders in the PipelineRun (`apps.<domain>`) fail that task until you fill live Fulcio / Rekor / TUF URLs.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Discover Fulcio, Rekor, and TUF from cluster userinfo (do not invent Route hosts)
+* Get `cosign-sign-keyless` to Succeeded on the learner-built app image
+* `cosign verify` that digest with the pipeline SA identity and Kubernetes OIDC issuer
+* Leave TUF-on-disk / `--key` verify for 5.3
+
+== Keyless vs keys
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/65
+image::FIXME-keyless-rhtas-vs-keys.png[Keyless RHTAS Fulcio Rekor TUF versus later key-based verify,width=700,link=self,window=blank]
+
+Keyless is the *connected* PoV path: the pipeline SA presents an OIDC token, Fulcio issues a short-lived cert, Rekor records the signature, TUF distributes the trust root. Customers who cannot reach Fulcio at verify time still need 5.3.
+
+== Delivery note (SoW)
+
+*Customers* get a signed image from CI (Sigstore / TAS). *You* prove *your* BuildConfig digest verifies keylessly against *this* cluster’s RHTAS. Admission (`oc tag` / ImagePolicy) is Track 6.
+
+== Discover RHTAS URLs
+
+`cosign` is already on Showroom `PATH`. Do *not* curl `github.com` for the CLI.
+
+[source,bash,role=execute]
+----
+command -v cosign
+oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas \
+  -o jsonpath='{.data.signing_model}{"\n"}{.data.fulcio_url_hint}{"\n"}{.data.rekor_url_hint}{"\n"}{.data.tuf_url_hint}{"\n"}'
+oc -n trusted-artifact-signer get routes
+----
+
+Confirm the hints against live Routes. Do not leave `apps.<domain>` in the PipelineRun.
+
+== Worked example (not the Check)
+
+[source,bash]
+----
+# Worked example ONLY — fake issuer/subject. Do not use as the scored verify.
+cosign verify \
+  --certificate-identity-regexp='https://example.invalid/not-the-pipeline-sa' \
+  --certificate-oidc-issuer='https://example.invalid/oidc' \
+  image-registry.openshift-image-registry.svc:5000/example/not-your-app:latest
+----
+
+== Your change: fill URLs; sign the app digest
+
+If 4.4 already ran `cosign-sign-keyless` to Succeeded, skip to verify. Otherwise edit `.tekton/pipelinerun.yaml` on `lw-student/spring-boot-lw-poc`: replace Fulcio / Rekor / TUF with the userinfo URLs, `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_url`, and `<lab-namespace>` with `lw-poc-build`. Then create a new run:
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+cd /tmp/spring-boot-lw-poc
+oc -n "${BUILD_NS}" apply -f .tekton/pipeline.yaml
+oc -n "${BUILD_NS}" create -f .tekton/pipelinerun.yaml
+oc -n "${BUILD_NS}" get pipelinerun -w
+----
+
+Wait until `cosign-sign-keyless` Succeeded. ACS may still fail; this Check is the signature, not ACS.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/66
+image::FIXME-pipelinerun-cosign-sign-keyless.png[PipelineRun graph with cosign-sign-keyless Succeeded,width=700,link=self,window=blank]
+
+Do *not* `oc tag` into staging here (Track 6). Do *not* copy TUF onto a lab trust path (5.3).
+
+== Check: `cosign verify` on the app digest
+
+Identity is the *pipeline* SA in the build namespace (claim-proven), *not* a Hummingbird signer and *not* `REPLACE_ME_*`. Issuer is the Kubernetes API. If verify fails, capture the SAN from Rekor / `cosign verify` error text — do not invent an alternate issuer.
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+TUF="$(oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o jsonpath='{.data.tuf_url_hint}')"
+REKOR="$(oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o jsonpath='{.data.rekor_url_hint}')"
+IMAGE="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
+mkdir -p /tmp/lab-home
+export HOME=/tmp/lab-home
+cosign initialize --mirror="${TUF}" --root="${TUF}/root.json"
+cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  image-registry.openshift-image-registry.svc:5000
+cosign verify \
+  --rekor-url="${REKOR}" \
+  --certificate-identity-regexp="^https://kubernetes.io/namespaces/${BUILD_NS}/serviceaccounts/pipeline$" \
+  --certificate-oidc-issuer="https://kubernetes.default.svc" \
+  --allow-http-registry --allow-insecure-registry \
+  "${IMAGE}"
+----
+
+Pass when that command exits 0 on *your* app digest. Record the digest (`oc -n "${BUILD_NS}" get istag spring-boot-lw-poc:latest -o jsonpath='{.image.dockerImageReference}'`) — Track 6 promotes it.
+
+Honor system: 5.2 still opens.
+
+== Callout
+
+Python signs the same way (RHTAS keyless on the FastAPI digest). Not scored here.
+
+== Key takeaways
+
+* Keyless is the connected path; 5.3 still exists for disconnected *procedure*.
+* You signed the *app*, not only Hummingbird.

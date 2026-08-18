@@ -19,6 +19,10 @@
 * xref:module-10-build-networkpolicy.adoc[4.3 Build NetworkPolicy]
 * xref:module-11-build-sbom.adoc[4.4 Build and SBOM]
 
+.Track 5 — Signed and attested image
+* xref:module-12-sign-keyless.adoc[5.1 Sign (keyless)]
+* xref:module-13-attest-conforma.adoc[5.2 Attest + Conforma]
+
 .Java track
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]

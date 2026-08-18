@@ -1,0 +1,104 @@
+= 5.2 Attest + Conforma
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Konflux *Conforma* (Enterprise Contract) is an `ec validate` policy on the image after sign. This claim maps that control to Task `conforma-policy` in namespace `lightwell-tasks`. The Task is *not* in the seeded pipeline. The seeded ConfigMap is *too permissive* (signature checks skipped, identity `.*`, CVE 999). Argo reverts edits to that object — copy it to `lw-poc-build` and tighten the *copy*.
+
+This Check is fail-then-pass on *signatures + policy*, not SLSA L3. There is no Tekton Chains on this claim and no `cosign attest` step. Leave `skip-att-sig-check=true`. Mapping appendix: Konflux Conforma → this Task; Chains / in-toto → callout.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Copy the weak seed ConfigMap into the build namespace and tighten it (skip-image off, identity not `.*`, CVE not 999)
+* Wire Task `conforma-policy` *after* `cosign-sign-keyless` (not the worked-example order)
+* Fail `ec validate` / the Task on an in-cluster image that is *not* your signed app, then pass on the digest from 5.1
+
+== Why Conforma
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/67
+image::FIXME-conforma-seed-vs-tightened.png[Too-permissive Conforma seed versus learner-tightened copy in lw-poc-build,width=700,link=self,window=blank]
+
+A pipeline that always passes is a demo, not a gate. You own the policy. Do not fetch a bundle from `quay.io` or `github.com`.
+
+== Delivery note (SoW)
+
+*Customers* on hosted Konflux attach Conforma to the build. *You* sell the *control* (unsigned / wrong-identity images fail) implemented as a namespaced Task plus a ConfigMap *you* tightened.
+
+== Discover the seed (do not paste the example)
+
+[source,bash,role=execute]
+----
+oc -n lightwell-tasks get task conforma-policy
+oc -n lightwell-tasks get configmap conforma-policy \
+  -o jsonpath='{.data.skip-image-sig-check}{"\n"}{.data.certificate-identity-regexp}{"\n"}'
+oc -n lightwell-tasks get configmap conforma-policy-docs \
+  -o jsonpath='{.data.example-pipeline-snippet\.yaml}'
+----
+
+The worked example is named `verify-enterprise-contract`, `runAfter: [clone]` (before sign), fake `example.invalid` identity, skip left on, image `docker.io/library/java:latest`. Paste-identical copy fails.
+
+== Your change: copy, tighten, wire
+
+. Copy ConfigMap `conforma-policy` from `lightwell-tasks` into `lw-poc-build`. Do *not* edit the Argo-owned original.
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+oc -n lightwell-tasks get configmap conforma-policy -o yaml \
+  | sed -e '/^  resourceVersion:/d' -e '/^  uid:/d' -e '/^  creationTimestamp:/d' \
+        -e "s/namespace: lightwell-tasks/namespace: ${BUILD_NS}/" \
+  | oc apply -f -
+----
+
+. On the *copy*, set `skip-image-sig-check` to `false`. Leave `skip-att-sig-check` `true` (no Chains attestation on this claim). Set `certificate-identity-regexp` to the same pipeline SA regexp you used in 5.1 (not `.*`, not a Hummingbird placeholder). Set the OIDC issuer regexp to `https://kubernetes.default.svc`. In `policy.yaml` / `data.yaml`, drop `exclude: *`, lower `restrict_max_cve_score` below 999, and pin `allowed_registry_prefixes` to the internal registry (`image-registry.openshift-image-registry.svc`).
+
+. In Gitea `.tekton/pipeline.yaml`, add Task `conforma-policy` (cluster resolver, `namespace: lightwell-tasks`) with `runAfter: [cosign-sign-keyless]`. Point `policy-namespace` / `policy-configmap` at *your* copy in `lw-poc-build`, not `lightwell-tasks`. Commit, push, apply the Pipeline.
+
+== Check: fail on the builder; pass on the signed app
+
+Fail path is the in-cluster ImageStream `openjdk-21-builder` you imported in xref:module-08-forbid-list.adoc[4.1] — it is *not* signed with the RHTAS pipeline SA. It can pull (internal registry is allowed). Pass path is the 5.1 app digest. Do not use `docker.io/library/java:latest` (worked example; hermetic egress also blocks it from the build namespace).
+
+`ec` is on Showroom `PATH` (do not curl `github.com`). Extract *your* copy, then validate twice:
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+REKOR="$(oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o jsonpath='{.data.rekor_url_hint}')"
+mkdir -p /tmp/ec /tmp/lab-home
+export HOME=/tmp/lab-home
+oc -n "${BUILD_NS}" extract configmap/conforma-policy --to=/tmp/ec --confirm
+FAIL_IMG="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/openjdk-21-builder:latest"
+PASS_IMG="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
+IDENTITY="$(tr -d '[:space:]' < /tmp/ec/certificate-identity-regexp)"
+ISSUER="$(tr -d '[:space:]' < /tmp/ec/certificate-oidc-issuer-regexp)"
+# Expect non-zero:
+ec validate image --image="${FAIL_IMG}" --policy=/tmp/ec/policy.yaml --strict=true \
+  --certificate-identity-regexp="${IDENTITY}" \
+  --certificate-oidc-issuer-regexp="${ISSUER}" \
+  --skip-att-sig-check --rekor-url="${REKOR}" && echo 'FAIL PATH UNEXPECTEDLY PASSED'
+# Expect zero:
+ec validate image --image="${PASS_IMG}" --policy=/tmp/ec/policy.yaml --strict=true \
+  --certificate-identity-regexp="${IDENTITY}" \
+  --certificate-oidc-issuer-regexp="${ISSUER}" \
+  --skip-att-sig-check --rekor-url="${REKOR}"
+oc -n "${BUILD_NS}" get pipeline spring-boot-lw-poc-build-sign -o yaml \
+  | grep -A25 'name: conforma-policy' | head -30
+----
+
+Pass when the builder validate fails, the app digest passes, the live Pipeline includes `conforma-policy` after `cosign-sign-keyless`, and `policy-namespace` is `lw-poc-build`.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/68
+image::FIXME-conforma-fail-then-pass.png[Conforma fail on openjdk-21-builder then pass on signed app digest,width=700,link=self,window=blank]
+
+Honor system: 5.3 (V2-40) still opens. Track 6 still opens.
+
+== Callout
+
+Python can run the same Task against the FastAPI digest. Not scored here. SLSA L3 / Tekton Chains is a mapping sentence, not this Check.
+
+== Key takeaways
+
+* Policy is learner-owned, not a passing default.
+* This claim is not SLSA L3; `skip-att-sig-check` stays true on purpose.
