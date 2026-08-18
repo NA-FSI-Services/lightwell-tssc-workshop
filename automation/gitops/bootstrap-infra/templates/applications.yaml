@@ -1,5 +1,5 @@
 # App of Apps — ArgoCD Applications for each enabled Lightwell workshop component.
-# Sync waves: keycloak (5) → pipelines (8) → operators (10) → gitea (15) → config (20) → rhdh (30) → apps (40) → showroom (50)
+# Sync waves: keycloak (5) → pipelines (8) → operators (10) → gitea (15) → config (20) → renovate (25) → rhdh (30) → apps (40) → showroom (50)
 
 {{- if .Values.components.keycloak.enabled }}
 ---
@@ -394,6 +394,54 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+{{- end }}
+
+{{- if .Values.components.renovate.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-renovate
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "root-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.components.renovate.syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: {{ .Values.gitops.basePath }}/components/renovate
+    helm:
+      valuesObject:
+        renovate:
+          enabled: {{ .Values.components.renovate.enabled }}
+          namespace: {{ .Values.components.renovate.namespace }}
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.components.renovate.namespace }}
+  # Token Job fills renovate-gitea-token; do not let Helm wipe it.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: renovate-gitea-token
+      jsonPointers:
+        - /data
+        - /stringData
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 {{- end }}
 
 {{- if .Values.components.rhdh.enabled }}

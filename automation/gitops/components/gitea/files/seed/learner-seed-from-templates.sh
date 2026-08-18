@@ -43,6 +43,8 @@ cm_get() {
 : "${TEMPLATE_GITOPS_URL:=${GITEA_URL%/}/workshop-templates/${GITOPS_REPO_NAME}.git}"
 : "${TEMPLATE_PROD_GITOPS_URL:=${GITEA_URL%/}/workshop-templates/${GITOPS_PROD_REPO_NAME}.git}"
 : "${GITEA_SCAFFOLDER_USER:=gitea-admin}"
+: "${RENOVATE_BOT_USER:=$(cm_get '{.data.renovate_bot_username}')}"
+: "${RENOVATE_BOT_USER:=renovate-bot}"
 
 API="${GITEA_URL%/}/api/v1"
 WORKDIR="$(mktemp -d)"
@@ -88,6 +90,23 @@ PY
   fi
   echo "WARN: add ${GITEA_SCAFFOLDER_USER} to team failed HTTP ${code}" >&2
   cat /tmp/gitea-scaffolder-member.json >&2 || true
+}
+
+add_repo_collaborator() {
+  local owner="$1" repo="$2" user="$3"
+  local code
+  code="$(curl -sk -o /tmp/gitea-collab.json -w '%{http_code}' \
+    -X PUT \
+    -H "$(auth_header "${STUDENT_USER}" "${STUDENT_PASS}")" \
+    -H 'Content-Type: application/json' \
+    -d '{"permission":"write"}' \
+    "${API}/repos/${owner}/${repo}/collaborators/${user}" || true)"
+  if [[ "${code}" == "204" || "${code}" == "200" ]]; then
+    echo "Added ${user} as write collaborator on ${owner}/${repo} (Track 3.3 Renovate)"
+    return 0
+  fi
+  echo "WARN: add collaborator ${user} on ${owner}/${repo} failed HTTP ${code} — re-run after renovate-bot exists" >&2
+  cat /tmp/gitea-collab.json >&2 || true
 }
 
 require_repo() {
@@ -149,6 +168,7 @@ ensure_scaffolder_on_org
 
 require_repo "${LEARNER_ORG}" "${REPO_NAME}"
 mirror_push "${TEMPLATE_APP_URL}" "${LEARNER_ORG}" "${REPO_NAME}"
+add_repo_collaborator "${LEARNER_ORG}" "${REPO_NAME}" "${RENOVATE_BOT_USER}"
 
 if [[ -n "${GITOPS_REPO_NAME}" && -n "${TEMPLATE_GITOPS_URL}" ]]; then
   require_repo "${LEARNER_ORG}" "${GITOPS_REPO_NAME}"

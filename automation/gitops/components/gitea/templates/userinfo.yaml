@@ -43,6 +43,7 @@ data:
   student_promote_namespace: {{ $promoteNs | quote }}
   student_argocd_app: {{ $stageApp | quote }}
   student_build_namespace: {{ $buildNs | quote }}
+  renovate_bot_username: "renovate-bot"
 {{- if .Values.seed.gitops.prod.enabled }}
   student_prod_gitops_repo_url: {{ $gitopsProdUrl | quote }}
   student_prod_gitops_repo_name: {{ $gitopsProdName | quote }}

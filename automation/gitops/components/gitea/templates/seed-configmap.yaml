@@ -43,6 +43,10 @@ data:
 {{ .Files.Get "files/seed/overlay/tekton/pipelinerun.yaml" | indent 4 }}
   overlay-tekton-rbac.yaml: |
 {{ .Files.Get "files/seed/overlay/tekton/rbac.yaml" | indent 4 }}
+  overlay-renovate.json: |
+{{ .Files.Get "files/seed/overlay/renovate.json" | indent 4 }}
+  overlay-lightwell-pins.properties: |
+{{ .Files.Get "files/seed/overlay/lightwell-pins.properties" | indent 4 }}
   # GitOps chart overlay (Module 5 Ex4 / #100) — no ./app in that remote
   overlay-gitops-README.md: |
 {{ .Files.Get "files/seed/overlay-gitops/README.md" | indent 4 }}

@@ -80,7 +80,7 @@ isolate_from_git() {
 
 apply_overlay() {
   # ConfigMap mount is flat keys (see seed-configmap.yaml) — rebuild lab paths here.
-  echo "Applying lab overlay (${OVERLAY_PREFIX}: .tekton + student README)"
+  echo "Applying lab overlay (${OVERLAY_PREFIX}: .tekton + student README + Renovate pins)"
   mkdir -p "${ROOT}/.tekton"
   if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-README.md" ]]; then
     cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-README.md" "${ROOT}/README.md"
@@ -93,6 +93,13 @@ apply_overlay() {
   fi
   if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-rbac.yaml" ]]; then
     cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-tekton-rbac.yaml" "${ROOT}/.tekton/rbac.yaml"
+  fi
+  # V2-24 — Java app only (overlay-*, not overlay-python-*). Stale pins for the live bot.
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-renovate.json" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-renovate.json" "${ROOT}/renovate.json"
+  fi
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-lightwell-pins.properties" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-lightwell-pins.properties" "${ROOT}/lightwell-pins.properties"
   fi
 }
 

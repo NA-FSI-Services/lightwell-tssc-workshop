@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabledManagers": ["custom.regex"],
+  "vulnerabilityAlerts": false,
+  "osvVulnerabilityAlerts": false,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^lightwell-pins\\.properties$"],
+      "matchStrings": ["commons-lang3=(?<currentValue>\\S+)"],
+      "datasourceTemplate": "maven",
+      "depNameTemplate": "org.apache.commons:commons-lang3",
+      "packageNameTemplate": "org.apache.commons:commons-lang3",
+      "registryUrlTemplate": "http://nexus.lightwell-repo.svc:8081/repository/lightwell-java-remediated/",
+      "versioningTemplate": "maven"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^lightwell-pins\\.properties$"],
+      "matchStrings": ["hummingbird-digest=(?<currentDigest>sha256:[0-9a-f]+)"],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "hi/openjdk",
+      "packageNameTemplate": "hi/openjdk",
+      "currentValueTemplate": "21-runtime",
+      "versioningTemplate": "docker"
+    }
+  ]
+}

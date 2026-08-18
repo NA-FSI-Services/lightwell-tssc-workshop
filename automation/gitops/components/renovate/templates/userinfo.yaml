@@ -1,0 +1,35 @@
+{{- if and .Values.renovate.enabled .Values.userInfo.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-userinfo-renovate
+  namespace: {{ .Values.renovate.namespace }}
+  labels:
+    {{- include "renovate.labels" . | nindent 4 }}
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.renovate.syncWaves.userinfo | quote }}
+data:
+  demo_title: {{ .Values.userInfo.title | quote }}
+  access_instructions: {{ .Values.userInfo.instructions | quote }}
+  deployment_type: helm
+  mapping_name: MintMaker
+  mapping_note: "SoW / appendix name only. This cluster runs the Renovate CronJob, not hosted Konflux MintMaker."
+  renovate_namespace: {{ .Values.renovate.namespace | quote }}
+  renovate_cronjob: {{ .Values.cronJob.name | quote }}
+  renovate_bot_username: {{ .Values.bot.username | quote }}
+  renovate_target_repo: {{ printf "%s/%s" .Values.gitea.org .Values.gitea.repo | quote }}
+  pins_file: lightwell-pins.properties
+  pin_lightwell: commons-lang3
+  pin_hummingbird: hummingbird-digest
+  maven_registry_url: {{ include "renovate.mavenUrl" . | quote }}
+  dest_registry_host: {{ include "renovate.destRegistryHost" . | quote }}
+  bot_egress_image_registry: {{ include "renovate.imagePullHost" . | quote }}
+  bot_egress_gitea: {{ include "renovate.giteaEndpoint" . | quote }}
+  bot_egress_nexus: {{ printf "http://%s.%s.svc:%v" .Values.nexus.name .Values.nexus.namespace .Values.nexus.httpPort | quote }}
+  bot_egress_github: "not used — do not add github.com for learners"
+  do_not_copy: example-renovate-pr.md
+  cluster_domain: {{ .Values.deployer.domain | quote }}
+  cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
+{{- end }}

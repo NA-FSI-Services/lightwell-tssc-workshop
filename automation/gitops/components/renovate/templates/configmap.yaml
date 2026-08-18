@@ -1,0 +1,62 @@
+{{- if .Values.renovate.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: renovate-scripts
+  namespace: {{ .Values.renovate.namespace }}
+  labels:
+    {{- include "renovate.labels" . | nindent 4 }}
+    app.kubernetes.io/component: token-setup
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.renovate.syncWaves.config | quote }}
+data:
+  seed-bot.sh: |
+{{ .Files.Get "files/seed-bot.sh" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: renovate-config
+  namespace: {{ .Values.renovate.namespace }}
+  labels:
+    {{- include "renovate.labels" . | nindent 4 }}
+    app.kubernetes.io/component: renovate
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.renovate.syncWaves.config | quote }}
+data:
+  config.json: |
+    {
+      "platform": "gitea",
+      "endpoint": {{ include "renovate.giteaEndpoint" . | quote }},
+      "gitAuthor": {{ printf "%s <%s>" .Values.bot.fullName .Values.bot.email | quote }},
+      "autodiscover": false,
+      "onboarding": false,
+      "requireConfig": "required",
+      "binarySource": "global",
+      "repositories": [{{ printf "%s/%s" .Values.gitea.org .Values.gitea.repo | quote }}],
+      "enabledManagers": ["custom.regex"],
+      "vulnerabilityAlerts": false,
+      "osvVulnerabilityAlerts": false,
+      "hostRules": [
+        {
+          "matchHost": {{ printf "%s.%s.svc" .Values.nexus.name .Values.nexus.namespace | quote }},
+          "hostType": "maven"
+        },
+        {
+          "matchHost": {{ include "renovate.destRegistryHost" . | quote }},
+          "hostType": "docker"
+        }
+      ],
+      "packageRules": [
+        {
+          "matchDatasources": ["maven"],
+          "registryUrls": [{{ include "renovate.mavenUrl" . | quote }}]
+        },
+        {
+          "matchDatasources": ["docker"],
+          "registryUrls": [{{ printf "https://%s" (include "renovate.destRegistryHost" .) | quote }}]
+        }
+      ]
+    }
+{{- end }}

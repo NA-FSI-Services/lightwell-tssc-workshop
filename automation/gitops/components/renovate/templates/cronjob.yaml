@@ -1,0 +1,60 @@
+{{- if .Values.renovate.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.cronJob.name }}
+  namespace: {{ .Values.renovate.namespace }}
+  labels:
+    {{- include "renovate.labels" . | nindent 4 }}
+    app.kubernetes.io/component: renovate
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.renovate.syncWaves.cronJob | quote }}
+spec:
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.cronJob.backoffLimit }}
+      template:
+        metadata:
+          labels:
+            {{- include "renovate.labels" . | nindent 12 }}
+            app.kubernetes.io/component: renovate
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ .Values.cronJob.serviceAccountName }}
+          containers:
+            - name: renovate
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+              env:
+                - name: LOG_LEVEL
+                  value: info
+                - name: HOME
+                  value: /tmp
+                - name: RENOVATE_CONFIG_FILE
+                  value: /usr/src/app/config.json
+                - name: RENOVATE_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.bot.tokenSecretName }}
+                      key: token
+              volumeMounts:
+                - name: config
+                  mountPath: /usr/src/app/config.json
+                  subPath: config.json
+              resources:
+                requests:
+                  cpu: {{ .Values.cronJob.resources.requests.cpu | quote }}
+                  memory: {{ .Values.cronJob.resources.requests.memory | quote }}
+                limits:
+                  cpu: {{ .Values.cronJob.resources.limits.cpu | quote }}
+                  memory: {{ .Values.cronJob.resources.limits.memory | quote }}
+          volumes:
+            - name: config
+              configMap:
+                name: renovate-config
+{{- end }}

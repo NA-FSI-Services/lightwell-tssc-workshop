@@ -1,0 +1,9 @@
+apiVersion: v2
+name: renovate
+description: Live Renovate bot against in-cluster Gitea (Track 3.3 / V2-24)
+type: application
+version: 0.1.0
+appVersion: "41"
+maintainers:
+  - name: NA-FSI-Services
+    url: https://github.com/rhpds/lightwell-tssc-workshop

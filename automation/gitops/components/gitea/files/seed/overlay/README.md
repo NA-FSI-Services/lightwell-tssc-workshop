@@ -14,6 +14,7 @@ BuildConfig image → sign). Discover your remote from ConfigMap `demo-userinfo-
 | `pom.xml` / `src/` / `Dockerfile` | App sources at repository root |
 | `settings.xml` | Local Maven + LWN/Nexus (optional Secret — see Module 5) |
 | `.tekton/` | Hybrid pipeline: dep-gate → OpenShift BuildConfig → ACS → SBOM → cosign |
+| `renovate.json` / `lightwell-pins.properties` | Track 3.3 live Renovate (stale Lightwell + Hummingbird pins) |
 | `README.md` | This file |
 
 ## Module 5 quick path (policy gate)
@@ -42,6 +43,9 @@ handles policy, ACS (may soft-skip), SBOM, and RHTAS cosign.
 The seeded Dockerfile is **UBI OpenJDK 21** (V2-13). Track 3: change the runtime `FROM` to
 the mirrored Hummingbird digest (`dest_registry_host` + `hummingbird_source_pullspec`).
 Do not copy a sample `FROM` from Showroom.
+
+Track 3.3: merge the **renovate-bot** PR on `lightwell-pins.properties` (not a hand
+commit). Apply the new pins to `pom.xml` / Dockerfile as the track instructs.
 
 Apply `.tekton/` and the BuildConfig in `lw-poc-build` (`student_build_namespace`).
 Promote with `oc tag` into `lw-poc-staging` (`student_promote_namespace`).

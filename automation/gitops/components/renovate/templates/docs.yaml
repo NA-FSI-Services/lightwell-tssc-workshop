@@ -1,0 +1,48 @@
+{{- if .Values.renovate.enabled }}
+---
+# Worked example is not paste-identical (wrong author, wrong package, fake org).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: renovate-docs
+  namespace: {{ .Values.renovate.namespace }}
+  labels:
+    {{- include "renovate.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docs
+    demo.redhat.com/userinfo: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.renovate.syncWaves.userinfo | quote }}
+data:
+  README: |
+    V2-24. Live Renovate against in-cluster Gitea. MintMaker is a mapping name only.
+
+    The CronJob {{ .Values.cronJob.name }} in {{ .Values.renovate.namespace }}
+    targets {{ .Values.gitea.org }}/{{ .Values.gitea.repo }} after Module 2 seed.
+    It must open a real PR that updates lightwell-pins.properties (commons-lang3
+    to the Nexus remediated pin, hummingbird-digest to the mirrored dest digest).
+    Merge the PR from {{ .Values.bot.username }}. A hand-edited commit or a
+    seeded PR fails the Check (V2-54 waits with retry).
+
+    Dockerfile FROM stays UBI until Track 3 (V2-13). Do not copy a Hummingbird
+    FROM from Showroom. Dest hummingbird-mirror is empty until Track 1 oc-mirror;
+    the Docker bump may no-op until then. CronJob retries every 20 minutes.
+
+    Bot egress (not learner NetworkPolicy / Showroom CLI):
+    - {{ include "renovate.imagePullHost" . }} (Renovate image)
+    - in-cluster Gitea ({{ include "renovate.giteaEndpoint" . }})
+    - in-cluster Nexus Maven ({{ include "renovate.mavenUrl" . }})
+    - dest Docker host {{ include "renovate.destRegistryHost" . }} after Track 1
+
+    Do not add github.com for learners. Do not copy example-renovate-pr.md.
+  example-renovate-pr.md: |
+    # Worked example ONLY — wrong author, wrong package, fake org.
+    # Paste-identical copy still fails the Check.
+
+    Author: student
+    Repo: example-org/demo-service
+    Files: pom.xml
+
+        <jackson.databind.version>2.15.0</jackson.databind.version>
+
+    This is not a renovate-bot PR and does not touch lightwell-pins.properties.
+{{- end }}

@@ -2,6 +2,7 @@
 # Replace the runtime FROM with the mirrored Hummingbird digest: dest_registry_host
 # from demo-userinfo-lightwell-repo plus the digest in hummingbird_source_pullspec.
 # Do not copy a sample FROM from Showroom (Check fails). Do not put hi/openjdk here.
+# Track 3.3 stale Hummingbird digest lives in lightwell-pins.properties (Renovate), not FROM.
 # Image build uses Maven Central. Override commons.lang3.version so a learner
 # .rhlw-* default pin (dep-gate) does not break Docker package resolution.
 FROM registry.access.redhat.com/ubi9/openjdk-21:1.21 AS build

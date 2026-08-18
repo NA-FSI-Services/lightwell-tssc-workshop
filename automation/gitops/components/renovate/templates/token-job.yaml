@@ -1,0 +1,81 @@
+{{- if and .Values.renovate.enabled .Values.tokenJob.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.tokenJob.name }}
+  namespace: {{ .Values.renovate.namespace }}
+  labels:
+    {{- include "renovate.labels" . | nindent 4 }}
+    app.kubernetes.io/component: token-setup
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.renovate.syncWaves.tokenJob | quote }}
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.tokenJob.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.tokenJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "renovate.labels" . | nindent 8 }}
+        app.kubernetes.io/component: token-setup
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ .Values.tokenJob.serviceAccountName }}
+      containers:
+        - name: seed-bot
+          image: {{ .Values.tokenJob.image | quote }}
+          imagePullPolicy: {{ .Values.tokenJob.imagePullPolicy | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              if ! command -v python3 >/dev/null 2>&1; then
+                dnf install -y -q python3 && dnf clean all
+              fi
+              bash /scripts/seed-bot.sh
+          env:
+            - name: GITEA_ENDPOINT
+              value: {{ include "renovate.giteaEndpoint" . | quote }}
+            - name: GITEA_NAMESPACE
+              value: {{ .Values.gitea.namespace | quote }}
+            - name: ADMIN_SECRET_NAME
+              value: {{ .Values.gitea.adminSecretName | quote }}
+            - name: RENOVATE_NAMESPACE
+              value: {{ .Values.renovate.namespace | quote }}
+            - name: TOKEN_SECRET_NAME
+              value: {{ .Values.bot.tokenSecretName | quote }}
+            - name: BOT_USER
+              value: {{ .Values.bot.username | quote }}
+            - name: BOT_PASSWORD
+              value: {{ .Values.bot.password | quote }}
+            - name: BOT_EMAIL
+              value: {{ .Values.bot.email | quote }}
+            - name: BOT_FULL_NAME
+              value: {{ .Values.bot.fullName | quote }}
+            - name: TOKEN_NAME
+              value: {{ .Values.bot.tokenName | quote }}
+            - name: TARGET_ORG
+              value: {{ .Values.gitea.org | quote }}
+            - name: TARGET_REPO
+              value: {{ .Values.gitea.repo | quote }}
+            - name: WAIT_SECONDS
+              value: {{ .Values.tokenJob.waitSeconds | quote }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: {{ .Values.tokenJob.resources.requests.cpu | quote }}
+              memory: {{ .Values.tokenJob.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.tokenJob.resources.limits.cpu | quote }}
+              memory: {{ .Values.tokenJob.resources.limits.memory | quote }}
+      volumes:
+        - name: scripts
+          configMap:
+            name: renovate-scripts
+            defaultMode: 0755
+{{- end }}

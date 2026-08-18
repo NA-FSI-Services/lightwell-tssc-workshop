@@ -28,7 +28,7 @@ Python FastAPI chart, overlays, and RHDH template files **stay in git** and are 
 
 1. Lab scripts / charts **start Gitea** and create the student user.
 2. Learners discover `gitea_url` via `oc`, run `learner-ensure-gitea-user.sh` if needed, then create organization **`lw-student`** and empty repos **`spring-boot-lw-poc`**, **`gitops-spring-boot-lw-poc`** (stage), and **`gitops-prod-spring-boot-lw-poc`** (prod).
-3. Learner runs `learner-seed-from-templates.sh` to push operator-prepared content from **`workshop-templates/`** into those repos.
+3. Learner runs `learner-seed-from-templates.sh` to push operator-prepared content from **`workshop-templates/`** into those repos. The script also adds **`renovate-bot`** as a write collaborator on the Java app repo (Track 3.3 / V2-24).
 4. RHDH `publish:gitea` targets the same learner org.
 
 | Item | Value |
@@ -51,7 +51,7 @@ Python FastAPI chart, overlays, and RHDH template files **stay in git** and are 
 Default `seed.source.mode=live`: the seed Job clones the **workshop GitOps URL**
 (`seed.source.repoUrl`, injected from root-app `gitops.repoUrl`), then:
 
-1. **Java app template** — copies `seed.source.path` to `workshop-templates/spring-boot-lw-poc`, includes `tools/osv-eval/`, overlays `.tekton/`
+1. **Java app template** — copies `seed.source.path` to `workshop-templates/spring-boot-lw-poc`, includes `tools/osv-eval/`, overlays `.tekton/`, `renovate.json`, and stale `lightwell-pins.properties` (V2-24)
 2. **Java stage GitOps template** — copies chart tree **excluding `app/`** to `workshop-templates/gitops-spring-boot-lw-poc`, overlays `admission/trust-policy.yaml` (V2-16 seed)
 3. **Java prod GitOps template** — same chart isolation to `workshop-templates/gitops-prod-spring-boot-lw-poc`; digest seed `sha256:REPLACE_ME_PROD_DIGEST`; **no** TrustPolicy (V2-17)
 4. **RHDH Java skeleton** — copies `seed.templates.skeleton` to `workshop-templates/lightwell-java-service`

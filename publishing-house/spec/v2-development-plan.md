@@ -677,7 +677,7 @@ Packaging A/B/C is **closed** — see §4.3.
 | V2-21 | NetworkPolicy: **build-ns** hermetic (Track 4) + **app-ns** operate (Track 6) | V2-14 |
 | V2-22 | Health check / e2e: mirror job, cosign verify internal, admission deny | Phase 5. Health = objects exist. e2e = fresh-claim negatives (no Solve). Pass-path is V2-54. |
 | V2-23 | Hermeto (or prefetch) ClusterTask + incomplete pipeline seed for 4.2 | V2-14. **Closed as workshop Task `prefetch-dependencies`** (not Konflux Hermeto; not ClusterTask). Report: [`v2-23-hermeto-prefetch.md`](v2-23-hermeto-prefetch.md). |
-| V2-24 | Live Renovate against Gitea (Lightwell + Hummingbird pins); bot egress hosts only | V2-13 |
+| V2-24 | Live Renovate against Gitea (Lightwell + Hummingbird pins); bot egress hosts only | V2-13. **Closed as CronJob + official Renovate image** (Gitea platform; Maven + dest Docker only). Default-off wave 25. Token minted at runtime. Live PR unproven until a claim. |
 
 ### Epic C — Content (seven tracks)
 

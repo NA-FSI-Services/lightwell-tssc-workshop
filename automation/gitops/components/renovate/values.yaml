@@ -1,0 +1,100 @@
+# V2-24 — live Renovate against Gitea. MintMaker is a mapping-appendix name only.
+# Official image. Datasources: Maven (Nexus remediated) + Docker dest (Hummingbird digest).
+# Do not seed a PR. Do not add github.com for learners. Default-off in bootstrap.
+
+renovate:
+  enabled: true
+  namespace: renovate
+  syncWaves:
+    namespace: "0"
+    rbac: "1"
+    config: "1"
+    tokenJob: "2"
+    cronJob: "3"
+    userinfo: "4"
+
+bot:
+  username: renovate-bot
+  # Workshop placeholder — not a production secret. Token is minted at runtime.
+  password: "workshop-renovate-bot-changeme"
+  email: renovate-bot@workshop.local
+  fullName: Renovate Bot
+  tokenSecretName: renovate-gitea-token
+  tokenName: renovate
+
+# Official image. Major tag 41 is published on ghcr.io. Pin a digest on the claim if pull flakes.
+# Do not invent a digest here. Image pull is bot egress (ghcr.io) — not a learner NetworkPolicy.
+image:
+  repository: ghcr.io/renovatebot/renovate
+  tag: "41"
+  pullPolicy: IfNotPresent
+
+cronJob:
+  name: renovate
+  schedule: "*/20 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  serviceAccountName: renovate
+  backoffLimit: 1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+tokenJob:
+  enabled: true
+  name: renovate-bot-token
+  serviceAccountName: renovate-bot-setup
+  image: registry.access.redhat.com/ubi9/ubi:latest
+  imagePullPolicy: IfNotPresent
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400
+  waitSeconds: "300"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+gitea:
+  namespace: gitea
+  name: gitea
+  adminSecretName: gitea-admin
+  # In-cluster HTTP — bot does not need the public Route (and not github.com).
+  endpoint: "http://gitea.gitea.svc:3000"
+  org: lw-student
+  repo: spring-boot-lw-poc
+
+nexus:
+  namespace: lightwell-repo
+  name: nexus
+  httpPort: 8081
+  dockerPort: 5000
+  mavenRepository: lightwell-java-remediated
+  dockerRepository: hummingbird-mirror
+
+# Dest after Track 1 oc-mirror. Empty dest until the learner mirrors — Docker bump may no-op.
+hummingbird:
+  packageName: hi/openjdk
+  currentValue: "21-runtime"
+
+userInfo:
+  enabled: true
+  title: "Lightwell TSSC Workshop — Renovate (Track 3.3)"
+  instructions: >-
+    Live Renovate CronJob opens PRs on lw-student/spring-boot-lw-poc for stale
+    pins in lightwell-pins.properties (Lightwell commons-lang3 and Hummingbird
+    digest). Merge the bot PR. A hand-edited commit or a seeded PR fails the
+    Check. MintMaker is the SoW mapping name for this bot — not a Konflux
+    install. Bot egress is ghcr.io (image) plus in-cluster Gitea and Nexus.
+    Learners do not get github.com.
+
+deployer:
+  domain: ""
+  apiUrl: ""

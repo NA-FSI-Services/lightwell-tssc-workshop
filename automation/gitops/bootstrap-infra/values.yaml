@@ -7,6 +7,7 @@
 #   10  — TSSC operators / platform: rhtas, rhtpa, rhacs, admission, networkpolicy
 #   15  — Student Git (Gitea): gitea
 #   20  — Artifact manager / LWN pattern: lightwell-repo
+#   25  — Live Renovate bot (Gitea + Nexus): renovate
 #   30  — Developer Hub: rhdh
 #   40  — Sample apps: spring-boot-lw-poc (scored), fastapi-lw-poc (unused at provision; V2-12), parasol-app
 #   50  — Showroom lab guide
@@ -100,6 +101,14 @@ components:
     syncWave: "20"
     # Chart directory under automation/gitops/components/
     chartPath: lightwell-repo
+
+  # --- Wave 25: Live Renovate against Gitea (V2-24). After Gitea (15) + Nexus (20). ---
+  # Chart: automation/gitops/components/renovate. Official image; Maven + dest Docker only.
+  # Opens PRs on lw-student/spring-boot-lw-poc after Module 2 seed. Default-off.
+  renovate:
+    enabled: false
+    namespace: renovate
+    syncWave: "25"
 
   # --- Wave 30: Developer Hub ---
   # Chart: automation/gitops/components/rhdh (#3 / #120). Enabled with lab stack for Module 3 scaffold.
