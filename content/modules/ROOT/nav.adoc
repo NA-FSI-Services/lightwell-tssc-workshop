@@ -4,6 +4,10 @@
 * xref:module-01-hummingbird-verify.adoc[1.1 Verify Hummingbird]
 * xref:module-02-hummingbird-mirror.adoc[1.2 Mirror into the trust boundary]
 
+.Track 2 — Lightwell dependencies
+* xref:module-03-enterprise-proxy.adoc[2.1 Enterprise proxy]
+* xref:module-04-remediated-pin.adoc[2.2 Remediated pin]
+
 .Java track
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]
