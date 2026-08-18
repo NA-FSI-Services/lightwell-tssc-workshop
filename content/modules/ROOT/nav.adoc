@@ -1,5 +1,9 @@
 * xref:index.adoc[Workshop home]
 
+.Track 1 — Hummingbird
+* xref:module-01-hummingbird-verify.adoc[1.1 Verify Hummingbird]
+* xref:module-02-hummingbird-mirror.adoc[1.2 Mirror into the trust boundary]
+
 .Java track
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]

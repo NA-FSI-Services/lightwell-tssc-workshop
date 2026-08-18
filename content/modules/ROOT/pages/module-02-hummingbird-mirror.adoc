@@ -1,0 +1,152 @@
+= 1.2 Mirror into the trust boundary
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+1.1 verified the *published* Hummingbird pin. This cluster did *not* pre-load that image. Dest Docker repo `hummingbird-mirror` starts empty so *you* run `oc-mirror`.
+
+In this module you finish the incomplete `ImageSetConfiguration`, start the learner Job from ConfigMap `oc-mirror-tooling`, and `cosign verify` the *internal* digest you record — not only the public digest from xref:module-01-hummingbird-verify.adoc[1.1].
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Replace `REPLACE_ME_HUMMINGBIRD_PULLSPEC` with the live digest pin from userinfo (not the worked-example UBI)
+* Start Job `oc-mirror-learner` from `oc-mirror-tooling` (not a provision Job)
+* Verify the image (and that signatures traveled with it) against the dest digest you recorded
+
+== Why dest is empty
+
+An enterprise DMZ host runs `oc-mirror`; this Showroom is the in-cluster stand-in. If provision mirrored Hummingbird for you, the Check would be a screenshot of a finished cluster — not a skill.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49
+image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird digest versus internal dest digest after learner oc-mirror,width=700,link=self,window=blank]
+
+[NOTE]
+====
+Python base images follow the same pin-and-mirror idea. This Check is the Java `hi/openjdk` dest only.
+====
+
+== Delivery note (SoW)
+
+*Customers* run `oc-mirror` (often on a bastion) into an internal registry. *This lab* uses Nexus hosted Docker `hummingbird-mirror` and Route `registry-lightwell-repo` as that dest. You still own the ImageSet and the run.
+
+== Discover dest + incomplete ImageSet
+
+.Dest host and empty-repo name (do not invent a registry)
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
+  -o jsonpath='dest={.data.dest_registry_host}{"\n"}repo={.data.dest_registry_repo}{"\n"}docker={.data.dest_registry_docker}{"\n"}pre_mirror={.data.oc_mirror_pre_stage_scored_image}{"\n"}'
+----
+
+.Seed ImageSet (scored ConfigMap — still has the placeholder)
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap imageset-configuration \
+  -o jsonpath='{.data.imageset-config\.yaml}'
+----
+
+.Worked example (different image — pasting this into the scored ConfigMap still fails)
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap oc-mirror-tooling \
+  -o jsonpath='{.data.example-imageset\.yaml}'
+----
+
+The worked example uses `registry.access.redhat.com/ubi9/ubi-minimal:latest`. The scored file must name the *digest pin* from `hummingbird_source_pullspec`.
+
+== Your change: ImageSet
+
+.Copy the live pin into a note (same key as 1.1)
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
+  -o jsonpath='{.data.hummingbird_source_pullspec}{"\n"}'
+----
+
+Edit ConfigMap `imageset-configuration` in namespace `lightwell-repo` so `mirror.additionalImages[0].name` is that pull spec (digest, not `:latest`). The seed looks like:
+
+[source,yaml]
+----
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v2alpha1
+mirror:
+  additionalImages:
+    - name: REPLACE_ME_HUMMINGBIRD_PULLSPEC
+----
+
+Use `oc -n lightwell-repo edit configmap imageset-configuration` and change only that `name:` line. Do not copy `example-imageset.yaml` over the scored key.
+
+The Job does *not* pass `--remove-signatures`. oc-mirror v2 keeps signatures and SBOM artifacts with the image by default — do not add a flag that strips them.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/54
+image::FIXME-imageset-hummingbird-filled.png[ImageSetConfiguration after REPLACE_ME is replaced with the workshop Hummingbird pin,width=700,link=self,window=blank]
+
+.Confirm the placeholder is gone
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap imageset-configuration \
+  -o jsonpath='{.data.imageset-config\.yaml}' | grep -E 'REPLACE_ME' \
+  && echo 'STILL HAS PLACEHOLDERS' || echo 'placeholders gone'
+----
+
+== Run oc-mirror (learner Job)
+
+`oc-mirror` is on Showroom `PATH`, but the scored run is the in-cluster Job so dest credentials and the workspace PVC are already wired.
+
+.Delete a previous attempt if the Job name already exists, then create from tooling
+[source,bash,role=execute]
+----
+oc -n lightwell-repo delete job oc-mirror-learner --ignore-not-found
+oc -n lightwell-repo get configmap oc-mirror-tooling \
+  -o jsonpath='{.data.job\.yaml}' | oc create -f -
+----
+
+.Wait for completion (mirror + signatures can take several minutes)
+[source,bash,role=execute]
+----
+oc -n lightwell-repo wait --for=condition=complete job/oc-mirror-learner --timeout=20m
+----
+
+.Read logs for the dest image reference and digest
+[source,bash,role=execute]
+----
+oc -n lightwell-repo logs job/oc-mirror-learner
+----
+
+Record the *dest* digest from those logs (or dest registry metadata). Do not reuse only the 1.1 published digest as proof that dest is populated.
+
+== Check: internal `cosign verify`
+
+Build a dest pull spec from:
+
+* `dest_registry_host` (userinfo)
+* the repository path and digest *you recorded from the Job*
+
+Then verify with the same Red Hat Hardened Images public key as 1.1. Dest TLS is lab-internal; allow an insecure registry if `cosign` requires it:
+
+[source,bash]
+----
+# Stub — fill DEST_PULLSPEC from Job logs + dest_registry_host. Not the worked UBI example.
+export DEST_PULLSPEC='REPLACE_ME_DEST_PULLSPEC'
+cosign verify \
+  --allow-insecure-registry \
+  --key https://security.access.redhat.com/data/63405576.txt \
+  --insecure-ignore-tlog \
+  "${DEST_PULLSPEC}"
+----
+
+Honor system: you can open Track 2 without a UI lock. The Check is still: ImageSet has no `REPLACE_ME`, Job `oc-mirror-learner` completed, and `cosign verify` used the *internal* digest.
+
+Do *not*:
+
+* Point dest at a copied Showroom sample or UBI
+* Switch application `FROM` here (Track 3.2)
+* Treat 1.1 public verify as sufficient for 1.2
+
+== Key takeaways
+
+* Mirror is a learner skill, not a finished cluster.
+* Internal verify is a different Check from published verify.
+* Signatures stay with the image because you did not strip them.
