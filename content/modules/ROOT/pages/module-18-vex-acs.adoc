@@ -1,0 +1,87 @@
+= 7.2 VEX blast radius + ACS
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+*C+:* Pull Lightwell *GAV-bound* CycloneDX + VEX for the Track 2 pin from Nexus, ingest it into TPA, and write a blast-radius report: that advisory is remediated *via the Lightwell pin*, not still-open upstream. Hummingbird / Red Hat CSAF is an *OS-layer callout* — not the Check. Live CSAF importer stays off.
+
+ACS (`acs-image-check`) must not be the soft-skip stub. ACS is *not* the admission gate (that was xref:module-15-gitops-admission.adoc[6.1]).
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Download CDX + VEX from Nexus beside `commons-lang3:3.14.0.rhlw-00001` (`LW-DEMO-0002`)
+* Ingest those files into TPA and report id + status + GAV + “via Lightwell”
+* Show `acs-image-check` as `passed` or `failed`, not `skipped`
+
+== Layer map: library VEX vs OS CSAF
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/53
+image::FIXME-vex-library-vs-os-layer.png[Library Lightwell GAV VEX versus OS-layer Hummingbird CSAF,width=700,link=self,window=blank]
+
+Consultants over-claim when they quote RHEL/Hummingbird CSAF for a *library* CVE. The scored layer is the `.rhlw-*` GAV you pinned in xref:module-04-remediated-pin.adoc[2.2].
+
+== Delivery note (SoW)
+
+*Customers* get VEX that travels with the remediated GAV. *You* pull it from the enterprise proxy (Nexus) and put it in the SoR. *Red Hat* CSAF is a different layer.
+
+== Discover the scored VEX (not the spring-core sample)
+
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
+  -o jsonpath='id={.data.scored_vex_id}{"\n"}gav={.data.scored_vex_gav}{"\n"}cdx={.data.scored_vex_maven_cdx}{"\n"}vex={.data.scored_vex_maven_vex}{"\n"}csaf={.data.live_csaf_gate}{"\n"}'
+oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
+  -o jsonpath='{.data.upload_hint}{"\n"}{.data.os_layer_callout}{"\n"}'
+----
+
+* *Worked example (not the Check):* `LW-DEMO-0001` / `org.springframework:spring-core` / `5.3.18.rhlw-00003`
+* *Scored:* `LW-DEMO-0002` / `org.apache.commons:commons-lang3` / `3.14.0.rhlw-00001`
+
+== Your change: download, ingest, report, ACS on
+
+. Download Maven classifiers `cdx` / `vex` from the userinfo URLs (Nexus Remediated). Do not use a generic CVE fixture and do not scrape CSAF.
+
+. Upload both files in the TPA UI (or REST) into the same SoR as 7.1. Provision does *not* pre-ingest them.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57
+image::FIXME-tpa-gav-vex-ingested.png[TPA UI after ingesting GAV-bound VEX for LW-DEMO-0002,width=700,link=self,window=blank]
+
+. Write `~/track-7-2-blast-radius.txt` (Showroom-local). Placeholders fail. Allowed tokens (V2-59 will grade these later):
+
+[source,text]
+----
+vulnerability_id: REPLACE_ME_VEX_ID
+gav: REPLACE_ME_GAV
+status: REPLACE_ME_STATUS
+remediation: REPLACE_ME_VIA
+----
+
+Fill with `LW-DEMO-0002`, the remediated GAV (include `3.14.0.rhlw-00001`), status `fixed` (or `not_affected` if the VEX statement uses that), and remediation `via-lightwell-pin`. Do *not* claim the upstream `3.14.0` is fixed. Do *not* use `LW-DEMO-0001`.
+
+. ACS: confirm Job `rhacs-ci-token-mint` in `stackrox` is Complete so Secret `rhacs-ci-secrets` has a token. On the learner Pipeline, pass `fail-on-skipped: "true"` on `acs-image-check` (seeded default is soft-skip). Re-run if the last TaskRun was `skipped`. Expect `passed` or `failed` — both prove the control is *on*. Do not screenshot Central as this Check.
+
+== Check: report tokens + ACS not skipped
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+grep -E 'REPLACE_ME' ~/track-7-2-blast-radius.txt && echo 'STILL HAS PLACEHOLDERS' || echo 'placeholders gone'
+grep -E 'LW-DEMO-0002|3.14.0.rhlw-00001|via-lightwell-pin' ~/track-7-2-blast-radius.txt
+oc -n stackrox get job rhacs-ci-token-mint
+oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=acs-image-check
+----
+
+Pass when: Nexus GAV files were ingested; the report has the scored id + GAV + via-Lightwell token and no `REPLACE_ME`; `acs-image-check` is not `skipped`; CSAF importer is still off.
+
+== Callouts (not Checks)
+
+* Hummingbird / RHEL CSAF = OS layer. Do not score it.
+* Python SPDX/VEX analogue is text only (V2-44).
+* Artifactory can host the same GAV-bound files (V2-45).
+
+== Key takeaways
+
+* Metadata travels with the `.rhlw-*` GAV consultants pin in a PoV.
+* Wrong-layer VEX is how consultants over-claim.

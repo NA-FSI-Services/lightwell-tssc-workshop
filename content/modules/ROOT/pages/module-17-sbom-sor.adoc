@@ -1,0 +1,100 @@
+= 7.1 SBOM system of record
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+The *promoted* app digest from xref:module-16-prod-gitops.adoc[6.2] must exist in *Red Hat Trusted Profile Analyzer (RHTPA)* / TPA as a system of record. This is not the Track 2 OSV read and not the GAV VEX blast-radius Check (xref:module-18-vex-acs.adoc[7.2]).
+
+Showroom `syft` may be missing (`syft_baked=false`). Use the CycloneDX file from Task `syft-sbom-rhtpa` (xref:module-11-build-sbom.adoc[4.4]). Do *not* curl `github.com` for syft. Do *not* enable the live Red Hat CSAF importer as this gate.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Discover TPA URL and OIDC from userinfo (do not paste secrets into git)
+* Copy CycloneDX from the 4.4 TaskRun (or re-run that pipeline) and ingest it for the *promoted* digest
+* Find that document in the TPA UI
+
+== TPA vs RHDA
+
+*TPA* is the SBOM / advisory system of record. *Red Hat Dependency Analytics (RHDA)* is the laptop IDE shift-left client of the same intelligence. This Check is TPA. No IDE in Showroom.
+
+== Delivery note (SoW)
+
+*Customers* keep promoted artifacts in a SoR (TPA, Dependency Track, …). *You* ingest *this* digest — not a laptop folder and not a Hummingbird CSAF feed.
+
+== Discover TPA (no secrets in git)
+
+[source,bash,role=execute]
+----
+oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
+  -o jsonpath='tpa_ui={.data.server_url}{"\n"}csaf_gate={.data.live_csaf_gate}{"\n"}'
+oc -n trusted-profile-analyzer get configmap demo-userinfo-rhtpa \
+  -o jsonpath='url={.data.rhtpa_url}{"\n"}format={.data.sbom_format}{"\n"}'
+oc -n sso get configmap demo-userinfo-keycloak \
+  -o jsonpath='issuer={.data.oidc_issuer}{"\n"}user={.data.workshop_username}{"\n"}'
+----
+
+Password is `workshop_password` in the Keycloak userinfo ConfigMap. CLI client secret is Secret `tpa-realm-cli-clients`. Do not commit either. Sign in from the *TPA UI* Route (realm `tpa`), not `https://sso…/admin/`.
+
+== Worked example (not the Check)
+
+[source,bash]
+----
+# Worked example ONLY — different purl / filename. Do not upload this as the Check.
+curl -sk -X POST -H 'Content-Type: application/octet-stream' \
+  --data-binary @/tmp/example-not-your-app.cdx.json \
+  https://example.invalid/api/v3/sbom
+----
+
+== Your change: copy 4.4 SBOM; ingest
+
+The seeded PipelineRun mounts workspace `sbom` as `emptyDir`, so the file is usually gone after the pod is deleted. Try to copy it from a still-running `syft-sbom-rhtpa` pod; if it is gone, *re-run* the 4.4 pipeline in `lw-poc-build` and `oc cp` `sbom.cyclonedx.json` as soon as that task Succeeded.
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=syft-sbom-rhtpa
+# If a pod still exists:
+# oc -n "${BUILD_NS}" cp <syft-pod>:/workspace/sbom/sbom.cyclonedx.json ~/sbom.cyclonedx.json
+test -f ~/sbom.cyclonedx.json && jq '{bomFormat, specVersion, components:(.components|length)}' ~/sbom.cyclonedx.json || echo 'COPY OR RE-RUN 4.4 FIRST'
+----
+
+Ingest *this* file (bound to the 6.2 digest) even if the pipeline already uploaded — you must be able to find the document. UI file picker or REST:
+
+[source,bash,role=execute]
+----
+export OIDC_ISSUER="$(oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.oidc_issuer}')"
+export RHTPA_URL="$(oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info -o jsonpath='{.data.server_url}')"
+export TPA_USER="$(oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.workshop_username}')"
+: "${TPA_PASS:=$(oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.workshop_password}')}"
+export CLI_SECRET="$(oc -n trusted-profile-analyzer get secret tpa-realm-cli-clients -o jsonpath='{.data.cli}' | base64 -d)"
+TOKEN="$(curl -sk -X POST "${OIDC_ISSUER}/protocol/openid-connect/token" \
+  -d grant_type=password -d client_id=cli -d client_secret="${CLI_SECRET}" \
+  -d username="${TPA_USER}" -d password="${TPA_PASS}" -d scope=openid \
+  | jq -r .access_token)"
+curl -sk -X POST \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @"${HOME}/sbom.cyclonedx.json" \
+  -w '\nHTTP %{http_code}\n' \
+  "${RHTPA_URL%/}/api/v3/sbom"
+----
+
+Expect HTTP 201 (or another success). Open `server_url`, sign in, find the promoted digest / component.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/58
+image::FIXME-tpa-app-sbom-ingested.png[TPA UI after ingesting the promoted app CycloneDX SBOM,width=700,link=self,window=blank]
+
+== Check: TPA has the promoted SBOM
+
+Pass when TPA shows a CycloneDX document for the digest you promoted in 6.2 (UI or API list). `live_csaf_gate` stays false. Honor system: 7.2 still opens.
+
+== Callout
+
+Python SPDX vs CycloneDX is the same SoR control. Not scored here.
+
+== Key takeaways
+
+* Compliance starts from the promoted artifact, not a laptop folder.
+* CSAF is not this Check.

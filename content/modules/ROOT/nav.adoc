@@ -27,6 +27,10 @@
 * xref:module-15-gitops-admission.adoc[6.1 GitOps + admission]
 * xref:module-16-prod-gitops.adoc[6.2 Promote to prod repo]
 
+.Track 7 — Continuous compliance
+* xref:module-17-sbom-sor.adoc[7.1 SBOM system of record]
+* xref:module-18-vex-acs.adoc[7.2 VEX blast radius + ACS]
+
 .Java track
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]
