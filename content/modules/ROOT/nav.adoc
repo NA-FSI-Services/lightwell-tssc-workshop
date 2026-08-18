@@ -13,6 +13,12 @@
 * xref:module-06-bind-base-deps.adoc[3.2 Bind base and deps]
 * xref:module-07-live-renovate.adoc[3.3 Live Renovate]
 
+.Track 4 — Hermetic build
+* xref:module-08-forbid-list.adoc[4.1 Source forbid-list]
+* xref:module-09-prefetch.adoc[4.2 Prefetch (Hermeto mapping)]
+* xref:module-10-build-networkpolicy.adoc[4.3 Build NetworkPolicy]
+* xref:module-11-build-sbom.adoc[4.4 Build and SBOM]
+
 .Java track
 * xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
 * xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]

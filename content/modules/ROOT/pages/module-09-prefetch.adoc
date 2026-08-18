@@ -1,0 +1,76 @@
+= 4.2 Prefetch (Hermeto mapping)
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Konflux *Hermeto* (Cachi2) prefetches dependencies into a hermetic Buildah sandbox. This claim does *not* install Konflux. Track 4.2 is Tekton Task `prefetch-dependencies` in namespace `lightwell-tasks`: Maven `dependency:go-offline` then `mvn -o` against in-cluster Nexus. Image build stays OpenShift *BuildConfig*.
+
+The seeded pipeline `spring-boot-lw-poc-build-sign` does *not* call this Task. You add it.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Wire `prefetch-dependencies` with the correct `runAfter` (after clone / dep-gate, *before* `openshift-build`)
+* Fail if `settings.xml` still points at public Central
+* Map SoW “Hermeto” to this Task name
+
+== Mapping vs Konflux
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/63
+image::FIXME-hermeto-vs-prefetch-task.png[Konflux Hermeto versus workshop Task prefetch-dependencies,width=700,link=self,window=blank]
+
+Do not pull `quay.io/konflux-ci/hermeto`. Do not rename the cluster object `hermeto`.
+
+== Delivery note (SoW)
+
+*Customers* on hosted Konflux get Hermeto. *You* sell the *control* (offline resolve from a trusted proxy), implemented here as a namespaced Task.
+
+== Discover the Task
+
+[source,bash,role=execute]
+----
+oc -n lightwell-tasks get task prefetch-dependencies
+oc -n lightwell-tasks get configmap prefetch-dependencies-docs \
+  -o jsonpath='{.data.example-pipeline-snippet\.yaml}'
+----
+
+The worked example is named `hermeto`, uses `pip`, and `runAfter: [acs-image-check]` (too late). Paste-identical copy fails.
+
+== Your change: add the Task; Dockerfile `mvn -o`
+
+. In Gitea `.tekton/pipeline.yaml` on `lw-student/spring-boot-lw-poc`, insert a task *after* `lightwell-dep-gate` and *before* `openshift-build`. Use cluster resolver, `name: prefetch-dependencies`, `namespace: lightwell-tasks`. Change `openshift-build` `runAfter` to include prefetch.
+
+. Prefetch writes `.m2-offline` into the source workspace. Switch the Dockerfile `RUN mvn … package` to offline, for example `-o -Dmaven.repo.local=.m2-offline` (exact flags must match the Task’s prefetch dir).
+
+. Commit and push. Apply the Pipeline (not yet the successful 4.4 run) in `lw-poc-build` if it is not applied:
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+cd /tmp/spring-boot-lw-poc
+oc -n "${BUILD_NS}" apply -f .tekton/rbac.yaml
+oc -n "${BUILD_NS}" apply -f .tekton/pipeline.yaml
+----
+
+Do this *before* 4.3 so the prefetch Task image can still pull from the public registry while egress is open.
+
+== Check: Task wired; Central gone
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+oc -n "${BUILD_NS}" get pipeline spring-boot-lw-poc-build-sign -o yaml | grep -A20 prefetch-dependencies | head -30
+cd /tmp/spring-boot-lw-poc
+git show HEAD:settings.xml | grep repo.maven.apache.org && echo 'STILL HAS CENTRAL' || echo 'Central gone'
+git show HEAD:Dockerfile | grep -E 'mvn.*-o'
+----
+
+Pass when the live Pipeline includes `prefetch-dependencies` before `openshift-build`, settings have no Central, and the Dockerfile uses `mvn -o`. Empty prefetch dir / undeclared deps fail later on `mvn -o`.
+
+Honor system: 4.3 still opens.
+
+== Key takeaways
+
+* Hermetic prefetch is a Tekton Task on this claim.
+* Do not install Konflux.

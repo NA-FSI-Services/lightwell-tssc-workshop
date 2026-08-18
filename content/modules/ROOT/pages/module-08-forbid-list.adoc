@@ -1,0 +1,88 @@
+= 4.1 Source forbid-list
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+Hermetic starts in *source*. Active build files must not fetch from the public internet: no leftover `curl` of random hosts, no Maven Central as the Lightwell remote, no `registry.access.redhat.com` / `registry.redhat.io` on the *active* Dockerfile `FROM` lines.
+
+xref:module-06-bind-base-deps.adoc[3.2] already pointed the *runtime* stage at dest Hummingbird. The *build* stage is still UBI on a public registry. 4.3 will deny that pull. While egress is still open, import a JDK builder into the internal registry and retarget the build `FROM`.
+
+This is not the prefetch Check (xref:module-09-prefetch.adoc[4.2]) and not the NetworkPolicy Check (xref:module-10-build-networkpolicy.adoc[4.3]).
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* List the scored forbid patterns (`FROM` public registry, `curl` to the internet, public Maven index)
+* Edit the files the BuildConfig actually uses until none remain
+* Keep a known-bad Dockerfile as a negative fixture
+
+== Seeded violations
+
+Clone the learner app if needed (`student_repo_url`). Inspect:
+
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+grep -nE 'FROM |curl |repo.maven.apache.org|registry.access.redhat.com|registry.redhat.io' Dockerfile settings.xml pom.xml || true
+----
+
+Expect at least: build-stage `FROM` UBI on `registry.access.redhat.com`, and `repo.maven.apache.org` in `settings.xml`.
+
+== Delivery note (SoW)
+
+*Customers* enforce hermetic *source* policies (Konflux “no network in the Containerfile”). *You* grep and fix git. The cluster NetworkPolicy is a later gate.
+
+== Worked example (not the Check)
+
+[source,dockerfile]
+----
+# Worked example ONLY — different public host. Do not use as the active Dockerfile.
+FROM docker.io/library/eclipse-temurin:21-jdk
+RUN curl -fsSL https://example.invalid/install.sh | sh
+----
+
+== Your change: strip forbidden fetches; both FROM lines internal
+
+. While `build-egress` is still too open, import a JDK *builder* into `lw-poc-build` (do not invent a Hummingbird builder digest — use the UBI JDK stream already on the seed, copied *into* the internal registry):
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+oc -n "${BUILD_NS}" import-image openjdk-21-builder \
+  --from=registry.access.redhat.com/ubi9/openjdk-21:1.21 \
+  --confirm
+----
+
+. Point the Dockerfile *build* `FROM` at that ImageStream (internal registry). Runtime `FROM` stays the dest Hummingbird digest from 3.2. No `registry.access.redhat.com` on active `FROM` lines.
+
+. In `settings.xml`, remove `repo.maven.apache.org` from the Lightwell profiles. Point remotes at in-cluster Nexus (same URLs as xref:module-03-enterprise-proxy.adoc[2.1]). Add a `<mirror>` with `mirrorOf` `*` (or `external:*`) so plugins do not hit Central — 4.2 will fail without it.
+
+. If `Dockerfile.known-bad` is missing, add it from the worked example (public `FROM` / `curl`). Do *not* set it as the BuildConfig Dockerfile. 4.4 still uses that file as a negative.
+
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git add Dockerfile settings.xml Dockerfile.known-bad
+git commit -m "Forbid-list: internal FROM and Nexus-only Maven remotes"
+git push origin HEAD
+----
+
+== Check: scan of active files
+
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git show HEAD:Dockerfile | grep -E '^FROM '
+git show HEAD:settings.xml | grep -E 'repo.maven.apache.org|lightwell-repo' || true
+test -f Dockerfile.known-bad && echo 'known-bad fixture present'
+----
+
+Pass when active `Dockerfile` / `settings.xml` have no public `FROM`, no Central, no `curl` installers — and `Dockerfile.known-bad` still exists.
+
+Honor system: 4.2 still opens.
+
+== Key takeaways
+
+* Hermetic starts in source, before NP and prefetch.
+* Mapping: Konflux hermetic source policies → this Check.

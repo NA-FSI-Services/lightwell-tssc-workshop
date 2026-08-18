@@ -1,0 +1,71 @@
+= 4.3 Build NetworkPolicy
+:source-highlighter: rouge
+:toc:
+:toclevels: 2
+
+NetworkPolicy `build-egress` on `lw-poc-build` is seeded *too open* (allow-all egress). You tighten it to deny-egress with DNS + internal registry + Nexus. In-cluster Gitea is internal git — not a public registry allow.
+
+Do *not* copy this policy onto `lw-poc-staging` / `lw-poc-prod`. `app-operate` stays operate (Track 6).
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Replace allow-all egress with the documented allow-list from userinfo
+* Confirm the policy is live on `lw-poc-build` only
+* Explain that `registry.redhat.io` is *not* on the scored hermetic list
+
+== Two policies, two Checks
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/51
+image::FIXME-np-build-vs-app-operate.png[build-egress hermetic versus app-operate on staging and prod,width=700,link=self,window=blank]
+
+== Delivery note (SoW)
+
+*Customers* isolate CI namespaces. *You* do not reuse the same NetworkPolicy on runtime namespaces.
+
+== Discover seed + allow-list hints
+
+[source,bash,role=execute]
+----
+oc -n lw-poc-build get networkpolicy build-egress -o yaml
+oc -n lw-poc-build get configmap demo-userinfo-networkpolicy -o yaml
+oc -n lw-poc-build get configmap networkpolicy-docs \
+  -o jsonpath='{.data.example-hermetic-egress\.yaml}'
+----
+
+Worked example: policy name `example-hermetic-egress`, namespace `example-build-ns`, extra CIDR `8.8.8.8/32`. Paste-identical copy fails.
+
+Allow-list (from userinfo keys — do not invent CIDRs):
+
+* `openshift-dns` UDP (and TCP) port `5353`
+* `openshift-image-registry` TCP `5000`
+* `lightwell-repo` Nexus HTTP `8081` and Docker dest `5000`
+
+== Your change: tighten `build-egress`
+
+Replace the seed `egress: [ {} ]` with deny-by-default plus the three destinations above (`namespaceSelector` on those namespaces, matching ports). Do not add `registry.redhat.io` or a public CIDR.
+
+[source,bash,role=execute]
+----
+oc -n lw-poc-build get networkpolicy build-egress -o yaml
+# edit in place or oc apply a file you authored — not example-hermetic-egress.yaml
+oc -n lw-poc-staging get networkpolicy app-operate
+----
+
+== Check: NP spec
+
+Pass when:
+
+* `build-egress` exists in `lw-poc-build`, is not allow-all egress, includes DNS + registry + Nexus
+* You did not copy it to `lw-poc-staging`
+* `app-operate` on staging/prod is still the operate seed
+
+After this tighten, a PipelineRun that still pulls `registry.redhat.io` / `registry.access.redhat.com` for *new* images will hang or fail. Task images pulled in 4.2 may already be cached. That is the lesson — not a reason to reopen egress.
+
+Honor system: 4.4 still opens. The Check grades the live NetworkPolicy, not a YAML screenshot.
+
+== Key takeaways
+
+* Build hermetic ≠ app operate.
+* Gitea is internal git, not a public registry allow.
