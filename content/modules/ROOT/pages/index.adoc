@@ -1,68 +1,99 @@
 = Lightwell Software Supply Chain Security Workshop
 :toc:
+:toclevels: 2
 
-Welcome. This *Red Hat Demo Platform (RHDP)* workshop teaches the same *Lightwell Network (LWN)* integration patterns used in field *proof-of-value (PoV)* delivery—paired with Red Hat *Trusted Software Supply Chain (TSSC)* controls on OpenShift.
+This *Red Hat Demo Platform (RHDP)* workshop walks *one* trusted software supply chain on a dedicated OpenShift claim: verify a Hummingbird base, consume Lightwell dependencies, own the application source, build hermetically, sign and attest, promote a production container, then prove continuous compliance.
 
-== What you will learn
+The lab application is Java (Maven). Where the same control applies to Python (`pip`) or Artifactory, the page says so in one sentence.
 
-. *Validated* vs *Remediated* repository tiers for **Java (Maven)** (`.rhlw-*`) and **Python (PyPI)** (PEP 440 `+rhlw.*`; Remediated always seeded in this workshop)
-. Enterprise Maven and pip consumption via an artifact manager proxy (not Satellite)
-. *Red Hat Developer Hub (RHDH)* Software Template scaffold into in-cluster Gitea (Java and Python)
-. *Open Source Vulnerabilities (OSV)*–driven triage and source comparison (`RHLW-*` / workshop `LW-DEMO-*`)
-. *Software Bill of Materials (SBOM)* / *Vulnerability Exploitability eXchange (VEX)* analysis with *Red Hat Trusted Profile Analyzer (RHTPA)* (optional *Red Hat Dependency Analytics (RHDA)* on a laptop)
-. Pipeline signing (*Red Hat Trusted Artifact Signer (RHTAS)*), policy gates (*Red Hat Advanced Cluster Security (RHACS)*), and GitOps promotion
+This page is a map, not an exercise. There is nothing to pass here. Hands-on work starts at xref:module-01-hummingbird-verify.adoc[1.1 Verify Hummingbird]: you discover the published Hummingbird pin and run `cosign verify` against it.
 
-== Lab modules
+== Seven tracks
 
-This workshop is **Java and Python** from the catalog definition. Complete Modules 1–6 first, then Modules 7–9.
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/48
+image::FIXME-seven-track-tssc-flow.png[Seven-track TSSC flow — Hummingbird through continuous compliance,width=700,link=self,window=blank]
 
-=== Java track
+Work the tracks in order. On each numbered page, *Your change* is the edit you make; *Check* is the commands that should succeed afterward. Do both before you continue — later pages assume the earlier work landed.
 
+.Track 1 — Hummingbird
+* xref:module-01-hummingbird-verify.adoc[1.1 Verify Hummingbird] — published digest and Hardened Images key
+* xref:module-02-hummingbird-mirror.adoc[1.2 Mirror into the trust boundary] — learner-run oc-mirror into dest
+
+.Track 2 — Lightwell dependencies
+* xref:module-03-enterprise-proxy.adoc[2.1 Enterprise proxy] — author `settings.xml` against in-cluster Nexus
+* xref:module-04-remediated-pin.adoc[2.2 Remediated pin] — exact `.rhlw-*` from a Lightwell OSV fixed event
+
+.Track 3 — Source
+* xref:module-05-golden-path-source.adoc[3.1 Golden-path source] — learner-owned Gitea remotes
+* xref:module-06-bind-base-deps.adoc[3.2 Bind base and deps] — dest Hummingbird `FROM` plus Lightwell pins
+* xref:module-07-live-renovate.adoc[3.3 Live Renovate] — merge a real `renovate-bot` PR, not a hand-edit
+
+.Track 4 — Hermetic build
+* xref:module-08-forbid-list.adoc[4.1 Source forbid-list] — no public `FROM` / Central / `curl` in active files
+* xref:module-09-prefetch.adoc[4.2 Prefetch (Hermeto mapping)] — Task `prefetch-dependencies`
+* xref:module-10-build-networkpolicy.adoc[4.3 Build NetworkPolicy] — `build-egress` on `lw-poc-build`
+* xref:module-11-build-sbom.adoc[4.4 Build and SBOM] — OpenShift BuildConfig image plus SBOM
+
+.Track 5 — Signed and attested image
+* xref:module-12-sign-keyless.adoc[5.1 Sign (keyless)] — RHTAS Fulcio / Rekor / TUF on the *app* digest
+* xref:module-13-attest-conforma.adoc[5.2 Attest + Conforma] — tighten policy; fail then pass
+* xref:module-14-disconnected-verify.adoc[5.3 Disconnected verify] — second signature with `--key` (cluster stays networked)
+
+.Track 6 — Production container
+* xref:module-15-gitops-admission.adoc[6.1 GitOps + admission] — stage promote; unsigned deny
+* xref:module-16-prod-gitops.adoc[6.2 Promote to prod repo] — commit the signed digest to the prod remote
+
+.Track 7 — Continuous compliance
+* xref:module-17-sbom-sor.adoc[7.1 SBOM system of record] — ingest the promoted digest into TPA
+* xref:module-18-vex-acs.adoc[7.2 VEX blast radius + ACS] — Lightwell GAV-bound VEX; ACS not skipped
+
+[[what-this-workshop-does-not-include]]
+== What this workshop does not include
+
+You walk *one* Java (Maven) supply chain on this OpenShift environment. The items below are out of scope on purpose — do not look for them in the console or the nav.
+
+[cols="1,2",options="header"]
 |===
-|Module |Focus
+|Not in this workshop
+|What you do instead
 
-|xref:module-01-overview.adoc[1 — Overview]
-|Remediation gap; Validated vs Remediated; coexistence; *Supply-chain Levels for Software Artifacts (SLSA)* / SBOM / VEX / OSV
+|Hosted Konflux
+|Builds run as *OpenShift Pipelines* (the Task and BuildConfig names on the cluster). Names you may hear in a customer conversation are in xref:appendix-konflux-mapping.adoc[Konflux mapping]. Do not install Konflux.
 
-|xref:module-02-maven.adoc[2 — Maven integration]
-|`settings.xml` profiles; Nexus / LWN remotes; `LW_*` auth; mirror / air-gap note (seeded Gitea PoC)
+|A physical air-gap or data diode
+|This environment stays on the network. xref:module-14-disconnected-verify.adoc[5.3] is the key-based sign and verify *procedure*. xref:appendix-disconnected-playbook.adoc[Disconnected transfer] is a simulated file drop, not USB or a diode.
 
-|xref:module-03-scaffold.adoc[3 — Scaffold with Developer Hub]
-|RHDH `lightwell-java-service` → Gitea `spring-boot-lw-poc`; Maven Validated / Remediated proofs on the scaffold
+|Building Project Hummingbird images
+|You *verify and consume* published Red Hat Hardened Images. You do not rebuild the Fedora factory that produces them.
 
-|xref:module-04-osv.adoc[4 — Exact-version remediation]
-|Read OSV `fixed`, pin `.rhlw-*`, compare sources, rebuild (continues from Module 3 scaffold)
+|FIPS certification in the lab
+|FIPS is a *product claim* on the image you consume. This workshop does not rebuild an image to produce FIPS evidence.
 
-|xref:module-05-sbom.adoc[5 — SBOM + RHTPA]
-|CycloneDX via `syft`; RHTPA ingest; VEX / scanner narrative; RHDA callout
+|JFrog Artifactory, or a Python (FastAPI) application
+|The lab application is Java. *Nexus* is the enterprise proxy you configure. Short callouts cover `pip` and Artifactory patterns; you do not install Artifactory or scaffold a second app.
 
-|xref:module-06-pipeline.adoc[6 — Pipeline + GitOps]
-|Keyless signing (RHTAS), RHACS gates, Argo CD promotion
+|A customer proof-of-value or certification exam
+|This is a *guided workshop*. You practice the flow here. Customer checklists come after — they are not a live exam on this environment.
+
+|A production virtual machine
+|You promote a *signed container digest* through GitOps (xref:module-15-gitops-admission.adoc[6.1], xref:module-16-prod-gitops.adoc[6.2]). The same digest can later run on bootc or Satellite; there is no VM to boot here.
 |===
 
-=== Python track
+== Honor system
 
-|===
-|Module |Focus
+The nav does not lock. You can open 7.2 on day one. Nothing in this workshop pastes the answer for you. If you skip a *Check*, later steps fail for real (wrong `FROM`, no signature, unsigned image denied).
 
-|xref:module-07-pypi.adoc[7 — PyPI Validated + FastAPI]
-|Nexus / Lightwell PyPI Validated; Gitea seed; RHDH `lightwell-python-service`
-
-|xref:module-08-python-sbom.adoc[8 — Remediated PyPI + SBOM]
-|Remediated PyPI pin + SPDX / SBOM → RHTPA
-
-|xref:module-09-python-pipeline.adoc[9 — Python pipeline + GitOps]
-|Keyless signing (RHTAS), RHACS gates, Argo CD promotion (FastAPI)
-|===
+Do the *Your change*. Run the *Check*. Then continue.
 
 == Before you start
 
-* This guide runs in the RHDP **Showroom** split-screen *user interface (UI)* (lab nav + embedded terminal at `/terminal/`).
-* Use the Showroom terminal for `oc` / `tkn` / `mvn` / `pip` / `syft` commands.
-* Never commit Lightwell credentials (`LW_USERNAME` / `LW_PASSWORD`).
-* Canonical console (membership / browsing): {lightwell-console-url}
-* RHDP claim emails / portal expose `showroom_url` from ConfigMap `demo-userinfo-showroom` (namespace `showroom`).
+* This guide runs in the RHDP *Showroom* (lab nav plus embedded terminal).
+* `oc`, `cosign`, `oc-mirror`, and `ec` are already on `PATH`. Do *not* curl `github.com` for CLIs.
+* Discover URLs, digests, and passwords from `demo-userinfo-*` ConfigMaps. Do not invent Route hosts. Do not use GitHub as lab git — Gitea is in-cluster.
+* Never commit credentials (`LW_USERNAME` / `LW_PASSWORD`, `student_password`, `cosign.key`).
 
-Start with xref:module-01-overview.adoc[Module 1], finish the Java track through xref:module-06-pipeline.adoc[Module 6], then continue with the Python track (Modules 7–9).
+== Start here
 
-Optional appendices: xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)], xref:appendix-acronyms.adoc[Acronym glossary], xref:rhda-shift-left.adoc[RHDA shift-left], and xref:appendix-osv-manifest-polling.adoc[OSV PULP_MANIFEST polling].
+Open xref:module-01-hummingbird-verify.adoc[1.1 Verify Hummingbird] when you are ready to work.
+
+Consultant maps: xref:appendix-consultant-delivery.adoc[delivery map], xref:appendix-konflux-mapping.adoc[Konflux mapping], xref:appendix-disconnected-playbook.adoc[disconnected transfer]. Concepts: xref:appendix-lightwell-concepts.adoc[Lightwell concepts], xref:appendix-acronyms.adoc[acronym glossary].

@@ -10,7 +10,7 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |ACS
 |Advanced Cluster Security
-|Usually *RHACS*; platform/image policy gates (Module 6)
+|Usually *RHACS*; pipeline image check (xref:module-18-vex-acs.adoc[7.2])
 
 |API
 |Application Programming Interface
@@ -18,7 +18,7 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |ASL
 |Apache Software License
-|Workshop `commons-lang3` seed is an ASL 2.0 binary (Module 2)
+|Workshop `commons-lang3` seed is an ASL 2.0 binary (xref:module-03-enterprise-proxy.adoc[2.1])
 
 |CI / CD
 |Continuous Integration / Continuous Delivery (or Deployment)
@@ -30,7 +30,7 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |CycloneDX
 |(name, not an acronym)
-|SBOM format used for Maven / `syft` in this workshop (Module 5)
+|SBOM format used for Maven / `syft` in this workshop (xref:module-11-build-sbom.adoc[4.4])
 
 |EOL
 |End of Life
@@ -38,15 +38,15 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |GAV
 |GroupId:ArtifactId:Version
-|Maven coordinate shape (Module 2 resolution experiments)
+|Maven coordinate shape (xref:module-03-enterprise-proxy.adoc[2.1] resolution)
 
 |GitOps
 |Git Operations (desired state in Git)
-|Argo CD sync of workshop charts (Module 6)
+|Argo CD sync of workshop charts (xref:module-15-gitops-admission.adoc[6.1])
 
 |IdP
 |Identity Provider
-|Keycloak for RHTPA sign-in (Modules 4–5)
+|Keycloak for RHTPA sign-in (xref:module-17-sbom-sor.adoc[7.1])
 
 |JAR
 |Java ARchive
@@ -70,7 +70,7 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |OSV
 |Open Source Vulnerabilities
-|Machine-readable `fixed` events naming `.rhlw-*` pins (Module 4)
+|Machine-readable `fixed` events naming `.rhlw-*` pins (xref:module-04-remediated-pin.adoc[2.2])
 
 |PoC
 |Proof of Concept
@@ -90,11 +90,11 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |RHACS
 |Red Hat Advanced Cluster Security
-|Image / BUILD policy enforcement (Module 6)
+|Image / BUILD policy enforcement (xref:module-18-vex-acs.adoc[7.2]; not the 6.1 admission gate)
 
 |RHDA
 |Red Hat Dependency Analytics
-|IDE shift-left client of TPA intelligence (Module 5 appendix)
+|IDE shift-left client of TPA intelligence (xref:rhda-shift-left.adoc[RHDA appendix])
 
 |RHDH
 |Red Hat Developer Hub
@@ -110,19 +110,19 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |RHTAS
 |Red Hat Trusted Artifact Signer
-|Keyless cosign (Fulcio / Rekor / TUF) in Module 6
+|Keyless cosign (Fulcio / Rekor / TUF) in xref:module-12-sign-keyless.adoc[5.1]
 
 |RHTPA / TPA
 |Red Hat Trusted Profile Analyzer
-|SBOM and advisory system of record (Module 5)
+|SBOM and advisory system of record (xref:module-17-sbom-sor.adoc[7.1])
 
 |SBOM
 |Software Bill of Materials
-|Component inventory (CycloneDX via `syft` in Module 5)
+|Component inventory (CycloneDX via `syft` in xref:module-11-build-sbom.adoc[4.4])
 
 |SLSA
 |Supply-chain Levels for Software Artifacts
-|Build integrity story; Lightwell targets Level 3
+|Build integrity story; this lab is not SLSA L3 (xref:module-13-attest-conforma.adoc[5.2])
 
 |SPDX
 |Software Package Data Exchange

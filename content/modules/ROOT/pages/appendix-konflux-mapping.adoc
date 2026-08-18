@@ -4,7 +4,7 @@
 
 This page maps *Konflux and related product names used in client engagements* to what this claim actually runs. Quote the table. Do *not* install Konflux. Do *not* rename cluster APIs or Task names to Konflux product names.
 
-Ungated. No Validate Job.
+This page is a term map, not an exercise. Nothing to pass here.
 
 The activity map (what you clicked vs playbook) is xref:appendix-consultant-delivery.adoc[Appendix: consultant delivery map]. This page is names only.
 

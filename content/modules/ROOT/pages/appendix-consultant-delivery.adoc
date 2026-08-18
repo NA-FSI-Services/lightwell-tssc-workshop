@@ -4,7 +4,7 @@
 
 This page maps *expected client engagement activities* to what this claim actually does. Each gated module also has a short *Delivery note* for the talking point in the room.
 
-Ungated. No Validate Job.
+This page is a map of client-engagement names, not an exercise. Nothing to pass here.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/48
 image::FIXME-seven-track-tssc-flow.png[Seven-track TSSC flow this map hangs on,width=700,link=self,window=blank]
@@ -157,8 +157,8 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 |1.2 ImageSet must include them; verify *internal* digest.
 
 |Mirror Lightwell Maven / pip indexes
-|Scored Java + Python callout
-|xref:module-03-enterprise-proxy.adoc[2.1] `settings.xml`. Python is a callout, not a second scored path.
+|Scored; pip note
+|xref:module-03-enterprise-proxy.adoc[2.1] `settings.xml`. `pip.conf` is one sentence on that page.
 
 |Physical media / data diode
 |Playbook
@@ -239,13 +239,11 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 |Same digest story on 6.1. Hands-on VM is not this workshop.
 |===
 
-== What this cluster is not
+== What this workshop does not include
 
-* Not Project Hummingbird’s Fedora / Konflux factory
-* Not hosted Konflux (Pipelines + xref:appendix-konflux-mapping.adoc[Konflux mapping])
-* Not a physical air-gap or data diode
-* Not a second Python or Artifactory *product* path (callouts only)
-* Not an unassisted customer PoV exam — the enablement checklist is after the workshop, not a live exam
+Student-facing table: xref:index.adoc#what-this-workshop-does-not-include[What this workshop does not include].
+
+Remind the room: no Hummingbird factory, no hosted Konflux, no physical air-gap, no Artifactory or FastAPI on this environment, no unassisted customer exam, no production VM. SIEM / SOAR is also absent (table above).
 
 == Related appendices
 

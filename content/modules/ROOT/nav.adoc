@@ -32,19 +32,6 @@
 * xref:module-17-sbom-sor.adoc[7.1 SBOM system of record]
 * xref:module-18-vex-acs.adoc[7.2 VEX blast radius + ACS]
 
-.Java track
-* xref:module-01-overview.adoc[Module 1 — Lightwell Network overview]
-* xref:module-02-maven.adoc[Module 2 — Maven + artifact manager]
-* xref:module-03-scaffold.adoc[Module 3 — Scaffold with Developer Hub]
-* xref:module-04-osv.adoc[Module 4 — OSV triage + .rhlw-* pins]
-* xref:module-05-sbom.adoc[Module 5 — SBOM + RHTPA]
-* xref:module-06-pipeline.adoc[Module 6 — Sign, policy, GitOps]
-
-.Python track
-* xref:module-07-pypi.adoc[Module 7 — PyPI Validated + FastAPI]
-* xref:module-08-python-sbom.adoc[Module 8 — Remediated PyPI + SPDX / SBOM]
-* xref:module-09-python-pipeline.adoc[Module 9 — Python pipeline + GitOps]
-
 .Appendix
 * xref:appendix-consultant-delivery.adoc[Consultant delivery map]
 * xref:appendix-konflux-mapping.adoc[Konflux mapping]

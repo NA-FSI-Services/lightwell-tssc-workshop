@@ -174,5 +174,5 @@ Artifactory at a customer is a *remote* or *virtual* repository pointed at the s
 == Key takeaways
 
 * Consultants wire the customer’s artifact manager; Nexus is the RHDP stand-in.
-* Python is a sentence (`pip.conf`), not a second track.
+* Python is a sentence (`pip.conf`) on this page.
 * 2.2 is the exact `.rhlw-*` pin, not this Validated resolve.
