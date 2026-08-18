@@ -304,9 +304,9 @@ Tracks are the **story**. Modules are however many gated Check points coverage n
 | **6** | Production container | **6.1** admission + stage GitOps; **6.2** commit signed digest to **prod GitOps repo**. Callouts: VM = same digest; canary/blue-green; rolling | Unsigned deny; prod Argo app Healthy from the **prod** remote (not stage) | Replaces GitOps slice of M6/M9 |
 | **7** | Continuous compliance | Ingest Lightwell GAV-bound VEX (+ app SBOM) into TPA; blast-radius report: CVE remediated **via Lightwell pin**. Hummingbird/CSAF = OS-layer callout. ACS control on | TPA has learner-ingested Lightwell VEX/SBOM; report CVE + status match the GAV seed; ACS not the disabled stub | Replaces narrative VEX; old M5 ingest moves here |
 
-#### Coverage-first module split (draft)
+#### Coverage-first module split
 
-Working assumption until content outlines exist. Each row is its own **Your change** + **Check**. Names can change; the split is the point.
+Each row is its own **Your change** + **Check**. Applied to the live spec in V2-30 (ungated intro + 18 gated outlines in `publishing-house/spec/modules/`). Names can still change in Showroom filenames (V2-31…42).
 
 | Proposed module | Track | Coverage |
 |-----------------|-------|----------|
@@ -681,11 +681,11 @@ Packaging A/B/C is **closed** — see §4.3.
 
 ### Epic C — Content (seven tracks)
 
-Student instructions and explainers. If a diagram or screenshot would teach a point faster than prose, file a **separate** `[visual]` GitHub issue (prompt for an agent, or a dry-run screenshot brief) — do not bury artwork TODOs in the track issue. See `.cursor/rules/content-visuals.mdc`. V2-42’s seven-track diagram is the first planned visual.
+Student instructions and explainers. If a diagram or screenshot would teach a point faster than prose, file a **separate** `[visual]` GitHub issue (prompt for an agent, or a dry-run screenshot brief) — do not bury artwork TODOs in the track issue. See `.cursor/rules/content-visuals.mdc`. Filed from V2-30 outlines: #48 (seven-track), #49–#53 (generate), #54–#58 (dry-run screenshots). Do not invent PNGs.
 
 | ID | Title | Depends on |
 |----|-------|------------|
-| V2-30 | Spec: new LOs, coverage-first module list, design.md; `duration_hours` TBD | V2-0 |
+| V2-30 | Spec: new LOs, coverage-first module list, design.md; `duration_hours` TBD | V2-0. **Applying:** 18 gated modules (1.1–7.2) + ungated intro; `duration_hours: null`; `showroom_type` classic. |
 | V2-31 | Track 1 — Hummingbird verify + mirror; multi-arch **callout** (not a Check) | V2-10, V2-11, V2-30 |
 | V2-32 | Track 2 — Lightwell dependencies | V2-30 |
 | V2-33 | Track 3 — source + 3.3 live Renovate PR (not a seeded fake) | V2-13, V2-24 |

@@ -14,7 +14,7 @@ project:
   showroom_type: "classic"
   intake_type: "migration"
   automation_type: "gitops"
-  description: "Learners practice the same integration patterns used in Lightwell Network proof-of-value delivery: Validated and Remediated repositories, Maven and PyPI consumption via an enterprise artifact manager, OSV-driven exact-version pins (.rhlw-*), SBOM analysis, and TSSC pipeline controls. This catalog is Java and Python: Modules 1–6 (Java), then Modules 7–9 (FastAPI / PyPI — epic #144, complete). PyPI Remediated is always enabled (seeded .rhlw-* marker)."
+  description: "Learners walk one linear TSSC path on a dedicated OpenShift claim: verify and mirror a Hummingbird base, consume Lightwell dependencies through an enterprise Nexus proxy, own application source (including a live Renovate PR), build hermetically with OpenShift Pipelines + BuildConfig, sign and attest, promote via stage then prod GitOps with admission, and prove continuous compliance with Lightwell GAV-bound VEX. Java is the scored app. Python and Artifactory are callouts, not a second path."
   # content_reviewer_email and infra_reviewer_email are assigned by the RHDP team — not set by the author
   jira_ticket: "RHDPCD-908"
   workflow_id: "61d499a1-cfec-4d29-ad00-9f09dd08116e"
@@ -22,51 +22,95 @@ project:
 spec:
   title: "Lightwell Software Supply Chain Security Workshop"
   learning_objectives:
-    - "Verify Lightwell Network tiers and OSV remediation events using the oc CLI and cluster ConfigMaps"
-    - "Configure Maven settings.xml and pip.conf to resolve artifacts from enterprise-proxied Lightwell channels"
-    - "Scaffold Java and Python application repositories from Red Hat Developer Hub Software Templates"
-    - "Analyze OSV fixed events and apply exact-version .rhlw-* pins to pom.xml and requirements.txt"
-    - "Generate CycloneDX and SPDX SBOMs from build output using syft"
-    - "Ingest SBOMs into Red Hat Trusted Profile Analyzer via the v3 API"
-    - "Verify supply-chain policy gates in Tekton pipelines for both the Java and Python application tracks"
-    - "Sign container images keylessly using Red Hat Trusted Artifact Signer (Fulcio, Rekor, TUF)"
-    - "Promote signed image digests to GitOps repositories for Argo CD deployment"
+    - "Complete a trust policy and verify a published Hummingbird image (amd64 digest; arm64 is a callout)"
+    - "Edit an incomplete ImageSetConfiguration and run oc-mirror so image, signatures, and SBOM land in the in-cluster dest"
+    - "Author Maven settings.xml so Lightwell Validated and Remediated resolve from the enterprise Nexus proxy"
+    - "Apply an exact-version .rhlw-* pin from a Lightwell OSV fixed event on a broken pom.xml"
+    - "Bind application source to the mirrored Hummingbird digest and Lightwell pins"
+    - "Merge a live Renovate PR on in-cluster Gitea that updates those pins (not a hand-edit)"
+    - "Enforce a hermetic build: source forbid-list, prefetch task, and build-namespace NetworkPolicy"
+    - "Produce an OpenShift BuildConfig image and SBOM"
+    - "Sign the app image keylessly with RHTAS and tighten Conforma so a known-bad image fails"
+    - "Complete mirrored-TUF plus key-based cosign verify (disconnected procedure, not a physical air-gap)"
+    - "Promote a signed digest through stage GitOps with unsigned-deny admission, then commit it to the prod GitOps remote"
+    - "Ingest Lightwell GAV-bound VEX/SBOM into TPA and report the CVE as remediated via the Lightwell pin"
+  # Coverage-first gated list (plan §4.4). duration_min 0 = untimed until dry run. Intro is ungated (no Validate Job).
   modules:
+    - id: module-00
+      title: "Trusted supply chain (ungated intro)"
+      duration_min: 0
+      status: not_started
     - id: module-01
-      title: "AI Vulnerability Storm and Lightwell Network Overview"
-      duration_min: 20
+      title: "1.1 Verify Hummingbird"
+      duration_min: 0
       status: not_started
     - id: module-02
-      title: "Enterprise Maven + Artifact Manager Integration"
-      duration_min: 20
+      title: "1.2 Mirror into the trust boundary"
+      duration_min: 0
       status: not_started
     - id: module-03
-      title: "Developer Hub Scaffolding (Java Golden Path)"
-      duration_min: 25
+      title: "2.1 Enterprise proxy"
+      duration_min: 0
       status: not_started
     - id: module-04
-      title: "OSV Triage and Exact-Version Remediation"
-      duration_min: 20
+      title: "2.2 Remediated pin"
+      duration_min: 0
       status: not_started
     - id: module-05
-      title: "SBOM Generation and Analysis with RHTPA"
-      duration_min: 20
+      title: "3.1 Golden-path source"
+      duration_min: 0
       status: not_started
     - id: module-06
-      title: "Pipeline, Signing, Policy, and GitOps Promotion (Java)"
-      duration_min: 45
+      title: "3.2 Bind base + deps in source"
+      duration_min: 0
       status: not_started
     - id: module-07
-      title: "PyPI Validated + FastAPI (Python Track Kickoff)"
-      duration_min: 30
+      title: "3.3 Live Renovate"
+      duration_min: 0
       status: not_started
     - id: module-08
-      title: "Remediated PyPI + SPDX/SBOM to RHTPA"
-      duration_min: 25
+      title: "4.1 Source forbid-list"
+      duration_min: 0
       status: not_started
     - id: module-09
-      title: "Python Pipeline, Sign, Policy, and GitOps Promotion"
-      duration_min: 40
+      title: "4.2 Prefetch (Hermeto mapping)"
+      duration_min: 0
+      status: not_started
+    - id: module-10
+      title: "4.3 Build NetworkPolicy"
+      duration_min: 0
+      status: not_started
+    - id: module-11
+      title: "4.4 Build + SBOM"
+      duration_min: 0
+      status: not_started
+    - id: module-12
+      title: "5.1 Sign (keyless)"
+      duration_min: 0
+      status: not_started
+    - id: module-13
+      title: "5.2 Attest + Conforma"
+      duration_min: 0
+      status: not_started
+    - id: module-14
+      title: "5.3 Disconnected verify"
+      duration_min: 0
+      status: not_started
+    - id: module-15
+      title: "6.1 GitOps + admission"
+      duration_min: 0
+      status: not_started
+    - id: module-16
+      title: "6.2 Promote to prod repo"
+      duration_min: 0
+      status: not_started
+    - id: module-17
+      title: "7.1 SBOM system of record"
+      duration_min: 0
+      status: not_started
+    - id: module-18
+      title: "7.2 VEX blast radius + ACS"
+      duration_min: 0
       status: not_started
   environment:
     platform: "ocp"            # ocp | rhel-vms — determines which sizing fields apply
@@ -95,14 +139,17 @@ spec:
     ai_model_tier: ""                  # not applicable
     ai_model_name: ""                  # not applicable
     ai_justification: ""               # not applicable
-    non_ga_products: []                # none identified
-    non_ga_access_plan: ""             # not applicable
+    # V2-1: Hardened Images / Hummingbird went GA 12 May 2026. Do not list Lightwell or ClusterImagePolicy.
+    non_ga_products: []
+    non_ga_access_plan: ""
+    # Learner egress only (Q22). Bot-only ghcr.io is V2-24, not this list. Gitea is in-cluster.
     external_services:
-      - "packages.redhat.com"          # Lightwell package registry proxied via Nexus
-      - "github.com"                   # cosign binary download from sigstore/cosign releases
+      - "registry.access.redhat.com"   # learner oc-mirror (V2-1); not quay.io/hummingbird
+      - "packages.redhat.com"          # live Lightwell proxy when lightwellRepo.mode=proxy; seeded claims may not need it
     gpu_nodes: 0                       # number of GPU nodes (0 = none)
     gpu_type: ""                       # not applicable
-  duration_hours: 4
+  # TBD until dry run. Envelope is a two-day event; do not cut coverage to fit a clock.
+  duration_hours: null
   audience: "intermediate"    # beginner | intermediate | advanced
 
 development:
@@ -127,28 +174,47 @@ approval_checklist:
 
   content:
     prerequisites_verifiable: false
-    assessment_strategy: "Observable outcomes per module (CLI output, UI state, curl response codes) — no automated solve/validate buttons"
-    catalog_gap: ""
-    design_overview: "This lab teaches enterprise software supply chain security using Red Hat Lightwell Network and the TSSC toolchain across Java (Modules 1-6) and Python (Modules 7-9) tracks. Participants configure Maven and PyPI consumers against a Nexus proxy, perform OSV-driven exact-version remediation, generate and ingest SBOMs into RHTPA, execute policy-gated Tekton pipelines, sign images keylessly with RHTAS, and promote via Argo CD."
+    assessment_strategy: "Classic Showroom plus in-cluster Validate Jobs (honor system; no UI lock, no Solve). Each gated module: Your change + Check on cluster/git state and short-answer report keys. Ungated intro has no Job. Report schema is V2-59; this field is expanded in V2-58."
+    design_overview: "One linear TSSC lab on a dedicated OpenShift claim: Hummingbird verify and oc-mirror, Lightwell Maven via Nexus, learner-owned Java source including a live Renovate PR, hermetic BuildConfig pipeline, RHTAS sign plus Conforma, stage then prod GitOps with admission, and TPA ingest of Lightwell GAV-bound VEX. Python and Artifactory are callouts. Not a second FastAPI path."
     module_summaries:
-      - title: "AI Vulnerability Storm and Lightwell Network Overview"
-        overview: "Conceptual foundation covering the remediation gap Lightwell Network addresses, the Validated/Remediated/OSV tier model, and how supply-chain metadata travels with artifacts. Learners inspect in-cluster ConfigMaps and review a sample OSV fixed event."
-      - title: "Enterprise Maven + Artifact Manager Integration"
-        overview: "Demonstrates the three enterprise artifact consumption patterns (direct, proxied, seeded) and wires Maven settings.xml profiles to a Nexus instance proxying Lightwell tiers. Learners prove Validated and Remediated resolution by running mvn clean verify against the Spring Boot PoC."
-      - title: "Developer Hub Scaffolding (Java Golden Path)"
-        overview: "Transitions from the manually seeded Module 2 repository to the canonical developer golden path via a RHDH Software Template. Learners delete the seeded Gitea repo, scaffold via lightwell-java-service, and re-run Maven stream proofs."
-      - title: "OSV Triage and Exact-Version Remediation"
-        overview: "Walks learners through the complete remediation evaluation loop: reading an OSV fixed event, diffing upstream vs. remediated sources jar, updating pom.xml, and rebuilding to confirm commons-lang3:3.14.0.rhlw-00001 in the dependency tree."
-      - title: "SBOM Generation and Analysis with RHTPA"
-        overview: "Covers supply-chain metadata as a system of record, distinguishing RHTPA from RHDA. Learners SSO into the TPA UI, generate a CycloneDX SBOM using syft, and ingest it via the RHTPA v3 API using a bearer token obtained by OIDC password grant."
-      - title: "Pipeline, Signing, Policy, and GitOps Promotion (Java)"
-        overview: "Closes the full Java trusted supply-chain loop. Learners trigger a dep-gate failure on the un-remediated pin, update pom.xml to pass the gate, complete RHACS image check, upload SBOM, keylessly sign with cosign, and promote the signed digest via Argo CD."
-      - title: "PyPI Validated + FastAPI (Python Track Kickoff)"
-        overview: "Mirrors the Module 2-3 Java pattern for Python/PyPI. Learners extract pip.conf from a ConfigMap, seed Gitea repositories, prove httpx resolves from the validated Nexus index, and re-scaffold via the lightwell-python-service RHDH Software Template."
-      - title: "Remediated PyPI + SPDX/SBOM to RHTPA"
-        overview: "Parallels Modules 4-5 for Python. Confirms Remediated PyPI is enabled, pins the workshop marker package using PEP 440 local +rhlw.00001 syntax, generates both SPDX and CycloneDX SBOMs using syft, and ingests CycloneDX into RHTPA."
-      - title: "Python Pipeline, Sign, Policy, and GitOps Promotion"
-        overview: "Closes the Python trusted supply-chain loop mirroring Module 6. Learners run the lightwell-python-dep-gate Tekton task (fail then pass), sign the image keylessly via RHTAS, and promote the signed digest to the Python gitops Helm repo for Argo CD sync."
+      - title: "Trusted supply chain (ungated intro)"
+        overview: "Seven-track diagram, what this cluster is not (no hosted Konflux, no physical air-gap, no FIPS factory), honor-system note. No Validate Job."
+      - title: "1.1 Verify Hummingbird"
+        overview: "Learner completes a trust policy and verifies the published Hummingbird digest (amd64). Arm64 in the index is a callout."
+      - title: "1.2 Mirror into the trust boundary"
+        overview: "Learner finishes an incomplete ImageSetConfiguration and runs oc-mirror. Check is cosign verify against the internal digest they recorded."
+      - title: "2.1 Enterprise proxy"
+        overview: "Learner authors settings.xml from a stub so Maven hits Nexus Validated/Remediated. Python pip.conf and Artifactory virtual-repo are callouts."
+      - title: "2.2 Remediated pin"
+        overview: "Learner pins .rhlw-* on a broken pom.xml from a Lightwell OSV fixed event. Python +rhlw.* is a callout."
+      - title: "3.1 Golden-path source"
+        overview: "Learner scaffolds or clones so the Java app repo is learner-owned on in-cluster Gitea."
+      - title: "3.2 Bind base + deps in source"
+        overview: "Learner sets Dockerfile FROM to the mirrored Hummingbird digest and commits Lightwell pins. Seed stays UBI."
+      - title: "3.3 Live Renovate"
+        overview: "Learner merges a real renovate-bot PR on lightwell-pins.properties. A hand-edit fails the Check."
+      - title: "4.1 Source forbid-list"
+        overview: "Learner removes forbidden FROM/curl/public URLs from the active build files."
+      - title: "4.2 Prefetch (Hermeto mapping)"
+        overview: "Learner wires Task prefetch-dependencies (not Konflux Hermeto). Check fails if undeclared deps are not prefetched."
+      - title: "4.3 Build NetworkPolicy"
+        overview: "Learner tightens too-open build-egress on lw-poc-build. App-ns operate is a different Check."
+      - title: "4.4 Build + SBOM"
+        overview: "BuildConfig image lands; SBOM artifact exists; known-bad Dockerfile still fails."
+      - title: "5.1 Sign (keyless)"
+        overview: "RHTAS keyless sign and cosign verify on the app digest."
+      - title: "5.2 Attest + Conforma"
+        overview: "Learner tightens a weak Enterprise Contract; known-bad fails then learner image passes."
+      - title: "5.3 Disconnected verify"
+        overview: "Learner-placed TUF root plus key-based cosign verify. Not a physical air-gap."
+      - title: "6.1 GitOps + admission"
+        overview: "Stage GitOps plus unsigned deny from the learner TrustPolicy. VM/canary/blue-green are callouts."
+      - title: "6.2 Promote to prod repo"
+        overview: "Learner commits the signed digest to the prod Gitea remote. Check fails if prod Argo still tracks stage."
+      - title: "7.1 SBOM system of record"
+        overview: "Learner ingests/labels the promoted digest in TPA."
+      - title: "7.2 VEX blast radius + ACS"
+        overview: "C+: Lightwell GAV-bound VEX from Nexus; report says CVE fixed via the pin. Hummingbird/CSAF is a callout. ACS is not the disabled stub."
     rcars_overlap_pct: 100
     rcars_top_matches:
       - title: "Enhancing Developer Efficiency and Security with Trusted Application Pipeline"
@@ -166,7 +232,7 @@ approval_checklist:
         url: "https://catalog.demo.redhat.com/catalog?item=summit-2026.lb1464-unified-devsecops-delivery-cnv.prod"
         relevance_score: 88
         why_it_fits: "Covers TSSC full stack including TAS, TPA, RHACS, RHDH, Tekton, and Argo CD with supply-chain policy enforcement and keyless signing."
-    catalog_gap: "No existing catalog item teaches the Lightwell Network consumption model — the Validated/Remediated/OSV tier structure, .rhlw-* exact-version pinning via OSV event analysis, or the parallel Java and Python remediation tracks integrated end-to-end with TSSC pipeline policy gates and GitOps promotion."
+    catalog_gap: "No existing catalog item walks the Lightwell-plus-Hummingbird TSSC path as seven gated tracks on one claim: learner-run oc-mirror, live Renovate against Gitea, hermetic BuildConfig (not hosted Konflux), portable TrustPolicy admission, prod GitOps remote, and GAV-bound VEX. Dual Java+Python hands-on is not the v2 catalog structure."
     rejections: []
 
   infra:
