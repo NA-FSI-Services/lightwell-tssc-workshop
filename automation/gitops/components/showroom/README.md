@@ -58,7 +58,7 @@ Init containers copy binaries from the same images the pipelines chart already p
 | CLI | Image |
 |-----|--------|
 | `cosign` | `registry.redhat.io/rhtas/cosign-rhel9:1.3.0` |
-| `ec` | `registry.redhat.io/rhtas/ec-rhel9:1.3.0` |
+| `ec` | `registry.redhat.io/rhtas/ec-rhel9:0.7` |
 | `oc-mirror` | `registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20` |
 
 Files land at `/usr/local/bin/{cosign,ec,oc-mirror}` via `emptyDir` + `subPath` (login shells keep default PATH). **Do not** curl `github.com` for these. **`syft` is deferred** until a bake registry exists (no Red Hat CLI image).
