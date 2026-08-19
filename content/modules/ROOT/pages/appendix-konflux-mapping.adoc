@@ -77,6 +77,7 @@ Say *no*. This claim runs OpenShift Pipelines. The *controls* (hermetic prefetch
 == Related
 
 * xref:appendix-consultant-delivery.adoc[Consultant delivery map] — activities, not product names
+* xref:appendix-enablement-checklist.adoc[Internal enablement checklist] — after the workshop; do not over-claim Konflux
 * xref:module-09-prefetch.adoc[4.2 Prefetch] — Hermeto callout and diagram
 * xref:module-11-build-sbom.adoc[4.4 Build and SBOM] — Buildah → BuildConfig
 * xref:module-07-live-renovate.adoc[3.3 Live Renovate] — MintMaker → this bot

@@ -151,7 +151,7 @@ Classic Showroom does *not* lock the next URL. Learners can open 7.2 on day one.
 
 == After the workshop
 
-Finishing the claim is not the enablement metric. The internal seven-track checklist is scored *after* the event. It is not a live customer proof-of-value during these two days.
+Finishing the claim is not the enablement metric. Score xref:appendix-enablement-checklist.adoc[Appendix: internal enablement checklist] *after* the event. It is not a live customer proof-of-value during these two days.
 
 == After dry runs
 
@@ -164,5 +164,6 @@ When you have wall-clock notes:
 == Related
 
 * xref:index.adoc[Workshop home] — learner map and honor system
+* xref:appendix-enablement-checklist.adoc[Internal enablement checklist] — scored after the event, not during
 * xref:appendix-consultant-delivery.adoc[Consultant delivery map] — engagement activity → track
 * xref:appendix-konflux-mapping.adoc[Konflux mapping] — names used in client engagements

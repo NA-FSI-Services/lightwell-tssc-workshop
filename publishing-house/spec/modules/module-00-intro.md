@@ -31,6 +31,7 @@ Ungated orientation for the seven-track TSSC flow. Learners see the story (Hummi
 3. What this is not: not Konflux-on-the-claim; not a data diode; not FIPS lab evidence; VM/bootc is a Track 6 sentence.
 4. Honor system: Validate Jobs grade live objects + report keys; no UI lock; no Solve.
 5. Point at `demo-userinfo-*` ConfigMaps for discovery. Do not send learners to GitHub for lab git.
+6. Enablement is **after** the workshop: internal seven-track checklist (V2-46 / `appendix-enablement-checklist.adoc`). Not a live PoV. No visual on that page.
 
 ### Key Takeaways
 

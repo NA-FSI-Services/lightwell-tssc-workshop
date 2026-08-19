@@ -37,6 +37,7 @@
 * xref:appendix-konflux-mapping.adoc[Konflux mapping]
 * xref:appendix-disconnected-playbook.adoc[Disconnected transfer]
 * xref:appendix-instructor-runbook.adoc[Instructor two-day grouping]
+* xref:appendix-enablement-checklist.adoc[Internal enablement checklist]
 * xref:appendix-lightwell-concepts.adoc[Lightwell concepts (FAQ distill)]
 * xref:appendix-acronyms.adoc[Acronym glossary]
 * xref:rhda-shift-left.adoc[RHDA shift-left (laptop)]

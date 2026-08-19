@@ -73,7 +73,7 @@ You walk *one* Java (Maven) supply chain on this OpenShift environment. The item
 |The lab application is Java. *Nexus* is the enterprise proxy you configure. Short callouts cover `pip` and Artifactory patterns; you do not install Artifactory or scaffold a second app.
 
 |A customer proof-of-value or certification exam
-|This is a *guided workshop*. You practice the flow here. Customer checklists come after — they are not a live exam on this environment.
+|This is a *guided workshop*. You practice the flow here. xref:appendix-enablement-checklist.adoc[Internal enablement] is scored *after* the event. It is not a live PoV on this environment.
 
 |A production virtual machine
 |You promote a *signed container digest* through GitOps (xref:module-15-gitops-admission.adoc[6.1], xref:module-16-prod-gitops.adoc[6.2]). The same digest can later run on bootc or Satellite; there is no VM to boot here.
@@ -96,4 +96,4 @@ Do the *Your change*. Run the *Check*. Then continue.
 
 Open xref:module-01-hummingbird-verify.adoc[1.1 Verify Hummingbird] when you are ready to work.
 
-Consultant maps: xref:appendix-consultant-delivery.adoc[delivery map], xref:appendix-konflux-mapping.adoc[Konflux mapping], xref:appendix-disconnected-playbook.adoc[disconnected transfer]. Instructors: xref:appendix-instructor-runbook.adoc[two-day grouping] (envelope, not a timer). Concepts: xref:appendix-lightwell-concepts.adoc[Lightwell concepts], xref:appendix-acronyms.adoc[acronym glossary].
+Consultant maps: xref:appendix-consultant-delivery.adoc[delivery map], xref:appendix-konflux-mapping.adoc[Konflux mapping], xref:appendix-disconnected-playbook.adoc[disconnected transfer]. Instructors: xref:appendix-instructor-runbook.adoc[two-day grouping] (envelope, not a timer). After the event: xref:appendix-enablement-checklist.adoc[internal enablement checklist]. Concepts: xref:appendix-lightwell-concepts.adoc[Lightwell concepts], xref:appendix-acronyms.adoc[acronym glossary].
