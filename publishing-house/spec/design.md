@@ -124,6 +124,7 @@ Must be provisioned before learners begin (see GitOps charts; many default-off u
 - NetworkPolicy seeds (too-open build, open operate)
 - Renovate CronJob (default-off until enabled; targets `lw-student/spring-boot-lw-poc`)
 - Tekton tasks in `lightwell-tasks`: `verify-base-image`, `conforma-policy`, `prefetch-dependencies` — **not** in the seeded pipeline
+- Validate Jobs chart (`lw-poc-validate`): helper + 18 report ConfigMaps + Job templates (stubs fail until V2-54; no Job instances at provision)
 - RHDH template `lightwell-java-service` (Python template files stay in git, off)
 - ConfigMaps: `demo-userinfo-*`, `lightwell-channels`, `lightwell-maven-settings`
 
@@ -148,7 +149,7 @@ Each **gated** module:
 
 1. Short worked example (not paste-identical to the scored file)
 2. Learner **changes a real asset**
-3. Validate Job inspects cluster/git **state** and short-answer **report** keys (schema: V2-59)
+3. Validate Job inspects cluster/git **state** and short-answer **report** keys (ConfigMap per module in `lw-poc-validate`; schema: V2-59)
 
 Ungated intro has no Job. Full `assessment_strategy` catalog wording: V2-58.
 

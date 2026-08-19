@@ -26,6 +26,7 @@
     - "{{ gitea_namespace }}"
     - "{{ tasks_namespace }}"
     - "{{ showroom_namespace }}"
+    - "{{ validate_namespace }}"
   changed_when: false
 
 - name: Tekton Pipeline CRD exists
@@ -100,6 +101,42 @@
 - name: prefetch-dependencies Task exists
   ansible.builtin.command: >-
     oc get task.tekton.dev {{ prefetch_task }} -n {{ tasks_namespace }}
+  changed_when: false
+
+- name: Validate Jobs namespace ServiceAccount exists
+  ansible.builtin.command: >-
+    oc get serviceaccount {{ validate_sa }} -n {{ validate_namespace }}
+  changed_when: false
+
+- name: Validate Jobs ClusterRole exists
+  ansible.builtin.command: >-
+    oc get clusterrole {{ validate_clusterrole }}
+  changed_when: false
+
+- name: Validate scripts ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ validate_scripts }} -n {{ validate_namespace }}
+  changed_when: false
+
+- name: Validate Job templates ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ validate_templates }} -n {{ validate_namespace }}
+  changed_when: false
+
+- name: Validate userinfo ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ validate_userinfo }} -n {{ validate_namespace }}
+  changed_when: false
+
+- name: Validate docs ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ validate_docs }} -n {{ validate_namespace }}
+  changed_when: false
+
+- name: Per-module report ConfigMaps exist
+  ansible.builtin.command: >-
+    oc get configmap {{ item }} -n {{ validate_namespace }}
+  loop: "{{ validate_reports }}"
   changed_when: false
 
 - name: Showroom userinfo lists lab CLIs

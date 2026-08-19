@@ -1,0 +1,22 @@
+{{- if .Values.validateJobs.enabled }}
+{{- range .Values.modules }}
+---
+# Learner-owned report (V2-51). Quiz keys/tokens are V2-59.
+# Argo ignoreDifferences /data so selfHeal does not revert learner edits.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "validate-jobs.reportName" . }}
+  namespace: {{ $.Values.validateJobs.namespace }}
+  labels:
+    {{- include "validate-jobs.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: report
+    tssc.workshop/module: {{ .id | quote }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ $.Values.validateJobs.syncWaves.reports | quote }}
+data:
+  module: {{ .id | quote }}
+  title: {{ .title | quote }}
+  status: REPLACE_ME
+{{- end }}
+{{- end }}

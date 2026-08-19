@@ -1,0 +1,74 @@
+{{- if .Values.validateJobs.enabled }}
+---
+# Learner-started Job YAML (same pattern as oc-mirror). Provision does not
+# create Job instances — Argo would fight delete+create retries.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.templatesConfigMap }}
+  namespace: {{ .Values.validateJobs.namespace }}
+  labels:
+    {{- include "validate-jobs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: job-templates
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.validateJobs.syncWaves.jobs | quote }}
+data:
+{{- range .Values.modules }}
+  job-{{ .id }}.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: {{ include "validate-jobs.jobName" . }}
+      namespace: {{ $.Values.validateJobs.namespace }}
+      labels:
+        app.kubernetes.io/name: validate-jobs
+        app.kubernetes.io/component: validate
+        tssc.workshop/module: {{ .id | quote }}
+    spec:
+      backoffLimit: {{ $.Values.job.backoffLimit }}
+      activeDeadlineSeconds: {{ $.Values.job.activeDeadlineSeconds }}
+      ttlSecondsAfterFinished: {{ $.Values.job.ttlSecondsAfterFinished }}
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: validate-jobs
+            app.kubernetes.io/component: validate
+            tssc.workshop/module: {{ .id | quote }}
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ $.Values.job.serviceAccountName }}
+          containers:
+            - name: check
+              image: {{ $.Values.job.image | quote }}
+              imagePullPolicy: {{ $.Values.job.imagePullPolicy | quote }}
+              env:
+                - name: VALIDATE_NS
+                  value: {{ $.Values.validateJobs.namespace | quote }}
+                - name: MODULE_ID
+                  value: {{ .id | quote }}
+                - name: MODULE_TITLE
+                  value: {{ .title | quote }}
+                - name: REPORT_NAME
+                  value: {{ include "validate-jobs.reportName" . | quote }}
+              command:
+                - /bin/bash
+                - -ec
+                - source /opt/validate/helper.sh && bash /opt/validate/check.sh
+              volumeMounts:
+                - name: scripts
+                  mountPath: /opt/validate
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: {{ $.Values.job.resources.requests.cpu | quote }}
+                  memory: {{ $.Values.job.resources.requests.memory | quote }}
+                limits:
+                  cpu: {{ $.Values.job.resources.limits.cpu | quote }}
+                  memory: {{ $.Values.job.resources.limits.memory | quote }}
+          volumes:
+            - name: scripts
+              configMap:
+                name: {{ $.Values.scriptsConfigMap }}
+                defaultMode: 0755
+{{- end }}
+{{- end }}

@@ -200,3 +200,51 @@
     that:
       - conforma_skip.stdout | trim == "true"
     fail_msg: conforma-policy seed is no longer skip-image-sig-check=true
+
+- name: Validate report seeds are still REPLACE_ME
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - configmap
+      - "{{ item }}"
+      - -n
+      - "{{ validate_namespace }}"
+      - -o
+      - jsonpath={.data.status}
+  register: validate_report_status
+  changed_when: false
+  loop: "{{ validate_reports }}"
+
+- name: Reports are still incomplete
+  ansible.builtin.assert:
+    that:
+      - item.stdout | trim == report_placeholder
+    fail_msg: >-
+      {{ item.item }} status is no longer {{ report_placeholder }}
+      (not a fresh claim; report keys are V2-59)
+  loop: "{{ validate_report_status.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Learner Validate Jobs must not exist
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - jobs
+      - -n
+      - "{{ validate_namespace }}"
+      - -l
+      - app.kubernetes.io/component=validate
+      - --no-headers
+  register: validate_jobs
+  changed_when: false
+
+- name: No Validate Job has been created
+  ansible.builtin.assert:
+    that:
+      - validate_jobs.stdout | trim | length == 0
+    fail_msg: >-
+      A Validate Job exists in {{ validate_namespace }} — not a fresh claim
+      (stubs still fail until V2-54; Job instances are learner-started)

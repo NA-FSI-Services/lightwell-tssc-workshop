@@ -1,0 +1,18 @@
+{{- if .Values.validateJobs.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.scriptsConfigMap }}
+  namespace: {{ .Values.validateJobs.namespace }}
+  labels:
+    {{- include "validate-jobs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scripts
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.validateJobs.syncWaves.scripts | quote }}
+data:
+  helper.sh: |
+{{ .Files.Get "files/helper.sh" | indent 4 }}
+  check.sh: |
+{{ .Files.Get "files/check.sh" | indent 4 }}
+{{- end }}

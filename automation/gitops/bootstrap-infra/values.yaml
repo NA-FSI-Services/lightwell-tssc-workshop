@@ -1,7 +1,7 @@
 # Lightwell TSSC Workshop — Bootstrap Infra
 # AgnosticV gitops_path: automation/gitops/bootstrap-infra
 #
-# Sync wave ordering (IdP → pipelines → operators → student git → config → apps → showroom):
+# Sync wave ordering (IdP → pipelines → operators → student git → config → apps → validate → showroom):
 #    5  — Workshop Keycloak (SSO for RHTPA): keycloak
 #    8  — OpenShift Pipelines (Tekton CRDs for Module 5 / RHACS Tasks): pipelines
 #   10  — TSSC operators / platform: rhtas, rhtpa, rhacs, admission, networkpolicy
@@ -10,6 +10,7 @@
 #   25  — Live Renovate bot (Gitea + Nexus): renovate
 #   30  — Developer Hub: rhdh
 #   40  — Sample apps: spring-boot-lw-poc (scored), fastapi-lw-poc (unused at provision; V2-12), parasol-app
+#   45  — Validate Jobs scaffold (V2-51): helper + report ConfigMaps + Job templates
 #   50  — Showroom lab guide
 #
 # Child charts live under automation/gitops/components/<name>/.
@@ -141,6 +142,14 @@ components:
     namespace: parasol
     syncWave: "40"
     chartPath: parasol-app
+
+  # --- Wave 45: Validate Jobs scaffold (V2-51). After apps; before Showroom. ---
+  # Chart: automation/gitops/components/validate-jobs. Learner-started Jobs; no Solve.
+  # Default-off. Track checks are V2-54. Report keys are V2-59.
+  validateJobs:
+    enabled: false
+    namespace: lw-poc-validate
+    syncWave: "45"
 
   # --- Wave 50: Showroom lab guide (Modules 1–6 via site.yml) ---
   showroom:

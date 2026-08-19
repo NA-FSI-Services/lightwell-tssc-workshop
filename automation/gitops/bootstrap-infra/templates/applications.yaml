@@ -1,5 +1,5 @@
 # App of Apps — ArgoCD Applications for each enabled Lightwell workshop component.
-# Sync waves: keycloak (5) → pipelines (8) → operators (10) → gitea (15) → config (20) → renovate (25) → rhdh (30) → apps (40) → showroom (50)
+# Sync waves: keycloak (5) → pipelines (8) → operators (10) → gitea (15) → config (20) → renovate (25) → rhdh (30) → apps (40) → validate (45) → showroom (50)
 
 {{- if .Values.components.keycloak.enabled }}
 ---
@@ -596,6 +596,74 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+{{- end }}
+
+{{- if .Values.components.validateJobs.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}-validate-jobs
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "root-app.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.components.validateJobs.syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project }}
+  source:
+    repoURL: {{ .Values.gitops.repoUrl }}
+    targetRevision: {{ .Values.gitops.revision }}
+    path: {{ .Values.gitops.basePath }}/components/validate-jobs
+    helm:
+      valuesObject:
+        validateJobs:
+          enabled: {{ .Values.components.validateJobs.enabled }}
+          namespace: {{ .Values.components.validateJobs.namespace }}
+        deployer:
+          domain: {{ .Values.deployer.domain | quote }}
+          apiUrl: {{ .Values.deployer.apiUrl | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.components.validateJobs.namespace }}
+  # Learner edits report-* /data. Do not let Helm wipe quiz answers.
+  ignoreDifferences:
+{{- range $name := tuple
+  "report-01-hummingbird-verify"
+  "report-02-hummingbird-mirror"
+  "report-03-enterprise-proxy"
+  "report-04-remediated-pin"
+  "report-05-golden-path-source"
+  "report-06-bind-base-deps"
+  "report-07-live-renovate"
+  "report-08-forbid-list"
+  "report-09-prefetch"
+  "report-10-build-networkpolicy"
+  "report-11-build-sbom"
+  "report-12-sign-keyless"
+  "report-13-attest-conforma"
+  "report-14-disconnected-verify"
+  "report-15-gitops-admission"
+  "report-16-prod-gitops"
+  "report-17-sbom-sor"
+  "report-18-vex-acs"
+}}
+    - group: ""
+      kind: ConfigMap
+      name: {{ $name | quote }}
+      jsonPointers:
+        - /data
+{{- end }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 {{- end }}
 
 {{- if .Values.components.showroom.enabled }}

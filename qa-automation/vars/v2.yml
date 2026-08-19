@@ -34,3 +34,32 @@ conforma_configmap: conforma-policy
 prefetch_task: prefetch-dependencies
 
 app_imagestream: spring-boot-lw-poc
+
+validate_namespace: lw-poc-validate
+validate_scripts: validate-scripts
+validate_templates: validate-job-templates
+validate_userinfo: demo-userinfo-validate
+validate_docs: validate-docs
+validate_sa: validate-jobs
+validate_clusterrole: validate-jobs
+report_placeholder: REPLACE_ME
+# Keep in sync with automation/gitops/components/validate-jobs/values.yaml modules.
+validate_reports:
+  - report-01-hummingbird-verify
+  - report-02-hummingbird-mirror
+  - report-03-enterprise-proxy
+  - report-04-remediated-pin
+  - report-05-golden-path-source
+  - report-06-bind-base-deps
+  - report-07-live-renovate
+  - report-08-forbid-list
+  - report-09-prefetch
+  - report-10-build-networkpolicy
+  - report-11-build-sbom
+  - report-12-sign-keyless
+  - report-13-attest-conforma
+  - report-14-disconnected-verify
+  - report-15-gitops-admission
+  - report-16-prod-gitops
+  - report-17-sbom-sor
+  - report-18-vex-acs

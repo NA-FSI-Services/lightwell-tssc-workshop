@@ -6,8 +6,8 @@
 # Exit 0 = healthy, non-zero = unhealthy.
 #
 # Does not require learner gates to pass. Fresh-claim negatives live in e2e.yml.
-# Expects components.networkPolicy, admission, gitea, lightwell-repo, and
-# pipelines enabled on the claim.
+# Expects components.networkPolicy, admission, gitea, lightwell-repo,
+# pipelines, and validateJobs enabled on the claim.
 
 - name: Environment Health Check
   hosts: localhost

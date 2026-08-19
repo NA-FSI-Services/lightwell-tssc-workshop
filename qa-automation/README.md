@@ -13,11 +13,12 @@ Post-provision readiness (< 60s). Confirms the v2 GitOps objects exist:
 - CronJob `trust-policy-apply`
 - Tasks `verify-base-image` / `conforma-policy` / `prefetch-dependencies`
 - Showroom CLI userinfo (`cosign`, `ec`, `oc-mirror`; `syft_baked=false`)
+- Validate Job scaffold: namespace `lw-poc-validate`, helper, 18 report ConfigMaps, Job templates (no Job instances)
 
 Does **not** require a mirrored Hummingbird image, a signature, or unsigned deny.
 
 Expects the claim to enable `networkPolicy`, `admission`, `gitea`,
-`lightwell-repo`, and `pipelines`.
+`lightwell-repo`, `pipelines`, and `validateJobs`.
 
 ## e2e.yml
 
@@ -28,6 +29,7 @@ Imports the health check, then asserts the **fresh-claim negatives**:
 | Mirror job | ImageSet still `REPLACE_ME`; Job `oc-mirror-learner` absent | V2-54 / Track 1 |
 | Cosign verify internal | No PipelineRun in `lw-poc-build`; no digest on stage ImageStream | V2-54 / Track 5 |
 | Admission deny | TrustPolicy seed `enforce: false`; no `ImagePolicy` `tssc-prod-admission` | V2-54 / Track 6.1 |
+| Validate reports | Each `report-*` still `status: REPLACE_ME`; no learner Job in `lw-poc-validate` | V2-54 / V2-59 |
 
 Re-running e2e after a learner finishes a track is expected to **fail**.
 

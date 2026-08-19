@@ -504,7 +504,7 @@ v2 is primarily an **automation + content** change on the existing GitOps bootst
 | **Nexus** | Unchanged Lightwell proxy (scored). Artifactory = callouts only (§4.2.2). Optional hosted raw repo for mirrored SBOMs. | 20 |
 | **Showroom binaries** | Keep `cosign`, `syft`. Add `oc-mirror` (v2) and `ec`. **Bake in the image** — do not download from `github.com` at runtime. | 50 |
 | **NetworkPolicy** | **Track 4 (scored):** default-deny egress on **build** ns + allow DNS/registry/Nexus. **Track 6:** app-ns operate policy (seeded open). Chart at wave **10** so `lw-poc-build` / `lw-poc-staging` exist before Gitea Argo (wave 15). | 10 |
-| **Evaluation / honor-system Check** | In-cluster Validate Jobs per gated module. Classic Showroom. Seed **incomplete** lab assets. No UI lock; **no Solve** (learner or instructor). | 50 |
+| **Evaluation / honor-system Check** | In-cluster Validate Jobs per gated module. Classic Showroom. Seed **incomplete** lab assets. No UI lock; **no Solve** (learner or instructor). Chart `validate-jobs` at wave **45** (V2-51 scaffold; V2-54 fills checks). | 45 |
 
 ### 5.2 Provisioning constraints to solve early
 
@@ -621,7 +621,7 @@ Do not start writing the seven track pages until Phase 0 **exit** (issues filed,
 
 ### Phase 4b — Evaluation framework (parallel with Phases 1–4)
 
-- Scaffold in-cluster Validate Jobs for gated modules.
+- Scaffold in-cluster Validate Jobs for gated modules (V2-51: chart `validate-jobs`).
 - Negative tests: fresh claim fails all gates; after fixture “learner” edits, gates pass.
 - Teaching error strings reviewed like user-facing copy.
 - Honor system documented (classic URLs still work).
@@ -708,7 +708,7 @@ Student instructions and explainers. If a diagram or screenshot would teach a po
 | ID | Title | Depends on |
 |----|-------|------------|
 | V2-50 | ~~guided vs classic~~ — **closed: classic + Validate Jobs (honor system)** | — |
-| V2-51 | Scaffold in-cluster Validate Jobs + shared helper (not `runtime-automation/`) | V2-50 |
+| V2-51 | Scaffold in-cluster Validate Jobs + shared helper (not `runtime-automation/`) | V2-50. **Applying:** chart `validate-jobs`, ns `lw-poc-validate`, shared helper, 18 learner-started Job templates, report ConfigMaps (seed `status: REPLACE_ME`). No Solve, no `runtime-automation/`. Track checks are V2-54. Report keys are V2-59. |
 | V2-52 | Negative tests: fresh claim fails every track gate | V2-51 |
 | V2-53 | Seed incomplete/broken assets for all seven tracks | V2-51, V2-10 |
 | V2-54 | Validate Jobs Tracks 1–7 | V2-53, V2-31…37 |

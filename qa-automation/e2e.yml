@@ -7,6 +7,7 @@
 #   - no signed app image (no PipelineRun / stage digest) so cosign verify
 #     cannot succeed yet
 #   - unsigned deny is not live (TrustPolicy enforce: false, no ImagePolicy)
+#   - Validate reports still REPLACE_ME; no learner Validate Job instances
 #
 # Pass-path for those three gates is in-cluster Validate Jobs (V2-54).
 #

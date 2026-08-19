@@ -29,10 +29,15 @@ applications:
   - name: Keycloak / SSO
     namespace: sso
     notes: OIDC provider for RHTPA; TPA realm pre-configured
+  - name: Validate Jobs
+    namespace: lw-poc-validate
+    notes: V2-51 scaffold — helper, 18 report ConfigMaps, learner-started Job templates (no Solve)
 
 seed_data:
   - Namespaces lw-poc-build (pipelines), lw-poc-staging (stage app), lw-poc-prod (prod app); Python twin lw-fastapi-student stays off (V2-12)
-  - ConfigMaps (lightwell-channels, demo-userinfo-rhdh, lightwell-pip-settings, demo-userinfo-gitea, demo-userinfo-keycloak)
+  - Namespace lw-poc-validate (Validate Jobs; V2-51)
+  - ConfigMaps (lightwell-channels, demo-userinfo-rhdh, lightwell-pip-settings, demo-userinfo-gitea, demo-userinfo-keycloak, demo-userinfo-validate)
+  - Report ConfigMaps report-01-hummingbird-verify … report-18-vex-acs (seed status REPLACE_ME)
   - Seeded Gitea template remotes; learner org lw-student (spring-boot-lw-poc, fastapi-lw-poc, gitops-java, gitops-fastapi)
   - Tekton Pipeline definitions (lightwell-dep-gate Java, lightwell-python-dep-gate Python)
   - RHDH Software Templates (lightwell-java-service, lightwell-python-service)
@@ -41,5 +46,7 @@ seed_data:
 notes: >
   qa-automation healthcheck confirms provisioned objects; e2e asserts the
   fresh-claim negatives (no Solve). Pass-path is in-cluster Validate Jobs (V2-54).
+  V2-51 scaffold: GitOps chart validate-jobs (namespace lw-poc-validate, shared
+  helper, 18 report ConfigMaps, learner-started Job templates). No runtime-automation/.
   External services required: packages.redhat.com (Lightwell registry, proxied via Nexus),
-  github.com (cosign binary download from sigstore/cosign releases during student exercises).
+  registry.access.redhat.com (learner oc-mirror). Gitea is in-cluster.
