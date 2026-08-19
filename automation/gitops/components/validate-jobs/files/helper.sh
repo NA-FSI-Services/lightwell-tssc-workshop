@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# Shared Validate Job helper (V2-51). Teaching fails only. No Solve.
+# Shared Validate Job helper. Teaching fails only. No Solve. No report quiz
+# keys here (V2-59). Live cluster/git state is V2-54.
 
 set -euo pipefail
 
 VALIDATE_NS="${VALIDATE_NS:-lw-poc-validate}"
+GITEA_NS="${GITEA_NS:-gitea}"
+REPO_NS="${REPO_NS:-lightwell-repo}"
+GITEA_USERINFO="${GITEA_USERINFO:-demo-userinfo-gitea}"
+REPO_USERINFO="${REPO_USERINFO:-demo-userinfo-lightwell-repo}"
+GITEA_INCLUSTER="${GITEA_INCLUSTER:-http://gitea.gitea.svc:3000}"
 
 fail() {
   echo "CHECK FAILED: $*" >&2
@@ -29,6 +35,14 @@ cm_get() {
   oc -n "$ns" get configmap "$name" -o "jsonpath={.data['${key}']}" 2>/dev/null || true
 }
 
+userinfo() {
+  local ns="$1" name="$2" key="$3"
+  local value
+  value="$(cm_get "$ns" "$name" "$key")"
+  [[ -n "$value" ]] || fail "ConfigMap ${ns}/${name} is missing key '${key}'."
+  printf '%s' "$value"
+}
+
 report_name() {
   echo "${REPORT_NAME:?REPORT_NAME is not set}"
 }
@@ -39,6 +53,7 @@ report_get() {
 }
 
 report_require_key() {
+  # Quiz schema is V2-59. Kept so later Jobs can call it without a helper rewrite.
   local key="$1"
   local value
   value="$(report_get "$key")"
@@ -50,7 +65,119 @@ report_require_key() {
 
 module_begin() {
   require_cmd oc
+  require_cmd curl
   echo "=== Validate Job ${MODULE_ID:-?} — ${MODULE_TITLE:-unknown} ==="
   oc -n "$VALIDATE_NS" get configmap "$(report_name)" >/dev/null \
     || fail "Report ConfigMap $(report_name) is missing in ${VALIDATE_NS}."
+}
+
+deny_placeholder() {
+  local label="$1" body="$2"
+  case "$body" in
+    *REPLACE_ME*) fail "${label} still contains REPLACE_ME. Fill the scored object; do not copy validate-docs." ;;
+  esac
+}
+
+require_contains() {
+  local label="$1" body="$2" needle="$3"
+  [[ "$body" == *"$needle"* ]] || fail "${label} does not contain '${needle}'."
+}
+
+deny_contains() {
+  local label="$1" body="$2" needle="$3"
+  [[ "$body" != *"$needle"* ]] || fail "${label} still contains '${needle}'."
+}
+
+gitea_base() {
+  if curl -fsS --max-time 5 "${GITEA_INCLUSTER}/api/healthz" >/dev/null 2>&1; then
+    printf '%s' "$GITEA_INCLUSTER"
+    return
+  fi
+  local url
+  url="$(userinfo "$GITEA_NS" "$GITEA_USERINFO" gitea_url)"
+  printf '%s' "${url%/}"
+}
+
+gitea_raw() {
+  local org="$1" repo="$2" path="$3"
+  local branch="${4:-main}"
+  local base url body code tmp
+  base="$(gitea_base)"
+  url="${base}/api/v1/repos/${org}/${repo}/raw/${path}?ref=${branch}"
+  tmp="$(mktemp)"
+  code="$(curl -skS --max-time 20 -o "$tmp" -w '%{http_code}' "$url" || true)"
+  if [[ "$code" != "200" ]]; then
+    rm -f "$tmp"
+    fail "Cannot read ${org}/${repo} ${path} on ${branch} (HTTP ${code}). Create the lw-student remote and commit the scored file."
+  fi
+  cat "$tmp"
+  rm -f "$tmp"
+}
+
+gitea_repo_ok() {
+  local org="$1" repo="$2"
+  local base code
+  base="$(gitea_base)"
+  code="$(curl -skS --max-time 15 -o /dev/null -w '%{http_code}' \
+    "${base}/api/v1/repos/${org}/${repo}" || true)"
+  [[ "$code" == "200" ]] || fail "Gitea repo ${org}/${repo} is not reachable (HTTP ${code}). Seed lw-student from templates (3.1)."
+}
+
+learner_org() {
+  userinfo "$GITEA_NS" "$GITEA_USERINFO" student_gitea_org
+}
+
+learner_app_repo() {
+  userinfo "$GITEA_NS" "$GITEA_USERINFO" student_repo_name
+}
+
+learner_gitops_repo() {
+  userinfo "$GITEA_NS" "$GITEA_USERINFO" student_gitops_repo_name
+}
+
+learner_prod_gitops_repo() {
+  userinfo "$GITEA_NS" "$GITEA_USERINFO" student_prod_gitops_repo_name
+}
+
+build_ns() {
+  userinfo "$GITEA_NS" "$GITEA_USERINFO" student_build_namespace
+}
+
+stage_ns() {
+  userinfo "$GITEA_NS" "$GITEA_USERINFO" student_promote_namespace
+}
+
+prod_ns() {
+  userinfo "$GITEA_NS" "$GITEA_USERINFO" student_prod_namespace
+}
+
+job_succeeded() {
+  local ns="$1" name="$2"
+  local ok
+  ok="$(oc -n "$ns" get job "$name" -o jsonpath='{.status.succeeded}' 2>/dev/null || true)"
+  [[ "$ok" == "1" ]] || fail "Job ${ns}/${name} has not Completed. Start it and wait until it succeeds."
+}
+
+taskrun_succeeded() {
+  local ns="$1" task="$2"
+  local statuses
+  statuses="$(oc -n "$ns" get taskrun -l "tekton.dev/pipelineTask=${task}" \
+    -o jsonpath='{range .items[*]}{.status.conditions[?(@.type=="Succeeded")].status}{"\n"}{end}' 2>/dev/null || true)"
+  [[ "$statuses" == *True* ]] || fail "No Succeeded TaskRun for pipelineTask=${task} in ${ns}."
+}
+
+pipeline_yaml() {
+  local ns="$1" name="$2"
+  oc -n "$ns" get pipeline "$name" -o yaml 2>/dev/null \
+    || fail "Pipeline ${ns}/${name} is missing. Apply .tekton/pipeline.yaml from the learner app remote."
+}
+
+task_before() {
+  local yaml="$1" first="$2" second="$3" label="$4"
+  local a b
+  a="$(printf '%s\n' "$yaml" | grep -n "name: ${first}" | head -1 | cut -d: -f1 || true)"
+  b="$(printf '%s\n' "$yaml" | grep -n "name: ${second}" | head -1 | cut -d: -f1 || true)"
+  [[ -n "$a" ]] || fail "${label} is missing task '${first}'."
+  [[ -n "$b" ]] || fail "${label} is missing task '${second}'."
+  [[ "$a" -lt "$b" ]] || fail "${label}: '${first}' must run before '${second}'."
 }

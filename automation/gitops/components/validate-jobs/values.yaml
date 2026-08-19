@@ -1,6 +1,5 @@
-# V2-51 — scaffold in-cluster Validate Jobs + shared helper.
-# Classic Showroom. No runtime-automation/. No Solve. Track checks are V2-54.
-# Report quiz keys/tokens are V2-59. These seeds only have status: REPLACE_ME.
+# V2-54 — live-state Validate Jobs (cluster + public Gitea). No Solve.
+# Report quiz keys/tokens are V2-59. Seeds stay incomplete so a fresh claim fails.
 
 validateJobs:
   enabled: true
@@ -97,8 +96,8 @@ userInfo:
     Each gated module has a learner-started Job in lw-poc-validate. Delete the
     Job if it already exists, create it from validate-job-templates, then read
     logs. Jobs are idempotent, under 60s, unlimited retries. There is no Solve.
-    Stubs fail on purpose until V2-54. Fill report-<id>-<slug> (V2-59 keys);
-    do not copy validate-docs. Honor system: URLs still work if you skip.
+    Jobs grade cluster/git state (V2-54). Fill report-<id>-<slug> quiz keys in
+    V2-59; do not copy validate-docs. Honor system: URLs still work if you skip.
 
 deployer:
   domain: ""

@@ -37,8 +37,9 @@ are deleted afterward so a leftover instance is not mistaken for learner work.
 | Validate reports | Each `report-*` still `status: REPLACE_ME`; no learner Job yet | V2-54 / V2-59 |
 | Validate Jobs (×18) | Each Job fails with `CHECK FAILED` / no Solve; none left behind | V2-54 |
 
-Until V2-54 the Job fail reason is the scaffold stub. After V2-54 the same
-playbook still fails on a fresh claim, for track state.
+Until V2-59 the Job fail reason is live seed state (placeholders, missing
+repos, too-open NP). After V2-59 the same e2e still fails on a fresh claim,
+and also on empty quiz keys.
 
 Re-running e2e after a learner finishes a track is expected to **fail** (seed
 state already changed, or a Job would pass).

@@ -1,4 +1,4 @@
-# charts/components/validate-jobs — in-cluster Checks (V2-51)
+# charts/components/validate-jobs — in-cluster Checks (V2-54)
 
 Classic Showroom, honor system, **no Solve**, no `runtime-automation/`.
 Provision does **not** create Job instances and does **not** pass any track.
@@ -10,14 +10,18 @@ Provision does **not** create Job instances and does **not** pass any track.
 | Namespace `lw-poc-validate` | Jobs, helper, reports, userinfo |
 | ServiceAccount `validate-jobs` | Read-only inspect SA used **inside** the Job |
 | ClusterRole `validate-jobs` | get/list on lab objects (no secrets, no create) |
-| ConfigMap `validate-scripts` | Shared `helper.sh` + stub `check.sh` |
+| ConfigMap `validate-scripts` | Shared `helper.sh` + `check.sh` + `check-01.sh` … `check-18.sh` |
 | ConfigMap `validate-job-templates` | One `job-NN.yaml` per gated module (learner `oc create`) |
-| ConfigMap `report-<id>-<slug>` (×18) | Learner-owned short-answer report; seed `status: REPLACE_ME` |
+| ConfigMap `report-<id>-<slug>` (×18) | Learner-owned short-answer report; seed `status: REPLACE_ME` (quiz keys are V2-59) |
 | ConfigMap `demo-userinfo-validate` | Rerun example, Job/report names |
 | ConfigMap `validate-docs` | Worked examples that are **not** paste-identical |
 
-Do **not** apply a passing Check at provision. Stubs always `CHECK FAILED` with a
-teaching message until V2-54 fills cluster/git state. Quiz keys/tokens are V2-59.
+Jobs grade **live state only**: cluster objects (`oc get`) and committed files on public `lw-student` Gitea remotes (`curl`, no token). They do **not** run Showroom `cosign` / `mvn`, and they do **not** grade report quiz keys (V2-59).
+
+Showroom-only gaps (still fail on a fresh claim):
+
+- **5.3** confirms the 5.1 app digest exists. `~/lab-trust/cosign.pub` is not visible to the Job.
+- **7.1** confirms the prod GitOps digest + `syft-sbom-rhtpa` Succeeded. TPA UI ingest needs credentials the Job SA must not use.
 
 ## Learner rerun (unlimited)
 
@@ -35,11 +39,11 @@ object. `activeDeadlineSeconds: 60`. No attempt quota.
 
 One ConfigMap per gated module in `lw-poc-validate`. Learners `oc edit` keys.
 The App-of-Apps `ignoreDifferences` `/data` so Argo selfHeal does not revert
-those edits. Do not copy `example-report.yaml`.
+those edits. Do not copy `example-report.yaml`. Quiz schema is V2-59.
 
-Track 1.1 / 2.1 / 2.2 / 7.2 Jobs will also read incomplete stubs in
-`lightwell-repo` (`stub-01-hummingbird-verify`, `stub-03-enterprise-proxy`,
-`stub-04-remediated-pin`, `stub-18-blast-radius`) once V2-54 fills `check.sh`.
+Track 1.1 / 2.1 / 2.2 / 7.2 also read stubs in `lightwell-repo`
+(`stub-01-hummingbird-verify`, `stub-03-enterprise-proxy`,
+`stub-04-remediated-pin`, `stub-18-blast-radius`).
 
 ## Sync waves (inside this chart)
 
@@ -59,7 +63,7 @@ before Showroom).
 |-----|---------|-------|
 | `validateJobs.enabled` | `true` | Chart gate |
 | `validateJobs.namespace` | `lw-poc-validate` | Not `lw-poc-build` |
-| `job.image` | `openshift4/ose-cli:latest` | `oc` + bash |
+| `job.image` | `openshift4/ose-cli:latest` | `oc` + `curl` + bash |
 | `job.activeDeadlineSeconds` | `60` | Plan budget |
 
 ## Local validation

@@ -14,16 +14,16 @@ metadata:
     argocd.argoproj.io/sync-wave: {{ .Values.validateJobs.syncWaves.userinfo | quote }}
 data:
   README: |
-    V2-51 scaffold. One Validate Job per gated module (1.1–7.2). Intro has none.
+    V2-54 live-state Checks. One Validate Job per gated module (1.1–7.2). Intro has none.
 
     Create the Job from ConfigMap {{ .Values.templatesConfigMap }} — do not
-    apply example-validate-job.yaml (wrong name). Fill report-<id>-<slug> in
-    {{ .Values.validateJobs.namespace }}; do not copy example-report.yaml.
+    apply example-validate-job.yaml (wrong name). Report quiz keys are V2-59;
+    this Job grades cluster objects and public Gitea files only. Do not copy
+    example-report.yaml.
 
     Jobs are idempotent and must finish under 60s. Unlimited retries: delete
     the Job, then oc create again. There is no Solve. Showroom does not lock
-    the next URL (honor system). Stubs fail until V2-54 fills cluster/git
-    checks. Report quiz keys are V2-59.
+    the next URL (honor system).
 
     Do not add runtime-automation/. Do not bake a pass path into provision.
   example-report.yaml: |

@@ -21,7 +21,7 @@ data:
   honor_system: "true"
   solve: "false"
   runtime_automation: "false"
-  stub_until: V2-54
+  live_state: V2-54
   report_schema: V2-59
   gated_module_count: {{ .Values.modules | len | quote }}
   rerun_example: |

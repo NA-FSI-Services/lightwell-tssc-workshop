@@ -31,7 +31,7 @@ applications:
     notes: OIDC provider for RHTPA; TPA realm pre-configured
   - name: Validate Jobs
     namespace: lw-poc-validate
-    notes: V2-51 scaffold — helper, 18 report ConfigMaps, learner-started Job templates (no Solve)
+    notes: V2-54 live-state Checks — helper, per-module check-NN.sh, 18 report ConfigMaps, learner-started Job templates (no Solve)
 
 seed_data:
   - Namespaces lw-poc-build (pipelines), lw-poc-staging (stage app), lw-poc-prod (prod app); Python twin lw-fastapi-student stays off (V2-12)
@@ -50,7 +50,8 @@ notes: >
   fresh-claim negatives and that every gated Validate Job fails (V2-52), then
   deletes the Jobs. Pass-path is in-cluster Validate Jobs (V2-54).
   V2-53 seeds incomplete ConfigMaps in lightwell-repo plus Gitea Dockerfile.known-bad
-  and ACS soft-skip. V2-51 scaffold: GitOps chart validate-jobs (namespace lw-poc-validate, shared
-  helper, 18 report ConfigMaps, learner-started Job templates). No runtime-automation/.
+  and ACS soft-skip. V2-54: per-module check-NN.sh grades cluster objects and public
+  Gitea files (no quiz keys — V2-59). Chart validate-jobs in namespace lw-poc-validate.
+  No runtime-automation/.
   External services required: packages.redhat.com (Lightwell registry, proxied via Nexus),
   registry.access.redhat.com (learner oc-mirror). Gitea is in-cluster.
