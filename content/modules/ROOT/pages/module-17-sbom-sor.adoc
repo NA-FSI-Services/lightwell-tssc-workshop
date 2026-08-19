@@ -88,7 +88,13 @@ image::FIXME-tpa-app-sbom-ingested.png[TPA UI after ingesting the promoted app C
 
 == Check: TPA has the promoted SBOM
 
-Pass when TPA shows a CycloneDX document for the digest you promoted in 6.2 (UI or API list). `live_csaf_gate` stays false. Honor system: 7.2 still opens.
+Pass when TPA shows a CycloneDX document for the digest you promoted in 6.2 (UI or API list). `live_csaf_gate` stays false.
+
+:validate-job: validate-17-sbom-sor
+:validate-job-template: job-17.yaml
+include::partial$validate-job-rerun.adoc[]
+
+Honor system: 7.2 still opens.
 
 == Callout: SPDX
 

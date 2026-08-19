@@ -88,6 +88,10 @@ oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=acs-image-check
 
 Pass when: Nexus GAV files were ingested; the report has the scored id + GAV + via-Lightwell token and no `REPLACE_ME`; `acs-image-check` is not `skipped`; CSAF importer is still off.
 
+:validate-job: validate-18-vex-acs
+:validate-job-template: job-18.yaml
+include::partial$validate-job-rerun.adoc[]
+
 == Callouts (not Checks)
 
 * Hummingbird / RHEL CSAF = OS layer. Do not score it.

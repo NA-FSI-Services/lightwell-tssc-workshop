@@ -94,6 +94,10 @@ cosign verify --key ~/lab-trust/cosign.pub \
 
 Pass when that command exits 0 on *your* app digest using `~/lab-trust/cosign.pub`. 5.1 keyless verify must still be possible; do not strip the Fulcio signature.
 
+:validate-job: validate-14-disconnected-verify
+:validate-job-template: job-14.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: Track 6 still opens.
 
 == Callout

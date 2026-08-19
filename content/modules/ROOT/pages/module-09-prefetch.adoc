@@ -68,6 +68,10 @@ git show HEAD:Dockerfile | grep -E 'mvn.*-o'
 
 Pass when the live Pipeline includes `prefetch-dependencies` before `openshift-build`, settings have no Central, and the Dockerfile uses `mvn -o`. Empty prefetch dir / undeclared deps fail later on `mvn -o`.
 
+:validate-job: validate-09-prefetch
+:validate-job-template: job-09.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: 4.3 still opens.
 
 == Callout: pip prefetch

@@ -80,6 +80,10 @@ test -f Dockerfile.known-bad && echo 'known-bad fixture present'
 
 Pass when active `Dockerfile` / `settings.xml` have no public `FROM`, no Central, no `curl` installers — and `Dockerfile.known-bad` still exists.
 
+:validate-job: validate-08-forbid-list
+:validate-job-template: job-08.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: 4.2 still opens.
 
 == Callout: pip forbid-list

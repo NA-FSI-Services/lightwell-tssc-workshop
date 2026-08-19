@@ -17,7 +17,7 @@ Nothing to pass *during* the two days. Instructors: xref:appendix-instructor-run
 * *Evidence:* live objects, git history, or files they kept (settings, report, dest digest). Do not grade screenshots of the Showroom *Check* section. Do not paste secrets (`LW_*`, `student_password`, `cosign.key`).
 * *Not this page:* unassisted customer PoV; Epic D (second Python app, Artifactory install, hosted Konflux, bootc/Satellite hands-on, dual-arch exercise, SIEM, physical diode).
 
-Lab pedagogy (fresh-claim negatives, worked-example fail, report keys) stays on the gated pages and future Validate Jobs. Do not re-score those here.
+Lab pedagogy (fresh-claim negatives, worked-example fail, report keys) stays on the gated pages and in-cluster Validate Jobs. Do not re-score those here.
 
 == Seven tracks
 

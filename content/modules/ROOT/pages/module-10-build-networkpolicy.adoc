@@ -63,6 +63,10 @@ Pass when:
 
 After this tighten, a PipelineRun that still pulls `registry.redhat.io` / `registry.access.redhat.com` for *new* images will hang or fail. Task images pulled in 4.2 may already be cached. That is the lesson — not a reason to reopen egress.
 
+:validate-job: validate-10-build-networkpolicy
+:validate-job-template: job-10.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: 4.4 still opens. The Check grades the live NetworkPolicy, not a YAML screenshot.
 
 == Key takeaways

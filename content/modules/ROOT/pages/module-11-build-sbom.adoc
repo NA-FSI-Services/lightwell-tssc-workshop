@@ -59,6 +59,10 @@ oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=syft-sbom-rhtpa
 
 Known-bad: start a build that uses `Dockerfile.known-bad` (or `oc start-build` with `-DdockerfilePath` if the BuildConfig allows). It must fail (public `FROM` / `curl` after 4.1–4.3). Do not leave the BuildConfig pointed at the known-bad file.
 
+:validate-job: validate-11-build-sbom
+:validate-job-template: job-11.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: Track 5 still opens.
 
 == Callout: SPDX

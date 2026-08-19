@@ -1,0 +1,13 @@
+The scored Check is Job `{validate-job}` in `lw-poc-validate`. Direct nav URLs still work (honor system). Unlimited retries. There is no Solve.
+
+.Run the Validate Job
+[source,bash,role=execute]
+----
+oc -n lw-poc-validate delete job {validate-job} --ignore-not-found
+TPL='{validate-job-template}'
+oc -n lw-poc-validate get configmap validate-job-templates \
+  -o jsonpath="\{.data['${TPL}']}" | oc create -f -
+oc -n lw-poc-validate logs -f job/{validate-job}
+----
+
+Expect `CHECK PASSED:` before you continue. `CHECK FAILED:` names the object to fix. Delete the Job and create it again as often as you need.

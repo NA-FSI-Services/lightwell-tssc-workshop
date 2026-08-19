@@ -97,6 +97,10 @@ cosign verify \
 
 Pass when that command exits 0 on *your* app digest. Record the digest (`oc -n "${BUILD_NS}" get istag spring-boot-lw-poc:latest -o jsonpath='{.image.dockerImageReference}'`) — Track 6 promotes it.
 
+:validate-job: validate-12-sign-keyless
+:validate-job-template: job-12.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: 5.2 still opens.
 
 == Key takeaways

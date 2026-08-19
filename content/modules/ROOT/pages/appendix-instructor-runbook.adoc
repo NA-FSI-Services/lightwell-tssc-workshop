@@ -146,8 +146,8 @@ Not safe to defer: 3.3, 5.3, 6.2, 7.2. Later pages assume those edits landed.
 Classic Showroom does *not* lock the next URL. Learners can open 7.2 on day one. Say so once (the intro already does). If they skip a Check, later steps fail for real.
 
 * There is *no Solve* — not a Job, not a playbook, not an instructor button. Support debugs by hand.
-* Learners may re-run each Check as often as they need. No quota. No instructor reset.
-* Validate Jobs are scaffolded in `lw-poc-validate` (helper + report ConfigMaps + Job templates). Stubs still fail until V2-54 fills track checks. Until then, grade the commands in *Check* on each page. Do not invent a lock.
+* Learners may re-run each Validate Job as often as they need. No quota. No instructor reset.
+* Jobs live in `lw-poc-validate`. Templates are ConfigMap `validate-job-templates`. The Job grades cluster/git state (not a screenshot). Do not invent a lock.
 
 == After the workshop
 

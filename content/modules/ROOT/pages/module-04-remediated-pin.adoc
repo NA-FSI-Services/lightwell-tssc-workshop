@@ -130,7 +130,11 @@ mvn -s ~/track-2-1-settings.xml ${MVN_LOCAL} -f ~/track-2-2/pom.xml \
 
 You should see `org.apache.commons:commons-lang3:jar:3.14.0.rhlw-00001` and a download path on your Nexus host. A tree that still shows plain `3.14.0`, or `5.3.18.rhlw-00003`, fails.
 
-Honor system: Track 3 still opens. When Validate Jobs ship, they grade the ConfigMap default property plus the tree tokens — not a screenshot. The `~/track-2-2/pom.xml` copy is for `mvn -f`.
+:validate-job: validate-04-remediated-pin
+:validate-job-template: job-04.yaml
+include::partial$validate-job-rerun.adoc[]
+
+Honor system: Track 3 still opens. The Validate Job grades the ConfigMap default property. The `~/track-2-2/pom.xml` copy is for `mvn -f`.
 
 Do *not*:
 

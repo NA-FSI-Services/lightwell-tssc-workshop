@@ -135,7 +135,11 @@ grep -E 'REPLACE_ME' ~/track-1-1-published-verify.sh && echo 'STILL HAS PLACEHOL
 ~/track-1-1-published-verify.sh
 ----
 
-Honor system: later modules still open if you skip this. When in-cluster Validate Jobs ship, they grade the ConfigMap (no `REPLACE_ME`, digest matches userinfo) plus a short report — not a screenshot of this terminal.
+:validate-job: validate-01-hummingbird-verify
+:validate-job-template: job-01.yaml
+include::partial$validate-job-rerun.adoc[]
+
+Honor system: later modules still open if you skip this. The Validate Job grades the ConfigMap (no `REPLACE_ME`, digest matches userinfo) — not a screenshot of this terminal.
 
 Do *not*:
 

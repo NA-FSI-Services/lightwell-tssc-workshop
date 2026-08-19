@@ -169,7 +169,11 @@ mvn -s ~/track-2-1-settings.xml ${MVN_LOCAL} -Plightwell-validated \
   -Dartifact=org.apache.commons:commons-lang3:3.14.0
 ----
 
-Honor system: later modules still open if you skip this. When Validate Jobs ship, they grade the ConfigMap (Nexus host, no `REPLACE_ME`, not the worked-example URL) plus a short report. The `~/track-2-1-settings.xml` copy is for `mvn -s`.
+:validate-job: validate-03-enterprise-proxy
+:validate-job-template: job-03.yaml
+include::partial$validate-job-rerun.adoc[]
+
+Honor system: later modules still open if you skip this. The Validate Job grades the ConfigMap (Nexus host, no `REPLACE_ME`, not the worked-example URL). The `~/track-2-1-settings.xml` copy is for `mvn -s`.
 
 == Callout: pip.conf
 

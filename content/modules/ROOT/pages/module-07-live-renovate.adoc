@@ -74,7 +74,11 @@ Pass when:
 * `lightwell-pins.properties` moved off `rhlw-00000` / all-zero digest
 * You did not recreate that diff as a hand commit
 
-Honor system: Track 4 still opens. Validate Jobs will wait with retry — they still reject a seeded or student-authored pin bump.
+:validate-job: validate-07-live-renovate
+:validate-job-template: job-07.yaml
+include::partial$validate-job-rerun.adoc[]
+
+Honor system: Track 4 still opens. The Validate Job still rejects a seeded or student-authored pin bump.
 
 == Callout: pip pins
 

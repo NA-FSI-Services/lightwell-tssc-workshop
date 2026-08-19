@@ -97,6 +97,10 @@ Pass when:
 * Default pom property is `3.14.0.rhlw-00001`
 * `lightwell-pins.properties` is still stale (bot work)
 
+:validate-job: validate-06-bind-base-deps
+:validate-job-template: job-06.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: 3.3 still opens. Still-UBI runtime `FROM` fails this Check.
 
 == Callout: Python runtime `FROM`

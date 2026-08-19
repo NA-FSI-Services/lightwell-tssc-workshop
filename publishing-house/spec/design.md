@@ -124,7 +124,7 @@ Must be provisioned before learners begin (see GitOps charts; many default-off u
 - NetworkPolicy seeds (too-open build, open operate)
 - Renovate CronJob (default-off until enabled; targets `lw-student/spring-boot-lw-poc`)
 - Tekton tasks in `lightwell-tasks`: `verify-base-image`, `conforma-policy`, `prefetch-dependencies` — **not** in the seeded pipeline
-- Validate Jobs chart (`lw-poc-validate`): helper + 18 report ConfigMaps + Job templates (stubs fail until V2-54; no Job instances at provision)
+- Validate Jobs chart (`lw-poc-validate`): helper + 18 live-state checks + report ConfigMaps + Job templates (no Job instances at provision; quiz keys are V2-59). Learners re-run Jobs from Showroom (V2-55).
 - RHDH template `lightwell-java-service` (Python template files stay in git, off)
 - ConfigMaps: `demo-userinfo-*`, `lightwell-channels`, `lightwell-maven-settings`
 

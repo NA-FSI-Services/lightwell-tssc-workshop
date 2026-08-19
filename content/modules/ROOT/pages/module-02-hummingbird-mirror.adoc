@@ -137,6 +137,10 @@ cosign verify \
   "${DEST_PULLSPEC}"
 ----
 
+:validate-job: validate-02-hummingbird-mirror
+:validate-job-template: job-02.yaml
+include::partial$validate-job-rerun.adoc[]
+
 Honor system: you can open Track 2 without a UI lock. The Check is still: ImageSet has no `REPLACE_ME`, Job `oc-mirror-learner` completed, and `cosign verify` used the *internal* digest.
 
 Do *not*:

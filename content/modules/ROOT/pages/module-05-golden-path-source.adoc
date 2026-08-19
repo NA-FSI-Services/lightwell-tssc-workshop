@@ -95,7 +95,11 @@ Expect HTTP `200` on `student_repo_url`. Open `lw-student/spring-boot-lw-poc` an
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/62
 image::FIXME-gitea-seeded-app-root.png[Seeded lw-student spring-boot-lw-poc repository root showing pom.xml,width=700,link=self,window=blank]
 
-Honor system: 3.2 still opens. When Validate Jobs ship, they grade the Gitea remotes — not a screenshot.
+:validate-job: validate-05-golden-path-source
+:validate-job-template: job-05.yaml
+include::partial$validate-job-rerun.adoc[]
+
+Honor system: 3.2 still opens. The Validate Job grades the Gitea remotes — not a screenshot.
 
 == Callout: RHDH (optional)
 
