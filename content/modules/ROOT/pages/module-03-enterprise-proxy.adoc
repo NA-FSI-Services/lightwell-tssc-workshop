@@ -161,7 +161,7 @@ Honor system: later modules still open if you skip this. When Validate Jobs ship
 
 == Callouts: pip.conf and Artifactory
 
-Python uses the same three patterns. ConfigMap `lightwell-pip-settings` shows `index-url` for Lightwell PyPI Validated (and a remediated file). You do *not* run a FastAPI app in this module.
+`pip.conf` is the analogue of `settings.xml`: `index-url` to Lightwell PyPI Validated (and a remediated file). ConfigMap `lightwell-pip-settings` shows the pattern. PEP 740 wheel attestations are the analogue of Maven GPG when the artifacts carry them — not this Check.
 
 [source,bash,role=execute]
 ----
@@ -174,5 +174,5 @@ Artifactory at a customer is a *remote* or *virtual* repository pointed at the s
 == Key takeaways
 
 * Consultants wire the customer’s artifact manager; Nexus is the RHDP stand-in.
-* Python is a sentence (`pip.conf`) on this page.
+* `pip.conf` `index-url` is the PyPI analogue of these Nexus remotes.
 * 2.2 is the exact `.rhlw-*` pin, not this Validated resolve.

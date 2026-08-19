@@ -90,9 +90,9 @@ image::FIXME-tpa-app-sbom-ingested.png[TPA UI after ingesting the promoted app C
 
 Pass when TPA shows a CycloneDX document for the digest you promoted in 6.2 (UI or API list). `live_csaf_gate` stays false. Honor system: 7.2 still opens.
 
-== Callout
+== Callout: SPDX
 
-Python SPDX vs CycloneDX is the same SoR control. Not scored here.
+Wheels typically ingest as SPDX; this Check looks for the CycloneDX document from the Maven / syft path. Either format is the system-of-record idea.
 
 == Key takeaways
 

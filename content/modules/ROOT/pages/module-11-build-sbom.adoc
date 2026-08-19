@@ -61,9 +61,9 @@ Known-bad: start a build that uses `Dockerfile.known-bad` (or `oc start-build` w
 
 Honor system: Track 5 still opens.
 
-== Callout
+== Callout: SPDX
 
-Python BuildConfig + SPDX is the same control. Not scored here.
+Wheels typically ship SPDX; this Check produces CycloneDX from the Maven / syft path. TPA still treats either format as the system of record in Track 7.
 
 == Key takeaways
 

@@ -76,9 +76,9 @@ Pass when:
 
 Honor system: Track 4 still opens. Validate Jobs will wait with retry — they still reject a seeded or student-authored pin bump.
 
-== Callout
+== Callout: pip pins
 
-Python / pip-tools “Renovate” against `requirements.txt` is the same idea. Not scored here.
+Renovate on a PyPI app watches `requirements.txt` (or `pyproject.toml`) for `+rhlw.*` bumps the same way this Check watches `lightwell-pins.properties`. This Check is the Maven pins file on Gitea.
 
 == Key takeaways
 

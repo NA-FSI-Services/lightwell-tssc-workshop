@@ -120,7 +120,6 @@ Honor system: 6.2 still opens.
 
 * A production *VM* is the same signed digest on bootc / Satellite. No VM in this claim.
 * Canary and blue-green are other strategies for that digest. This lab scores *rolling* (default Deployment).
-* Python GitOps is the same two-remote control. Not scored here.
 
 == Key takeaways
 

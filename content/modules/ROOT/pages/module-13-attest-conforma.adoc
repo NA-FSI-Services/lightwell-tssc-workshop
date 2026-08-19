@@ -96,7 +96,7 @@ Honor system: xref:module-14-disconnected-verify.adoc[5.3] still opens. Track 6 
 
 == Callout
 
-Python can run the same Task against the FastAPI digest. Not scored here. SLSA L3 / Tekton Chains is a mapping sentence, not this Check.
+SLSA L3 / Tekton Chains is a mapping sentence, not this Check. Full table: xref:appendix-konflux-mapping.adoc[Konflux mapping].
 
 == Key takeaways
 

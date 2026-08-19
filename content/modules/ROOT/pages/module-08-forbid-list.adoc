@@ -82,6 +82,10 @@ Pass when active `Dockerfile` / `settings.xml` have no public `FROM`, no Central
 
 Honor system: 4.2 still opens.
 
+== Callout: pip forbid-list
+
+On a pip app the same grep is `pypi.org` / public `index-url` in `requirements.txt` and `pip.conf`, not Maven Central. This Check is `Dockerfile` + `settings.xml`.
+
 == Key takeaways
 
 * Hermetic starts in source, before NP and prefetch.

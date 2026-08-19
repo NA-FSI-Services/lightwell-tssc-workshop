@@ -99,6 +99,10 @@ Pass when:
 
 Honor system: 3.3 still opens. Still-UBI runtime `FROM` fails this Check.
 
+== Callout: Python runtime `FROM`
+
+A Python app binds the same way: runtime `FROM` the *dest* Hummingbird Python digest (not `ubi9/python-*` on a public registry). The pin still comes from 1.2. This Check is the Java OpenJDK Dockerfile.
+
 == Key takeaways
 
 * Source of truth is the learner repo, not the operator template.

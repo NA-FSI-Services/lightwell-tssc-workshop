@@ -70,6 +70,10 @@ Pass when the live Pipeline includes `prefetch-dependencies` before `openshift-b
 
 Honor system: 4.3 still opens.
 
+== Callout: pip prefetch
+
+A PyPI app prefetches with `pip download` / `pip install --offline` against an internal `--index-url` (Lightwell PyPI on Nexus), not this Maven Task. The worked example uses `pip` on purpose so a paste fails. This Check is `prefetch-dependencies` + `mvn -o`.
+
 == Key takeaways
 
 * Hermetic prefetch is a Tekton Task on this claim.

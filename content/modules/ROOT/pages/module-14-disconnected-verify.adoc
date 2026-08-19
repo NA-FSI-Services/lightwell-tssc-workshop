@@ -100,8 +100,6 @@ Honor system: Track 6 still opens.
 
 TUF `root.json` and Fulcio/Rekor PEMs are *not* this Check. Pack them in the xref:appendix-disconnected-playbook.adoc[simulated media drop] so you can say “mirrored TUF” without claiming this cluster is air-gapped.
 
-Python can take the same `--key` pair on the FastAPI digest. Not scored here.
-
 == Key takeaways
 
 * Track 5 is keyless *and* a key-based signature you created.

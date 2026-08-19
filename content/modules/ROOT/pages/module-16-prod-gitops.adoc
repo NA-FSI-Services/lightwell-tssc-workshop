@@ -67,10 +67,6 @@ image::FIXME-argo-stage-healthy-prod-seed.png[Argo Applications console — afte
 
 Honor system: Track 7 still opens.
 
-== Callout
-
-Python prod GitOps is a second remote the same way. Not scored here.
-
 == Key takeaways
 
 * Promotion is a git commit to a second remote, not a second values file.

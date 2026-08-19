@@ -699,7 +699,7 @@ Student instructions and explainers. If a diagram or screenshot would teach a po
 | V2-41 | ~~Appendix bootc/Satellite~~ — **dropped.** Callout on 6.1. SIEM stays Epic D (V2-96). 6.2 is **prod GitOps repo** (Q25), not VM. | Q14 |
 | V2-42 | Ungated intro (`index.adoc`): seven-track diagram, what this is not, honor system; retire v1 nav | V2-30 |
 | V2-43 | Instructor two-day content grouping (not a timer); revise after dry runs | V2-0. Page: `appendix-instructor-runbook.adoc`. Visual: #72. |
-| V2-44 | Python equivalent callouts on every Java gated module (not a second path) | V2-31…37 |
+| V2-44 | Python equivalent callouts on every Java gated module (not a second path) | V2-31…37. **Applying:** one-sentence analogues only where file/syntax differs (`pip.conf`, `+rhlw.*`, `FROM` Python runtime, pip forbid-list/prefetch, SPDX). No extra Check. |
 | V2-45 | Artifactory equivalent callouts on Nexus/Lightwell modules (not a second product) | V2-32 |
 | V2-46 | Internal enablement checklist (seven tracks); scored after the workshop — not a live PoV | V2-31…37 |
 

@@ -29,7 +29,7 @@ image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird digest vers
 
 [NOTE]
 ====
-Python / other Hummingbird runtimes are a *callout* on the same TSSC story. This Check is the Java `hi/openjdk` pin from userinfo only.
+A Hummingbird Python runtime uses the same verify story (`hi/python` or the pin your catalog names). This Check is the Java `hi/openjdk` pin from userinfo.
 ====
 
 == Delivery note

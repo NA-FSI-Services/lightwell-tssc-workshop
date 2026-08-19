@@ -78,7 +78,7 @@ Pass when: Nexus GAV files were ingested; the report has the scored id + GAV + v
 == Callouts (not Checks)
 
 * Hummingbird / RHEL CSAF = OS layer. Do not score it.
-* Python SPDX/VEX analogue is text only.
+* PyPI VEX/SPDX is the same “metadata travels with the pin” idea (`+rhlw.*` on `requirements.txt`). This Check is the Maven GAV from Track 2.
 * Artifactory can host the same GAV-bound files; it is not installed on this claim.
 
 == Key takeaways

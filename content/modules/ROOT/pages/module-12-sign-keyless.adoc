@@ -99,10 +99,6 @@ Pass when that command exits 0 on *your* app digest. Record the digest (`oc -n "
 
 Honor system: 5.2 still opens.
 
-== Callout
-
-Python signs the same way (RHTAS keyless on the FastAPI digest). Not scored here.
-
 == Key takeaways
 
 * Keyless is the connected path; xref:module-14-disconnected-verify.adoc[5.3] adds a key-based signature on the same digest.

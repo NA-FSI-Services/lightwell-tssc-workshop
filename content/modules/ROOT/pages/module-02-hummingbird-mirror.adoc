@@ -24,7 +24,7 @@ image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird digest vers
 
 [NOTE]
 ====
-Python base images follow the same pin-and-mirror idea. This Check is the Java `hi/openjdk` dest only.
+A Python Hummingbird base uses the same ImageSet pin-and-mirror idea. This Check is the Java `hi/openjdk` dest digest.
 ====
 
 == Delivery note

@@ -129,7 +129,7 @@ Do *not*:
 
 == Callout: Python `+rhlw.*`
 
-The same exact-version idea on PyPI is a PEP 440 local version, for example `lw-workshop-pypi==1.0.0+rhlw.00001`. You do not run FastAPI in this module.
+The same exact-version idea on PyPI is a PEP 440 local version on `requirements.txt`, for example `lw-workshop-pypi==1.0.0+rhlw.00001`.
 
 == Key takeaways
 
