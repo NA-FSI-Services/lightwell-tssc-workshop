@@ -2,7 +2,7 @@
 
 ### Brief Overview
 
-Broken default pin on `pom.xml`. Learner reads a Lightwell OSV / fixed event and sets the exact `.rhlw-*` version (`commons-lang3:3.14.0.rhlw-00001`). Check: dependency tree shows **that** GAV from Nexus Remediated. **Callout:** Python `+rhlw.*` on requirements.txt (text only).
+Broken default pin on `pom.xml`. Learner reads a Lightwell OSV / fixed event and sets the exact `.rhlw-*` version (`commons-lang3:3.14.0.rhlw-00001`). Check: dependency tree shows **that** GAV from Nexus Remediated. **Callouts:** Python `+rhlw.*` on requirements.txt; Artifactory must allow the `.rhlw-*` suffix (text only).
 
 ### Audience and Time
 
@@ -14,6 +14,7 @@ Broken default pin on `pom.xml`. Learner reads a Lightwell OSV / fixed event and
 - Map an OSV `fixed` event to a Maven exact pin
 - Commit the pin on the scored pom (not only a profile that is never used)
 - Call out PEP 440 local version analogue
+- Call out Artifactory `.rhlw-*` suffix (same GAV; not a second Check)
 
 ### Lab Structure
 
@@ -23,6 +24,7 @@ Broken default pin on `pom.xml`. Learner reads a Lightwell OSV / fixed event and
 | 2 | Your change: pom default pin | TBD |
 | 3 | Check: tree shows `.rhlw-*` | TBD |
 | 4 | Callout: Python +rhlw | TBD |
+| 5 | Callout: Artifactory `.rhlw-*` suffix | TBD |
 
 ### Detailed Steps
 
@@ -31,6 +33,7 @@ Broken default pin on `pom.xml`. Learner reads a Lightwell OSV / fixed event and
 3. `mvn dependency:tree` with Remediated settings must list that GAV from Nexus.
 4. Optional source-diff of stub sources jar (v1 Module 4 material) as teaching, not the Check.
 5. Python callout: `package==1.0.0+rhlw.00001` style — no FastAPI repo required.
+6. Artifactory callout: same `.rhlw-*` GAV; remote naming must allow the suffix. Check is still Nexus.
 
 ### Key Takeaways
 

@@ -80,6 +80,10 @@ Honor system: Track 4 still opens. Validate Jobs will wait with retry — they s
 
 Renovate on a PyPI app watches `requirements.txt` (or `pyproject.toml`) for `+rhlw.*` bumps the same way this Check watches `lightwell-pins.properties`. This Check is the Maven pins file on Gitea.
 
+== Callout: Artifactory datasources
+
+At a customer, Renovate (or MintMaker) often reads Maven metadata from Artifactory remotes/virtuals instead of in-cluster Nexus. The Check is still a `renovate-bot` PR on Gitea against this claim’s Nexus.
+
 == Key takeaways
 
 * Consultants run Renovate against enterprise git; this cluster uses Gitea.

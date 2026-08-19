@@ -31,6 +31,7 @@ Live Renovate CronJob opens a PR on `lw-student/spring-boot-lw-poc` for stale `l
 4. Learner merges on Gitea. Then apply pins to pom/Dockerfile if not already done in 3.2.
 5. Check: merged commit author is renovate-bot; files include `lightwell-pins.properties`; not a seed SHA.
 6. **Visual (screenshot, dry-run):** Gitea PR authored by `renovate-bot` — https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/55 — do not invent the PNG here. Capture only if a live claim actually opened a PR.
+7. Callout: customer Renovate often reads Artifactory Maven remotes; Check is still Nexus + Gitea.
 
 ### Key Takeaways
 

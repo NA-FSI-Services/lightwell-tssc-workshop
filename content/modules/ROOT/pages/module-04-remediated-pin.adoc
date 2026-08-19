@@ -131,6 +131,10 @@ Do *not*:
 
 The same exact-version idea on PyPI is a PEP 440 local version on `requirements.txt`, for example `lw-workshop-pypi==1.0.0+rhlw.00001`.
 
+== Callout: Artifactory and `.rhlw-*`
+
+The remediated GAV is the same coordinate on Artifactory. The *remote* must allow the `.rhlw-*` version suffix, and Maven still resolves it from the customer virtual — not from Central. This Check is the Showroom pom against Nexus Remediated.
+
 == Key takeaways
 
 * Remediated is exact-version, not “latest”.

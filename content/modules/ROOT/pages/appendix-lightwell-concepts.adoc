@@ -54,7 +54,7 @@ Hands-on work stays in the core modules. Use this page when a learner asks “wh
 |Question |Workshop answer
 
 |How do build tools integrate?
-|Point Maven / pip clients and Nexus or Artifactory proxies at Lightwell remotes (or seeded mirrors). xref:module-03-enterprise-proxy.adoc[2.1] (Maven scored; pip / Artifactory callouts).
+|xref:module-03-enterprise-proxy.adoc[2.1] (Maven scored; pip / Artifactory callouts). Artifactory map: remote to Lightwell URL, virtual for developers, include/exclude so Lightwell GAVs do not fall through to Central.
 
 |Air-gapped?
 |Same mirror/proxy patterns used for other Red Hat content—not a unique LWN-only protocol.

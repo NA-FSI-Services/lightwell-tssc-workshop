@@ -21,6 +21,7 @@ asciidoc:
     java-validated-url: 'https://packages.redhat.com/lightwell/java/validated'
     java-remediated-url: 'https://packages.redhat.com/lightwell/java/remediated'
     java-osv-url: 'https://packages.redhat.com/lightwell/osv/java/remediated'
+    lightwell-artifactory-docs-url: 'https://docs.redhat.com/en/documentation/lightwell_network/current/configure-configure_artifactory_to_use_rhln_repository'
     python-validated-url: 'https://packages.redhat.com/lightwell/python/validated'
     python-remediated-url: 'https://packages.redhat.com/lightwell/python/remediated'
     python-validated-simple-url: 'https://packages.redhat.com/lightwell/python/validated/simple'

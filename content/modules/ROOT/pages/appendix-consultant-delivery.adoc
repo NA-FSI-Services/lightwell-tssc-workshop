@@ -57,7 +57,7 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 
 |Publish to RH registry → customer Artifactory
 |Scored mirror + callout
-|xref:module-02-hummingbird-mirror.adoc[1.2] into in-cluster dest. Artifactory is a callout only; it is not installed on this claim.
+|xref:module-02-hummingbird-mirror.adoc[1.2] into in-cluster dest. Customer dest is often Artifactory Docker — callout on 1.2. It is not installed on this claim.
 |===
 
 == Pull trusted artifacts into build
@@ -68,7 +68,7 @@ You did *not* click every engagement activity. Use the *Playbook* / *Not on this
 
 |Artifactory virtual repos → Lightwell only
 |Scored Nexus + callout
-|xref:module-03-enterprise-proxy.adoc[2.1]. Artifactory pattern is a callout. No Artifactory on the claim.
+|xref:module-03-enterprise-proxy.adoc[2.1] callout: Artifactory *remote* to Lightwell, *virtual* for Maven, include/exclude so only Lightwell paths resolve. No Artifactory on the claim.
 
 |Pull signed Hummingbird for app builds
 |Scored

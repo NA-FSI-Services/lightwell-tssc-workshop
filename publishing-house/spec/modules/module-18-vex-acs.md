@@ -28,7 +28,7 @@
 1. Userinfo keys `scored_vex_maven_cdx` / `scored_vex_maven_vex`. Worked example uses a different CVE/GAV.
 2. Learner downloads from Nexus Remediated classifiers `cdx`/`vex`, ingests to TPA.
 3. Report artifact: CVE/advisory id, status fixed, GAV matches Track 2 pin, “via Lightwell” token.
-4. Callout: Hummingbird VEX/CSAF is OS layer — do not score it.
+4. Callout: Hummingbird VEX/CSAF is OS layer — do not score it. Artifactory can host the same GAV classifiers; not installed.
 5. ACS: pipeline image check on (not the soft-skip stub). ACS is not the admission gate (6.1).
 6. **Visual (generate):** library VEX vs OS CSAF layer map — https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/53 — do not invent the PNG here.
 7. **Visual (screenshot, dry-run):** TPA after GAV VEX ingest — https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57. Not an ACS console shot (Check is pipeline, not the stub).

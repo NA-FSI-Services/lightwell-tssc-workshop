@@ -36,7 +36,7 @@ By the end of this module, you will be able to:
 |===
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/50
-image::FIXME-artifact-direct-proxied-seeded.png[Direct packages.redhat.com versus enterprise proxy versus RHDP seeded Nexus,width=700,link=self,window=blank]
+image::FIXME-artifact-direct-proxied-seeded.png[Direct packages.redhat.com versus enterprise Nexus or Artifactory proxy versus RHDP seeded Nexus,width=700,link=self,window=blank]
 
 Do *not* copy v1 `module-02-direct-vs-proxy.png` (different framing). The diagram above is the Track 2 visual.
 
@@ -159,7 +159,7 @@ mvn -s ~/track-2-1-settings.xml ${MVN_LOCAL} -Plightwell-validated \
 
 Honor system: later modules still open if you skip this. When Validate Jobs ship, they grade the settings file you keep (Nexus host, no `REPLACE_ME`, not the worked-example URL) plus a short report.
 
-== Callouts: pip.conf and Artifactory
+== Callout: pip.conf
 
 `pip.conf` is the analogue of `settings.xml`: `index-url` to Lightwell PyPI Validated (and a remediated file). ConfigMap `lightwell-pip-settings` shows the pattern. PEP 740 wheel attestations are the analogue of Maven GPG when the artifacts carry them — not this Check.
 
@@ -169,10 +169,29 @@ oc -n lightwell-repo get configmap lightwell-pip-settings \
   -o jsonpath='{.data.pip\.conf}'
 ----
 
-Artifactory at a customer is a *remote* or *virtual* repository pointed at the same Lightwell remotes. This cluster does not install Artifactory.
+== Callout: Artifactory (not installed)
+
+JFrog Artifactory is the SoW name for this enterprise-proxy pattern. The Check is still Nexus `settings.xml`. Do not paste an Artifactory client file as the scored settings.
+
+[cols="1,2",options="header"]
+|===
+|This claim (Nexus) |Customer Artifactory
+
+|Proxy or hosted Maven repo whose URL is Lightwell Validated / Remediated
+|*Remote* Maven repository. URL is `{java-validated-url}/` or `{java-remediated-url}/`. Product docs often use a repository key such as `lightwell-remote`.
+
+|Group that developers point Maven at
+|*Virtual* Maven repository that selects those Lightwell remotes (and usually nothing else for those GAVs).
+
+|Repository routing so Lightwell GAVs do not fall through to Maven Central
+|Include / exclude patterns on the virtual (and often on the remote): include Lightwell paths; exclude internal groupIds from the remote so they never leak to a public index.
+|===
+
+Artifactory naming must allow the `.rhlw-*` version suffix (`3.14.0.rhlw-00001`). Procedure: link:{lightwell-artifactory-docs-url}[Configure Artifactory to use the Lightwell Network Java repository]. This cluster does not install Artifactory.
 
 == Key takeaways
 
 * Consultants wire the customer’s artifact manager; Nexus is the RHDP stand-in.
 * `pip.conf` `index-url` is the PyPI analogue of these Nexus remotes.
+* Artifactory is remote + virtual + include/exclude against the same Lightwell URLs — not a second Check.
 * 2.2 is the exact `.rhlw-*` pin, not this Validated resolve.

@@ -700,7 +700,7 @@ Student instructions and explainers. If a diagram or screenshot would teach a po
 | V2-42 | Ungated intro (`index.adoc`): seven-track diagram, what this is not, honor system; retire v1 nav | V2-30 |
 | V2-43 | Instructor two-day content grouping (not a timer); revise after dry runs | V2-0. Page: `appendix-instructor-runbook.adoc`. Visual: #72. |
 | V2-44 | Python equivalent callouts on every Java gated module (not a second path) | V2-31…37. **Applying:** one-sentence analogues only where file/syntax differs (`pip.conf`, `+rhlw.*`, `FROM` Python runtime, pip forbid-list/prefetch, SPDX). No extra Check. |
-| V2-45 | Artifactory equivalent callouts on Nexus/Lightwell modules (not a second product) | V2-32 |
+| V2-45 | Artifactory equivalent callouts on Nexus/Lightwell modules (not a second product) | V2-32. **Applying:** talking points only on 1.2 dest, 2.1 (remote + virtual + include/exclude + docs link), 2.2 `.rhlw-*` suffix, 3.3 Renovate datasource, 7.2 GAV classifiers. No Artifactory install, no extra Check. Track 2 diagram remains #50 only — no second `[visual]`. |
 | V2-46 | Internal enablement checklist (seven tracks); scored after the workshop — not a live PoV | V2-31…37 |
 
 ### Epic E — Modify + evaluation gates

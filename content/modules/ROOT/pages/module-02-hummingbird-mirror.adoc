@@ -145,6 +145,10 @@ Do *not*:
 * Switch application `FROM` here (Track 3.2)
 * Treat 1.1 public verify as sufficient for 1.2
 
+== Callout: Artifactory as dest
+
+A customer dest is often an Artifactory Docker *remote* or local cache, not Nexus hosted Docker `hummingbird-mirror`. Same skill: ImageSet + `oc-mirror` into *their* dest; `cosign verify` the internal digest. This Check is the in-cluster Nexus dest.
+
 == Key takeaways
 
 * Mirror is a learner skill, not a finished cluster.

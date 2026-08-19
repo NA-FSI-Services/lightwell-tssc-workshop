@@ -33,6 +33,7 @@ Learner finishes the incomplete `ImageSetConfiguration` and **runs oc-mirror** s
 5. Record internal digest; `cosign verify` must use that dest digest, not only the public one from 1.1.
 6. **Visual (generate):** published vs dest digest — https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49 (same as 1.1).
 7. **Visual (screenshot, dry-run):** ImageSet after REPLACE_ME is filled — https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/54 — do not invent the PNG here.
+8. Callout: customer dest is often Artifactory Docker; Check is in-cluster Nexus `hummingbird-mirror`.
 
 ### Key Takeaways
 

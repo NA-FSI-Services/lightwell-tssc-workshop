@@ -56,7 +56,7 @@ The activity map (what you clicked vs playbook) is xref:appendix-consultant-deli
 
 |Artifactory
 |*Nexus* scored as the enterprise proxy. Artifactory is a callout on the same modules. No Artifactory install.
-|xref:module-03-enterprise-proxy.adoc[2.1]. Artifactory is a callout only. No Artifactory install on this claim.
+|xref:module-03-enterprise-proxy.adoc[2.1] callout (remote + virtual + include/exclude). Artifactory is not installed on this claim.
 
 |MintMaker / Renovate
 |Live Renovate CronJob on in-cluster Gitea. You merge a `renovate-bot` PR. Not hosted Konflux MintMaker.
