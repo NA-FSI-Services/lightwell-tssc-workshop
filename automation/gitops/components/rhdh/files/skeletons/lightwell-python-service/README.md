@@ -1,8 +1,8 @@
 # Scaffolded by the Lightwell TSSC RHDH Software Template (Showroom Module 7+).
 #
 # Publishes to in-cluster Gitea as lw-student/fastapi-lw-poc
-# (demo-userinfo-gitea → student_python_repo_url). Never use the workshop GitHub
-# monorepo as a learner remote.
+# (demo-userinfo-gitea → student_python_repo_url). Never use GitHub as a learner
+# remote; lab git is in-cluster Gitea.
 #
 # Layout at repo root (parity with Gitea seed for Modules 7–9):
 #   requirements.txt, pip.conf, pip-remediated.conf, Dockerfile, main.py, .tekton/

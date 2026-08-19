@@ -15,7 +15,7 @@ data:
     # fastapi-lw-poc — learner commands
 
     Sources: Gitea learner FastAPI remote (`requirements.txt` at clone root; seeded from
-    `workshop-templates` in #147). Do not clone the GitHub monorepo for app work.
+    `workshop-templates`). Do not clone GitHub for app work; use in-cluster Gitea.
 
     ## Install (Validated stream — Module 7)
 

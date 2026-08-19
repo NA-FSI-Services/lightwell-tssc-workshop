@@ -3,7 +3,7 @@
 :toc:
 :toclevels: 2
 
-Application source must be *learner-owned* on in-cluster Gitea. Operator templates live under `workshop-templates`. The scored remote is `lw-student/spring-boot-lw-poc` (`student_repo_url`). Do *not* clone this workshop’s GitHub monorepo.
+Application source must be *learner-owned* on in-cluster Gitea. Operator templates live under `workshop-templates`. The scored remote is `lw-student/spring-boot-lw-poc` (`student_repo_url`). Do *not* clone GitHub — lab git is this cluster’s Gitea.
 
 The scored path is the learner seed script (it also adds `renovate-bot`, required in 3.3). Red Hat Developer Hub (RHDH) `lightwell-java-service` is an optional callout, not this Check.
 
@@ -22,7 +22,7 @@ By the end of this module, you will be able to:
 Consultants do not ship from an operator template. The golden path is: copy a prepared tree into *your* org, then you own every later commit (pins, `FROM`, pipeline, GitOps).
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/60
-image::FIXME-gitea-templates-vs-learner-org.png[workshop-templates versus learner-owned lw-student remotes,width=700,link=self,window=blank]
+image::gitea-templates-vs-learner-org.png[workshop-templates versus learner-owned lw-student remotes,width=700,link=self,window=blank]
 
 == Delivery note
 

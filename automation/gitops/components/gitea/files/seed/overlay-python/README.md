@@ -19,7 +19,7 @@ pipeline / GitOps). Discover your remote from ConfigMap `demo-userinfo-gitea`
 ## Clone path
 
 ```bash
-# requirements.txt must be at repo root (never a monorepo subdirectory)
+# requirements.txt must be at repo root (not nested under app/)
 cd /tmp/fastapi-lw-poc
 ```
 
@@ -42,4 +42,4 @@ Also set `<lab-namespace>` and RHTAS Fulcio/Rekor/TUF URLs in the PipelineRun
 (from `demo-userinfo-rhtas` / cluster domain). Digest promote uses
 `student_python_gitops_repo_url` — see the companion gitops remote `PROMOTE.md`.
 
-Never clone the workshop GitHub monorepo for lab work.
+Never clone GitHub for lab work — use the in-cluster Gitea remote.
