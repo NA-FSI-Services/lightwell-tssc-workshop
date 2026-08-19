@@ -7,7 +7,7 @@ This page maps *expected client engagement activities* to what this claim actual
 This page is a map of client-engagement names, not an exercise. Nothing to pass here.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/48
-image::FIXME-seven-track-tssc-flow.png[Seven-track TSSC flow this map hangs on,width=700,link=self,window=blank]
+image::seven-track-tssc-flow.png[Seven-track TSSC flow this map hangs on,width=700,link=self,window=blank]
 
 == How to read the tables
 

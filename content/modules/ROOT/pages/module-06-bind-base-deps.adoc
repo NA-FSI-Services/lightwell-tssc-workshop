@@ -23,7 +23,7 @@ By the end of this module, you will be able to:
 If the template already `FROM` Hummingbird, Track 3 is a screenshot. Consultants must bind the *internal* digest they mirrored — the same trust boundary as 1.2.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49
-image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird versus dest digest used in Dockerfile FROM,width=700,link=self,window=blank]
+image::hummingbird-published-vs-dest.png[Published Hummingbird versus dest digest used in Dockerfile FROM,width=700,link=self,window=blank]
 
 == Delivery note
 

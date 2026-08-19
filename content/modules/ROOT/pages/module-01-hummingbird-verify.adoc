@@ -25,7 +25,7 @@ UBI is a general-purpose base. Red Hat Hardened Images (`registry.access.redhat.
 A PoV that “uses Hummingbird” but never checks the signature is a story, not a supply chain. 1.1 proves the *published* coordinate. 1.2 copies that trust into the cluster dest. Track 3 is when application `FROM` switches — not here.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/49
-image::FIXME-hummingbird-published-vs-dest.png[Published Hummingbird digest versus internal dest digest after learner oc-mirror,width=700,link=self,window=blank]
+image::hummingbird-published-vs-dest.png[Published Hummingbird digest versus internal dest digest after learner oc-mirror,width=700,link=self,window=blank]
 
 [NOTE]
 ====

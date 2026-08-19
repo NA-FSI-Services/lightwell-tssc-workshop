@@ -11,7 +11,7 @@ This page is a map, not an exercise. There is nothing to pass here. Hands-on wor
 == Seven tracks
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/48
-image::FIXME-seven-track-tssc-flow.png[Seven-track TSSC flow — Hummingbird through continuous compliance,width=700,link=self,window=blank]
+image::seven-track-tssc-flow.png[Seven-track TSSC flow — Hummingbird through continuous compliance,width=700,link=self,window=blank]
 
 Work the tracks in order. On each numbered page, *Your change* is the edit you make; *Check* is the commands that should succeed afterward. Do both before you continue — later pages assume the earlier work landed.
 
