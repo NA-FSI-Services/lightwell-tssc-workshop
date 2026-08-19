@@ -388,12 +388,28 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.components.lightwellRepo.namespace }}
+  # Learner edits ImageSet + V2-53 stubs /data. Do not let Helm wipe them.
+  ignoreDifferences:
+{{- range $name := tuple
+  "imageset-configuration"
+  "stub-01-hummingbird-verify"
+  "stub-03-enterprise-proxy"
+  "stub-04-remediated-pin"
+  "stub-18-blast-radius"
+}}
+    - group: ""
+      kind: ConfigMap
+      name: {{ $name | quote }}
+      jsonPointers:
+        - /data
+{{- end }}
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}
 
 {{- if .Values.components.renovate.enabled }}

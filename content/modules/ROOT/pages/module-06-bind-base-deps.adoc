@@ -66,7 +66,7 @@ FROM registry.example.invalid/not-hummingbird:latest
 
 . Change *only* the runtime stage `FROM` (leave the `AS build` UBI line). Use dest host + the *internal* digest from 1.2 Job logs — not the published `registry.access.redhat.com` pin from 1.1, and not `:latest`.
 
-. Change the *default* `<commons.lang3.version>` in `pom.xml` to the Track 2 pin (`3.14.0.rhlw-00001`). Do not stop at a profile that is never activated. You already practiced this on a Showroom-local pom; this commit is the scored git copy.
+. Change the *default* `<commons.lang3.version>` in `pom.xml` to the Track 2 pin (`3.14.0.rhlw-00001`). Do not stop at a profile that is never activated. You already practiced this on ConfigMap `stub-04-remediated-pin`; this commit is the scored git copy.
 
 . Do *not* edit `lightwell-pins.properties`.
 

@@ -24,6 +24,86 @@
       imageset-configuration no longer contains {{ imageset_placeholder }}
       (not a fresh claim; pass-path is V2-54)
 
+- name: Read incomplete lab stub ConfigMaps
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - configmap
+      - "{{ item.name }}"
+      - -n
+      - "{{ repo_namespace }}"
+      - -o
+      - "jsonpath={.data['{{ item.key }}']}"
+  register: lab_stub_data
+  changed_when: false
+  loop: "{{ lab_stubs }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Lab stubs are still incomplete
+  ansible.builtin.assert:
+    that:
+      - item.item.must_contain in item.stdout
+    fail_msg: >-
+      {{ item.item.name }} no longer contains {{ item.item.must_contain }}
+      (not a fresh claim; pass-path is V2-54)
+  loop: "{{ lab_stub_data.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Pin stub must not already be .rhlw
+  ansible.builtin.assert:
+    that:
+      - "'rhlw' not in item.stdout"
+    fail_msg: stub-04-remediated-pin already has an .rhlw pin (not a fresh claim)
+  loop: "{{ lab_stub_data.results }}"
+  when: item.item.name == 'stub-04-remediated-pin'
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Gitea overlay still has known-bad Dockerfile leftover
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - configmap
+      - "{{ gitea_seed_configmap }}"
+      - -n
+      - "{{ gitea_namespace }}"
+      - -o
+      - "jsonpath={.data['{{ gitea_overlay_known_bad_key }}']}"
+  register: known_bad_seed
+  changed_when: false
+
+- name: Dockerfile.known-bad seed is still a public FROM leftover
+  ansible.builtin.assert:
+    that:
+      - "'docker.io/library/eclipse-temurin' in known_bad_seed.stdout"
+    fail_msg: Gitea overlay Dockerfile.known-bad is missing the public FROM leftover
+
+- name: Gitea overlay pipeline ACS param
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - configmap
+      - "{{ gitea_seed_configmap }}"
+      - -n
+      - "{{ gitea_namespace }}"
+      - -o
+      - "jsonpath={.data['{{ gitea_overlay_pipeline_key }}']}"
+  register: overlay_pipeline
+  changed_when: false
+
+- name: ACS image check is still the soft-skip stub
+  ansible.builtin.assert:
+    that:
+      - "'fail-on-skipped' in overlay_pipeline.stdout"
+      - acs_fail_on_skipped_stub in overlay_pipeline.stdout
+      - "'value: \"true\"' not in overlay_pipeline.stdout"
+    fail_msg: overlay pipeline ACS is no longer fail-on-skipped false (7.2 already done)
+
 - name: oc-mirror-learner Job must not exist
   ansible.builtin.command:
     argv:

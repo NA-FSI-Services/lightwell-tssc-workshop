@@ -5,7 +5,7 @@
 
 Track 1 starts on a *published* Project Hummingbird / Red Hat Hardened Images runtime — not a Universal Base Image (UBI) you already trust from muscle memory, and not an image this cluster mirrored for you.
 
-In this module you discover the workshop pin from cluster userinfo, complete a *local* verify snippet (placeholders fail the Check), and run `cosign verify` against that *published* digest. You do *not* run `oc-mirror` yet. That is xref:module-02-hummingbird-mirror.adoc[1.2].
+In this module you discover the workshop pin from cluster userinfo, complete the incomplete ConfigMap snippet (placeholders fail the Check), and run `cosign verify` against that *published* digest. You do *not* run `oc-mirror` yet. That is xref:module-02-hummingbird-mirror.adoc[1.2].
 
 This claim is *not* the Hummingbird factory (Fedora / Konflux on the inside). Consultants consume a signed catalog image.
 
@@ -83,15 +83,24 @@ cosign verify \
   registry.access.redhat.com/ubi9/ubi-minimal:latest
 ----
 
-== Your change: local verify snippet
+== Your change: complete the verify ConfigMap
 
-Create `~/track-1-1-published-verify.sh` from the stub. Replace every `REPLACE_ME_*` with values you discovered (pull spec from userinfo; key URL from the Hardened Images verify documentation below). Leave a placeholder and the Check fails.
+The scored object is ConfigMap `stub-01-hummingbird-verify` in `lightwell-repo` (not a file you invent only in Showroom home). Extract it, replace every `REPLACE_ME_*` with values you discovered (pull spec from userinfo; key URL from the Hardened Images verify documentation below), then write it back. Leave a placeholder and the Check fails. Do not copy the ubi-minimal worked example.
+
+.Extract the incomplete seed
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap stub-01-hummingbird-verify \
+  -o jsonpath='{.data.published-verify\.sh}' > ~/track-1-1-published-verify.sh
+----
+
+The seed looks like this (placeholders fail):
 
 [source,bash]
 ----
 #!/usr/bin/env bash
 set -euo pipefail
-# Scored local snippet — not paste-identical to the worked example.
+# Scored snippet — not paste-identical to the worked example.
 export HUMMINGBIRD_PUBLISHED='REPLACE_ME_HUMMINGBIRD_PULLSPEC'
 cosign verify \
   --key REPLACE_ME_COSIGN_KEY \
@@ -108,10 +117,13 @@ That host is Red Hat’s key distribution, not `github.com`. If the fetch is blo
 
 See link:https://docs.redhat.com/en/documentation/red_hat_hardened_images/1-latest/html/build_and_deploy_secure_minimal_containers_with_red_hat_hardened_images/run-containerized-tools-with-red-hat-hardened-images[Verify the integrity of Red Hat Hardened Images].
 
-.Write the file in Showroom (after you filled the placeholders in an editor)
+.Write the snippet back to the ConfigMap (after you filled the placeholders)
 [source,bash,role=execute]
 ----
 chmod +x ~/track-1-1-published-verify.sh
+oc -n lightwell-repo create configmap stub-01-hummingbird-verify \
+  --from-file=published-verify.sh=$HOME/track-1-1-published-verify.sh \
+  --dry-run=client -o yaml | oc apply -f -
 grep -E 'REPLACE_ME' ~/track-1-1-published-verify.sh && echo 'STILL HAS PLACEHOLDERS' || echo 'placeholders gone'
 ----
 
@@ -123,7 +135,7 @@ grep -E 'REPLACE_ME' ~/track-1-1-published-verify.sh && echo 'STILL HAS PLACEHOL
 ~/track-1-1-published-verify.sh
 ----
 
-Honor system: later modules still open if you skip this. When in-cluster Validate Jobs ship, they will grade *state* (no `REPLACE_ME` in the snippet you keep, digest matches userinfo) plus a short report — not a screenshot of this terminal.
+Honor system: later modules still open if you skip this. When in-cluster Validate Jobs ship, they grade the ConfigMap (no `REPLACE_ME`, digest matches userinfo) plus a short report — not a screenshot of this terminal.
 
 Do *not*:
 

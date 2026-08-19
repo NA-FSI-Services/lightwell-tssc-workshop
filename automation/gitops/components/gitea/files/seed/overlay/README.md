@@ -12,6 +12,7 @@ BuildConfig image → sign). Discover your remote from ConfigMap `demo-userinfo-
 | Path | Purpose |
 |------|---------|
 | `pom.xml` / `src/` / `Dockerfile` | App sources at repository root |
+| `Dockerfile.known-bad` | V2-53 leftover (4.1 / 4.4). Not the BuildConfig Dockerfile |
 | `settings.xml` | Local Maven + LWN/Nexus (optional Secret — see Module 5) |
 | `.tekton/` | Hybrid pipeline: dep-gate → OpenShift BuildConfig → ACS → SBOM → cosign |
 | `renovate.json` / `lightwell-pins.properties` | Track 3.3 live Renovate (stale Lightwell + Hummingbird pins) |

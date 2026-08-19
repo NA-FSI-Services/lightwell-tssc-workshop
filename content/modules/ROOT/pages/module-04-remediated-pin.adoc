@@ -5,7 +5,7 @@
 
 2.1 proved Maven can see Lightwell through Nexus. Remediated artifacts are *exact-version* backports on the same upstream line (`3.14.0.rhlw-00001`), not “upgrade to latest”.
 
-In this module you read a Lightwell OSV `fixed` event, then change the *default* Maven property on a Showroom-local `pom.xml`. Activating a profile that already contains the pin, without changing default, fails the Check. You commit this pin to learner-owned Gitea in Track 3 — not here.
+In this module you read a Lightwell OSV `fixed` event, then change the *default* Maven property on ConfigMap `stub-04-remediated-pin`. Activating a profile that already contains the pin, without changing default, fails the Check. You commit this pin to learner-owned Gitea in Track 3 — not here.
 
 == Learning objectives
 
@@ -63,9 +63,19 @@ export MVN_LOCAL='-Dmaven.repo.local=/tmp/m2'
 test -f ~/track-2-1-settings.xml && echo '2.1 settings present' || echo 'complete 2.1 first'
 ----
 
-== Your change: Showroom-local pom
+== Your change: complete the pin ConfigMap
 
-Write `~/track-2-2/pom.xml`. The stub’s *default* property is the affected upstream line. Change *only* that default to the `fixed` version from `LW-DEMO-0002`. Do not rely on a profile id that already embeds the pin.
+The scored object is ConfigMap `stub-04-remediated-pin` in `lightwell-repo`. Extract it to `~/track-2-2/pom.xml`. The stub’s *default* property is the affected upstream line. Change *only* that default to the `fixed` version from `LW-DEMO-0002`, then write the ConfigMap back. Do not rely on a profile id that already embeds the pin.
+
+.Extract the incomplete seed
+[source,bash,role=execute]
+----
+mkdir -p ~/track-2-2
+oc -n lightwell-repo get configmap stub-04-remediated-pin \
+  -o jsonpath='{.data.pom\.xml}' > ~/track-2-2/pom.xml
+----
+
+The seed looks like this (default `3.14.0` fails):
 
 [source,xml]
 ----
@@ -99,11 +109,12 @@ Worked example pin (wrong GAV):
 <commons.lang3.version>5.3.18.rhlw-00003</commons.lang3.version>
 ----
 
-.Create the directory and edit the default property
+.Write the pom back to the ConfigMap (after you replace `3.14.0` with the LW-DEMO-0002 fixed version)
 [source,bash,role=execute]
 ----
-mkdir -p ~/track-2-2
-# After you replace 3.14.0 with the LW-DEMO-0002 fixed version:
+oc -n lightwell-repo create configmap stub-04-remediated-pin \
+  --from-file=pom.xml=$HOME/track-2-2/pom.xml \
+  --dry-run=client -o yaml | oc apply -f -
 grep commons.lang3.version ~/track-2-2/pom.xml
 ----
 
@@ -119,7 +130,7 @@ mvn -s ~/track-2-1-settings.xml ${MVN_LOCAL} -f ~/track-2-2/pom.xml \
 
 You should see `org.apache.commons:commons-lang3:jar:3.14.0.rhlw-00001` and a download path on your Nexus host. A tree that still shows plain `3.14.0`, or `5.3.18.rhlw-00003`, fails.
 
-Honor system: Track 3 still opens. When Validate Jobs ship, they grade the local pom default property plus the tree tokens — not a screenshot.
+Honor system: Track 3 still opens. When Validate Jobs ship, they grade the ConfigMap default property plus the tree tokens — not a screenshot. The `~/track-2-2/pom.xml` copy is for `mvn -f`.
 
 Do *not*:
 
@@ -133,10 +144,10 @@ The same exact-version idea on PyPI is a PEP 440 local version on `requirements.
 
 == Callout: Artifactory and `.rhlw-*`
 
-The remediated GAV is the same coordinate on Artifactory. The *remote* must allow the `.rhlw-*` version suffix, and Maven still resolves it from the customer virtual — not from Central. This Check is the Showroom pom against Nexus Remediated.
+The remediated GAV is the same coordinate on Artifactory. The *remote* must allow the `.rhlw-*` version suffix, and Maven still resolves it from the customer virtual — not from Central. This Check is the ConfigMap pom against Nexus Remediated.
 
 == Key takeaways
 
 * Remediated is exact-version, not “latest”.
 * Track 7 VEX is bound to this GAV.
-* The scored pom lives in Showroom until Track 3 owns git.
+* The scored pom lives in ConfigMap `stub-04-remediated-pin` until Track 3 owns git.

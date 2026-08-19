@@ -22,6 +22,24 @@ oc_mirror_job: oc-mirror-learner
 dest_repo: hummingbird-mirror
 imageset_placeholder: REPLACE_ME_HUMMINGBIRD_PULLSPEC
 
+# V2-53 incomplete ConfigMaps in lightwell-repo (Jobs grade these, not ~/ only).
+gitea_overlay_known_bad_key: overlay-Dockerfile.known-bad
+gitea_overlay_pipeline_key: overlay-tekton-pipeline.yaml
+acs_fail_on_skipped_stub: 'value: "false"'
+lab_stubs:
+  - name: stub-01-hummingbird-verify
+    key: published-verify.sh
+    must_contain: REPLACE_ME_HUMMINGBIRD_PULLSPEC
+  - name: stub-03-enterprise-proxy
+    key: settings.xml
+    must_contain: REPLACE_ME_NEXUS_URL
+  - name: stub-04-remediated-pin
+    key: pom.xml
+    must_contain: ">3.14.0<"
+  - name: stub-18-blast-radius
+    key: blast-radius.txt
+    must_contain: REPLACE_ME_VEX_ID
+
 apply_cronjob: trust-policy-apply
 gitea_seed_configmap: gitea-student-repo-seed
 gitea_userinfo: demo-userinfo-gitea

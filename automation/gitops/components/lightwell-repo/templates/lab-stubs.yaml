@@ -1,0 +1,66 @@
+{{- if and .Values.lightwellRepo.enabled .Values.labStubs.enabled }}
+---
+# V2-53 incomplete 1.1 snippet. Learner replaces REPLACE_ME; Job grades this object.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.labStubs.verify.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: lab-stub
+    tssc.workshop/module: "01"
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  {{ .Values.labStubs.verify.key }}: |
+{{ .Files.Get "files/stubs/published-verify.sh" | indent 4 }}
+---
+# V2-53 incomplete 2.1 settings. Not lightwell-maven-settings (reference).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.labStubs.settings.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: lab-stub
+    tssc.workshop/module: "03"
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  {{ .Values.labStubs.settings.key }}: |
+{{ .Files.Get "files/stubs/settings.xml" | indent 4 }}
+---
+# V2-53 incomplete 2.2 pom. Default property is the affected upstream line.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.labStubs.pom.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: lab-stub
+    tssc.workshop/module: "04"
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  {{ .Values.labStubs.pom.key }}: |
+{{ .Files.Get "files/stubs/pom.xml" | indent 4 }}
+---
+# V2-53 incomplete 7.2 blast-radius report. Quiz keys stay V2-59.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.labStubs.blastRadius.configMapName }}
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: lab-stub
+    tssc.workshop/module: "18"
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
+data:
+  {{ .Values.labStubs.blastRadius.key }}: |
+{{ .Files.Get "files/stubs/blast-radius.txt" | indent 4 }}
+{{- end }}

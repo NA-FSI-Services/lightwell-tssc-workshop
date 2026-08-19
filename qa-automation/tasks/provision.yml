@@ -51,6 +51,14 @@
     oc get configmap {{ imageset_configmap }} -n {{ repo_namespace }}
   changed_when: false
 
+- name: Incomplete lab stub ConfigMaps exist
+  ansible.builtin.command: >-
+    oc get configmap {{ item.name }} -n {{ repo_namespace }}
+  loop: "{{ lab_stubs }}"
+  loop_control:
+    label: "{{ item.name }}"
+  changed_when: false
+
 - name: oc-mirror tooling ConfigMap exists
   ansible.builtin.command: >-
     oc get configmap {{ oc_mirror_tooling }} -n {{ repo_namespace }}

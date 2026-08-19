@@ -5,7 +5,7 @@
 
 Field Lightwell Network delivery almost always puts an *enterprise artifact manager* between developers and `packages.redhat.com`. This claim uses in-cluster Nexus as that stand-in. Direct remotes exist; *seeded* Nexus is the workshop default so the Check does not require live Lightwell membership.
 
-In this module you *author* `settings.xml` from a stub (extracting the finished ConfigMap as your scored file fails). Maven must resolve a Validated GAV from Nexus, not Maven Central. You do *not* pin `.rhlw-*` yet — that is xref:module-04-remediated-pin.adoc[2.2]. You do *not* seed Gitea yet — that is Track 3.
+In this module you *complete* ConfigMap `stub-03-enterprise-proxy` (copying finished `lightwell-maven-settings` as the scored file fails). Maven must resolve a Validated GAV from Nexus, not Maven Central. You do *not* pin `.rhlw-*` yet — that is xref:module-04-remediated-pin.adoc[2.2]. You do *not* seed Gitea yet — that is Track 3.
 
 == Learning objectives
 
@@ -53,7 +53,7 @@ oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
   -o jsonpath='nexus={.data.nexus_url}{"\n"}validated={.data.channel_validated}{"\n"}remediated={.data.channel_remediated}{"\n"}mode={.data.lightwell_repo_mode}{"\n"}'
 ----
 
-ConfigMap `lightwell-maven-settings` is a *reference* (repo ids and URLs). Copying it unchanged as `~/track-2-1-settings.xml` is not the Your change — the scored file is the stub you complete.
+ConfigMap `lightwell-maven-settings` is a *reference* (repo ids and URLs). Copying it into `stub-03-enterprise-proxy` is not the Your change — complete the incomplete stub.
 
 .Peek at the reference (ids and URLs only)
 [source,bash,role=execute]
@@ -100,9 +100,18 @@ Fake host and repo id. If your scored `settings.xml` still uses this URL, the Ch
 </settings>
 ----
 
-== Your change: settings.xml from stub
+== Your change: complete the settings ConfigMap
 
-Write `~/track-2-1-settings.xml` from the stub. Replace every `REPLACE_ME_*` with values from userinfo (`nexus_url` plus `channel_validated` / `channel_remediated`). Do not leave Maven Central as the only remote for the Lightwell profiles.
+The scored object is ConfigMap `stub-03-enterprise-proxy` in `lightwell-repo`. Extract it, replace every `REPLACE_ME_*` with values from userinfo (`nexus_url` plus `channel_validated` / `channel_remediated`), then write it back. Do not leave Maven Central as the only remote for the Lightwell profiles. Do not paste the `nexus.example.invalid` worked example.
+
+.Extract the incomplete seed
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap stub-03-enterprise-proxy \
+  -o jsonpath='{.data.settings\.xml}' > ~/track-2-1-settings.xml
+----
+
+The seed looks like this (placeholders fail):
 
 [source,xml]
 ----
@@ -140,9 +149,12 @@ Write `~/track-2-1-settings.xml` from the stub. Replace every `REPLACE_ME_*` wit
 </settings>
 ----
 
-.Confirm placeholders are gone
+.Write settings back to the ConfigMap
 [source,bash,role=execute]
 ----
+oc -n lightwell-repo create configmap stub-03-enterprise-proxy \
+  --from-file=settings.xml=$HOME/track-2-1-settings.xml \
+  --dry-run=client -o yaml | oc apply -f -
 grep -E 'REPLACE_ME' ~/track-2-1-settings.xml && echo 'STILL HAS PLACEHOLDERS' || echo 'placeholders gone'
 ----
 
@@ -157,7 +169,7 @@ mvn -s ~/track-2-1-settings.xml ${MVN_LOCAL} -Plightwell-validated \
   -Dartifact=org.apache.commons:commons-lang3:3.14.0
 ----
 
-Honor system: later modules still open if you skip this. When Validate Jobs ship, they grade the settings file you keep (Nexus host, no `REPLACE_ME`, not the worked-example URL) plus a short report.
+Honor system: later modules still open if you skip this. When Validate Jobs ship, they grade the ConfigMap (Nexus host, no `REPLACE_ME`, not the worked-example URL) plus a short report. The `~/track-2-1-settings.xml` copy is for `mvn -s`.
 
 == Callout: pip.conf
 

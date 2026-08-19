@@ -119,6 +119,9 @@ spec:
       params:
         - name: image
           value: $(params.image-url)
+        # V2-53 ACS stub: soft-skip until 7.2 sets true.
+        - name: fail-on-skipped
+          value: "false"
 
     - name: syft-sbom-rhtpa
       runAfter: [acs-image-check]

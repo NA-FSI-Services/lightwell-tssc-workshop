@@ -47,6 +47,8 @@ data:
 {{ .Files.Get "files/seed/overlay/renovate.json" | indent 4 }}
   overlay-lightwell-pins.properties: |
 {{ .Files.Get "files/seed/overlay/lightwell-pins.properties" | indent 4 }}
+  overlay-Dockerfile.known-bad: |
+{{ .Files.Get "files/seed/overlay/Dockerfile.known-bad" | indent 4 }}
   # GitOps chart overlay (Module 5 Ex4 / #100) — no ./app in that remote
   overlay-gitops-README.md: |
 {{ .Files.Get "files/seed/overlay-gitops/README.md" | indent 4 }}

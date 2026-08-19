@@ -1,0 +1,4 @@
+vulnerability_id: REPLACE_ME_VEX_ID
+gav: REPLACE_ME_GAV
+status: REPLACE_ME_STATUS
+remediation: REPLACE_ME_VIA

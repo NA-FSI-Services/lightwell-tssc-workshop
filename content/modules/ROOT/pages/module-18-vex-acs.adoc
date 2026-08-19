@@ -48,7 +48,7 @@ oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57
 image::FIXME-tpa-gav-vex-ingested.png[TPA UI after ingesting GAV-bound VEX for LW-DEMO-0002,width=700,link=self,window=blank]
 
-. Write `~/track-7-2-blast-radius.txt` (Showroom-local). Placeholders fail. Allowed tokens (the Check grades these):
+. Write ConfigMap `stub-18-blast-radius` (extract, fill, write back). Placeholders fail. Allowed tokens (the Check grades these):
 
 [source,text]
 ----
@@ -60,6 +60,17 @@ remediation: REPLACE_ME_VIA
 
 Fill with `LW-DEMO-0002`, the remediated GAV (include `3.14.0.rhlw-00001`), status `fixed` (or `not_affected` if the VEX statement uses that), and remediation `via-lightwell-pin`. Do *not* claim the upstream `3.14.0` is fixed. Do *not* use `LW-DEMO-0001`.
 
+.Extract the incomplete seed, then write it back after you fill the keys
+[source,bash,role=execute]
+----
+oc -n lightwell-repo get configmap stub-18-blast-radius \
+  -o jsonpath='{.data.blast-radius\.txt}' > ~/track-7-2-blast-radius.txt
+# edit ~/track-7-2-blast-radius.txt, then:
+oc -n lightwell-repo create configmap stub-18-blast-radius \
+  --from-file=blast-radius.txt=$HOME/track-7-2-blast-radius.txt \
+  --dry-run=client -o yaml | oc apply -f -
+----
+
 . ACS: confirm Job `rhacs-ci-token-mint` in `stackrox` is Complete so Secret `rhacs-ci-secrets` has a token. On the learner Pipeline, pass `fail-on-skipped: "true"` on `acs-image-check` (seeded default is soft-skip). Re-run if the last TaskRun was `skipped`. Expect `passed` or `failed` — both prove the control is *on*. Do not screenshot Central as this Check.
 
 == Check: report tokens + ACS not skipped
@@ -69,6 +80,8 @@ Fill with `LW-DEMO-0002`, the remediated GAV (include `3.14.0.rhlw-00001`), stat
 BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
 grep -E 'REPLACE_ME' ~/track-7-2-blast-radius.txt && echo 'STILL HAS PLACEHOLDERS' || echo 'placeholders gone'
 grep -E 'LW-DEMO-0002|3.14.0.rhlw-00001|via-lightwell-pin' ~/track-7-2-blast-radius.txt
+oc -n lightwell-repo get configmap stub-18-blast-radius \
+  -o jsonpath='{.data.blast-radius\.txt}' | grep -E 'LW-DEMO-0002|3.14.0.rhlw-00001|via-lightwell-pin'
 oc -n stackrox get job rhacs-ci-token-mint
 oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=acs-image-check
 ----

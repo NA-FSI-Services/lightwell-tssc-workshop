@@ -37,6 +37,10 @@ One ConfigMap per gated module in `lw-poc-validate`. Learners `oc edit` keys.
 The App-of-Apps `ignoreDifferences` `/data` so Argo selfHeal does not revert
 those edits. Do not copy `example-report.yaml`.
 
+Track 1.1 / 2.1 / 2.2 / 7.2 Jobs will also read incomplete stubs in
+`lightwell-repo` (`stub-01-hummingbird-verify`, `stub-03-enterprise-proxy`,
+`stub-04-remediated-pin`, `stub-18-blast-radius`) once V2-54 fills `check.sh`.
+
 ## Sync waves (inside this chart)
 
 | Wave | Resources |

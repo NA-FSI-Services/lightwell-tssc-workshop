@@ -101,6 +101,10 @@ apply_overlay() {
   if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-lightwell-pins.properties" ]]; then
     cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-lightwell-pins.properties" "${ROOT}/lightwell-pins.properties"
   fi
+  # V2-53 known-bad leftover (4.1 / 4.4). Keep in git; never the BuildConfig Dockerfile.
+  if [[ -f "${SEED_MOUNT}/${OVERLAY_PREFIX}-Dockerfile.known-bad" ]]; then
+    cp "${SEED_MOUNT}/${OVERLAY_PREFIX}-Dockerfile.known-bad" "${ROOT}/Dockerfile.known-bad"
+  fi
 }
 
 case "${SOURCE_MODE}" in

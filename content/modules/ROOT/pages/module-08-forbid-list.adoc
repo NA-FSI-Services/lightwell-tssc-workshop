@@ -58,7 +58,7 @@ oc -n "${BUILD_NS}" import-image openjdk-21-builder \
 
 . In `settings.xml`, remove `repo.maven.apache.org` from the Lightwell profiles. Point remotes at in-cluster Nexus (same URLs as xref:module-03-enterprise-proxy.adoc[2.1]). Add a `<mirror>` with `mirrorOf` `*` (or `external:*`) so plugins do not hit Central — 4.2 will fail without it.
 
-. If `Dockerfile.known-bad` is missing, add it from the worked example (public `FROM` / `curl`). Do *not* set it as the BuildConfig Dockerfile. 4.4 still uses that file as a negative.
+. If `Dockerfile.known-bad` is missing from your clone, copy it from the seed (public `FROM` / `curl`). The template repo already includes it. Do *not* set it as the BuildConfig Dockerfile. 4.4 still uses that file as a negative.
 
 [source,bash,role=execute]
 ----

@@ -10,6 +10,7 @@ Post-provision readiness (< 60s). Confirms the v2 GitOps objects exist:
 - Namespaces `lw-poc-build`, `lw-poc-staging`, `lw-poc-prod`
 - NetworkPolicy `build-egress` / `app-operate`
 - Incomplete ImageSet ConfigMap, oc-mirror tooling + PVC
+- Incomplete lab stubs (`stub-01-hummingbird-verify`, `stub-03-enterprise-proxy`, `stub-04-remediated-pin`, `stub-18-blast-radius`)
 - CronJob `trust-policy-apply`
 - Tasks `verify-base-image` / `conforma-policy` / `prefetch-dependencies`
 - Showroom CLI userinfo (`cosign`, `ec`, `oc-mirror`; `syft_baked=false`)
@@ -30,6 +31,7 @@ are deleted afterward so a leftover instance is not mistaken for learner work.
 | Title item | Fresh-claim assertion | Pass-path |
 |------------|----------------------|-----------|
 | Mirror job | ImageSet still `REPLACE_ME`; Job `oc-mirror-learner` absent | V2-54 / Track 1 |
+| Lab stubs | 1.1 / 2.1 / 7.2 still `REPLACE_ME`; 2.2 still `3.14.0`; known-bad `FROM docker.io`; ACS `fail-on-skipped` false | V2-54 |
 | Cosign verify internal | No PipelineRun in `lw-poc-build`; no digest on stage ImageStream | V2-54 / Track 5 |
 | Admission deny | TrustPolicy seed `enforce: false`; no `ImagePolicy` `tssc-prod-admission` | V2-54 / Track 6.1 |
 | Validate reports | Each `report-*` still `status: REPLACE_ME`; no learner Job yet | V2-54 / V2-59 |

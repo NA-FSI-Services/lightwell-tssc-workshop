@@ -144,6 +144,19 @@ oc -n lightwell-repo edit configmap imageset-configuration
 oc -n lightwell-repo get configmap oc-mirror-tooling -o jsonpath='{.data.job\.yaml}' | oc create -f -
 ```
 
+## Incomplete lab stubs (V2-53)
+
+Four ConfigMaps in `lightwell-repo` so Validate Jobs can `oc get` learner work. Worked examples stay on the pages / `validate-docs` and are not paste-identical. Argo `ignoreDifferences` `/data` on these names plus `imageset-configuration`.
+
+| Module | ConfigMap | Seed defect | Not the scored path |
+|--------|-----------|-------------|---------------------|
+| 1.1 | `stub-01-hummingbird-verify` | `REPLACE_ME_HUMMINGBIRD_PULLSPEC` / `REPLACE_ME_COSIGN_KEY` | ubi-minimal worked example |
+| 2.1 | `stub-03-enterprise-proxy` | `REPLACE_ME_NEXUS_URL` / channel placeholders | `lightwell-maven-settings` (reference) |
+| 2.2 | `stub-04-remediated-pin` | default `<commons.lang3.version>3.14.0</commons.lang3.version>` | spring-core / `LW-DEMO-0001` |
+| 7.2 | `stub-18-blast-radius` | `REPLACE_ME_*` keys | `LW-DEMO-0001` |
+
+Gitea overlay leftovers (same issue): `Dockerfile.known-bad` (`FROM docker.io` + `curl`); pipeline `acs-image-check` `fail-on-skipped: "false"`. ImageSet, UBI `FROM`, stale pins, too-open NP, Fulcio placeholders, TrustPolicy `enforce: false`, prod digest placeholder, and `report-*` `REPLACE_ME` were already seeded in Epic B.
+
 ## Credentials
 
 ### Lightwell Network (proxy mode)
@@ -248,6 +261,7 @@ Keep `components.lightwellRepo.enabled: false` until ready to sync.
 - Issue [#145](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/145) — PyPI Validated + Remediated (always on)
 - [V2-10](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/3) — dest Docker repo + oc-mirror tooling (no pre-mirror)
 - [V2-11](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/4) — incomplete ImageSet + learner-run Job
+- [V2-53](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/35) — incomplete lab stubs + known-bad leftover
 - [V2-20](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/12) — Showroom copies oc-mirror onto PATH
 - Epic [#144](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/144) — Python path Modules 7–9 (Java + Python catalog)
 - OSV toolkit (pin parse + source diff): [`tools/osv-eval/`](../../../tools/osv-eval/) / [#25](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/25)
