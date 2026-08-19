@@ -81,5 +81,6 @@ the catalog stack is ready to sync this chart.
 
 - [V2-51](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/33)
 - Track checks: [V2-54](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/36)
+- Fresh-claim fail suite: [V2-52](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/34) (`qa-automation/e2e.yml`)
 - Report schema: [V2-59](https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/40)
 - How to run (content): V2-55 (not this chart)

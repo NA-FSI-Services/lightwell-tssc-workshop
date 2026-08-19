@@ -135,8 +135,10 @@
 
 - name: Per-module report ConfigMaps exist
   ansible.builtin.command: >-
-    oc get configmap {{ item }} -n {{ validate_namespace }}
-  loop: "{{ validate_reports }}"
+    oc get configmap {{ item.report }} -n {{ validate_namespace }}
+  loop: "{{ validate_modules }}"
+  loop_control:
+    label: "{{ item.report }}"
   changed_when: false
 
 - name: Showroom userinfo lists lab CLIs

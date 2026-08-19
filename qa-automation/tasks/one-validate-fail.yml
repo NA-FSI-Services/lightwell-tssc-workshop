@@ -1,0 +1,58 @@
+# One gated Validate Job on a fresh claim. Expect a teaching fail, then delete.
+# Loop var: validate_mod ({id, job, report}).
+
+- name: Exercise Validate Job {{ validate_mod.id }}
+  block:
+    - name: Recreate Validate Job {{ validate_mod.id }}
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc -n {{ validate_namespace }} delete job {{ validate_mod.job }} --ignore-not-found --wait=true
+        oc -n {{ validate_namespace }} get configmap {{ validate_templates }} \
+          -o jsonpath="{.data['job-{{ validate_mod.id }}.yaml']}" | oc create -f -
+      changed_when: true
+
+    - name: Wait for Validate Job {{ validate_mod.id }} to fail
+      ansible.builtin.command:
+        argv:
+          - oc
+          - wait
+          - --for=condition=Failed
+          - job/{{ validate_mod.job }}
+          - -n
+          - "{{ validate_namespace }}"
+          - --timeout={{ validate_job_wait_timeout }}
+      changed_when: false
+
+    - name: Read Validate Job {{ validate_mod.id }} logs
+      ansible.builtin.command:
+        argv:
+          - oc
+          - logs
+          - -n
+          - "{{ validate_namespace }}"
+          - job/{{ validate_mod.job }}
+      register: validate_logs
+      changed_when: false
+
+    - name: Validate Job {{ validate_mod.id }} is a teaching fail
+      ansible.builtin.assert:
+        that:
+          - "'CHECK FAILED:' in validate_logs.stdout"
+          - "'There is no Solve.' in validate_logs.stdout"
+          - "'CHECK PASSED:' not in validate_logs.stdout"
+        fail_msg: >-
+          Job {{ validate_mod.job }} did not emit a teaching CHECK FAILED
+          (a pass on a fresh claim is a bug; pass-path is V2-54)
+  always:
+    - name: Delete Validate Job {{ validate_mod.id }}
+      ansible.builtin.command:
+        argv:
+          - oc
+          - delete
+          - job
+          - "{{ validate_mod.job }}"
+          - -n
+          - "{{ validate_namespace }}"
+          - --ignore-not-found
+          - --wait=true
+      changed_when: true

@@ -622,7 +622,7 @@ Do not start writing the seven track pages until Phase 0 **exit** (issues filed,
 ### Phase 4b — Evaluation framework (parallel with Phases 1–4)
 
 - Scaffold in-cluster Validate Jobs for gated modules (V2-51: chart `validate-jobs`).
-- Negative tests: fresh claim fails all gates; after fixture “learner” edits, gates pass.
+- Negative tests: fresh claim fails all gates (V2-52: e2e starts each Job, expects `CHECK FAILED`, deletes). After fixture “learner” edits, gates pass (V2-54).
 - Teaching error strings reviewed like user-facing copy.
 - Honor system documented (classic URLs still work).
 
@@ -709,7 +709,7 @@ Student instructions and explainers. If a diagram or screenshot would teach a po
 |----|-------|------------|
 | V2-50 | ~~guided vs classic~~ — **closed: classic + Validate Jobs (honor system)** | — |
 | V2-51 | Scaffold in-cluster Validate Jobs + shared helper (not `runtime-automation/`) | V2-50. **Applying:** chart `validate-jobs`, ns `lw-poc-validate`, shared helper, 18 learner-started Job templates, report ConfigMaps (seed `status: REPLACE_ME`). No Solve, no `runtime-automation/`. Track checks are V2-54. Report keys are V2-59. |
-| V2-52 | Negative tests: fresh claim fails every track gate | V2-51 |
+| V2-52 | Negative tests: fresh claim fails every track gate | V2-51. **Applying:** `e2e.yml` creates all 18 Validate Jobs, asserts teaching `CHECK FAILED` (no Solve, not `CHECK PASSED`), then deletes them. Seed-state negatives stay in `negative.yml`. Healthcheck does not start Jobs. |
 | V2-53 | Seed incomplete/broken assets for all seven tracks | V2-51, V2-10 |
 | V2-54 | Validate Jobs Tracks 1–7 | V2-53, V2-31…37 |
 | V2-55 | Content: how to run the Job; honor-system note (no UI lock) | V2-50, V2-54 |

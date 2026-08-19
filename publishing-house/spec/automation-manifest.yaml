@@ -45,7 +45,8 @@ seed_data:
 
 notes: >
   qa-automation healthcheck confirms provisioned objects; e2e asserts the
-  fresh-claim negatives (no Solve). Pass-path is in-cluster Validate Jobs (V2-54).
+  fresh-claim negatives and that every gated Validate Job fails (V2-52), then
+  deletes the Jobs. Pass-path is in-cluster Validate Jobs (V2-54).
   V2-51 scaffold: GitOps chart validate-jobs (namespace lw-poc-validate, shared
   helper, 18 report ConfigMaps, learner-started Job templates). No runtime-automation/.
   External services required: packages.redhat.com (Lightwell registry, proxied via Nexus),

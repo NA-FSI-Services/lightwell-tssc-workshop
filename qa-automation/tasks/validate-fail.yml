@@ -1,0 +1,32 @@
+# V2-52 — every gated Validate Job fails on a fresh claim, then is deleted.
+# Does not Solve. Does not leave Job instances (so a later run still looks fresh).
+# Until V2-54 the fail reason is the scaffold stub; after V2-54 it is track state.
+
+- name: Fresh-claim Validate Jobs must fail
+  ansible.builtin.include_tasks: tasks/one-validate-fail.yml
+  loop: "{{ validate_modules }}"
+  loop_control:
+    loop_var: validate_mod
+    label: "{{ validate_mod.job }}"
+
+- name: Validate Jobs were cleaned up
+  ansible.builtin.command:
+    argv:
+      - oc
+      - get
+      - jobs
+      - -n
+      - "{{ validate_namespace }}"
+      - -l
+      - app.kubernetes.io/component=validate
+      - --no-headers
+  register: validate_jobs_leftover
+  changed_when: false
+
+- name: No Validate Job remains after e2e
+  ansible.builtin.assert:
+    that:
+      - validate_jobs_leftover.stdout | trim | length == 0
+    fail_msg: >-
+      A Validate Job remains in {{ validate_namespace }} after the fail suite
+      (delete failed; do not leave learner-looking Job instances)

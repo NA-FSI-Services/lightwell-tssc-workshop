@@ -1,18 +1,21 @@
 ---
-# E2E — Fresh-claim negative suite (V2-22)
+# E2E — Fresh-claim negative suite (V2-22 + V2-52)
 #
 # Classic Showroom has no Solve. This playbook does not run oc-mirror, sign, or
-# enforce admission. It asserts the provisioned incomplete state:
+# enforce admission. It asserts the provisioned incomplete state, then starts
+# every gated Validate Job and expects a teaching fail:
 #   - ImageSet still REPLACE_ME; oc-mirror-learner Job absent
 #   - no signed app image (no PipelineRun / stage digest) so cosign verify
 #     cannot succeed yet
 #   - unsigned deny is not live (TrustPolicy enforce: false, no ImagePolicy)
-#   - Validate reports still REPLACE_ME; no learner Validate Job instances
+#   - Validate reports still REPLACE_ME; no learner Validate Job instances yet
+#   - each of 18 Validate Jobs fails with CHECK FAILED, then is deleted
 #
-# Pass-path for those three gates is in-cluster Validate Jobs (V2-54).
+# Pass-path is in-cluster Validate Jobs (V2-54). Until then stubs fail on
+# purpose. Healthcheck stays <60s and does not start Jobs.
 #
-# Exit 0 = fresh claim matches the seed. Non-zero = stack missing or a
-# learner/support already completed a track.
+# Exit 0 = fresh claim matches the seed and every gate fails. Non-zero = stack
+# missing, a learner already completed a track, or a Job passed.
 
 - name: Environment Health Check
   import_playbook: healthcheck.yml
@@ -26,3 +29,6 @@
   tasks:
     - name: Learner gates are still incomplete
       ansible.builtin.include_tasks: tasks/negative.yml
+
+    - name: Every gated Validate Job fails
+      ansible.builtin.include_tasks: tasks/validate-fail.yml
