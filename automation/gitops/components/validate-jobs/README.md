@@ -84,8 +84,7 @@ helm template lightwell automation/gitops/bootstrap-infra \
   --set deployer.domain=apps.cluster.example.com
 ```
 
-Keep `components.validateJobs.enabled: false` in committed root values until
-the catalog stack is ready to sync this chart.
+Root-app default is `components.validateJobs.enabled: true`.
 
 ## Related
 

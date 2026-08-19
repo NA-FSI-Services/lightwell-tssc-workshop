@@ -65,7 +65,7 @@ NetworkPolicy or Showroom CLI downloads.
 Root App-of-Apps places this chart at sync wave **`25`** (after Gitea 15 and
 Nexus 20). The plan table listed 40; 25 is the dependency-correct wave.
 
-Keep `components.renovate.enabled: false` in committed root values.
+Root-app default is `components.renovate.enabled: true` (after Gitea + Nexus).
 
 ## Local validation
 

@@ -69,14 +69,14 @@ components:
   # Chart: automation/gitops/components/admission (V2-16). Enable with rhtas.
   # Learner TrustPolicy → namespaced ImagePolicy. Do not score ClusterImagePolicy.
   admission:
-    enabled: false
+    enabled: true
     namespace: tssc-admission
     syncWave: "10"
 
   # Chart: automation/gitops/components/networkpolicy (V2-21). Enable with admission.
   # Creates lw-poc-build / lw-poc-staging / lw-poc-prod. Seed: too-open hermetic + open operate.
   networkPolicy:
-    enabled: false
+    enabled: true
     namespace: lw-poc-build
     syncWave: "10"
 
@@ -105,9 +105,9 @@ components:
 
   # --- Wave 25: Live Renovate against Gitea (V2-24). After Gitea (15) + Nexus (20). ---
   # Chart: automation/gitops/components/renovate. Official image; Maven + dest Docker only.
-  # Opens PRs on lw-student/spring-boot-lw-poc after Module 2 seed. Default-off.
+  # Opens PRs on lw-student/spring-boot-lw-poc after Module 2 seed.
   renovate:
-    enabled: false
+    enabled: true
     namespace: renovate
     syncWave: "25"
 
@@ -145,9 +145,9 @@ components:
 
   # --- Wave 45: Validate Jobs scaffold (V2-51). After apps; before Showroom. ---
   # Chart: automation/gitops/components/validate-jobs. Learner-started Jobs; no Solve.
-  # Default-off. Track checks are V2-54. Report keys are V2-59.
+  # Track checks are V2-54. Report keys are V2-59.
   validateJobs:
-    enabled: false
+    enabled: true
     namespace: lw-poc-validate
     syncWave: "45"
 

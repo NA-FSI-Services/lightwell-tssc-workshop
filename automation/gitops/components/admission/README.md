@@ -84,8 +84,7 @@ helm template lightwell automation/gitops/bootstrap-infra \
   --set deployer.domain=apps.cluster.example.com
 ```
 
-Keep `components.admission.enabled: false` in committed root values until the
-cluster is ready to sync RHTAS + this chart.
+Root-app default is `components.admission.enabled: true` (with RHTAS).
 
 ## Related
 
