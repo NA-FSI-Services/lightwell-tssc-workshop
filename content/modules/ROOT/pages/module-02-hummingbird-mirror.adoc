@@ -93,7 +93,7 @@ Use `oc -n lightwell-repo edit configmap imageset-configuration` and change only
 The Job does *not* pass `--remove-signatures`. oc-mirror v2 keeps signatures and SBOM artifacts with the image by default — do not add a flag that strips them.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/54
-image::imageset-hummingbird-filled.png[ImageSetConfiguration after REPLACE_ME is replaced with the workshop Hummingbird pin,width=700,link=self,window=blank]
+image::FIXME-imageset-hummingbird-filled.png[ImageSetConfiguration after REPLACE_ME is replaced with the workshop Hummingbird pin,width=700,link=self,window=blank]
 
 .Confirm the placeholder is gone
 [source,bash,role=execute]
