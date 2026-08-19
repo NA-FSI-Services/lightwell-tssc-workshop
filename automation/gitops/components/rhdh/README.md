@@ -46,9 +46,9 @@ publishes into the **same** organization `lw-student` (Showroom Module 3).
 Files remain under `files/catalog/` and `files/skeletons/`. Set `softwareTemplates.python.enabled=true` and seed `skeletonPython` only for V2-90. V2-44 is callouts on the Java modules, not a second catalog path.
 
 **Requires** in-cluster Gitea integration (`integrations.gitea`) plus the
-`publish:gitea` dynamic plugin (`dynamicPlugins.giteaScaffolder` → GitHub Release
-asset built by `scripts/package-rhdh-gitea-scaffolder-plugin.sh`) and scaffolder
-credentials (Secret `rhdh-gitea-scaffolder`).
+`publish:gitea` dynamic plugin (`dynamicPlugins.giteaScaffolder`) and scaffolder
+credentials (Secret `rhdh-gitea-scaffolder`). The plugin is **default-off** until
+GitHub Release `rhdh-gitea-scaffolder-0.2.23` exists (#56); Hub still starts.
 Upstream `publish:gitea` requires a Gitea Organization — learners create `lw-student` in
 Module 2; the seed Job only prepares `workshop-templates/` content and the student user account.
 
