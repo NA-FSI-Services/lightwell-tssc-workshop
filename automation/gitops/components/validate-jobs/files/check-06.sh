@@ -12,4 +12,5 @@ deny_contains "${org}/${repo} Dockerfile runtime" "$df" "ubi9/openjdk-21-runtime
 deny_contains "${org}/${repo} Dockerfile" "$df" "eclipse-temurin"
 pom="$(gitea_raw "$org" "$repo" pom.xml)"
 require_contains "${org}/${repo} pom.xml" "$pom" "<commons.lang3.version>3.14.0.rhlw-00001</commons.lang3.version>"
+report_require_token runtime_from dest-digest
 pass "Learner Dockerfile runtime FROM is dest+digest and the default pom pin is the scored GAV."

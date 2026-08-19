@@ -13,4 +13,5 @@ commits="$(curl -skS --max-time 20 \
   "${base}/api/v1/repos/${org}/${repo}/commits?path=lightwell-pins.properties&limit=20" || true)"
 [[ -n "$commits" ]] || fail "Cannot list commits for lightwell-pins.properties on ${org}/${repo}."
 require_contains "lightwell-pins.properties commits" "$commits" "$bot"
+report_require_token who_changed_pins renovate-bot
 pass "lightwell-pins.properties left the seed values and a ${bot} commit is on that file."

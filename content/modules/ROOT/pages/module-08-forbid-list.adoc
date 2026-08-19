@@ -80,6 +80,11 @@ test -f Dockerfile.known-bad && echo 'known-bad fixture present'
 
 Pass when active `Dockerfile` / `settings.xml` have no public `FROM`, no Central, no `curl` installers — and `Dockerfile.known-bad` still exists.
 
+:report-name: report-08-forbid-list
+:report-key: hermetic_starts
+:report-token: source
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-08-forbid-list
 :validate-job-template: job-08.yaml
 include::partial$validate-job-rerun.adoc[]

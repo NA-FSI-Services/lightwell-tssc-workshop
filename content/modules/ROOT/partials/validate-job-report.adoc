@@ -1,0 +1,7 @@
+.Fill the report
+The Job also grades ConfigMap `{report-name}` key `{report-key}`. Set it to `{report-token}`. Empty or `REPLACE_ME` fails even if cluster state is correct. Do not copy `validate-docs`.
+
+[source,bash,role=execute]
+----
+oc -n lw-poc-validate edit configmap {report-name}
+----

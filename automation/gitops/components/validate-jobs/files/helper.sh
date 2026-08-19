@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Shared Validate Job helper. Teaching fails only. No Solve. No report quiz
-# keys here (V2-59). Live cluster/git state is V2-54.
+# Shared Validate Job helper. Teaching fails only. No Solve.
+# Live cluster/git state plus per-module report tokens (V2-59).
 
 set -euo pipefail
 
@@ -23,7 +23,7 @@ pass() {
 }
 
 not_implemented() {
-  fail "$* This scaffold does not grade track state yet (V2-54). Report keys ship in V2-59. A stub fail is not a completed Check."
+  fail "$* This Check is not implemented."
 }
 
 require_cmd() {
@@ -53,7 +53,6 @@ report_get() {
 }
 
 report_require_key() {
-  # Quiz schema is V2-59. Kept so later Jobs can call it without a helper rewrite.
   local key="$1"
   local value
   value="$(report_get "$key")"
@@ -61,6 +60,24 @@ report_require_key() {
   case "$value" in
     REPLACE_ME*) fail "Report $(report_name) key '${key}' is still a placeholder. Replace REPLACE_ME; do not copy validate-docs." ;;
   esac
+}
+
+normalize_token() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -s '[:space:]_' '-' | sed 's/^-//;s/-$//'
+}
+
+report_require_token() {
+  local key="$1"
+  shift
+  report_require_key "$key"
+  local value norm tok t
+  value="$(report_get "$key")"
+  norm="$(normalize_token "$value")"
+  for tok in "$@"; do
+    t="$(normalize_token "$tok")"
+    [[ "$norm" == "$t" ]] && return 0
+  done
+  fail "Report $(report_name) key '${key}' is '${value}'. Allowed token(s): $*"
 }
 
 module_begin() {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dispatch to per-module live-state checks (V2-54). Quiz keys are V2-59.
+# Dispatch to per-module live-state + report-token checks.
 set -euo pipefail
 # shellcheck disable=SC1091
 source /opt/validate/helper.sh

@@ -24,4 +24,5 @@ policy="$(userinfo tssc-admission demo-userinfo-admission policy_name)"
 prod="$(prod_ns)"
 oc -n "$prod" get imagepolicy.config.openshift.io "$policy" >/dev/null 2>&1 \
   || fail "ImagePolicy ${prod}/${policy} from 6.1 is missing."
+report_require_token how_promote prod-remote
 pass "lw-poc-prod sources the prod remote, the seed digest is gone, and unsigned deny is still live."

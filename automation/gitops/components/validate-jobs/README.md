@@ -1,4 +1,4 @@
-# charts/components/validate-jobs — in-cluster Checks (V2-54)
+# charts/components/validate-jobs — in-cluster Checks (V2-59)
 
 Classic Showroom, honor system, **no Solve**, no `runtime-automation/`.
 Provision does **not** create Job instances and does **not** pass any track.
@@ -12,11 +12,11 @@ Provision does **not** create Job instances and does **not** pass any track.
 | ClusterRole `validate-jobs` | get/list on lab objects (no secrets, no create) |
 | ConfigMap `validate-scripts` | Shared `helper.sh` + `check.sh` + `check-01.sh` … `check-18.sh` |
 | ConfigMap `validate-job-templates` | One `job-NN.yaml` per gated module (learner `oc create`) |
-| ConfigMap `report-<id>-<slug>` (×18) | Learner-owned short-answer report; seed `status: REPLACE_ME` (quiz keys are V2-59) |
+| ConfigMap `report-<id>-<slug>` (×18) | Learner-owned short-answer; unique quiz key seeded `REPLACE_ME` |
 | ConfigMap `demo-userinfo-validate` | Rerun example, Job/report names |
 | ConfigMap `validate-docs` | Worked examples that are **not** paste-identical |
 
-Jobs grade **live state only**: cluster objects (`oc get`) and committed files on public `lw-student` Gitea remotes (`curl`, no token). They do **not** run Showroom `cosign` / `mvn`, and they do **not** grade report quiz keys (V2-59).
+Jobs grade **live state** (`oc get` + public Gitea HTTP) **and** the per-module report token. They do **not** run Showroom `cosign` / `mvn`. Empty or wrong tokens fail even if cluster state is correct.
 
 Showroom-only gaps (still fail on a fresh claim):
 
@@ -37,9 +37,11 @@ object. `activeDeadlineSeconds: 60`. No attempt quota.
 
 ## Reports
 
-One ConfigMap per gated module in `lw-poc-validate`. Learners `oc edit` keys.
-The App-of-Apps `ignoreDifferences` `/data` so Argo selfHeal does not revert
-those edits. Do not copy `example-report.yaml`. Quiz schema is V2-59.
+One ConfigMap per gated module in `lw-poc-validate`. Learners `oc edit` the
+**unique** quiz key (seed `REPLACE_ME`). Allowed tokens are in `check-NN.sh`
+(hyphens/underscores/case fold). Do not copy `example-report.yaml`. 7.2 still
+grades structured blast-radius fields on `stub-18-blast-radius`; `report-18`
+is the SoW layer token (`vex_layer`).
 
 Track 1.1 / 2.1 / 2.2 / 7.2 also read stubs in `lightwell-repo`
 (`stub-01-hummingbird-verify`, `stub-03-enterprise-proxy`,

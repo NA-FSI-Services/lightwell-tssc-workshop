@@ -13,4 +13,5 @@ digest="$(oc -n "$ns" get istag spring-boot-lw-poc:latest \
 taskrun_succeeded "$ns" syft-sbom-rhtpa
 bad="$(gitea_raw "$org" "$repo" Dockerfile.known-bad)"
 require_contains "Dockerfile.known-bad" "$bad" "docker.io"
+report_require_token image_builder buildconfig build-config
 pass "BuildConfig image and syft SBOM exist; Dockerfile.known-bad is still present."

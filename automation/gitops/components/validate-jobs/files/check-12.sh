@@ -14,4 +14,5 @@ digest="$(oc -n "$ns" get istag spring-boot-lw-poc:latest \
   -o jsonpath='{.image.dockerImageReference}' 2>/dev/null || true)"
 [[ "$digest" == *@sha256:* || "$digest" == *sha256:* ]] \
   || fail "ImageStreamTag ${ns}/spring-boot-lw-poc:latest has no sha256 digest to verify."
+report_require_token what_you_signed app-digest
 pass "cosign-sign-keyless Succeeded on the learner app digest."

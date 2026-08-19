@@ -97,6 +97,11 @@ Pass when:
 * Default pom property is `3.14.0.rhlw-00001`
 * `lightwell-pins.properties` is still stale (bot work)
 
+:report-name: report-06-bind-base-deps
+:report-key: runtime_from
+:report-token: dest-digest
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-06-bind-base-deps
 :validate-job-template: job-06.yaml
 include::partial$validate-job-rerun.adoc[]

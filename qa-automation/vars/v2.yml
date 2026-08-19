@@ -67,54 +67,72 @@ validate_modules:
   - id: "01"
     job: validate-01-hummingbird-verify
     report: report-01-hummingbird-verify
+    quiz_key: consume_published
   - id: "02"
     job: validate-02-hummingbird-mirror
     report: report-02-hummingbird-mirror
+    quiz_key: learner_runs_mirror
   - id: "03"
     job: validate-03-enterprise-proxy
     report: report-03-enterprise-proxy
+    quiz_key: proxy_standin
   - id: "04"
     job: validate-04-remediated-pin
     report: report-04-remediated-pin
+    quiz_key: pin_kind
   - id: "05"
     job: validate-05-golden-path-source
     report: report-05-golden-path-source
+    quiz_key: git_home
   - id: "06"
     job: validate-06-bind-base-deps
     report: report-06-bind-base-deps
+    quiz_key: runtime_from
   - id: "07"
     job: validate-07-live-renovate
     report: report-07-live-renovate
+    quiz_key: who_changed_pins
   - id: "08"
     job: validate-08-forbid-list
     report: report-08-forbid-list
+    quiz_key: hermetic_starts
   - id: "09"
     job: validate-09-prefetch
     report: report-09-prefetch
+    quiz_key: hermeto_maps_to
   - id: "10"
     job: validate-10-build-networkpolicy
     report: report-10-build-networkpolicy
+    quiz_key: np_scope
   - id: "11"
     job: validate-11-build-sbom
     report: report-11-build-sbom
+    quiz_key: image_builder
   - id: "12"
     job: validate-12-sign-keyless
     report: report-12-sign-keyless
+    quiz_key: what_you_signed
   - id: "13"
     job: validate-13-attest-conforma
     report: report-13-attest-conforma
+    quiz_key: policy_owner
   - id: "14"
     job: validate-14-disconnected-verify
     report: report-14-disconnected-verify
+    quiz_key: diode_honest
   - id: "15"
     job: validate-15-gitops-admission
     report: report-15-gitops-admission
+    quiz_key: live_api
   - id: "16"
     job: validate-16-prod-gitops
     report: report-16-prod-gitops
+    quiz_key: how_promote
   - id: "17"
     job: validate-17-sbom-sor
     report: report-17-sbom-sor
+    quiz_key: sor_object
   - id: "18"
     job: validate-18-vex-acs
     report: report-18-vex-acs
+    quiz_key: vex_layer

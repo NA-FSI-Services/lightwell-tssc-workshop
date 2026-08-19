@@ -29,7 +29,7 @@ Ungated orientation for the seven-track TSSC flow. Learners see the story (Hummi
 1. Show the seven-track linear diagram (not FSI-branded). **Visual:** https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/48 — do not invent the PNG here.
 2. Call out: Java is scored; Python and Artifactory are in-module callouts; no Modules 7–9 FastAPI path.
 3. What this is not: not Konflux-on-the-claim; not a data diode; not FIPS lab evidence; VM/bootc is a Track 6 sentence.
-4. Honor system: Validate Jobs grade live cluster/git state (report quiz keys are V2-59); no UI lock; no Solve. Shared rerun snippet is `partials/validate-job-rerun.adoc` (V2-55).
+4. Honor system: Validate Jobs grade live cluster/git state and a unique report token; no UI lock; no Solve. Shared rerun snippet is `partials/validate-job-rerun.adoc`.
 5. Point at `demo-userinfo-*` ConfigMaps for discovery. Do not send learners to GitHub for lab git.
 6. Enablement is **after** the workshop: internal seven-track checklist (V2-46 / `appendix-enablement-checklist.adoc`). Not a live PoV. No visual on that page.
 

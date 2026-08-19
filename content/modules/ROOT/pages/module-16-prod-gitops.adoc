@@ -78,6 +78,11 @@ Pass when:
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
 image::FIXME-argo-stage-healthy-prod-seed.png[Argo Applications console — after this Check, lw-poc-prod is Healthy from the prod remote,width=700,link=self,window=blank]
 
+:report-name: report-16-prod-gitops
+:report-key: how_promote
+:report-token: prod-remote
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-16-prod-gitops
 :validate-job-template: job-16.yaml
 include::partial$validate-job-rerun.adoc[]

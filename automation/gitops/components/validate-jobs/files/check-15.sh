@@ -20,4 +20,5 @@ oc -n "$prod" get imagepolicy.config.openshift.io "$policy" >/dev/null 2>&1 \
 health="$(oc -n openshift-gitops get applications.argoproj.io "$argo" \
   -o jsonpath='{.status.health.status}' 2>/dev/null || true)"
 [[ "$health" == "Healthy" ]] || fail "Application ${argo} health is '${health:-missing}', not Healthy."
+report_require_token live_api imagepolicy image-policy
 pass "TrustPolicy is enforced, ImagePolicy is live on stage and prod, and ${argo} is Healthy."

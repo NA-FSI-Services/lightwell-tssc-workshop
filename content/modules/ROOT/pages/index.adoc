@@ -83,9 +83,14 @@ You walk *one* Java (Maven) supply chain on this OpenShift environment. The item
 
 The nav does not lock. You can open 7.2 on day one. Nothing in this workshop pastes the answer for you. If you skip a *Check*, later steps fail for real (wrong `FROM`, no signature, unsigned image denied).
 
-Each gated module has an in-cluster *Validate Job* in `lw-poc-validate`. Do the *Your change*. Run the Job (delete it if it already exists, create it from ConfigMap `validate-job-templates`, read the logs). Then continue. There is no Solve. Unlimited retries.
+Each gated module has an in-cluster *Validate Job* in `lw-poc-validate`. Do the *Your change*. Fill that module’s report ConfigMap token. Run the Job (delete it if it already exists, create it from ConfigMap `validate-job-templates`, read the logs). Then continue. There is no Solve. Unlimited retries.
 
 Here is 1.1 as an example:
+
+:report-name: report-01-hummingbird-verify
+:report-key: consume_published
+:report-token: consume-published
+include::partial$validate-job-report.adoc[]
 
 :validate-job: validate-01-hummingbird-verify
 :validate-job-template: job-01.yaml

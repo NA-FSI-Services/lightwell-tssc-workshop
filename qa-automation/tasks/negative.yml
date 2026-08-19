@@ -291,7 +291,7 @@
       - -n
       - "{{ validate_namespace }}"
       - -o
-      - jsonpath={.data.status}
+      - "jsonpath={.data.{{ item.quiz_key }}}"
   register: validate_report_status
   changed_when: false
   loop: "{{ validate_modules }}"
@@ -303,8 +303,8 @@
     that:
       - item.stdout | trim == report_placeholder
     fail_msg: >-
-      {{ item.item.report }} status is no longer {{ report_placeholder }}
-      (not a fresh claim; report keys are V2-59)
+      {{ item.item.report }} {{ item.item.quiz_key }} is no longer {{ report_placeholder }}
+      (not a fresh claim; quiz token was filled)
   loop: "{{ validate_report_status.results }}"
   loop_control:
     label: "{{ item.item.report }}"

@@ -9,4 +9,5 @@ nexus="$(userinfo "$REPO_NS" "$REPO_USERINFO" nexus_url)"
 require_contains "stub-03-enterprise-proxy" "$body" "$nexus"
 validated="$(userinfo "$REPO_NS" "$REPO_USERINFO" channel_validated)"
 require_contains "stub-03-enterprise-proxy" "$body" "$validated"
+report_require_token proxy_standin nexus-stand-in
 pass "settings.xml uses in-cluster Nexus Validated/Remediated, not the worked example."

@@ -147,7 +147,7 @@ Classic Showroom does *not* lock the next URL. Learners can open 7.2 on day one.
 
 * There is *no Solve* — not a Job, not a playbook, not an instructor button. Support debugs by hand.
 * Learners may re-run each Validate Job as often as they need. No quota. No instructor reset.
-* Jobs live in `lw-poc-validate`. Templates are ConfigMap `validate-job-templates`. The Job grades cluster/git state (not a screenshot). Do not invent a lock.
+* Jobs live in `lw-poc-validate`. Templates are ConfigMap `validate-job-templates`. The Job grades cluster/git state **and** the per-module report token (not a screenshot). Do not invent a lock.
 
 == After the workshop
 

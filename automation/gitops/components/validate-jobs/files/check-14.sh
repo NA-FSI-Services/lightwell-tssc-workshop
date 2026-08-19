@@ -7,4 +7,5 @@ digest="$(oc -n "$ns" get istag spring-boot-lw-poc:latest \
   -o jsonpath='{.image.dockerImageReference}' 2>/dev/null || true)"
 [[ "$digest" == *@sha256:* || "$digest" == *sha256:* ]] \
   || fail "ImageStreamTag ${ns}/spring-boot-lw-poc:latest has no sha256 digest. Finish 5.1 first."
+report_require_token diode_honest not-air-gap
 pass "App digest is present for key-based verify (Showroom ~/lab-trust is not graded by this Job)."

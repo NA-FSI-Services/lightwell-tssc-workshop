@@ -149,6 +149,11 @@ cosign verify \
   "${DEST_PULLSPEC}"
 ----
 
+:report-name: report-02-hummingbird-mirror
+:report-key: learner_runs_mirror
+:report-token: learner-mirror
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-02-hummingbird-mirror
 :validate-job-template: job-02.yaml
 include::partial$validate-job-rerun.adoc[]

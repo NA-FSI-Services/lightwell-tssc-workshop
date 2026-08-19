@@ -27,4 +27,5 @@ latest="$(printf '%s\n' "$results" | grep -v '^$' | tail -1)"
   || fail "Latest acs-image-check check-status is '${latest:-empty}' (must be passed or failed, not skipped)."
 csaf="$(cm_get trusted-profile-analyzer rhtpa-ingestion-info live_csaf_gate)"
 [[ "$csaf" == "false" ]] || fail "live_csaf_gate must stay false."
+report_require_token vex_layer gav-bound gav-bound-vex
 pass "Blast-radius tokens are scored and ACS image check is on (not skipped)."

@@ -19,4 +19,5 @@ if oc -n "$stage" get networkpolicy build-egress >/dev/null 2>&1; then
 fi
 oc -n "$stage" get networkpolicy app-operate >/dev/null \
   || fail "NetworkPolicy ${stage}/app-operate (operate seed) is missing."
+report_require_token np_scope build-ns
 pass "build-egress is hermetic in ${ns} and was not copied to staging."

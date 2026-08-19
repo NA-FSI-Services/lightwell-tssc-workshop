@@ -1,7 +1,7 @@
 {{- if .Values.validateJobs.enabled }}
 {{- range .Values.modules }}
 ---
-# Learner-owned report (V2-51). Quiz keys/tokens are V2-59.
+# Learner-owned report. Unique quiz key per module (V2-59).
 # Argo ignoreDifferences /data so selfHeal does not revert learner edits.
 apiVersion: v1
 kind: ConfigMap
@@ -17,6 +17,8 @@ metadata:
 data:
   module: {{ .id | quote }}
   title: {{ .title | quote }}
-  status: REPLACE_ME
+{{- range .quiz }}
+  {{ .key }}: REPLACE_ME
+{{- end }}
 {{- end }}
 {{- end }}

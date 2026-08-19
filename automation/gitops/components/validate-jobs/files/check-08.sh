@@ -15,4 +15,5 @@ settings="$(gitea_raw "$org" "$repo" settings.xml)"
 deny_contains "${org}/${repo} settings.xml" "$settings" "repo.maven.apache.org"
 bad="$(gitea_raw "$org" "$repo" Dockerfile.known-bad)"
 require_contains "Dockerfile.known-bad" "$bad" "docker.io"
+report_require_token hermetic_starts source
 pass "Active Dockerfile/settings are hermetic and Dockerfile.known-bad is still a leftover."

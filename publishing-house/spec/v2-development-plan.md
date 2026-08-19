@@ -716,7 +716,7 @@ Student instructions and explainers. If a diagram or screenshot would teach a po
 | V2-56 | Content: **Your change** / **Check**; examples not paste-identical | V2-31…37. **Applying:** every gated page has `== Worked example (not the Check)` with a wrong-name / wrong-value snippet before Your change. Copy-paste still fails the Validate Job. Check commands left in place (Job include remains the scored Check). No new `[visual]`. |
 | V2-57 | ~~instructor solve~~ — **closed: no Solve at all.** Support debugs by hand. | — |
 | V2-58 | Rewrite `assessment_strategy` in spec.yaml (Validate Jobs, classic) | V2-50. **Applying:** catalog paragraph in `approval_checklist.content.assessment_strategy` — classic, honor system, no UI lock, no Solve, unlimited retries, state + short-answer reports, ungated intro has no Job. No ticket IDs. `showroom_type` and stage unchanged. |
-| V2-59 | Per-module report schema (quiz keys + allowed tokens); Job grades state **and** answers | V2-51 |
+| V2-59 | Per-module report schema (quiz keys + allowed tokens); Job grades state **and** answers | V2-51. **Applying:** unique ConfigMap key per gated module (seed `REPLACE_ME`). Jobs call `report_require_token` after live state. Showroom `validate-job-report.adoc` names the key and token. No new `[visual]`. Fresh-claim e2e still expects `CHECK FAILED`. |
 
 ### Epic D — Explicitly later / out of v2 GA unless ASK pulls them in
 

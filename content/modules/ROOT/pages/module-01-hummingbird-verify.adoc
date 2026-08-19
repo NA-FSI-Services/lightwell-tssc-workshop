@@ -135,6 +135,11 @@ grep -E 'REPLACE_ME' ~/track-1-1-published-verify.sh && echo 'STILL HAS PLACEHOL
 ~/track-1-1-published-verify.sh
 ----
 
+:report-name: report-01-hummingbird-verify
+:report-key: consume_published
+:report-token: consume-published
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-01-hummingbird-verify
 :validate-job-template: job-01.yaml
 include::partial$validate-job-rerun.adoc[]

@@ -169,6 +169,11 @@ mvn -s ~/track-2-1-settings.xml ${MVN_LOCAL} -Plightwell-validated \
   -Dartifact=org.apache.commons:commons-lang3:3.14.0
 ----
 
+:report-name: report-03-enterprise-proxy
+:report-key: proxy_standin
+:report-token: nexus-stand-in
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-03-enterprise-proxy
 :validate-job-template: job-03.yaml
 include::partial$validate-job-rerun.adoc[]

@@ -37,7 +37,7 @@ seed_data:
   - Namespaces lw-poc-build (pipelines), lw-poc-staging (stage app), lw-poc-prod (prod app); Python twin lw-fastapi-student stays off (V2-12)
   - Namespace lw-poc-validate (Validate Jobs; V2-51)
   - ConfigMaps (lightwell-channels, demo-userinfo-rhdh, lightwell-pip-settings, demo-userinfo-gitea, demo-userinfo-keycloak, demo-userinfo-validate)
-  - Report ConfigMaps report-01-hummingbird-verify … report-18-vex-acs (seed status REPLACE_ME)
+  - Report ConfigMaps report-01-hummingbird-verify … report-18-vex-acs (unique quiz key seed REPLACE_ME)
   - Incomplete lab stubs in lightwell-repo (stub-01-hummingbird-verify, stub-03-enterprise-proxy, stub-04-remediated-pin, stub-18-blast-radius)
   - Gitea overlay leftover Dockerfile.known-bad; ACS fail-on-skipped false until 7.2
   - Seeded Gitea template remotes; learner org lw-student (spring-boot-lw-poc, fastapi-lw-poc, gitops-java, gitops-fastapi)
@@ -51,7 +51,7 @@ notes: >
   deletes the Jobs. Pass-path is in-cluster Validate Jobs (V2-54).
   V2-53 seeds incomplete ConfigMaps in lightwell-repo plus Gitea Dockerfile.known-bad
   and ACS soft-skip. V2-54: per-module check-NN.sh grades cluster objects and public
-  Gitea files (no quiz keys — V2-59). Chart validate-jobs in namespace lw-poc-validate.
+  Gitea files plus a unique report token per module (V2-59). Chart validate-jobs in namespace lw-poc-validate.
   No runtime-automation/.
   External services required: packages.redhat.com (Lightwell registry, proxied via Nexus),
   registry.access.redhat.com (learner oc-mirror). Gitea is in-cluster.

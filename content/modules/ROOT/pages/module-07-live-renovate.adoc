@@ -83,6 +83,11 @@ Pass when:
 * `lightwell-pins.properties` moved off `rhlw-00000` / all-zero digest
 * You did not recreate that diff as a hand commit
 
+:report-name: report-07-live-renovate
+:report-key: who_changed_pins
+:report-token: renovate-bot
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-07-live-renovate
 :validate-job-template: job-07.yaml
 include::partial$validate-job-rerun.adoc[]

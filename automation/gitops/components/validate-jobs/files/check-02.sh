@@ -8,4 +8,5 @@ deny_contains "imageset-configuration" "$body" "ubi-minimal"
 pin="$(userinfo "$REPO_NS" "$REPO_USERINFO" hummingbird_source_pullspec)"
 require_contains "imageset-configuration" "$body" "$pin"
 job_succeeded "$REPO_NS" oc-mirror-learner
+report_require_token learner_runs_mirror learner-mirror
 pass "ImageSet is the Hummingbird pin and Job oc-mirror-learner Completed."

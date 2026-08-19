@@ -82,6 +82,11 @@ Pass when:
 
 After this tighten, a PipelineRun that still pulls `registry.redhat.io` / `registry.access.redhat.com` for *new* images will hang or fail. Task images pulled in 4.2 may already be cached. That is the lesson — not a reason to reopen egress.
 
+:report-name: report-10-build-networkpolicy
+:report-key: np_scope
+:report-token: build-ns
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-10-build-networkpolicy
 :validate-job-template: job-10.yaml
 include::partial$validate-job-rerun.adoc[]

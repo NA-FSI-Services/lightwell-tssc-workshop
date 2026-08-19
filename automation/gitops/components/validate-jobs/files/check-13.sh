@@ -19,4 +19,5 @@ live="$(pipeline_yaml "$ns" spring-boot-lw-poc-build-sign)"
 task_before "$live" cosign-sign-keyless conforma-policy "Pipeline ${ns}/spring-boot-lw-poc-build-sign"
 printf '%s\n' "$live" | grep -A3 'policy-namespace' | grep -q "$ns" \
   || fail "conforma-policy policy-namespace must be ${ns} (the tightened copy), not lightwell-tasks."
+report_require_token policy_owner learner-copy
 pass "Conforma copy in ${ns} is tightened and runs after cosign-sign-keyless."

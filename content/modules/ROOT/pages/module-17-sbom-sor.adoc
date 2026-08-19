@@ -90,6 +90,11 @@ image::FIXME-tpa-app-sbom-ingested.png[TPA UI after ingesting the promoted app C
 
 Pass when TPA shows a CycloneDX document for the digest you promoted in 6.2 (UI or API list). `live_csaf_gate` stays false.
 
+:report-name: report-17-sbom-sor
+:report-key: sor_object
+:report-token: promoted-digest
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-17-sbom-sor
 :validate-job-template: job-17.yaml
 include::partial$validate-job-rerun.adoc[]

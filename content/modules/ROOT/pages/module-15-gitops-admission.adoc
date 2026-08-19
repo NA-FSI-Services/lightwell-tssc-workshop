@@ -114,6 +114,11 @@ Pass when: TrustPolicy has no `REPLACE_ME` and `enforce: true`; ImagePolicy is l
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/69
 image::FIXME-unsigned-deny-imagepullbackoff.png[Throwaway unsigned tag pod in ImagePullBackOff while signed latest stays running,width=700,link=self,window=blank]
 
+:report-name: report-15-gitops-admission
+:report-key: live_api
+:report-token: imagepolicy
+include::partial$validate-job-report.adoc[]
+
 :validate-job: validate-15-gitops-admission
 :validate-job-template: job-15.yaml
 include::partial$validate-job-rerun.adoc[]

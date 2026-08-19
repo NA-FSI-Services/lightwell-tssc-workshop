@@ -34,15 +34,13 @@ are deleted afterward so a leftover instance is not mistaken for learner work.
 | Lab stubs | 1.1 / 2.1 / 7.2 still `REPLACE_ME`; 2.2 still `3.14.0`; known-bad `FROM docker.io`; ACS `fail-on-skipped` false | V2-54 |
 | Cosign verify internal | No PipelineRun in `lw-poc-build`; no digest on stage ImageStream | V2-54 / Track 5 |
 | Admission deny | TrustPolicy seed `enforce: false`; no `ImagePolicy` `tssc-prod-admission` | V2-54 / Track 6.1 |
-| Validate reports | Each `report-*` still `status: REPLACE_ME`; no learner Job yet | V2-54 / V2-59 |
-| Validate Jobs (×18) | Each Job fails with `CHECK FAILED` / no Solve; none left behind | V2-54 |
+| Validate reports | Each unique quiz key still `REPLACE_ME`; no learner Job yet | V2-59 |
+| Validate Jobs (×18) | Each Job fails with `CHECK FAILED` / no Solve; none left behind | V2-54 / V2-59 |
 
-Until V2-59 the Job fail reason is live seed state (placeholders, missing
-repos, too-open NP). After V2-59 the same e2e still fails on a fresh claim,
-and also on empty quiz keys.
-
-Re-running e2e after a learner finishes a track is expected to **fail** (seed
-state already changed, or a Job would pass).
+On a fresh claim Jobs fail on live seed state (placeholders, missing repos,
+too-open NP) **or** on empty quiz tokens. Re-running e2e after a learner
+finishes a track is expected to **fail** (seed state already changed, or a Job
+would pass).
 
 e2e is longer than healthcheck (18 Jobs; first `ose-cli` pull may dominate).
 
