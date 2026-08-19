@@ -36,7 +36,7 @@ By the end of this module, you will be able to:
 |===
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/50
-image::FIXME-artifact-direct-proxied-seeded.png[Direct packages.redhat.com versus enterprise Nexus or Artifactory proxy versus RHDP seeded Nexus,width=700,link=self,window=blank]
+image::artifact-direct-proxied-seeded.png[Direct packages.redhat.com versus enterprise Nexus or Artifactory proxy versus RHDP seeded Nexus,width=700,link=self,window=blank]
 
 Do *not* copy v1 `module-02-direct-vs-proxy.png` (different framing). The diagram above is the Track 2 visual.
 

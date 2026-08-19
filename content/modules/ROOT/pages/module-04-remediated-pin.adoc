@@ -26,7 +26,7 @@ Production Lightwell OSV ids look like `RHLW-YYYY-NNNN`. This workshop uses dete
 Upstream `3.14.0` stays affected. The Lightwell pin is the `fixed` event. Track 7 VEX is bound to *this* GAV.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/59
-image::FIXME-osv-fixed-to-rhlw-pin.png[OSV fixed event mapped to a Maven default .rhlw pin,width=700,link=self,window=blank]
+image::osv-fixed-to-rhlw-pin.png[OSV fixed event mapped to a Maven default .rhlw pin,width=700,link=self,window=blank]
 
 == Delivery note
 
