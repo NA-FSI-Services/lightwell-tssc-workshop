@@ -69,6 +69,23 @@
     oc get pvc {{ oc_mirror_pvc }} -n {{ repo_namespace }}
   changed_when: false
 
+- name: Lightwell-repo userinfo ConfigMap exists
+  ansible.builtin.command: >-
+    oc get configmap {{ repo_userinfo }} -n {{ repo_namespace }}
+    -o json
+  register: repo_userinfo_json
+  changed_when: false
+
+- name: Lightwell-repo userinfo has dest mirror and published pin
+  ansible.builtin.assert:
+    that:
+      - (repo_userinfo_json.stdout | from_json).data.dest_registry_repo == dest_repo
+      - (repo_userinfo_json.stdout | from_json).data.hummingbird_source_pullspec | length > 0
+      - (repo_userinfo_json.stdout | from_json).data.oc_mirror_pre_stage_scored_image == "false"
+    fail_msg: >-
+      {{ repo_userinfo }} missing dest {{ dest_repo }} or hummingbird_source_pullspec
+      (Argo likely still waiting on {{ oc_mirror_pvc }}; see #54)
+
 - name: TrustPolicy apply CronJob exists
   ansible.builtin.command: >-
     oc get cronjob {{ apply_cronjob }} -n {{ admission_namespace }}

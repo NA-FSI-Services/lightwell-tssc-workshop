@@ -12,7 +12,11 @@ metadata:
     {{- include "lightwell-repo.labels" . | nindent 4 }}
     app.kubernetes.io/component: oc-mirror
   annotations:
+    # No provision Job mounts this PVC (V2-11). WaitForFirstConsumer stays Pending;
+    # Argo treats that as Progressing and will not start a later wave (#54).
+    # ignore-healthcheck: Application health only — it does not advance waves.
     argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+    argocd.argoproj.io/ignore-healthcheck: "true"
 spec:
   accessModes:
     - ReadWriteOnce

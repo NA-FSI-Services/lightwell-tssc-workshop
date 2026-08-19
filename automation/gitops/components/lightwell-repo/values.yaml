@@ -16,7 +16,9 @@ lightwellRepo:
     route: "3"
     seed: "4"
     ocMirror: "4"
-    userinfo: "5"
+    # Same wave as ocMirror. The workspace PVC has no provision consumer (V2-11);
+    # a later userinfo wave never applies (WaitForFirstConsumer / #54).
+    userinfo: "4"
 
 # Sonatype Nexus Repository Manager 3 (enterprise artifact-manager stand-in)
 nexus:

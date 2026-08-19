@@ -20,6 +20,7 @@ oc_mirror_tooling: oc-mirror-tooling
 oc_mirror_pvc: oc-mirror-workspace
 oc_mirror_job: oc-mirror-learner
 dest_repo: hummingbird-mirror
+repo_userinfo: demo-userinfo-lightwell-repo
 imageset_placeholder: REPLACE_ME_HUMMINGBIRD_PULLSPEC
 
 # V2-53 incomplete ConfigMaps in lightwell-repo (Jobs grade these, not ~/ only).

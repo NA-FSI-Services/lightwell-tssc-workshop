@@ -101,8 +101,7 @@ Override the Commons Lang download URL with env `COMMONS_LANG3_JAR_URL` on the s
 | `1` | Credentials / Nexus admin placeholders, channel / Maven / pip / OSV / seed ConfigMaps |
 | `2` | Nexus Deployment + PVC + Service |
 | `3` | OpenShift Route |
-| `4` | Seed RBAC + Job `lightwell-repo-seed` + oc-mirror PVC/SA/tooling (no Hummingbird pull) |
-| `5` | RHDP userinfo |
+| `4` | Seed RBAC + Job `lightwell-repo-seed` + oc-mirror PVC/SA/tooling (no Hummingbird pull) + RHDP userinfo (same wave as the empty workspace PVC — #54) |
 
 Root App-of-Apps places this chart at sync wave **`20`**.
 
