@@ -42,7 +42,16 @@ oc -n renovate get configmap renovate-docs \
   -o jsonpath='{.data.example-renovate-pr\.md}'
 ----
 
-The worked example author is `student` and the file is `pom.xml` / Jackson — that is *not* the Check.
+== Worked example (not the Check)
+
+A hand commit by `student` on `pom.xml` / Jackson. If that is what landed on `main`, the Check fails.
+
+[source,bash]
+----
+# Worked example ONLY — wrong author, wrong file. Do not commit this as the Check.
+git commit --author='student <student@example.invalid>' \
+  -m 'Bump jackson-databind' pom.xml
+----
 
 == Your change: merge the renovate-bot PR
 

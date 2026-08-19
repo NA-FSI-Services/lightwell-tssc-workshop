@@ -53,6 +53,17 @@ chmod +x /tmp/learner-ensure-gitea-user.sh
 
 Open `gitea_url` and sign in as `student`.
 
+== Worked example (not the Check)
+
+GitHub or the operator template org. If `student_repo_url` still points here, the Check fails.
+
+[source,bash]
+----
+# Worked example ONLY — not the scored remote.
+git clone https://github.com/example/spring-boot-lw-poc.git
+# or: git clone <template_app_repo_url>   # workshop-templates, not lw-student
+----
+
 == Your change: org, empty repos, seed script
 
 . In Gitea: *+* → *New Organization*. Name exactly `lw-student`. Visibility *Public* → *Create Organization*.

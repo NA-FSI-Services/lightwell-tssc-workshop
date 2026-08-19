@@ -35,7 +35,21 @@ oc -n lightwell-tasks get configmap prefetch-dependencies-docs \
   -o jsonpath='{.data.example-pipeline-snippet\.yaml}'
 ----
 
-The worked example is named `hermeto`, uses `pip`, and `runAfter: [acs-image-check]` (too late). Paste-identical copy fails.
+== Worked example (not the Check)
+
+Named `hermeto`, uses `pip`, and `runAfter: [acs-image-check]` (too late). Paste-identical copy fails.
+
+[source,yaml]
+----
+# Worked example ONLY — Konflux name, wrong ecosystem, wrong order.
+- name: hermeto
+  runAfter: [acs-image-check]
+  taskRef:
+    name: hermeto
+  params:
+    - name: pip-requirements
+      value: requirements.txt
+----
 
 == Your change: add the Task; Dockerfile `mvn -o`
 

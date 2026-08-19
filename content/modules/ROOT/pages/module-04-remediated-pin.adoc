@@ -63,6 +63,18 @@ export MVN_LOCAL='-Dmaven.repo.local=/tmp/m2'
 test -f ~/track-2-1-settings.xml && echo '2.1 settings present' || echo 'complete 2.1 first'
 ----
 
+== Worked example (not the Check)
+
+Spring-core / `LW-DEMO-0001`. If the default property on `stub-04-remediated-pin` is this pin, the Check fails.
+
+[source,xml]
+----
+<!-- Worked example ONLY — different GAV. Do not use as the default commons.lang3.version. -->
+<properties>
+  <commons.lang3.version>5.3.18.rhlw-00003</commons.lang3.version>
+</properties>
+----
+
 == Your change: complete the pin ConfigMap
 
 The scored object is ConfigMap `stub-04-remediated-pin` in `lightwell-repo`. Extract it to `~/track-2-2/pom.xml`. The stub’s *default* property is the affected upstream line. Change *only* that default to the `fixed` version from `LW-DEMO-0002`, then write the ConfigMap back. Do not rely on a profile id that already embeds the pin.

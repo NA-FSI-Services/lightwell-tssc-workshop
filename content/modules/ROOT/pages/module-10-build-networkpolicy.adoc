@@ -34,7 +34,26 @@ oc -n lw-poc-build get configmap networkpolicy-docs \
   -o jsonpath='{.data.example-hermetic-egress\.yaml}'
 ----
 
-Worked example: policy name `example-hermetic-egress`, namespace `example-build-ns`, extra CIDR `8.8.8.8/32`. Paste-identical copy fails.
+== Worked example (not the Check)
+
+Policy name `example-hermetic-egress`, namespace `example-build-ns`, extra CIDR `8.8.8.8/32`. Paste-identical copy fails.
+
+[source,yaml]
+----
+# Worked example ONLY — wrong name, wrong namespace, public DNS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: example-hermetic-egress
+  namespace: example-build-ns
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 8.8.8.8/32
+----
 
 Allow-list (from userinfo keys — do not invent CIDRs):
 

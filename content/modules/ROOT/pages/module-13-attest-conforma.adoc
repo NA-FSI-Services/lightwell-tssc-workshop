@@ -37,7 +37,21 @@ oc -n lightwell-tasks get configmap conforma-policy-docs \
   -o jsonpath='{.data.example-pipeline-snippet\.yaml}'
 ----
 
-The worked example is named `verify-enterprise-contract`, `runAfter: [clone]` (before sign), fake `example.invalid` identity, skip left on, image `docker.io/library/java:latest`. Paste-identical copy fails.
+== Worked example (not the Check)
+
+Named `verify-enterprise-contract`, `runAfter: [clone]` (before sign), fake `example.invalid` identity, skip left on, image `docker.io/library/java:latest`. Paste-identical copy fails.
+
+[source,yaml]
+----
+# Worked example ONLY — wrong Task name, runs before sign, public image.
+- name: verify-enterprise-contract
+  runAfter: [clone]
+  params:
+    - name: POLICY_CONFIGURATION
+      value: example.invalid/not-tightened
+    - name: IMAGES
+      value: docker.io/library/java:latest
+----
 
 == Your change: copy, tighten, wire
 

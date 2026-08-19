@@ -47,14 +47,26 @@ oc -n lightwell-repo get configmap imageset-configuration \
   -o jsonpath='{.data.imageset-config\.yaml}'
 ----
 
-.Worked example (different image — pasting this into the scored ConfigMap still fails)
+.Cluster copy of the worked example (do not paste into the scored ConfigMap)
 [source,bash,role=execute]
 ----
 oc -n lightwell-repo get configmap oc-mirror-tooling \
   -o jsonpath='{.data.example-imageset\.yaml}'
 ----
 
-The worked example uses `registry.access.redhat.com/ubi9/ubi-minimal:latest`. The scored file must name the *digest pin* from `hummingbird_source_pullspec`.
+== Worked example (not the Check)
+
+UBI, not Hummingbird. If `imageset-configuration` still names this image, the Check fails.
+
+[source,yaml]
+----
+# Worked example ONLY — ubi-minimal. The scored ImageSet must be the Hummingbird digest pin.
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v2alpha1
+mirror:
+  additionalImages:
+    - name: registry.access.redhat.com/ubi9/ubi-minimal:latest
+----
 
 == Your change: ImageSet
 

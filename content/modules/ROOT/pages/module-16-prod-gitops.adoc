@@ -26,6 +26,19 @@ Konflux *Release Service* maps to this commit (xref:appendix-konflux-mapping.ado
 
 *Customers* promote by merging to a prod GitOps repo (or Release). *You* push the digest you already signed. Unsigned deny from 6.1 must still hold.
 
+== Worked example (not the Check)
+
+Stage `values.yaml` / `PROMOTE.md`, or retarget Argo at the stage remote. Paste-identical copy fails.
+
+[source,yaml]
+----
+# Worked example ONLY — still the seed; do not copy this onto the prod remote.
+image:
+  digest: sha256:REPLACE_ME_PROD_DIGEST
+replicas: 0
+# Also not the Check: point Application lw-poc-prod at gitops-spring-boot-lw-poc (stage).
+----
+
 == Your change: prod tag + prod commit
 
 [source,bash,role=execute]

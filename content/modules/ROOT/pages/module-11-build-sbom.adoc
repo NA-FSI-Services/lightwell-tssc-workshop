@@ -21,6 +21,21 @@ Konflux “build” on hosted Konflux is often Buildah. This claim maps that con
 
 *Customers* get a signed, SBOMed image from CI. *You* prove the image landed and an SBOM exists. Admission and GitOps promotion are later tracks.
 
+== Worked example (not the Check)
+
+A Buildah task that never creates ImageStream `spring-boot-lw-poc`. Paste-identical copy fails.
+
+[source,yaml]
+----
+# Worked example ONLY — Konflux Buildah path. This claim scores BuildConfig + syft.
+- name: buildah
+  taskRef:
+    name: buildah
+  params:
+    - name: IMAGE
+      value: example.invalid/not-your-app:latest
+----
+
 == Your change: successful pipeline in the build namespace
 
 [source,bash,role=execute]
