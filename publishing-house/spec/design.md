@@ -151,7 +151,7 @@ Each **gated** module:
 2. Learner **changes a real asset**
 3. Validate Job inspects cluster/git **state** and short-answer **report** keys (ConfigMap per module in `lw-poc-validate`; schema: V2-59)
 
-Ungated intro has no Job. Full `assessment_strategy` catalog wording: V2-58.
+Ungated intro has no Job. Catalog wording is `approval_checklist.content.assessment_strategy` in `publishing-house/spec.yaml`.
 
 ## What this cluster is not
 
