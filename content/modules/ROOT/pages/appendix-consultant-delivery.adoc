@@ -11,13 +11,25 @@ image::FIXME-seven-track-tssc-flow.png[Seven-track TSSC flow this map hangs on,w
 
 == How to read the tables
 
-| Treatment | Meaning |
-|-----------|---------|
-| *Scored* | Gated Check. You clicked it. |
-| *Callout* | One sentence on a scored page. No extra Check. |
-| *Mapping* | Product name used in a client engagement → cluster object. Konflux terms: xref:appendix-konflux-mapping.adoc[Konflux mapping] (not this page). |
-| *Playbook* | Procedure / talking points. Not executed on this connected RHDP claim. |
-| *Not on this claim* | Cannot be honest on this topology. Not a workshop procedure. |
+[cols="1,2",options="header"]
+|===
+|Treatment |Meaning
+
+|*Scored*
+|Gated Check. You clicked it.
+
+|*Callout*
+|One sentence on a scored page. No extra Check.
+
+|*Mapping*
+|Product name used in a client engagement → cluster object. Konflux terms: xref:appendix-konflux-mapping.adoc[Konflux mapping] (not this page).
+
+|*Playbook*
+|Procedure / talking points. Not executed on this connected RHDP claim.
+
+|*Not on this claim*
+|Cannot be honest on this topology. Not a workshop procedure.
+|===
 
 You did *not* click every engagement activity. Use the *Playbook* / *Not on this claim* rows when a customer asks.
 

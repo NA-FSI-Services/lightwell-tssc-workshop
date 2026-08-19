@@ -10,11 +10,19 @@ The activity map (what you clicked vs playbook) is xref:appendix-consultant-deli
 
 == How to read the table
 
-| Column | Meaning |
-|--------|---------|
-| *Client-engagement name* | Word a customer or engagement draft may use. You still say it in the room; you do not install that product here. |
-| *What this claim runs* | Cluster object under its *real* OpenShift / Tekton name. |
-| *Where you clicked* | Gated module, callout, or not on this claim. |
+[cols="1,2",options="header"]
+|===
+|Column |Meaning
+
+|*Client-engagement name*
+|Word a customer or engagement draft may use. You still say it in the room; you do not install that product here.
+
+|*What this claim runs*
+|Cluster object under its *real* OpenShift / Tekton name.
+
+|*Where you clicked*
+|Gated module, callout, or not on this claim.
+|===
 
 == Mapping
 

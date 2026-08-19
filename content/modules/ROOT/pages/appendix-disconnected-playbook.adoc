@@ -12,14 +12,34 @@ Say this in the room: *RHDP cannot do air-gap physics.* You still walk the file 
 
 == What would go on the media
 
-| Artifact | Why a disconnected verifier needs it | Where you get it here |
-|----------|--------------------------------------|------------------------|
-| TUF `root.json` | Keyless verify without the live TUF Route | `tuf_url_hint` `/root.json` |
-| Fulcio CA PEM | Keyless identity / admission materials | Secret `rhtas-tuf-keys` in `tssc-admission` |
-| Rekor public key | Transparency log verify when a tlog exists | Same Secret |
-| `cosign.pub` | Key-based verify from xref:module-14-disconnected-verify.adoc[5.3] | `~/lab-trust/cosign.pub` |
-| App digest | What you verify (the 5.1 BuildConfig image) | ImageStream in `lw-poc-build` |
-| SBOM (optional) | Inventory on the far side of the diode | 4.4 / 7.1 workspace or TPA export |
+[cols="2,3,2",options="header"]
+|===
+|Artifact |Why a disconnected verifier needs it |Where you get it here
+
+|TUF `root.json`
+|Keyless verify without the live TUF Route
+|`tuf_url_hint` `/root.json`
+
+|Fulcio CA PEM
+|Keyless identity / admission materials
+|Secret `rhtas-tuf-keys` in `tssc-admission`
+
+|Rekor public key
+|Transparency log verify when a tlog exists
+|Same Secret
+
+|`cosign.pub`
+|Key-based verify from xref:module-14-disconnected-verify.adoc[5.3]
+|`~/lab-trust/cosign.pub`
+
+|App digest
+|What you verify (the 5.1 BuildConfig image)
+|ImageStream in `lw-poc-build`
+
+|SBOM (optional)
+|Inventory on the far side of the diode
+|4.4 / 7.1 workspace or TPA export
+|===
 
 Do not put `cosign.key` on the drop. Public key only.
 
