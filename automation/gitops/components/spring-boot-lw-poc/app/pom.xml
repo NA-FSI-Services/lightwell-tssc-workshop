@@ -25,7 +25,7 @@
       - lightwell-remediated-pins: exact-version .rhlw-0000X pin from Remediated tier
       The .rhlw-* artifact resolves from Lightwell Network (or seeded Nexus), not Maven Central.
     -->
-    <commons.lang3.version>3.18.0</commons.lang3.version>
+    <commons.lang3.version>3.14.0</commons.lang3.version>
     <springdoc.version>2.6.0</springdoc.version>
   </properties>
 

@@ -25,7 +25,7 @@
       - lightwell-remediated-pins: exact-version .rhlw-0000X from Remediated tier
       Resolve .rhlw-* from Nexus / packages.redhat.com — not Maven Central.
     -->
-    <commons.lang3.version>3.18.0</commons.lang3.version>
+    <commons.lang3.version>3.14.0</commons.lang3.version>
     <springdoc.version>2.6.0</springdoc.version>
     <lightwell.stream>validated</lightwell.stream>
   </properties>

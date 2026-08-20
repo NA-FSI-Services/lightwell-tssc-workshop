@@ -1,7 +1,9 @@
 # V2-13 incomplete seed — Track 3 starts on UBI (wrong product).
 # Replace the runtime FROM with the mirrored Hummingbird digest: dest_registry_host
 # from demo-userinfo-lightwell-repo plus the digest in hummingbird_source_pullspec.
-# Do not copy a sample FROM from Showroom (Check fails). Do not put hi/openjdk here.
+# Do not copy a sample FROM from Showroom (Check fails). Seed stays UBI; 3.2
+# replaces runtime FROM with dest host + digest (path hi/openjdk on dest, not
+# registry.access.redhat.com).
 # Track 3.3 stale Hummingbird digest lives in lightwell-pins.properties (Renovate), not FROM.
 # Image build uses Maven Central. Override commons.lang3.version so a learner
 # .rhlw-* default pin (dep-gate) does not break Docker package resolution.
