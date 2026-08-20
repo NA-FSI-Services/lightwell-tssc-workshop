@@ -25,7 +25,7 @@ Live Renovate CronJob opens a PR on `lw-student/spring-boot-lw-poc` for stale `l
 
 ### Detailed Steps
 
-1. Stale pins: `3.14.0.rhlw-00000` and all-zero Hummingbird digest. CronJob every 20 minutes.
+1. Stale pins: `3.14.0.rhlw-00000` and all-zero Hummingbird digest. CronJob every 20 minutes. Renovate groups both lines into **one** PR (`groupName` on `lightwell-pins.properties`) so merging Maven does not conflict the digest bump.
 2. Worked example in `renovate-docs` is author `student` / wrong package — paste fails.
 3. If dest is still empty, Docker bump may lag; Lightwell Maven bump should appear after Nexus is up. Retry.
 4. Learner merges on Gitea. Then apply pins to pom/Dockerfile if not already done in 3.2.

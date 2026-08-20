@@ -24,5 +24,12 @@
       "currentValueTemplate": "21-runtime",
       "versioningTemplate": "docker"
     }
+  ],
+  "packageRules": [
+    {
+      "description": "#66: one PR for both pin lines so merging Maven does not conflict the digest bump",
+      "matchFileNames": ["lightwell-pins.properties"],
+      "groupName": "lightwell workshop pins"
+    }
   ]
 }

@@ -56,6 +56,11 @@ data:
         {
           "matchDatasources": ["docker"],
           "registryUrls": [{{ printf "https://%s" (include "renovate.destRegistryHost" .) | quote }}]
+        },
+        {
+          "description": "#66: one PR for Maven pin + dest digest on lightwell-pins.properties",
+          "matchFileNames": ["lightwell-pins.properties"],
+          "groupName": "lightwell workshop pins"
         }
       ]
     }

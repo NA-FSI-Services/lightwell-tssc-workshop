@@ -19,10 +19,12 @@ By the end of this module, you will be able to:
 
 Consultants do not babysit Maven pins by hand. Renovate (or MintMaker on hosted Konflux) opens PRs against *enterprise git* when a vetted version exists. Here the git is Gitea; learners never use `github.com` for this Check.
 
-Stale seed (do not “fix” these yourself):
+Stale seed (do not “fix” these yourself). The bot opens *one* grouped PR that moves *both* lines:
 
 * `commons-lang3=3.14.0.rhlw-00000` → remediated `3.14.0.rhlw-00001` in Nexus
-* `hummingbird-digest` all-zero → dest digest after 1.2 (Docker bump may lag if dest was empty)
+* `hummingbird-digest` all-zero → dest digest after 1.2
+
+Merging only the Maven bump used to leave a second digest PR unmergeable on the same file. Do not hand-edit the leftover line.
 
 The CronJob retries about every 20 minutes.
 
@@ -56,7 +58,7 @@ git commit --author='student <student@example.invalid>' \
 == Your change: merge the renovate-bot PR
 
 . In Gitea, open `lw-student/spring-boot-lw-poc` → *Pull Requests*.
-. The scored PR author is `renovate-bot`. Files must include `lightwell-pins.properties`.
+. The scored PR author is `renovate-bot`. Files must include `lightwell-pins.properties`. Both seed values (`rhlw-00000` and the all-zero digest) should move in that one PR.
 . Review, then merge on Gitea (do not `git commit` the same hunk as `student`).
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/55
