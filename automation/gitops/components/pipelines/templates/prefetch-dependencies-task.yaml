@@ -77,7 +77,7 @@ spec:
 
         OUT="$(workspaces.source.path)/${PREFETCH_DIR}"
         mkdir -p "${OUT}"
-        echo "=== prefetch-dependencies (Maven go-offline → Nexus) ==="
+        echo "=== prefetch-dependencies (Maven go-offline then package → Nexus) ==="
         echo "pom=${POM_PATH} settings=${SETTINGS_PATH} repoLocal=${OUT}"
 
         PROFILE_ARGS=()
@@ -92,13 +92,13 @@ spec:
           dependency:go-offline \
           || fail "mvn dependency:go-offline failed (declared deps must resolve from Nexus)"
 
+        # go-offline often omits plugin/dep POMs; package fills .m2-offline so Docker mvn -o works.
         mvn -B -s "${SETTINGS_PATH}" \
           -Dmaven.repo.local="${OUT}" \
           "${PROFILE_ARGS[@]}" \
-          -o \
           -DskipTests \
-          dependency:resolve \
-          || fail "undeclared or missing deps — mvn -o dependency:resolve failed after prefetch"
+          package \
+          || fail "mvn package failed while filling prefetch dir from Nexus"
 
         JAR_COUNT="$(find "${OUT}" -name '*.jar' | wc -l | tr -d ' ')"
         [[ "${JAR_COUNT}" -gt 0 ]] || fail "prefetch directory ${PREFETCH_DIR} has no jars"
