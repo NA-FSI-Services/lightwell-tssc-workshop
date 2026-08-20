@@ -55,7 +55,16 @@ Named `hermeto`, uses `pip`, and `runAfter: [acs-image-check]` (too late). Paste
 
 . In Gitea `.tekton/pipeline.yaml` on `lw-student/spring-boot-lw-poc`, insert a task *after* `lightwell-dep-gate` and *before* `openshift-build`. Use cluster resolver, `name: prefetch-dependencies`, `namespace: lightwell-tasks`. Change `openshift-build` `runAfter` to include prefetch.
 
-. Prefetch writes `.m2-offline` into the source workspace. Switch the Dockerfile `RUN mvn … package` to offline, for example `-o -Dmaven.repo.local=.m2-offline` (exact flags must match the Task’s prefetch dir).
+. Prefetch writes `.m2-offline` into the source workspace. Binary `oc start-build --from-dir` only puts that directory in the Docker **context**. `COPY` it (and `settings.xml` if you pass `-s`) into the build stage, then switch `RUN mvn … package` to offline. Paths must match the Task’s prefetch dir (userinfo `prefetch_dir`, default `.m2-offline`) and the Dockerfile `WORKDIR`:
+
+[source,dockerfile]
+----
+COPY pom.xml ./
+COPY src ./src
+COPY settings.xml ./
+COPY .m2-offline ./.m2-offline
+RUN mvn -B -o -s settings.xml -Dmaven.repo.local=.m2-offline -DskipTests package
+----
 
 . Commit and push. Apply the Pipeline (not yet the successful 4.4 run) in `lw-poc-build` if it is not applied:
 
@@ -78,9 +87,10 @@ oc -n "${BUILD_NS}" get pipeline spring-boot-lw-poc-build-sign -o yaml | grep -A
 cd /tmp/spring-boot-lw-poc
 git show HEAD:settings.xml | grep repo.maven.apache.org && echo 'STILL HAS CENTRAL' || echo 'Central gone'
 git show HEAD:Dockerfile | grep -E 'mvn.*-o'
+git show HEAD:Dockerfile | grep -E 'COPY .*m2-offline'
 ----
 
-Pass when the live Pipeline includes `prefetch-dependencies` before `openshift-build`, settings have no Central, and the Dockerfile uses `mvn -o`. Empty prefetch dir / undeclared deps fail later on `mvn -o`.
+Pass when the live Pipeline includes `prefetch-dependencies` before `openshift-build`, settings have no Central, and the Dockerfile `COPY`s `.m2-offline` and uses `mvn -o`. Empty prefetch dir / undeclared deps fail later on `mvn -o`.
 
 :report-name: report-09-prefetch
 :report-key: hermeto_maps_to

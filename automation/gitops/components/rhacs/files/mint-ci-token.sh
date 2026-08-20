@@ -32,7 +32,7 @@ if ! oc -n "${NAMESPACE}" get secret central-htpasswd >/dev/null 2>&1; then
   exit 1
 fi
 
-ENDPOINT="${CENTRAL_HOST}:443"
+ENDPOINT="${PIPELINE_ENDPOINT:-central.${NAMESPACE}.svc:443}"
 if [[ -z "${ENDPOINT}" || "${ENDPOINT}" == ":443" ]]; then
   ENDPOINT="${FALLBACK_ENDPOINT}"
 fi
@@ -62,7 +62,7 @@ else
       --from-literal=rox-api-endpoint="${ENDPOINT}" \
       --from-literal=rox-api-token="${TOKEN}"
   fi
-  echo "Patched Secret ${NAMESPACE}/${SECRET_NAME} (endpoint + token)."
+  echo "Patched Secret ${NAMESPACE}/${SECRET_NAME} (in-cluster endpoint ${ENDPOINT} + token)."
 fi
 
 # Tekton cluster-resolves the Task from stackrox but mounts secrets in the TaskRun ns.

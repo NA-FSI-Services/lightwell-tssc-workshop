@@ -118,7 +118,7 @@ spec:
           value: $(params.image-url)
 
     - name: syft-sbom-rhtpa
-      runAfter: [acs-image-check]
+      runAfter: [openshift-build]
       taskRef:
         resolver: cluster
         params:
@@ -136,6 +136,8 @@ spec:
       params:
         - name: image
           value: $(params.image-url)
+        - name: rhtpa-url
+          value: ""
 
     - name: cosign-sign-keyless
       runAfter: [syft-sbom-rhtpa]

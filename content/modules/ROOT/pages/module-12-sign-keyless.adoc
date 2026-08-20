@@ -5,7 +5,7 @@
 
 Sign the *app* digest you built in xref:module-11-build-sbom.adoc[4.4] — not the Hummingbird base. This Check is *keyless* RHTAS (Fulcio, Rekor, TUF) plus `cosign verify` on *that* digest. Key-based sign + `--key` verify is a *second* Check (xref:module-14-disconnected-verify.adoc[5.3]). Do not treat keyless-only as Track 5 done.
 
-The seeded pipeline already has task `cosign-sign-keyless`. Placeholders in the PipelineRun (`apps.<domain>`) fail that task until you fill live Fulcio / Rekor / TUF URLs.
+The seeded pipeline already has task `cosign-sign-keyless`. Placeholders in the PipelineRun fail that task until you fill live **in-cluster** Fulcio / Rekor / TUF URLs (`fulcio_internal_url` and friends). Route hints (`fulcio_url_hint`) are for Showroom `cosign verify` only — the build namespace cannot reach them after 4.3.
 
 == Learning objectives
 
@@ -35,7 +35,7 @@ Keyless is the *connected* PoV path: the pipeline SA presents an OIDC token, Ful
 ----
 command -v cosign
 oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas \
-  -o jsonpath='{.data.signing_model}{"\n"}{.data.fulcio_url_hint}{"\n"}{.data.rekor_url_hint}{"\n"}{.data.tuf_url_hint}{"\n"}'
+  -o jsonpath='{.data.signing_model}{"\n"}{.data.fulcio_internal_url}{"\n"}{.data.rekor_internal_url}{"\n"}{.data.tuf_internal_url}{"\n"}{.data.fulcio_url_hint}{"\n"}{.data.rekor_url_hint}{"\n"}{.data.tuf_url_hint}{"\n"}'
 oc -n trusted-artifact-signer get routes
 ----
 
@@ -54,7 +54,7 @@ cosign verify \
 
 == Your change: fill URLs; sign the app digest
 
-If 4.4 already ran `cosign-sign-keyless` to Succeeded, skip to verify. Otherwise edit `.tekton/pipelinerun.yaml` on `lw-student/spring-boot-lw-poc`: replace Fulcio / Rekor / TUF with the userinfo URLs, `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (in-cluster Gitea, not the HTTPS Route), and `<lab-namespace>` with `lw-poc-build`. Then create a new run:
+If 4.4 already ran `cosign-sign-keyless` to Succeeded, skip to verify. Otherwise edit `.tekton/pipelinerun.yaml` on `lw-student/spring-boot-lw-poc`: replace Fulcio / Rekor / TUF with `fulcio_internal_url` / `rekor_internal_url` / `tuf_internal_url` (not the HTTPS Route hints), `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (in-cluster Gitea, not the HTTPS Route), and `<lab-namespace>` with `lw-poc-build`. Then create a new run:
 
 [source,bash,role=execute]
 ----

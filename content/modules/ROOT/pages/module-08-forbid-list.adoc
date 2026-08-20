@@ -44,7 +44,7 @@ RUN curl -fsSL https://example.invalid/install.sh | sh
 
 == Your change: strip forbidden fetches; both FROM lines internal
 
-. While `build-egress` is still too open, import a JDK *builder* into `lw-poc-build` (do not invent a Hummingbird builder digest — use the UBI JDK stream already on the seed, copied *into* the internal registry):
+. While `build-egress` is still too open, import a JDK *builder* into `lw-poc-build` (do not invent a Hummingbird builder digest — use the UBI JDK stream already on the seed, copied *into* the internal registry). Import dest Hummingbird the same way — 3.2's runtime `FROM` is the Nexus Docker **Route**, which 4.3 blocks:
 
 [source,bash,role=execute]
 ----
@@ -52,9 +52,15 @@ BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.st
 oc -n "${BUILD_NS}" import-image openjdk-21-builder \
   --from=registry.access.redhat.com/ubi9/openjdk-21:1.21 \
   --confirm
+DEST="$(oc -n lightwell-repo logs job/oc-mirror-learner -c copy-signatures | grep '^DEST_PULLSPEC=' | cut -d= -f2-)"
+echo "DEST=${DEST}"
+oc -n "${BUILD_NS}" import-image hummingbird-openjdk \
+  --from="${DEST}" --confirm --insecure=true
+oc -n "${BUILD_NS}" get istag hummingbird-openjdk:latest \
+  -o jsonpath='{.image.dockerImageReference}{"\n"}'
 ----
 
-. Point the Dockerfile *build* `FROM` at that ImageStream (internal registry). Runtime `FROM` stays the dest Hummingbird digest from 3.2. No `registry.access.redhat.com` on active `FROM` lines.
+. Point the Dockerfile *build* `FROM` at ImageStream `openjdk-21-builder` (internal registry). Point *runtime* `FROM` at ImageStream `hummingbird-openjdk` using the dest digest from 1.2 / 3.2 (`image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/hummingbird-openjdk@sha256:…`). Do not leave `dest_registry_host` (the Nexus Docker Route) on an active `FROM` line. No `registry.access.redhat.com` on active `FROM` lines.
 
 . In `settings.xml`, remove `repo.maven.apache.org` from the Lightwell profiles. Point remotes at the *in-cluster* Nexus service (`nexus_internal_url` from userinfo — `http://nexus.lightwell-repo.svc:8081`), not the HTTPS Route. Add a `<mirror>` with `mirrorOf` `*` (or `external:*`) whose URL is `${nexus_internal_url}/repository/maven-public/`. Seeded `maven-public` includes Validated + Remediated so `.rhlw-*` pins resolve. 4.3 will block the Nexus Route from `lw-poc-build`; the service URL keeps working.
 
@@ -78,7 +84,7 @@ git show HEAD:settings.xml | grep -E 'repo.maven.apache.org|lightwell-repo' || t
 test -f Dockerfile.known-bad && echo 'known-bad fixture present'
 ----
 
-Pass when active `Dockerfile` / `settings.xml` have no public `FROM`, no Central, no `curl` installers — and `Dockerfile.known-bad` still exists.
+Pass when active `Dockerfile` / `settings.xml` have no public `FROM`, no dest-registry Route, no Central, no `curl` installers — and `Dockerfile.known-bad` still exists. Both `FROM` lines use the internal registry.
 
 :report-name: report-08-forbid-list
 :report-key: hermetic_starts

@@ -14,5 +14,6 @@ deny_contains "${org}/${repo} settings.xml" "$settings" "repo.maven.apache.org"
 df="$(gitea_raw "$org" "$repo" Dockerfile)"
 require_contains "${org}/${repo} Dockerfile" "$df" "mvn"
 require_contains "${org}/${repo} Dockerfile" "$df" "-o"
+require_contains "${org}/${repo} Dockerfile COPY .m2-offline" "$df" ".m2-offline"
 report_require_token hermeto_maps_to prefetch-dependencies prefetch-task
 pass "prefetch-dependencies is before openshift-build and Maven is offline."

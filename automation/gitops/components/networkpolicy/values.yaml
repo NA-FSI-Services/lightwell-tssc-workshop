@@ -33,6 +33,17 @@ allow:
   nexusDockerPort: 5000
   giteaNamespace: gitea
   giteaPort: 3000
+  # OVN matches NetworkPolicy egress ports to *pod* ports, not Service ports.
+  # Central Service 443 → 8443; TUF 80 → 8080; Fulcio 80 → 5555; Rekor 80 → 3000; TPA 443 → 8080.
+  stackroxNamespace: stackrox
+  stackroxPort: 8443
+  tasNamespace: trusted-artifact-signer
+  tasTufPort: 8080
+  tasFulcioPort: 5555
+  tasFulcioGrpcPort: 5554
+  tasRekorPort: 3000
+  tpaNamespace: trusted-profile-analyzer
+  tpaPort: 8080
 
 userInfo:
   enabled: true
@@ -40,7 +51,9 @@ userInfo:
   instructions: >-
     Track 4.3: tighten NetworkPolicy build-egress in lw-poc-build to deny-egress
     with DNS + internal registry + Nexus + in-cluster Gitea + kube API (so 4.4
-    clone and oc start-build work). Seed is too open. Track 6: app-operate on lw-poc-staging and lw-poc-prod stays operate
+    clone and oc start-build work) plus stackrox / RHTAS / TPA pod ports (so ACS,
+    keyless sign, and optional TPA upload work after Routes are blocked). Seed is
+    too open. Track 6: app-operate on lw-poc-staging and lw-poc-prod stays operate
     (seeded open). Do not merge the two Checks. Do not copy the worked example.
 
 deployer:

@@ -1,6 +1,9 @@
 # Example PipelineRun — edit repo-url / image-url / Fulcio / Rekor for your claim.
 # repo-url after 4.3: demo-userinfo-gitea → student_repo_internal_url
 # (http://gitea.gitea.svc:3000/… — HTTPS Route is blocked by build-egress).
+# Fulcio / Rekor / TUF after 4.3: demo-userinfo-rhtas → fulcio_internal_url /
+# rekor_internal_url / tuf_internal_url (in-cluster Services). Route hints
+# (fulcio_url_hint) are for Showroom verify only — PipelineRuns cannot reach them.
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
@@ -20,12 +23,13 @@ spec:
       value: image-registry.openshift-image-registry.svc:5000/<lab-namespace>/spring-boot-lw-poc:latest
     - name: buildconfig-name
       value: spring-boot-lw-poc
+    # After 4.3 fill from demo-userinfo-rhtas fulcio_internal_url / rekor_internal_url / tuf_internal_url
     - name: cosign-fulcio-url
-      value: https://fulcio-server-trusted-artifact-signer.apps.<domain>
+      value: http://fulcio-server.trusted-artifact-signer.svc
     - name: cosign-rekor-url
-      value: https://rekor-server-trusted-artifact-signer.apps.<domain>
+      value: http://rekor-server.trusted-artifact-signer.svc
     - name: cosign-tuf-url
-      value: https://tuf-trusted-artifact-signer.apps.<domain>
+      value: http://tuf.trusted-artifact-signer.svc
   workspaces:
     - name: source
       volumeClaimTemplate:

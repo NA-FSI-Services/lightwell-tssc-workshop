@@ -91,7 +91,7 @@ spec:
           value: {{ .Values.pipelineHooks.failOnSkipped | quote }}
 
     - name: syft-sbom-rhtpa
-      runAfter: [acs-image-check]
+      runAfter: [lightwell-python-dep-gate]
       taskRef:
         kind: Task
         name: {{ .Values.pipelineHooks.sbom.taskName }}

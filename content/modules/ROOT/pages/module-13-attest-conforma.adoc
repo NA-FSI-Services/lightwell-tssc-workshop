@@ -66,7 +66,18 @@ oc -n lightwell-tasks get configmap conforma-policy -o yaml \
   | oc apply -f -
 ----
 
-. On the *copy*, set `skip-image-sig-check` to `false`. Leave `skip-att-sig-check` `true` (no Chains attestation on this claim; `ec` 0.7 uses `--ignore-rekor`). Set `certificate-identity-regexp` to the same pipeline SA regexp you used in 5.1 (not `.*`, not a Hummingbird placeholder). Set the OIDC issuer regexp to `https://kubernetes.default.svc`. In `policy.yaml` / `data.yaml`, drop `exclude: *`, lower `restrict_max_cve_score` below 999, and pin `allowed_registry_prefixes` to the internal registry (`image-registry.openshift-image-registry.svc`).
+. On the *copy*, set `skip-image-sig-check` to `false`. Leave `skip-att-sig-check` `true` (no Chains attestation on this claim). Set `certificate-identity-regexp` to the same pipeline SA regexp you used in 5.1 (not `.*`, not a Hummingbird placeholder). Set the OIDC issuer regexp to `https://kubernetes.default.svc`. In `policy.yaml` / `data.yaml`, drop `exclude: *`, then **exclude only attestation** — `ec` 0.7 `--ignore-rekor` does **not** skip `builtin.attestation.signature_check`, and this claim has no `cosign attest`:
+
+[source,yaml]
+----
+        config:
+          include:
+            - "*"
+          exclude:
+            - attestation_signature_check
+----
+
+Lower `restrict_max_cve_score` below 999, and pin `allowed_registry_prefixes` to the internal registry (`image-registry.openshift-image-registry.svc`).
 
 . In Gitea `.tekton/pipeline.yaml`, add Task `conforma-policy` (cluster resolver, `namespace: lightwell-tasks`) with `runAfter: [cosign-sign-keyless]`. Point `policy-namespace` / `policy-configmap` at *your* copy in `lw-poc-build`, not `lightwell-tasks`. Commit, push, apply the Pipeline.
 
@@ -125,4 +136,4 @@ SLSA L3 / Tekton Chains is a mapping sentence, not this Check. Full table: xref:
 == Key takeaways
 
 * Policy is learner-owned, not a passing default.
-* This claim is not SLSA L3; `skip-att-sig-check` stays true on the ConfigMap (`ec` 0.7: `--ignore-rekor`).
+* This claim is not SLSA L3; exclude `attestation_signature_check` ( `--ignore-rekor` does not skip it).

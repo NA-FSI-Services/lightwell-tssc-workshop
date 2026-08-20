@@ -1,6 +1,7 @@
 {{- if and .Values.rhacs.enabled .Values.userInfo.enabled }}
 {{- $centralUrl := include "rhacs.centralUrl" . }}
 {{- $endpoint := include "rhacs.centralEndpoint" . }}
+{{- $internalEndpoint := include "rhacs.centralInternalEndpoint" . }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -21,6 +22,7 @@ data:
   central_name: {{ .Values.central.name | quote }}
   central_url: {{ $centralUrl | quote }}
   central_endpoint: {{ $endpoint | quote }}
+  central_internal_endpoint: {{ $internalEndpoint | quote }}
   pipeline_task: {{ .Values.pipelineHooks.taskName | quote }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}

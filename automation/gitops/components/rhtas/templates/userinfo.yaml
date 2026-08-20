@@ -28,5 +28,9 @@ data:
   fulcio_url_hint: {{ printf "https://fulcio-server-%s.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
   rekor_url_hint: {{ printf "https://rekor-server-%s.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
   tuf_url_hint: {{ printf "https://tuf-%s.%s" .Values.rhtas.namespace .Values.deployer.domain | quote }}
+  # PipelineRun after 4.3: Routes time out (ingress VIP). Use in-cluster Services.
+  fulcio_internal_url: "http://fulcio-server.{{ .Values.rhtas.namespace }}.svc"
+  rekor_internal_url: "http://rekor-server.{{ .Values.rhtas.namespace }}.svc"
+  tuf_internal_url: "http://tuf.{{ .Values.rhtas.namespace }}.svc"
   cosign_image: "registry.redhat.io/rhtas/cosign-rhel9:1.3.0"
 {{- end }}

@@ -9,6 +9,7 @@ pr="$(gitea_raw "$org" "$repo" .tekton/pipelinerun.yaml)"
 deny_contains "${org}/${repo} .tekton/pipelinerun.yaml" "$pr" "STUDENT_REPO_URL_PLACEHOLDER"
 deny_contains "${org}/${repo} .tekton/pipelinerun.yaml" "$pr" "apps.<domain>"
 deny_contains "${org}/${repo} .tekton/pipelinerun.yaml" "$pr" "<lab-namespace>"
+require_contains "${org}/${repo} .tekton/pipelinerun.yaml in-cluster RHTAS" "$pr" "trusted-artifact-signer.svc"
 taskrun_succeeded "$ns" cosign-sign-keyless
 digest="$(oc -n "$ns" get istag spring-boot-lw-poc:latest \
   -o jsonpath='{.image.dockerImageReference}' 2>/dev/null || true)"

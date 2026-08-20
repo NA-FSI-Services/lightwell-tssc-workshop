@@ -10,6 +10,11 @@ from_lines="$(printf '%s\n' "$df" | grep -E '^FROM ' || true)"
 deny_contains "active Dockerfile FROM" "$from_lines" "registry.access.redhat.com"
 deny_contains "active Dockerfile FROM" "$from_lines" "registry.redhat.io"
 deny_contains "active Dockerfile FROM" "$from_lines" "docker.io"
+dest="$(userinfo "$REPO_NS" "$REPO_USERINFO" dest_registry_host)"
+if [[ -n "$dest" ]]; then
+  deny_contains "active Dockerfile FROM (dest Route after 4.1)" "$from_lines" "$dest"
+fi
+require_contains "active Dockerfile FROM" "$from_lines" "image-registry.openshift-image-registry.svc"
 deny_contains "active Dockerfile" "$df" "curl "
 settings="$(gitea_raw "$org" "$repo" settings.xml)"
 deny_contains "${org}/${repo} settings.xml" "$settings" "repo.maven.apache.org"

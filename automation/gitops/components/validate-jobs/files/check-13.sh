@@ -13,6 +13,10 @@ ident="$(cm_get "$ns" conforma-policy certificate-identity-regexp)"
 deny_contains "${ns}/conforma-policy identity" "$ident" "example.invalid"
 cve="$(cm_get "$ns" conforma-policy data.yaml)"
 deny_contains "${ns}/conforma-policy data.yaml" "$cve" "restrict_max_cve_score: 999"
+policy_yaml="$(cm_get "$ns" conforma-policy policy.yaml)"
+require_contains "${ns}/conforma-policy policy.yaml" "$policy_yaml" "attestation_signature_check"
+deny_contains "${ns}/conforma-policy policy.yaml still excludes everything" "$policy_yaml" 'exclude:
+            - "*"'
 git_pl="$(gitea_raw "$org" "$repo" .tekton/pipeline.yaml)"
 task_before "$git_pl" cosign-sign-keyless conforma-policy "${org}/${repo} .tekton/pipeline.yaml"
 live="$(pipeline_yaml "$ns" spring-boot-lw-poc-build-sign)"

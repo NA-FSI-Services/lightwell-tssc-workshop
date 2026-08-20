@@ -1,5 +1,6 @@
 {{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.ciTokenJob.enabled }}
 {{- $endpoint := include "rhacs.centralEndpoint" . }}
+{{- $pipelineEndpoint := include "rhacs.centralInternalEndpoint" . }}
 ---
 # Mint Central CI token, copy it into the learner build namespace (Tekton mounts
 # secrets from the TaskRun ns), and register the internal registry so roxctl can
@@ -44,6 +45,8 @@ spec:
               value: {{ .Values.pipelineHooks.ciTokenJob.waitSeconds | quote }}
             - name: FALLBACK_ENDPOINT
               value: {{ $endpoint | quote }}
+            - name: PIPELINE_ENDPOINT
+              value: {{ $pipelineEndpoint | quote }}
             - name: BUILD_NAMESPACE
               value: {{ .Values.pipelineHooks.buildNamespace | quote }}
             - name: REGISTRY_INTEGRATION

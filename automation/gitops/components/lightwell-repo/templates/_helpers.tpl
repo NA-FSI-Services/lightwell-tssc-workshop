@@ -45,3 +45,8 @@ registry-{{ .Values.lightwellRepo.namespace }}.apps.cluster.example.com
 {{- define "lightwell-repo.registryUrl" -}}
 https://{{ include "lightwell-repo.registryHost" . }}
 {{- end -}}
+
+{{/* In-cluster Docker Registry API (Service). Route dest_registry_host is blocked after 4.3. */}}
+{{- define "lightwell-repo.registryInternalHost" -}}
+{{ .Values.nexus.name }}.{{ .Values.lightwellRepo.namespace }}.svc:{{ .Values.nexus.docker.port }}
+{{- end -}}
