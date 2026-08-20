@@ -25,6 +25,12 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "create", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "list", "create", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    verbs: ["create"]
   - apiGroups: ["route.openshift.io"]
     resources: ["routes"]
     verbs: ["get", "list"]
@@ -67,4 +73,41 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Values.pipelineHooks.ciTokenJob.serviceAccountName }}
     namespace: {{ .Values.rhacs.namespace }}
+{{- if and .Values.pipelineHooks.buildNamespace (ne .Values.pipelineHooks.buildNamespace .Values.rhacs.namespace) }}
+---
+# Tekton mounts rhacs-ci-secrets from the TaskRun namespace (lw-poc-build), not stackrox.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.pipelineHooks.ciTokenJob.serviceAccountName }}
+  namespace: {{ .Values.pipelineHooks.buildNamespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ci-token
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.ciToken | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.pipelineHooks.ciTokenJob.serviceAccountName }}
+  namespace: {{ .Values.pipelineHooks.buildNamespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ci-token
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.ciToken | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.pipelineHooks.ciTokenJob.serviceAccountName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.pipelineHooks.ciTokenJob.serviceAccountName }}
+    namespace: {{ .Values.rhacs.namespace }}
+{{- end }}
 {{- end }}

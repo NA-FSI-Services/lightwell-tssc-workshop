@@ -1,0 +1,35 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.ciTokenJob.enabled .Values.pipelineHooks.registryIntegration.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.pipelineHooks.registryIntegration.pullerSA }}
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: registry-integration
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+{{- if and .Values.pipelineHooks.buildNamespace (ne .Values.pipelineHooks.buildNamespace .Values.rhacs.namespace) }}
+---
+# Lets Central pull lw-poc-build ImageStream tags during roxctl image check.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.pipelineHooks.registryIntegration.pullerSA }}-image-puller
+  namespace: {{ .Values.pipelineHooks.buildNamespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: registry-integration
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-puller
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.pipelineHooks.registryIntegration.pullerSA }}
+    namespace: {{ .Values.rhacs.namespace }}
+{{- end }}
+{{- end }}

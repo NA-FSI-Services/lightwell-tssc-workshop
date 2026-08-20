@@ -11,7 +11,7 @@ Deploys RHACS **Central** (and optional same-cluster **SecuredCluster**) via the
 | `2` | `Central` CR |
 | `3` | `SecuredCluster` CR |
 | `4` | Tekton Tasks / Pipeline + CI secret placeholder + lab ConfigMaps |
-| `5` | Job `rhacs-ci-token-mint` (Central CI API token → `rhacs-ci-secrets`) |
+| `5` | Job `rhacs-ci-token-mint` (CI token → `rhacs-ci-secrets` in `stackrox` + `lw-poc-build`; internal-registry image integration) |
 | `6` | RHDP userinfo ConfigMap |
 
 Root App-of-Apps places this chart at sync wave **`10`**.
@@ -71,7 +71,7 @@ oc -n stackrox create secret generic rhacs-ci-secrets \
   --dry-run=client -o yaml | oc apply -f -
 ```
 
-Helm ships `rox-api-endpoint` only; root-app `ignoreDifferences` on Secret `/data` keeps a patched token across syncs.
+Helm ships `rox-api-endpoint` only; root-app `ignoreDifferences` on Secret `/data` keeps a patched token across syncs. The mint Job also copies the Secret into `pipelineHooks.buildNamespace` (`lw-poc-build`) because cluster-resolved `acs-image-check` mounts secrets from the TaskRun namespace, and it registers Docker image integration `openshift-internal-registry` for `image-registry.openshift-image-registry.svc:5000`.
 
 Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 
@@ -93,6 +93,8 @@ Optional RHTPA upload token: Secret `rhtpa-upload-token` key `token`.
 | `pipelineHooks.pythonPipeline.defaultRequirementsPath` | `requirements.txt` | FastAPI student repo root |
 | `pipelineHooks.sbom.rhtpaUrl` | `""` | Set when RHTPA Route known |
 | `pipelineHooks.ciTokenJob.enabled` | `true` | Mint CI token into `rhacs-ci-secrets` after Central Ready |
+| `pipelineHooks.buildNamespace` | `lw-poc-build` | Copy CI Secret here for learner TaskRuns |
+| `pipelineHooks.registryIntegration.enabled` | `true` | Register internal registry so `roxctl image check` can enrich build images |
 | `pipelineHooks.failOnSkipped` | `"false"` | Set `"true"` to fail ACS task without secrets |
 | `deployer.domain` | `""` | Injected by root-app |
 

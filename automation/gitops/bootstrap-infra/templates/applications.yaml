@@ -184,6 +184,7 @@ spec:
           enabled: {{ .Values.components.rhacs.enabled }}
           namespace: {{ .Values.components.rhacs.namespace }}
         pipelineHooks:
+          buildNamespace: {{ .Values.components.networkPolicy.namespace | default "lw-poc-build" | quote }}
 {{- if and .Values.components.gitea.enabled .Values.deployer.domain }}
           labRepoUrl: {{ printf "https://gitea.%s/lw-%s/%s.git" .Values.deployer.domain .Values.components.gitea.studentUsername .Values.components.gitea.repoName | quote }}
           labPythonRepoUrl: ""

@@ -66,6 +66,14 @@ pipelineHooks:
   #   rox-api-token: <CI API token from Central>
   secretName: rhacs-ci-secrets
   createSecretPlaceholder: true
+  # Learner PipelineRuns (acs-image-check) run here; Tekton mounts secrets from this ns.
+  buildNamespace: lw-poc-build
+  # Internal registry so roxctl can enrich images built in lw-poc-build (issue #87).
+  registryIntegration:
+    enabled: true
+    name: openshift-internal-registry
+    endpoint: image-registry.openshift-image-registry.svc:5000
+    pullerSA: rhacs-registry-puller
   # After Central Ready, Job mints Continuous Integration token into secretName (idempotent).
   ciTokenJob:
     enabled: true
@@ -140,8 +148,8 @@ userInfo:
   title: "Lightwell TSSC Workshop — Advanced Cluster Security"
   instructions: >-
     Open RHACS Central (stackrox). Import the Fixable Critical BUILD policy.
-    Secret rhacs-ci-secrets is filled by Job rhacs-ci-token-mint (or
-    ./scripts/dev-cluster-rhacs-ci-token.sh). Run Pipeline lightwell-build-policy-gate:
+    Secret rhacs-ci-secrets is filled by Job rhacs-ci-token-mint in stackrox and
+    copied into lw-poc-build. Run Pipeline lightwell-build-policy-gate:
     fail on non-remediated Maven pins, pass after .rhlw-* update, then SBOM → RHTPA.
     Python policy Tasks stay in git and are not applied (V2-12).
 

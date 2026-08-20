@@ -83,7 +83,7 @@ oc -n lightwell-repo create configmap stub-18-blast-radius \
   --dry-run=client -o yaml | oc apply -f -
 ----
 
-. ACS: confirm Job `rhacs-ci-token-mint` in `stackrox` is Complete so Secret `rhacs-ci-secrets` has a token. On the learner Pipeline, pass `fail-on-skipped: "true"` on `acs-image-check` (seeded default is soft-skip). Re-run if the last TaskRun was `skipped`. Expect `passed` or `failed` — both prove the control is *on*. Do not screenshot Central as this Check.
+. ACS: confirm Job `rhacs-ci-token-mint` in `stackrox` is Complete. That Job mints Secret `rhacs-ci-secrets` and copies it into your build namespace (`student_build_namespace`) so `acs-image-check` can mount it. Provision also registers the in-cluster registry with Central — do not add an image integration by hand. On the learner Pipeline, pass `fail-on-skipped: "true"` on `acs-image-check` (seeded default is soft-skip). Re-run if the last TaskRun was `skipped`. Expect `passed` or `failed` — both prove the control is *on*. Do not screenshot Central as this Check.
 
 == Check: report tokens + ACS not skipped
 
@@ -95,6 +95,7 @@ grep -E 'LW-DEMO-0002|3.14.0.rhlw-00001|via-lightwell-pin' ~/track-7-2-blast-rad
 oc -n lightwell-repo get configmap stub-18-blast-radius \
   -o jsonpath='{.data.blast-radius\.txt}' | grep -E 'LW-DEMO-0002|3.14.0.rhlw-00001|via-lightwell-pin'
 oc -n stackrox get job rhacs-ci-token-mint
+oc -n "${BUILD_NS}" get secret rhacs-ci-secrets
 oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=acs-image-check
 ----
 

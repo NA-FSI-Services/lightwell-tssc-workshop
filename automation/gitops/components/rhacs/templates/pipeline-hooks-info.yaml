@@ -27,6 +27,8 @@ data:
 {{- end }}
   task_namespace: {{ .Values.rhacs.namespace | quote }}
   secret_name: {{ .Values.pipelineHooks.secretName | quote }}
+  secret_namespace_taskrun: {{ .Values.pipelineHooks.buildNamespace | quote }}
+  registry_integration: {{ .Values.pipelineHooks.registryIntegration.name | quote }}
   example_pipeline_task: |
     - name: lightwell-dep-gate
       taskRef:

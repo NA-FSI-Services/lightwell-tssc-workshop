@@ -1,0 +1,16 @@
+{{- if and .Values.rhacs.enabled .Values.pipelineHooks.enabled .Values.pipelineHooks.ciTokenJob.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhacs-ci-token-scripts
+  namespace: {{ .Values.rhacs.namespace }}
+  labels:
+    {{- include "rhacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ci-token
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhacs.syncWaves.pipeline | quote }}
+data:
+  mint-ci-token.sh: |
+{{ .Files.Get "files/mint-ci-token.sh" | indent 4 }}
+{{- end }}
