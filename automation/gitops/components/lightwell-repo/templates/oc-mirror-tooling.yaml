@@ -68,6 +68,28 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Values.ocMirror.serviceAccountName }}
     namespace: {{ .Values.lightwellRepo.namespace }}
+{{- if .Values.ocMirror.anyuidScc }}
+---
+# #60: Job fsGroup 1000 is outside the restricted-v2 range (namespace 10009…).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.ocMirror.serviceAccountName }}-scc-anyuid
+  namespace: {{ .Values.lightwellRepo.namespace }}
+  labels:
+    {{- include "lightwell-repo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oc-mirror
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.ocMirror | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.ocMirror.serviceAccountName }}
+    namespace: {{ .Values.lightwellRepo.namespace }}
+{{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -137,11 +159,20 @@ data:
         spec:
           restartPolicy: Never
           serviceAccountName: {{ .Values.ocMirror.serviceAccountName }}
+          {{- if .Values.ocMirror.workspace.fsGroup }}
+          # #60: HOME/.oc-mirror must land on the PVC; fsGroup 1000 needs anyuid (restricted-v2 rejects 1000).
+          securityContext:
+            fsGroup: {{ .Values.ocMirror.workspace.fsGroup }}
+            fsGroupChangePolicy: OnRootMismatch
+          {{- end }}
           containers:
             - name: oc-mirror
               image: {{ .Values.ocMirror.pluginImage | quote }}
               imagePullPolicy: IfNotPresent
+              workingDir: /workspace
               env:
+                - name: HOME
+                  value: /workspace
                 - name: DOCKER_CONFIG
                   value: /docker
               command: ["oc-mirror"]

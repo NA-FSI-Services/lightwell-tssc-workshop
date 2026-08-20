@@ -115,7 +115,7 @@ Nexus **hosted Docker** repo `hummingbird-mirror` is the oc-mirror destination. 
 | Route | `registry-lightwell-repo.<domain>` (TLS edge) |
 | oc-mirror dest | `docker://registry-lightwell-repo.<domain>` |
 | Plugin image | `registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20` (Showroom copies the binary onto PATH — V2-20) |
-| Workspace | PVC `oc-mirror-workspace` |
+| Workspace | PVC `oc-mirror-workspace` (`HOME`/`workingDir` `/workspace`, `fsGroup` 1000, anyuid SCC — #60) |
 | Push auth | Secret `nexus-docker-push` (seed Job; admin → dest host) |
 | Tooling | ConfigMap `oc-mirror-tooling` (`README`, learner `job.yaml`, worked example) |
 

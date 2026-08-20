@@ -205,7 +205,10 @@ ocMirror:
   workspace:
     pvcName: oc-mirror-workspace
     size: 20Gi
+    # #60: chown workspace for oc-mirror local storage (requires anyuidScc).
+    fsGroup: 1000
   serviceAccountName: oc-mirror
+  anyuidScc: true
   dockerSecretName: nexus-docker-push
   configMapName: oc-mirror-tooling
   # V2-11 incomplete seed (REPLACE_ME). Learner edits this ConfigMap, then starts the Job.
