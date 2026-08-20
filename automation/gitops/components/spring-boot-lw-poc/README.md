@@ -12,7 +12,7 @@ Parasol (`#8`) remains optional and secondary.
 spring-boot-lw-poc/
 ├── Chart.yaml / values.yaml / templates/   # GitOps deploy (Deployment, Route, docs)
 └── app/                                    # Maven project sources
-    ├── pom.xml                             # dual-stream version properties + profiles
+    ├── pom.xml.example                     # dual-stream pins; Gitea seed → pom.xml
     ├── settings.xml                        # lightwell-validated / lightwell-remediated
     ├── Dockerfile
     └── src/main/java/.../GreetingController.java
@@ -22,6 +22,9 @@ spring-boot-lw-poc/
 
 Students use the **Gitea** app remote (`demo-userinfo-gitea` → `student_repo_url`), not a
 monorepo checkout. Operators still author sources under `./app` in this chart.
+The GitHub copy of the Maven manifest is `app/pom.xml.example` so Dependabot cannot
+bump the scored `commons-lang3` `3.14.0` pin. Seed renames it to `pom.xml` on Gitea.
+Local operator Maven: `mvn -f pom.xml.example ...`.
 
 ```bash
 # Learner (Showroom): clone Gitea spring-boot-lw-poc — pom.xml at repo root

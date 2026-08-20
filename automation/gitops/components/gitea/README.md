@@ -60,6 +60,13 @@ Python FastAPI assemble (`seed.python`) and `skeletonPython` are **off** (V2-12)
 
 Students never clone GitHub — only Gitea templates + their own org remotes (`student_repo_url`).
 
+Lab Maven fixtures in this GitHub repo are named **`pom.xml.example`**, not `pom.xml`.
+Dependabot treats `pom.xml` as a live Maven project and has already bumped the scored
+affected pin (`commons-lang3` `3.14.0` → `3.18.0`, PRs #1, #4, #53, #67). That breaks
+Track 2.2 / 3.2 (exact-version `.rhlw-*` on the OSV line, not “upgrade to latest”).
+`assemble-repo.sh` / `assemble-skeleton.sh` rename `pom.xml.example` → `pom.xml` when
+seeding Gitea. Do **not** merge Dependabot Maven PRs on those fixtures.
+
 Optional `seed.source.gitSecretName` references a Secret with `username` / `password`
 (or token as password) for private GitOps clones. **Do not commit credentials**; leave
 empty for the public development repo.

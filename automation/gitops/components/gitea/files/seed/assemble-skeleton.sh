@@ -51,5 +51,15 @@ fi
 echo "Isolating ${SKELETON_PATH} → template skeleton repo root"
 cp -a "${src}/." "${ROOT}/"
 
+# GitHub keeps the skeleton Maven manifest as pom.xml.example so Dependabot
+# does not bump scored CVE pins. RHDH fetch:template needs pom.xml.
+if [[ -f "${ROOT}/pom.xml.example" ]]; then
+  mv -f "${ROOT}/pom.xml.example" "${ROOT}/pom.xml"
+fi
+if [[ ! -f "${ROOT}/pom.xml" ]]; then
+  echo "ERROR: assembled skeleton has no pom.xml (expected pom.xml.example in workshop clone)" >&2
+  exit 1
+fi
+
 echo "Assembled RHDH skeleton at ${ROOT}:"
 find "${ROOT}" -maxdepth 3 -type f | sort | head -40

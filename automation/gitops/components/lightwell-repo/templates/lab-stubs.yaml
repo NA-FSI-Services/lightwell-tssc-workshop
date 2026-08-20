@@ -33,6 +33,7 @@ data:
 {{ .Files.Get "files/stubs/settings.xml" | indent 4 }}
 ---
 # V2-53 incomplete 2.2 pom. Default property is the affected upstream line.
+# GitHub file is pom.xml.example (Dependabot must not bump 3.14.0); ConfigMap key is pom.xml.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -46,7 +47,7 @@ metadata:
     argocd.argoproj.io/sync-wave: {{ .Values.lightwellRepo.syncWaves.config | quote }}
 data:
   {{ .Values.labStubs.pom.key }}: |
-{{ .Files.Get "files/stubs/pom.xml" | indent 4 }}
+{{ .Files.Get "files/stubs/pom.xml.example" | indent 4 }}
 ---
 # V2-53 incomplete 7.2 blast-radius report. Quiz keys stay V2-59.
 apiVersion: v1

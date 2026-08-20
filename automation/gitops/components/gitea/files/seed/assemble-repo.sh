@@ -19,6 +19,20 @@ SEED_MOUNT="${SEED_MOUNT:-/seed}"
 INCLUDE_OSV_EVAL="${INCLUDE_OSV_EVAL:-true}"
 OVERLAY_PREFIX="${OVERLAY_PREFIX:-overlay}"
 
+# GitHub keeps lab Maven manifests as pom.xml.example so Dependabot does not
+# bump scored CVE pins (LW-DEMO-0002 / commons-lang3 3.14.0). Student Gitea
+# must have pom.xml at the repository root.
+promote_pom_example() {
+  local root="${1}"
+  if [[ -f "${root}/pom.xml.example" ]]; then
+    mv -f "${root}/pom.xml.example" "${root}/pom.xml"
+  fi
+  if [[ ! -f "${root}/pom.xml" ]]; then
+    echo "ERROR: assembled tree has no pom.xml (expected pom.xml.example in workshop clone)" >&2
+    exit 1
+  fi
+}
+
 copy_embedded_fallback() {
   echo "WARNING: using embedded fallback tree (pom/README only) — set SOURCE_REPO_URL for live isolation" >&2
   cp "${SEED_MOUNT}/repo-README.md" "${ROOT}/README.md"
@@ -110,6 +124,7 @@ apply_overlay() {
 case "${SOURCE_MODE}" in
   live)
     isolate_from_git
+    promote_pom_example "${ROOT}"
     ;;
   embedded)
     if [[ "${OVERLAY_PREFIX}" != "overlay" ]]; then

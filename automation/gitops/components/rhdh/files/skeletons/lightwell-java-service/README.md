@@ -6,6 +6,7 @@
 #
 # Layout at repo root (parity with Gitea seed for Modules 4–6):
 #   pom.xml, settings.xml, Dockerfile, src/, tools/osv-eval/, .tekton/
+# GitHub skeleton copy is pom.xml.example; assemble-skeleton.sh renames to pom.xml.
 #
 # Dockerfile is UBI OpenJDK 21 (V2-13). Track 3: runtime FROM → mirrored Hummingbird.
 

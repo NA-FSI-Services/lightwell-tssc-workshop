@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GitHub filename is pom.xml.example so Dependabot does not bump scored CVE pins
+  (LW-DEMO-0002: commons-lang3 3.14.0). Gitea seed renames this file to pom.xml.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -11,23 +15,22 @@
     <relativePath/>
   </parent>
 
-  <groupId>${{ values.groupId }}</groupId>
-  <artifactId>${{ values.name }}</artifactId>
+  <groupId>com.redhat.lightwell.workshop</groupId>
+  <artifactId>spring-boot-lw-poc</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <name>${{ values.name }}</name>
-  <description>${{ values.description }}</description>
+  <name>spring-boot-lw-poc</name>
+  <description>Lightwell TSSC workshop — Spring Boot / Java 21 Maven PoC (Validated + Remediated)</description>
 
   <properties>
     <java.version>21</java.version>
     <!--
-      Dual Lightwell Network streams (field PoV / Modules 2–3):
-      - lightwell-validated: upstream-parity versions from Validated tier
-      - lightwell-remediated-pins: exact-version .rhlw-0000X from Remediated tier
-      Resolve .rhlw-* from Nexus / packages.redhat.com — not Maven Central.
+      Dual dependency streams (field PoV pattern):
+      - Default / lightwell-validated: upstream-parity version from Validated tier
+      - lightwell-remediated-pins: exact-version .rhlw-0000X pin from Remediated tier
+      The .rhlw-* artifact resolves from Lightwell Network (or seeded Nexus), not Maven Central.
     -->
     <commons.lang3.version>3.14.0</commons.lang3.version>
     <springdoc.version>2.6.0</springdoc.version>
-    <lightwell.stream>validated</lightwell.stream>
   </properties>
 
   <dependencies>
@@ -44,6 +47,7 @@
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>${springdoc.version}</version>
     </dependency>
+    <!-- Demo library whose version can be flipped to a remediated .rhlw-* pin -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -57,6 +61,7 @@
   </dependencies>
 
   <profiles>
+    <!-- Active development against Lightwell Validated (or Maven Central for the default version) -->
     <profile>
       <id>lightwell-validated</id>
       <properties>
@@ -64,10 +69,15 @@
         <lightwell.stream>validated</lightwell.stream>
       </properties>
     </profile>
+    <!--
+      Production-style exact-version remediation.
+      Example pin shape matches LWN: 5.3.18.rhlw-00003 (see lightwell-repo sample OSV).
+      Replace commons.lang3.version with a real remediated coordinate when using seeded/proxy Nexus.
+    -->
     <profile>
       <id>lightwell-remediated-pins</id>
       <properties>
-        <!-- Example exact-version pin (seeded Nexus / LWN Remediated) -->
+        <!-- Workshop example — resolve from lightwell-java-remediated when available -->
         <commons.lang3.version>3.14.0.rhlw-00001</commons.lang3.version>
         <lightwell.stream>remediated</lightwell.stream>
       </properties>

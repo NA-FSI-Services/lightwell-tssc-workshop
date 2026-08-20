@@ -45,7 +45,7 @@ grep commons.lang3.version pom.xml | head -20
 cat lightwell-pins.properties
 ----
 
-Expect runtime `FROM` `ubi9/openjdk-21-runtime` and a default `commons.lang3.version` that is *not* yet `3.14.0.rhlw-00001`. Pins file should still show `3.14.0.rhlw-00000` and an all-zero Hummingbird digest.
+Expect runtime `FROM` `ubi9/openjdk-21-runtime` and a default `commons.lang3.version` of `3.14.0` (affected upstream). `3.18.0` (or any newer Central line) is the wrong fix. The pin is not yet `3.14.0.rhlw-00001`. Pins file should still show `3.14.0.rhlw-00000` and an all-zero Hummingbird digest.
 
 .Dest host (runtime FROM registry) — combine with the dest digest you recorded in 1.2
 [source,bash,role=execute]

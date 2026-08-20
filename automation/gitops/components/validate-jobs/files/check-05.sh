@@ -12,5 +12,6 @@ esac
 gitea_repo_ok "$org" "$repo"
 pom="$(gitea_raw "$org" "$repo" pom.xml)"
 require_contains "${org}/${repo} pom.xml" "$pom" "<project"
+deny_contains "${org}/${repo} pom.xml" "$pom" "<commons.lang3.version>3.18.0</commons.lang3.version>"
 report_require_token git_home gitea-not-github
 pass "Learner remote ${org}/${repo} exists with pom.xml at the repository root."

@@ -28,10 +28,11 @@ data:
   assemble-skeleton.sh: |
 {{ .Files.Get "files/seed/assemble-skeleton.sh" | indent 4 }}
   # Embedded fallback only (SOURCE_MODE=embedded) — live mode isolates spring-boot-lw-poc/app
+  # GitHub file is pom.xml.example (Dependabot); ConfigMap key repo-pom.xml still becomes pom.xml.
   repo-README.md: |
 {{ .Files.Get "files/seed/repo/README.md" | indent 4 }}
   repo-pom.xml: |
-{{ .Files.Get "files/seed/repo/pom.xml" | indent 4 }}
+{{ .Files.Get "files/seed/repo/pom.xml.example" | indent 4 }}
   repo-gitignore: |
 {{ .Files.Get "files/seed/repo/.gitignore" | indent 4 }}
   # Lab overlay merged onto isolated app root (students never see monorepo)

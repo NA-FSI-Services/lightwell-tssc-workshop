@@ -140,7 +140,7 @@ mvn -s ~/track-2-1-settings.xml ${MVN_LOCAL} -f ~/track-2-2/pom.xml \
   -Plightwell-remediated dependency:tree
 ----
 
-You should see `org.apache.commons:commons-lang3:jar:3.14.0.rhlw-00001` and a download path on your Nexus host. A tree that still shows plain `3.14.0`, or `5.3.18.rhlw-00003`, fails.
+You should see `org.apache.commons:commons-lang3:jar:3.14.0.rhlw-00001` and a download path on your Nexus host. A tree that still shows plain `3.14.0`, `3.18.0`, or `5.3.18.rhlw-00003`, fails.
 
 :report-name: report-04-remediated-pin
 :report-key: pin_kind
@@ -157,6 +157,7 @@ Do *not*:
 
 * Commit to `workshop-templates` or GitHub
 * Treat a `lightwell-remediated-pins` profile as sufficient if default is still `3.14.0`
+* Bump `commons-lang3` to `3.18.0` (or any newer upstream). That is not Lightwell remediation.
 * Ingest VEX into TPA here (Track 7)
 
 == Callout: Python `+rhlw.*`
