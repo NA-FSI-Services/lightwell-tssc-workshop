@@ -30,7 +30,7 @@
 3. Learner applies deny-egress + DNS 5353 + image-registry 5000 + Nexus 8081/5000.
 4. Check: policy exists, not allow-all, not copied to `lw-poc-staging`.
 5. After tighten, public task-image pulls fail unless already internal — teach that.
-6. **Visual (generate):** build hermetic vs app operate NetworkPolicy — https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/51 — do not invent the PNG here. Skip a YAML screenshot (Check grades the live object).
+6. **Visual:** build hermetic vs app operate NetworkPolicy — `content/modules/ROOT/images/np-build-vs-app-operate.png` (https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/51). Skip a YAML screenshot (Check grades the live object).
 
 ### Key Takeaways
 
