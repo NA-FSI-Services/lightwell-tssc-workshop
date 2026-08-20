@@ -149,11 +149,13 @@ Classic Showroom does *not* lock the next URL. Learners can open 7.2 on day one.
 * Learners may re-run each Validate Job as often as they need. No quota. No instructor reset.
 * Jobs live in `lw-poc-validate`. Templates are ConfigMap `validate-job-templates`. The Job grades cluster/git state **and** the per-module report token (not a screenshot). Do not invent a lock.
 
-== GitHub Dependabot and lab Maven pins
+== GitHub Dependabot and lab Maven / pip pins
 
 Do *not* merge Dependabot Maven PRs that bump `commons-lang3` (or `spring-core`) on this GitHub repo. Those versions are the scored *affected* line (`3.14.0` / `LW-DEMO-0002`). “Upgrade to latest” (`3.18.0`) is the wrong story; Track 2.2 is the exact `.rhlw-*` pin.
 
-Lab fixtures on GitHub are `pom.xml.example`. Gitea seed renames them to `pom.xml` so learners still see a real Maven project. Keep it that way.
+Do *not* merge Dependabot pip PRs that bump `httpx` (or the FastAPI/uvicorn pins) on the Python lab fixtures. `httpx==0.27.2` is the Validated demo line.
+
+Lab fixtures on GitHub are `pom.xml.example` and `requirements.txt.example`. Gitea seed renames them so learners still see `pom.xml` / `requirements.txt`. Keep it that way. Do not rename `publishing-house/tools/requirements.txt`.
 
 == After the workshop
 

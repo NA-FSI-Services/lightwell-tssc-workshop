@@ -19,15 +19,27 @@ SEED_MOUNT="${SEED_MOUNT:-/seed}"
 INCLUDE_OSV_EVAL="${INCLUDE_OSV_EVAL:-true}"
 OVERLAY_PREFIX="${OVERLAY_PREFIX:-overlay}"
 
-# GitHub keeps lab Maven manifests as pom.xml.example so Dependabot does not
-# bump scored CVE pins (LW-DEMO-0002 / commons-lang3 3.14.0). Student Gitea
-# must have pom.xml at the repository root.
-promote_pom_example() {
+# GitHub keeps lab manifests as *.example so Dependabot does not bump scored
+# pins (Maven commons-lang3 3.14.0 / PyPI httpx==0.27.2). Student Gitea must
+# have pom.xml or requirements.txt at the repository root.
+promote_lab_manifest_examples() {
   local root="${1}"
   if [[ -f "${root}/pom.xml.example" ]]; then
     mv -f "${root}/pom.xml.example" "${root}/pom.xml"
   fi
-  if [[ ! -f "${root}/pom.xml" ]]; then
+  if [[ -f "${root}/requirements.txt.example" ]]; then
+    mv -f "${root}/requirements.txt.example" "${root}/requirements.txt"
+  fi
+}
+
+require_student_manifest() {
+  local root="${1}"
+  if [[ "${OVERLAY_PREFIX}" == overlay-python* ]]; then
+    if [[ ! -f "${root}/requirements.txt" ]]; then
+      echo "ERROR: assembled Python tree has no requirements.txt (expected requirements.txt.example in workshop clone)" >&2
+      exit 1
+    fi
+  elif [[ ! -f "${root}/pom.xml" ]]; then
     echo "ERROR: assembled tree has no pom.xml (expected pom.xml.example in workshop clone)" >&2
     exit 1
   fi
@@ -124,7 +136,8 @@ apply_overlay() {
 case "${SOURCE_MODE}" in
   live)
     isolate_from_git
-    promote_pom_example "${ROOT}"
+    promote_lab_manifest_examples "${ROOT}"
+    require_student_manifest "${ROOT}"
     ;;
   embedded)
     if [[ "${OVERLAY_PREFIX}" != "overlay" ]]; then

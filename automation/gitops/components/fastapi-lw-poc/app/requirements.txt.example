@@ -1,5 +1,9 @@
 # FastAPI LWN PoC — framework from public PyPI; httpx from Lightwell Validated.
 #
+# GitHub filename is requirements.txt.example so Dependabot does not bump
+# workshop pins (httpx==0.27.2 Validated line). Gitea seed renames this to
+# requirements.txt.
+#
 # Dual dependency streams (mirror of Java commons-lang3):
 #   - Default / Validated labs: httpx==0.27.2 from lightwell-python-validated
 #   - Remediated labs (Module 8): install lw-workshop-pypi==1.0.0+rhlw.00001

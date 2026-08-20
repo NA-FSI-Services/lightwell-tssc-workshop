@@ -6,6 +6,7 @@
 #
 # Layout at repo root (parity with Gitea seed for Modules 7–9):
 #   requirements.txt, pip.conf, pip-remediated.conf, Dockerfile, main.py, .tekton/
+# GitHub skeleton copy is requirements.txt.example; assemble-skeleton.sh renames to requirements.txt.
 
 ## Prerequisites
 

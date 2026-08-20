@@ -10,7 +10,7 @@ Mirrors [`spring-boot-lw-poc`](../spring-boot-lw-poc/) for the Python track (epi
 fastapi-lw-poc/
 ├── Chart.yaml / values.yaml / templates/   # GitOps deploy (Deployment, Route, docs)
 └── app/                                    # Python project sources (Gitea isolation root)
-    ├── requirements.txt                    # FastAPI + uvicorn (PyPI) + httpx (LWN demo)
+    ├── requirements.txt.example            # FastAPI + uvicorn + httpx; Gitea seed → requirements.txt
     ├── pip.conf                            # Validated index + public PyPI fallback
     ├── pip-remediated.conf                 # Remediated index (always on for this workshop)
     ├── Dockerfile
@@ -39,6 +39,9 @@ not a monorepo checkout. Discover `student_python_repo_url` /
 `template_python_app_repo_url` from ConfigMap `demo-userinfo-gitea`; Module 7
 runs `learner-seed-python-from-templates.sh`. Operators still author sources
 under `./app` in this chart.
+The GitHub copy of the pip manifest is `app/requirements.txt.example` so
+Dependabot cannot bump the scored `httpx==0.27.2` pin. Seed renames it to
+`requirements.txt` on Gitea. Local operator pip: `pip install -r requirements.txt.example`.
 
 ```bash
 # Learner (Showroom): clone Gitea fastapi-lw-poc — requirements.txt at repo root
