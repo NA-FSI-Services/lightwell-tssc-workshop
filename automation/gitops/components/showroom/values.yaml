@@ -80,7 +80,7 @@ userInfo:
   enabled: true
   title: "Lightwell Software Supply Chain Security Workshop"
   instructions: >-
-    Open Showroom for Modules 1–6 (split-screen guide + terminal).
+    Open Showroom for the seven-track TSSC lab (split-screen guide + terminal).
     Use the terminal pane for oc / tkn / mvn / cosign / ec / oc-mirror.
     syft is not baked yet (no Red Hat CLI image). Never curl github.com for CLIs.
     Never commit LW_USERNAME / LW_PASSWORD.

@@ -20,7 +20,6 @@ data:
   antora_playbook: {{ .Values.showroom.content.antoraPlaybook | quote }}
   content_repo: {{ .Values.showroom.content.repoUrl | quote }}
   content_ref: {{ .Values.showroom.content.repoRef | quote }}
-  modules: "1-overview,2-maven,3-osv,4-sbom,5-pipeline"
   terminal_enabled: {{ .Values.showroom.terminal.enabled | quote }}
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
@@ -35,5 +34,5 @@ data:
   lab_clis: {{ include "showroom.labClis" . | quote }}
   syft_baked: "false"
   do_not_curl_github: "true"
-  lab_entry: "Open showroom_url → split-screen Modules 1–5 + Terminal; RHTPA embeds; SSO/Nexus/Console open externally (ui-config.yml); direct /terminal/ also works"
+  lab_entry: "Open showroom_url → split-screen seven-track guide + Terminal; RHTPA embeds; SSO/Nexus/Console open externally (ui-config.yml); direct /terminal/ also works"
 {{- end }}

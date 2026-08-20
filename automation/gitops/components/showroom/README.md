@@ -48,7 +48,7 @@ ConfigMap `demo-userinfo-showroom` exposes:
 * `dest_registry_host` / `dest_registry_docker` — empty Nexus Docker dest for learner oc-mirror
 * `lab_clis` — `cosign,ec,oc-mirror` on PATH (`/usr/local/bin`); `syft_baked=false`
 * `do_not_curl_github` — Q22; never download CLIs from github.com at runtime
-* `modules`, `lab_entry`, `access_instructions`
+* `lab_entry`, `access_instructions` (no `modules` key; v1 slugs were dropped, #57)
 * Labels: `demo.redhat.com/application: lightwell-tssc-workshop`, `demo.redhat.com/userinfo: ""`
 
 ## Terminal CLIs (V2-20)

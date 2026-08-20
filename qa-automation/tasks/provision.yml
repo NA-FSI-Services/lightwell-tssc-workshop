@@ -181,4 +181,6 @@
       - "'oc-mirror' in (showroom_userinfo_json.stdout | from_json).data.lab_clis"
       - (showroom_userinfo_json.stdout | from_json).data.syft_baked == "false"
       - (showroom_userinfo_json.stdout | from_json).data.dest_registry_repo == dest_repo
-    fail_msg: demo-userinfo-showroom missing dest hummingbird-mirror or lab CLIs
+      - "'modules' not in (showroom_userinfo_json.stdout | from_json).data"
+      - "'1-overview' not in ((showroom_userinfo_json.stdout | from_json).data.lab_entry | default(''))"
+    fail_msg: demo-userinfo-showroom missing dest hummingbird-mirror or lab CLIs, or still lists v1 modules
