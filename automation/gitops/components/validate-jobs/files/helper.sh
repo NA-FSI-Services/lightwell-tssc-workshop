@@ -189,6 +189,17 @@ taskrun_succeeded() {
   [[ "$statuses" == *True* ]] || fail "No Succeeded TaskRun for pipelineTask=${task} in ${ns}."
 }
 
+# Newest TaskRun result for a pipeline task. Tekton v1 stores values on
+# .status.results; some clusters still expose .status.taskResults. Sorted by
+# creationTimestamp so a later passed/failed run wins over an earlier skip.
+taskrun_latest_result() {
+  local ns="$1" task="$2" name="$3"
+  oc -n "$ns" get taskrun -l "tekton.dev/pipelineTask=${task}" \
+    --sort-by=.metadata.creationTimestamp \
+    -o jsonpath="{range .items[*]}{.status.results[?(@.name==\"${name}\")].value}{.status.taskResults[?(@.name==\"${name}\")].value}{\"\\n\"}{end}" \
+    2>/dev/null || true
+}
+
 pipeline_yaml() {
   local ns="$1" name="$2"
   oc -n "$ns" get pipeline "$name" -o yaml 2>/dev/null \

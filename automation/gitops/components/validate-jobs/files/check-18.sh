@@ -14,17 +14,17 @@ require_contains "stub-18-blast-radius" "$body" "via-lightwell-pin"
 gitea_repo_ok "$org" "$repo"
 pl="$(gitea_raw "$org" "$repo" .tekton/pipeline.yaml)"
 # Seed is value: "false". Learner must set true on acs-image-check.
-printf '%s\n' "$pl" | grep -A6 'name: acs-image-check' | grep -q 'fail-on-skipped' \
-  || fail "${org}/${repo} .tekton/pipeline.yaml acs-image-check is missing fail-on-skipped."
-acs_block="$(printf '%s\n' "$pl" | awk '/name: acs-image-check/,/name: syft-sbom-rhtpa/')"
+# Use the task block, not grep -A6: cluster-resolver params sit between the
+# task name and fail-on-skipped (#89).
+acs_block="$(printf '%s\n' "$pl" | awk '/^[[:space:]]*- name: acs-image-check$/,/name: syft-sbom-rhtpa/')"
+require_contains "${org}/${repo} .tekton/pipeline.yaml acs-image-check" "$acs_block" "fail-on-skipped"
 require_contains "acs-image-check params" "$acs_block" 'value: "true"'
 deny_contains "acs-image-check params" "$acs_block" 'value: "false"'
-results="$(oc -n "$ns" get taskrun -l tekton.dev/pipelineTask=acs-image-check \
-  -o jsonpath='{range .items[*]}{.status.taskResults[?(@.name=="check-status")].value}{"\n"}{end}' 2>/dev/null || true)"
-[[ -n "$results" ]] || fail "No acs-image-check TaskRun in ${ns}. Re-run the pipeline after setting fail-on-skipped true."
-latest="$(printf '%s\n' "$results" | grep -v '^$' | tail -1)"
+results="$(taskrun_latest_result "$ns" acs-image-check check-status)"
+latest="$(printf '%s\n' "$results" | grep -v '^$' | tail -1 || true)"
+[[ -n "$latest" ]] || fail "No acs-image-check TaskRun result in ${ns}. Re-run the pipeline after setting fail-on-skipped true."
 [[ "$latest" == "passed" || "$latest" == "failed" ]] \
-  || fail "Latest acs-image-check check-status is '${latest:-empty}' (must be passed or failed, not skipped)."
+  || fail "Latest acs-image-check check-status is '${latest}' (must be passed or failed, not skipped)."
 csaf="$(cm_get trusted-profile-analyzer rhtpa-ingestion-info live_csaf_gate)"
 [[ "$csaf" == "false" ]] || fail "live_csaf_gate must stay false."
 report_require_token vex_layer gav-bound gav-bound-vex
