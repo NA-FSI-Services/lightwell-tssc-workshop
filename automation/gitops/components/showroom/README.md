@@ -36,6 +36,8 @@ The terminal container runs as ServiceAccount `showroom` in namespace `showroom`
 
 When `showroom.terminal.labClusterAccess` is `true` (default), the chart creates ClusterRoleBinding `showroom-lab-cluster-admin` → `cluster-admin` for that SA. This is intentional for the RHDP workshop path so Showroom `/terminal/` can follow Modules 1–6 (and 7–9 when enabled) without a separate learner kubeconfig.
 
+PVC `showroom-terminal-lab-user-home` mounts at `/home/lab-user`. Pod `securityContext.fsGroup` is `1000` (`OnRootMismatch`) so `lab-user` can write `~/` (#58). Do not tell learners to use `/tmp` instead.
+
 Root App-of-Apps places this chart at sync wave **`50`** (last).
 
 ## RHDP userinfo

@@ -34,6 +34,8 @@ showroom:
     # `oc -n lightwell-repo|stackrox|…` commands work from /terminal/.
     # Required for Field Content / RHDP catalog (namespace-local edit is not enough).
     labClusterAccess: true
+    # #58: kubelet chowns the home PVC for lab-user (uid/gid 1000). SCC is anyuid.
+    homeFsGroup: 1000
     # V2-20: copy CLIs from already-pinned registry.redhat.io images (no github.com).
     # syft has no Red Hat CLI image — deferred until a bake registry exists.
     tools:

@@ -178,6 +178,12 @@ spec:
         {{- include "showroom.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ .Values.showroom.name }}
+      {{- if and .Values.showroom.terminal.enabled .Values.showroom.terminal.homeFsGroup }}
+      # #58: Ceph RBD home PVC is root:root without fsGroup; terminal is uid 1000.
+      securityContext:
+        fsGroup: {{ .Values.showroom.terminal.homeFsGroup }}
+        fsGroupChangePolicy: OnRootMismatch
+      {{- end }}
       initContainers:
       {{- if and .Values.showroom.terminal.enabled .Values.showroom.terminal.tools.enabled }}
       {{- range .Values.showroom.terminal.tools.items }}
