@@ -30,6 +30,15 @@ data:
   allow_nexus_docker_port: {{ .Values.allow.nexusDockerPort | quote }}
   allow_gitea_namespace: {{ .Values.allow.giteaNamespace | quote }}
   allow_gitea_port: {{ .Values.allow.giteaPort | quote }}
+  allow_stackrox_namespace: {{ .Values.allow.stackroxNamespace | quote }}
+  allow_stackrox_port: {{ .Values.allow.stackroxPort | quote }}
+  allow_tas_namespace: {{ .Values.allow.tasNamespace | quote }}
+  allow_tas_tuf_port: {{ .Values.allow.tasTufPort | quote }}
+  allow_tas_fulcio_port: {{ .Values.allow.tasFulcioPort | quote }}
+  allow_tas_fulcio_grpc_port: {{ .Values.allow.tasFulcioGrpcPort | quote }}
+  allow_tas_rekor_port: {{ .Values.allow.tasRekorPort | quote }}
+  allow_tpa_namespace: {{ .Values.allow.tpaNamespace | quote }}
+  allow_tpa_port: {{ .Values.allow.tpaPort | quote }}
   allow_kube_api_namespace: default
   allow_kube_api_svc: kubernetes
   do_not_copy: example-hermetic-egress.yaml

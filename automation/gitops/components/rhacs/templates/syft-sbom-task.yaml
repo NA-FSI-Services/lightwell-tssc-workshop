@@ -186,8 +186,8 @@ spec:
           echo "WARN: ${OUT} missing — skip persist"
           exit 0
         fi
+        oc delete configmap "${PERSIST_CM}" --ignore-not-found
         oc create configmap "${PERSIST_CM}" \
-          --from-file=sbom.cyclonedx.json="${OUT}" \
-          --dry-run=client -o yaml | oc apply -f -
+          --from-file=sbom.cyclonedx.json="${OUT}"
         echo "Persisted ConfigMap ${PERSIST_CM} for Track 7.1 (emptyDir does not survive pod completion)"
 {{- end }}

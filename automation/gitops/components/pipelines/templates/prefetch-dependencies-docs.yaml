@@ -31,7 +31,9 @@ data:
     openshift-build. Point settings.xml at in-cluster Nexus with mirrorOf *
     (the seed still lists repo.maven.apache.org). Prefetch writes
     {{ .Values.prefetchDependencies.prefetchDir }} into the source workspace
-    so Binary BuildConfig can consume it. Dockerfile mvn -o is Track 4 content
+    so Binary BuildConfig can consume it. Dockerfile must COPY that directory
+    (and settings.xml if using -s) into the build stage — workspace files are
+    only in the Docker context until COPY. Dockerfile mvn -o is Track 4 content
     (V2-34) — do not copy example-pipeline-snippet.yaml.
 
     Image build stays OpenShift BuildConfig (no Buildah).

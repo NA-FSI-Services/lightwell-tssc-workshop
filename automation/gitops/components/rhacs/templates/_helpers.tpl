@@ -27,3 +27,8 @@ https://{{ include "rhacs.centralHost" . }}
 {{- define "rhacs.centralEndpoint" -}}
 {{ include "rhacs.centralHost" . }}:443
 {{- end -}}
+
+{{/* In-cluster Central for pipeline pods after 4.3 (Route is the ingress VIP). */}}
+{{- define "rhacs.centralInternalEndpoint" -}}
+central.{{ .Values.rhacs.namespace }}.svc:443
+{{- end -}}

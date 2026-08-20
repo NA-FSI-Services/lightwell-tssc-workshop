@@ -86,7 +86,20 @@ COSIGN_PASSWORD="" cosign sign --key /home/lab-user/lab-trust/cosign.key \
 
 Keep the `sha256:` prefix. That digest must match Track 5.1.
 
-. Clone the *stage* GitOps remote (`student_gitops_repo_url`). Set `image.digest` to that digest and `replicas: 1`. Commit and push. Do not edit the prod remote. Follow `PROMOTE.md` in that repo if you need the field names.
+. Clone the *stage* GitOps remote (`student_gitops_repo_url`). Set `image.digest` to that digest and `replicas: 1`. Commit and push. Do not edit the prod remote. Follow `PROMOTE.md` in that repo if you need the field names. A fresh clone does not inherit `git config` from the app repo — set author locally (same identity as xref:module-06-bind-base-deps.adoc[3.2]):
+
+[source,bash,role=execute]
+----
+STAGE_GITOPS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_gitops_repo_url}')"
+: "${STUDENT_USER:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')}"
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+rm -rf /tmp/gitops-stage
+hostpath="${STAGE_GITOPS#https://}"; hostpath="${hostpath#http://}"
+git clone "https://${STUDENT_USER}:${STUDENT_PASS}@${hostpath}" /tmp/gitops-stage
+cd /tmp/gitops-stage
+git config user.name student
+git config user.email student@workshop.local
+----
 
 . Wait until Argo Application `lw-poc-staging` is Synced / Healthy (hard-refresh if it still shows `replicas: 0`).
 

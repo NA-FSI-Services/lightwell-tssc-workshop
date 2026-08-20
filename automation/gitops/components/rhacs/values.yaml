@@ -62,7 +62,7 @@ pipelineHooks:
   enabled: true
   taskName: acs-image-check
   # Secret keys expected by the Task (create after Central is Ready — do not commit tokens)
-  #   rox-api-endpoint: central-stackrox.apps.<domain>:443
+  #   rox-api-endpoint: central.stackrox.svc:443 (in-cluster; Route is blocked after 4.3)
   #   rox-api-token: <CI API token from Central>
   secretName: rhacs-ci-secrets
   createSecretPlaceholder: true

@@ -55,13 +55,16 @@ spec:
             cidr: 8.8.8.8/32
 ----
 
-Allow-list (from userinfo keys — do not invent CIDRs except the kube API ClusterIP you discover below):
+Allow-list (from userinfo keys — do not invent CIDRs except the kube API ClusterIP you discover below). OVN matches egress **ports** to the **pod** port after DNAT, not the Service port.
 
 * `openshift-dns` UDP (and TCP) port `5353`
 * `openshift-image-registry` TCP `5000`
 * `lightwell-repo` Nexus HTTP `8081` and Docker dest `5000`
 * `gitea` TCP `3000` (in-cluster clone — not the Gitea Route)
 * Kubernetes API: `default/kubernetes` ClusterIP TCP `443`, plus endpoint IPs TCP `6443` (hostNetwork masters; `namespaceSelector: default` does not match them)
+* `stackrox` TCP `8443` (Central Service is `443` → pod `8443` — `ports: [{port: 443}]` does not allow it)
+* `trusted-artifact-signer` TCP `8080` (TUF), `5555` (Fulcio HTTP), `5554` (Fulcio gRPC), `3000` (Rekor)
+* `trusted-profile-analyzer` TCP `8080` (TPA Service is `443` → pod `8080`)
 
 Discover the API addresses (they differ per claim):
 
@@ -73,7 +76,7 @@ oc -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip
 
 == Your change: tighten `build-egress`
 
-Replace the seed `egress: [ {} ]` with deny-by-default plus the destinations above (`namespaceSelector` on those namespaces, matching ports, plus `ipBlock` `/32` for the kube API ClusterIP and endpoint IPs). Do not add `registry.redhat.io` or a public CIDR. Do not rely on `namespaceSelector: openshift-ingress` for Routes — Route hostnames resolve to the ingress VIP, which that selector does not match. After 4.3, 4.4 must use in-cluster Gitea (`student_repo_internal_url`) and Nexus (`nexus_internal_url`), not HTTPS Routes.
+Replace the seed `egress: [ {} ]` with deny-by-default plus the destinations above (`namespaceSelector` on those namespaces, matching **pod** ports from userinfo, plus `ipBlock` `/32` for the kube API ClusterIP and endpoint IPs). Do not add `registry.redhat.io` or a public CIDR. Do not rely on `namespaceSelector: openshift-ingress` for Routes — Route hostnames resolve to the ingress VIP, which that selector does not match. After 4.3, 4.4 must use in-cluster Gitea (`student_repo_internal_url`) and Nexus (`nexus_internal_url`), not HTTPS Routes. Pipeline ACS / keyless sign / TPA need the stackrox / RHTAS / TPA pod ports — Service port 80 or 443 is not enough.
 
 [source,bash,role=execute]
 ----
@@ -87,7 +90,7 @@ oc -n lw-poc-staging get networkpolicy app-operate
 Pass when:
 
 * `build-egress` exists in `lw-poc-build`, is not allow-all egress, includes DNS + registry + Nexus
-* Extra allows for Gitea and kube API are expected so 4.4 can run
+* Extra allows for Gitea, kube API, stackrox `8443`, and RHTAS pod ports are expected so 4.4 / 5.1 can run
 * You did not copy it to `lw-poc-staging`
 * `app-operate` on staging/prod is still the operate seed
 
@@ -108,3 +111,4 @@ Honor system: 4.4 still opens. The Check grades the live NetworkPolicy, not a YA
 
 * Build hermetic ≠ app operate.
 * After this tighten, clone and Maven must use in-cluster service URLs, not Routes.
+* Pipeline Fulcio / Rekor / TUF must use `*_internal_url` from `demo-userinfo-rhtas`. Runtime `FROM` must already be the internal dest ImageStream from 4.1.

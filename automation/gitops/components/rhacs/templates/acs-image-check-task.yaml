@@ -100,9 +100,14 @@ spec:
           curl_insecure="--insecure"
         fi
 
-        curl ${curl_insecure} -s -L -H "Authorization: Bearer ${ROX_API_TOKEN}" \
+        if ! curl ${curl_insecure} -fsS -L --max-time 20 -H "Authorization: Bearer ${ROX_API_TOKEN}" \
           "https://${ROX_CENTRAL_ENDPOINT}/api/cli/download/roxctl-linux" \
-          --output ./roxctl
+          --output ./roxctl; then
+          skip_exit "roxctl download failed from ${ROX_CENTRAL_ENDPOINT}"
+        fi
+        if [[ ! -s ./roxctl ]]; then
+          skip_exit "roxctl download empty from ${ROX_CENTRAL_ENDPOINT}"
+        fi
         chmod +x ./roxctl
 
         echo "roxctl image check --image=${PARAM_IMAGE}"

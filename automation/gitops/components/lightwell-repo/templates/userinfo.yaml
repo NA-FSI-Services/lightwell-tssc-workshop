@@ -3,6 +3,7 @@
 {{- $nexusInternalUrl := include "lightwell-repo.nexusInternalUrl" . }}
 {{- $regUrl := include "lightwell-repo.registryUrl" . }}
 {{- $regHost := include "lightwell-repo.registryHost" . }}
+{{- $regInternalHost := include "lightwell-repo.registryInternalHost" . }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -55,6 +56,7 @@ data:
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}
 {{- if .Values.channels.dockerMirror.enabled }}
   dest_registry_host: {{ $regHost | quote }}
+  dest_registry_internal_host: {{ $regInternalHost | quote }}
   dest_registry_url: {{ $regUrl | quote }}
   dest_registry_docker: {{ printf "docker://%s" $regHost | quote }}
   dest_registry_repo: {{ .Values.channels.dockerMirror.name | quote }}
