@@ -1,0 +1,17 @@
+{{- if and .Values.showroom.enabled .Values.showroom.terminal.enabled }}
+---
+# #77: git author + Gitea HTTPS store so Showroom `git commit` / `git push` need no TTY.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.showroom.name }}-lab-git-setup
+  namespace: {{ .Values.showroom.namespace }}
+  labels:
+    {{- include "showroom.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.showroom.syncWaves.config | quote }}
+    lightwell.redhat.com/purpose: "Showroom terminal git author + Gitea HTTPS credentials (#77)"
+data:
+  lab-git-setup.sh: |
+{{ .Files.Get "files/lab-git-setup.sh" | indent 4 }}
+{{- end }}

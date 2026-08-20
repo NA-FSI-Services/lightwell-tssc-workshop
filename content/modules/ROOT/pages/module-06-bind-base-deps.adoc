@@ -70,6 +70,22 @@ FROM registry.example.invalid/not-hummingbird:latest
 
 . Do *not* edit `lightwell-pins.properties`.
 
+.If `git commit` reports unknown author identity, or `git push` cannot read a username (Showroom has no TTY for HTTPS auth)
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git config user.name student
+git config user.email student@workshop.local
+: "${STUDENT_USER:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_username}')}"
+: "${STUDENT_PASS:=$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_password}')}"
+hostpath="$(git remote get-url origin)"
+hostpath="${hostpath#https://}"
+hostpath="${hostpath#http://}"
+git remote set-url origin "https://${STUDENT_USER}:${STUDENT_PASS}@${hostpath}"
+----
+
+A later Showroom restart stores the same author and Gitea credentials in `~/.gitconfig` so later modules can keep `git commit` / `git push origin HEAD` as written.
+
 [source,bash,role=execute]
 ----
 cd /tmp/spring-boot-lw-poc

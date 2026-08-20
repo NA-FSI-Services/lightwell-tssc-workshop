@@ -311,6 +311,8 @@ spec:
         image: {{ .Values.showroom.terminal.image | quote }}
         imagePullPolicy: IfNotPresent
         env:
+        - name: HOME
+          value: /home/lab-user
         - name: NAMESPACE
           valueFrom:
             fieldRef:
@@ -319,9 +321,17 @@ spec:
         - name: PATH
           value: "{{ .Values.showroom.terminal.tools.mountDir }}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         {{- end }}
+        # #77: author + Gitea store so listings can `git commit` / `git push origin HEAD`.
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/bash", "/usr/local/libexec/lab-git-setup.sh"]
         volumeMounts:
         - name: terminal-lab-user-home
           mountPath: /home/lab-user
+        - name: lab-git-setup
+          mountPath: /usr/local/libexec/lab-git-setup.sh
+          subPath: lab-git-setup.sh
         {{- if .Values.showroom.terminal.tools.enabled }}
         {{- range .Values.showroom.terminal.tools.items }}
         - name: lab-bin
@@ -357,6 +367,12 @@ spec:
       - name: terminal-lab-user-home
         persistentVolumeClaim:
           claimName: {{ .Values.showroom.name }}-terminal-lab-user-home
+      {{- if .Values.showroom.terminal.enabled }}
+      - name: lab-git-setup
+        configMap:
+          name: {{ .Values.showroom.name }}-lab-git-setup
+          defaultMode: 0755
+      {{- end }}
       {{- if and .Values.showroom.terminal.enabled .Values.showroom.terminal.tools.enabled }}
       - name: lab-bin
         emptyDir: {}
