@@ -123,11 +123,37 @@ create_docker_hosted() {
     -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":false,\"writePolicy\":\"ALLOW\"},\"docker\":{\"v1Enabled\":false,\"forceBasicAuth\":false,\"httpPort\":${port}}}"
 }
 
+# Strict REST helper: 2xx only. Do not reuse curl_ok — that treats HTTP 400 as
+# success (repo already exists), which hid a bad realm PUT (#62).
+curl_strict() {
+  local code
+  code="$(curl -sS -o /tmp/nexus-out -w '%{http_code}' "${AUTH[@]}" "$@" || true)"
+  if [[ "${code}" =~ ^2 ]]; then
+    return 0
+  fi
+  log "ERROR: HTTP ${code} for $*"
+  cat /tmp/nexus-out || true
+  return 1
+}
+
 enable_docker_token_realm() {
-  log "Enabling DockerToken security realm"
-  curl_ok -H 'Content-Type: application/json' \
+  # Nexus 3.70 available IDs do not include NexusAuthorizingRealm. The previous
+  # PUT of that id returned 400; curl_ok swallowed it, DockerToken never
+  # activated, and oc-mirror dest login failed (#62).
+  log "Enabling DockerToken security realm (Nexus 3.70 ids; not NexusAuthorizingRealm)"
+  curl_strict -H 'Content-Type: application/json' \
     -X PUT "${NEXUS_SVC}/service/rest/v1/security/realms/active" \
-    -d '["NexusAuthenticatingRealm","NexusAuthorizingRealm","DockerToken"]'
+    -d '["NexusAuthenticatingRealm","DefaultRole","DockerToken"]'
+  local active
+  active="$(curl -sf "${AUTH[@]}" "${NEXUS_SVC}/service/rest/v1/security/realms/active")" || {
+    log "ERROR: could not read active realms after PUT"
+    exit 1
+  }
+  if ! grep -q 'DockerToken' <<<"${active}"; then
+    log "ERROR: DockerToken not in active realms: ${active}"
+    exit 1
+  fi
+  log "Active security realms: ${active}"
 }
 
 write_docker_push_secret() {

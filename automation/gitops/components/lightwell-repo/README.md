@@ -117,6 +117,7 @@ Nexus **hosted Docker** repo `hummingbird-mirror` is the oc-mirror destination. 
 | Plugin image | `registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20` (Showroom copies the binary onto PATH — V2-20) |
 | Workspace | PVC `oc-mirror-workspace` (`HOME`/`workingDir` `/workspace`, `fsGroup` 1000, anyuid SCC — #60) |
 | Push auth | Secret `nexus-docker-push` (seed Job; admin → dest host) |
+| DockerToken realm | Seed PUT `NexusAuthenticatingRealm` + `DefaultRole` + `DockerToken` (Nexus 3.70 has no `NexusAuthorizingRealm`; a swallowed 400 left dest login failing — #62) |
 | Tooling | ConfigMap `oc-mirror-tooling` (`README`, learner `job.yaml`, worked example) |
 
 Source pin (do not invent):
