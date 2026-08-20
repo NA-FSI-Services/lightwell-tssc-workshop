@@ -135,7 +135,10 @@ Record the *dest* digest from those logs (or dest registry metadata). Do not reu
 Build a dest pull spec from:
 
 * `dest_registry_host` (userinfo)
-* the repository path and digest *you recorded from the Job*
+* image path `hi/openjdk` (not the Nexus Docker repo name `dest_registry_repo` / `hummingbird-mirror`)
+* the dest digest *you recorded from the Job*
+
+Or copy the `DEST_PULLSPEC=` line from the `copy-signatures` container log.
 
 Then verify with the same Red Hat Hardened Images public key as 1.1. Dest TLS is lab-internal; allow an insecure registry if `cosign` requires it:
 

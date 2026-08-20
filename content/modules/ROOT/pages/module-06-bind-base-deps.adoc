@@ -47,11 +47,13 @@ cat lightwell-pins.properties
 
 Expect runtime `FROM` `ubi9/openjdk-21-runtime` and a default `commons.lang3.version` of `3.14.0` (affected upstream). `3.18.0` (or any newer Central line) is the wrong fix. The pin is not yet `3.14.0.rhlw-00001`. Pins file should still show `3.14.0.rhlw-00000` and an all-zero Hummingbird digest.
 
-.Dest host (runtime FROM registry) — combine with the dest digest you recorded in 1.2
+.Dest host (runtime FROM registry). `dest_registry_repo` is the Nexus Docker *repository name* (`hummingbird-mirror`), not the image path. Dest image path is `hi/openjdk`. Prefer the `DEST_PULLSPEC=` line from the 1.2 `copy-signatures` Job log.
 [source,bash,role=execute]
 ----
 oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
-  -o jsonpath='dest={.data.dest_registry_host}{"\n"}repo={.data.dest_registry_repo}{"\n"}'
+  -o jsonpath='dest={.data.dest_registry_host}{"\n"}'
+echo 'Dest image path is hi/openjdk — not dest_registry_repo (hummingbird-mirror).'
+oc -n lightwell-repo logs job/oc-mirror-learner -c copy-signatures | grep '^DEST_PULLSPEC=' || true
 ----
 
 == Worked example (not the Check)
@@ -64,7 +66,7 @@ FROM registry.example.invalid/not-hummingbird:latest
 
 == Your change: runtime FROM + default pin
 
-. Change *only* the runtime stage `FROM` (leave the `AS build` UBI line). Use dest host + the *internal* digest from 1.2 Job logs — not the published `registry.access.redhat.com` pin from 1.1, and not `:latest`.
+. Change *only* the runtime stage `FROM` (leave the `AS build` UBI line). Use dest host + path `hi/openjdk` + the *internal* digest from 1.2 (or paste `DEST_PULLSPEC`). Do *not* put `dest_registry_repo` (`hummingbird-mirror`) in the image path. Do not reuse the published `registry.access.redhat.com` pin from 1.1, and not `:latest`.
 
 . Change the *default* `<commons.lang3.version>` in `pom.xml` to the Track 2 pin (`3.14.0.rhlw-00001`). Do not stop at a profile that is never activated. You already practiced this on ConfigMap `stub-04-remediated-pin`; this commit is the scored git copy.
 
@@ -109,7 +111,7 @@ git show HEAD:lightwell-pins.properties
 
 Pass when:
 
-* Runtime `FROM` is dest registry + digest (not `ubi9/openjdk-21-runtime`, not the worked-example host)
+* Runtime `FROM` is dest registry + `hi/openjdk` + digest (not `hummingbird-mirror`, not `ubi9/openjdk-21-runtime`, not the worked-example host)
 * Default pom property is `3.14.0.rhlw-00001`
 * `lightwell-pins.properties` is still stale (bot work)
 
