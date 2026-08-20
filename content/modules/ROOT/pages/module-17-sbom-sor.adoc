@@ -12,7 +12,7 @@ Showroom `syft` may be missing (`syft_baked=false`). Use the CycloneDX file from
 By the end of this module, you will be able to:
 
 * Discover TPA URL and OIDC from userinfo (do not paste secrets into git)
-* Copy CycloneDX from the 4.4 TaskRun (or re-run that pipeline) and ingest it for the *promoted* digest
+* Copy CycloneDX from ConfigMap `lab-sbom-cyclonedx` (4.4 persist) and ingest it for the *promoted* digest
 * Find that document in the TPA UI
 
 == TPA vs RHDA
@@ -49,15 +49,14 @@ curl -sk -X POST -H 'Content-Type: application/octet-stream' \
 
 == Your change: copy 4.4 SBOM; ingest
 
-The seeded PipelineRun mounts workspace `sbom` as `emptyDir`, so the file is usually gone after the pod is deleted. Try to copy it from a still-running `syft-sbom-rhtpa` pod; if it is gone, *re-run* the 4.4 pipeline in `lw-poc-build` and `oc cp` `sbom.cyclonedx.json` as soon as that task Succeeded.
+Task `syft-sbom-rhtpa` writes ConfigMap `lab-sbom-cyclonedx` in the build namespace (the `sbom` workspace is `emptyDir` and is gone when the pod completes). `oc cp` / `oc exec` into a completed pod fails. Extract that ConfigMap — do not re-run the full 4.4 pipeline just to copy a file.
 
 [source,bash,role=execute]
 ----
 BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
 oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=syft-sbom-rhtpa
-# If a pod still exists:
-# oc -n "${BUILD_NS}" cp <syft-pod>:/workspace/sbom/sbom.cyclonedx.json ~/sbom.cyclonedx.json
-test -f ~/sbom.cyclonedx.json && jq '{bomFormat, specVersion, components:(.components|length)}' ~/sbom.cyclonedx.json || echo 'COPY OR RE-RUN 4.4 FIRST'
+oc -n "${BUILD_NS}" extract configmap/lab-sbom-cyclonedx --to="${HOME}" --confirm
+test -f ~/sbom.cyclonedx.json && jq '{bomFormat, specVersion, components:(.components|length)}' ~/sbom.cyclonedx.json || echo 'EXTRACT ConfigMap lab-sbom-cyclonedx FIRST'
 ----
 
 Ingest *this* file (bound to the 6.2 digest) even if the pipeline already uploaded — you must be able to find the document. UI file picker or REST:

@@ -170,4 +170,24 @@ spec:
           exit 1
         fi
         exit 0
+    - name: persist-sbom
+      computeResources: {}
+      image: registry.redhat.io/openshift4/ose-cli:latest
+      env:
+        - name: SBOM_DIR
+          value: $(workspaces.sbom.path)
+        - name: PERSIST_CM
+          value: lab-sbom-cyclonedx
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        OUT="${SBOM_DIR}/sbom.cyclonedx.json"
+        if [[ ! -f "${OUT}" ]]; then
+          echo "WARN: ${OUT} missing — skip persist"
+          exit 0
+        fi
+        oc create configmap "${PERSIST_CM}" \
+          --from-file=sbom.cyclonedx.json="${OUT}" \
+          --dry-run=client -o yaml | oc apply -f -
+        echo "Persisted ConfigMap ${PERSIST_CM} for Track 7.1 (emptyDir does not survive pod completion)"
 {{- end }}

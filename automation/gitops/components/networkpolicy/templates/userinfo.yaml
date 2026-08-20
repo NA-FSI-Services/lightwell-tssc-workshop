@@ -29,6 +29,9 @@ data:
   allow_nexus_http_port: {{ .Values.allow.nexusHttpPort | quote }}
   allow_nexus_docker_port: {{ .Values.allow.nexusDockerPort | quote }}
   allow_gitea_namespace: {{ .Values.allow.giteaNamespace | quote }}
+  allow_gitea_port: {{ .Values.allow.giteaPort | quote }}
+  allow_kube_api_namespace: default
+  allow_kube_api_svc: kubernetes
   do_not_copy: example-hermetic-egress.yaml
   cluster_domain: {{ .Values.deployer.domain | quote }}
   cluster_api_url: {{ .Values.deployer.apiUrl | quote }}

@@ -14,6 +14,10 @@ app.kubernetes.io/part-of: lightwell-tssc-workshop
 {{- end -}}
 {{- end -}}
 
+{{- define "gitea.internalUrl" -}}
+http://{{ .Values.gitea.name }}.{{ .Values.gitea.namespace }}.svc:3000
+{{- end -}}
+
 {{- define "gitea.url" -}}
 https://{{ include "gitea.routeHost" . }}
 {{- end -}}
@@ -38,6 +42,13 @@ https://{{ include "gitea.routeHost" . }}
 {{- $user := index . 1 -}}
 {{- $org := include "gitea.learnerOrgName" $user -}}
 {{- printf "%s/%s/%s.git" (include "gitea.url" $root) $org $root.Values.seed.repoName -}}
+{{- end -}}
+
+{{- define "gitea.studentAppRepoInternalUrl" -}}
+{{- $root := index . 0 -}}
+{{- $user := index . 1 -}}
+{{- $org := include "gitea.learnerOrgName" $user -}}
+{{- printf "%s/%s/%s.git" (include "gitea.internalUrl" $root) $org $root.Values.seed.repoName -}}
 {{- end -}}
 
 {{- define "gitea.studentGitopsRepoUrl" -}}

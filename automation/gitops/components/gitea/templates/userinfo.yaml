@@ -5,6 +5,7 @@
 {{- $learnerOrg := include "gitea.learnerOrgName" $primaryUser }}
 {{- $repoName := .Values.seed.repoName }}
 {{- $repoUrl := include "gitea.studentAppRepoUrl" (list . $primaryUser) }}
+{{- $internalRepoUrl := include "gitea.studentAppRepoInternalUrl" (list . $primaryUser) }}
 {{- $gitopsName := .Values.seed.gitops.repoName | default "gitops-spring-boot-lw-poc" }}
 {{- $gitopsUrl := include "gitea.studentGitopsRepoUrl" (list . $primaryUser) }}
 {{- $gitopsProdName := .Values.seed.gitops.prod.repoName | default "gitops-prod-spring-boot-lw-poc" }}
@@ -34,6 +35,7 @@ data:
   student_username: {{ $primaryUser | quote }}
   student_password: {{ .Values.student.password | quote }}
   student_repo_url: {{ $repoUrl | quote }}
+  student_repo_internal_url: {{ $internalRepoUrl | quote }}
   student_repo_name: {{ $repoName | quote }}
   student_repo_revision: {{ .Values.seed.defaultBranch | quote }}
   student_pom_path: "pom.xml"

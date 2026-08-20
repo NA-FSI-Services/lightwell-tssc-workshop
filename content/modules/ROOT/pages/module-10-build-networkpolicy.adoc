@@ -3,7 +3,7 @@
 :toc:
 :toclevels: 2
 
-NetworkPolicy `build-egress` on `lw-poc-build` is seeded *too open* (allow-all egress). You tighten it to deny-egress with DNS + internal registry + Nexus. In-cluster Gitea is internal git — not a public registry allow.
+NetworkPolicy `build-egress` on `lw-poc-build` is seeded *too open* (allow-all egress). You tighten it to deny-egress with DNS + internal registry + Nexus + in-cluster Gitea + the Kubernetes API. 4.4 clone / `oc start-build` need those last two. Do *not* allow public registry hosts or the worked-example `8.8.8.8`.
 
 Do *not* copy this policy onto `lw-poc-staging` / `lw-poc-prod`. `app-operate` stays operate (Track 6).
 
@@ -11,7 +11,7 @@ Do *not* copy this policy onto `lw-poc-staging` / `lw-poc-prod`. `app-operate` s
 
 By the end of this module, you will be able to:
 
-* Replace allow-all egress with the documented allow-list from userinfo
+* Replace allow-all egress with the documented allow-list from userinfo (including Gitea and kube API)
 * Confirm the policy is live on `lw-poc-build` only
 * Explain that `registry.redhat.io` is *not* on the scored hermetic list
 
@@ -55,15 +55,25 @@ spec:
             cidr: 8.8.8.8/32
 ----
 
-Allow-list (from userinfo keys — do not invent CIDRs):
+Allow-list (from userinfo keys — do not invent CIDRs except the kube API ClusterIP you discover below):
 
 * `openshift-dns` UDP (and TCP) port `5353`
 * `openshift-image-registry` TCP `5000`
 * `lightwell-repo` Nexus HTTP `8081` and Docker dest `5000`
+* `gitea` TCP `3000` (in-cluster clone — not the Gitea Route)
+* Kubernetes API: `default/kubernetes` ClusterIP TCP `443`, plus endpoint IPs TCP `6443` (hostNetwork masters; `namespaceSelector: default` does not match them)
+
+Discover the API addresses (they differ per claim):
+
+[source,bash,role=execute]
+----
+oc -n default get svc kubernetes -o jsonpath='clusterIP={.spec.clusterIP} port={.spec.ports[0].port}{"\n"}'
+oc -n default get endpoints kubernetes -o jsonpath='{.subsets[*].addresses[*].ip}{" "}{.subsets[*].ports[*].port}{"\n"}'
+----
 
 == Your change: tighten `build-egress`
 
-Replace the seed `egress: [ {} ]` with deny-by-default plus the three destinations above (`namespaceSelector` on those namespaces, matching ports). Do not add `registry.redhat.io` or a public CIDR.
+Replace the seed `egress: [ {} ]` with deny-by-default plus the destinations above (`namespaceSelector` on those namespaces, matching ports, plus `ipBlock` `/32` for the kube API ClusterIP and endpoint IPs). Do not add `registry.redhat.io` or a public CIDR. Do not rely on `namespaceSelector: openshift-ingress` for Routes — Route hostnames resolve to the ingress VIP, which that selector does not match. After 4.3, 4.4 must use in-cluster Gitea (`student_repo_internal_url`) and Nexus (`nexus_internal_url`), not HTTPS Routes.
 
 [source,bash,role=execute]
 ----
@@ -77,6 +87,7 @@ oc -n lw-poc-staging get networkpolicy app-operate
 Pass when:
 
 * `build-egress` exists in `lw-poc-build`, is not allow-all egress, includes DNS + registry + Nexus
+* Extra allows for Gitea and kube API are expected so 4.4 can run
 * You did not copy it to `lw-poc-staging`
 * `app-operate` on staging/prod is still the operate seed
 
@@ -96,4 +107,4 @@ Honor system: 4.4 still opens. The Check grades the live NetworkPolicy, not a YA
 == Key takeaways
 
 * Build hermetic ≠ app operate.
-* Gitea is internal git, not a public registry allow.
+* After this tighten, clone and Maven must use in-cluster service URLs, not Routes.

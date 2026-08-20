@@ -56,7 +56,7 @@ oc -n "${BUILD_NS}" import-image openjdk-21-builder \
 
 . Point the Dockerfile *build* `FROM` at that ImageStream (internal registry). Runtime `FROM` stays the dest Hummingbird digest from 3.2. No `registry.access.redhat.com` on active `FROM` lines.
 
-. In `settings.xml`, remove `repo.maven.apache.org` from the Lightwell profiles. Point remotes at in-cluster Nexus (same URLs as xref:module-03-enterprise-proxy.adoc[2.1]). Add a `<mirror>` with `mirrorOf` `*` (or `external:*`) so plugins do not hit Central — 4.2 will fail without it.
+. In `settings.xml`, remove `repo.maven.apache.org` from the Lightwell profiles. Point remotes at the *in-cluster* Nexus service (`nexus_internal_url` from userinfo — `http://nexus.lightwell-repo.svc:8081`), not the HTTPS Route. Add a `<mirror>` with `mirrorOf` `*` (or `external:*`) whose URL is `${nexus_internal_url}/repository/maven-public/`. Seeded `maven-public` includes Validated + Remediated so `.rhlw-*` pins resolve. 4.3 will block the Nexus Route from `lw-poc-build`; the service URL keeps working.
 
 . If `Dockerfile.known-bad` is missing from your clone, copy it from the seed (public `FROM` / `curl`). The template repo already includes it. Do *not* set it as the BuildConfig Dockerfile. 4.4 still uses that file as a negative.
 

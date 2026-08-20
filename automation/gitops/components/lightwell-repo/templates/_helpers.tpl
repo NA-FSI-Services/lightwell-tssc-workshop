@@ -19,6 +19,10 @@ app.kubernetes.io/part-of: lightwell-tssc-workshop
 {{- end -}}
 {{- end -}}
 
+{{- define "lightwell-repo.nexusInternalUrl" -}}
+http://{{ .Values.nexus.name }}.{{ .Values.lightwellRepo.namespace }}.svc:8081
+{{- end -}}
+
 {{- define "lightwell-repo.nexusUrl" -}}
 {{- if .Values.mavenSettings.nexusUrl -}}
 {{- .Values.mavenSettings.nexusUrl -}}

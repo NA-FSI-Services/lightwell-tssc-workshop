@@ -195,6 +195,10 @@ spec:
           labRepoUrl: ""
           labPythonRepoUrl: ""
 {{- end }}
+{{- if and .Values.components.rhtpa.enabled .Values.deployer.domain }}
+          sbom:
+            rhtpaUrl: {{ printf "https://server-%s.%s" (.Values.components.rhtpa.namespace | default "trusted-profile-analyzer") .Values.deployer.domain | quote }}
+{{- end }}
         deployer:
           domain: {{ .Values.deployer.domain | quote }}
           apiUrl: {{ .Values.deployer.apiUrl | quote }}

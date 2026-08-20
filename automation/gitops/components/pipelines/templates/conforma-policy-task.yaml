@@ -127,12 +127,9 @@ spec:
           --extra-rule-data="certificate_oidc_issuer_regexp=${ISSUER}"
         )
         if [[ "${SKIP_IMG}" == "true" ]]; then
-          CMD+=(--skip-image-sig-check)
+          echo "skip-image-sig-check=true (seed). ec 0.7 has no --skip-image-sig-check; not passing it."
         fi
-        if [[ "${SKIP_ATT}" == "true" ]]; then
-          CMD+=(--skip-att-sig-check)
-        fi
-        if [[ "${IGNORE_REKOR}" == "true" ]]; then
+        if [[ "${SKIP_ATT}" == "true" || "${IGNORE_REKOR}" == "true" ]]; then
           CMD+=(--ignore-rekor)
         fi
         if [[ -n "${REKOR_URL}" ]]; then
@@ -142,7 +139,7 @@ spec:
         echo "=== conforma-policy (ec validate image) ==="
         echo "image=${IMAGE}"
         echo "policy-namespace=${POLICY_NAMESPACE}"
-        echo "skip-image-sig-check=${SKIP_IMG} skip-att-sig-check=${SKIP_ATT}"
+        echo "skip-image-sig-check=${SKIP_IMG} skip-att-sig-check=${SKIP_ATT} (ec 0.7: --ignore-rekor)"
         echo "identity=${IDENTITY}"
 
         if [[ "${POLICY_NAMESPACE}" == "${SEED_NAMESPACE}" ]]; then

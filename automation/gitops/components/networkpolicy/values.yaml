@@ -32,14 +32,15 @@ allow:
   nexusHttpPort: 8081
   nexusDockerPort: 5000
   giteaNamespace: gitea
+  giteaPort: 3000
 
 userInfo:
   enabled: true
   title: "Lightwell TSSC Workshop — NetworkPolicy (Tracks 4.3 and 6)"
   instructions: >-
     Track 4.3: tighten NetworkPolicy build-egress in lw-poc-build to deny-egress
-    with DNS + internal registry + Nexus (Gitea is in-cluster git). Seed is too
-    open. Track 6: app-operate on lw-poc-staging and lw-poc-prod stays operate
+    with DNS + internal registry + Nexus + in-cluster Gitea + kube API (so 4.4
+    clone and oc start-build work). Seed is too open. Track 6: app-operate on lw-poc-staging and lw-poc-prod stays operate
     (seeded open). Do not merge the two Checks. Do not copy the worked example.
 
 deployer:

@@ -123,6 +123,69 @@ create_docker_hosted() {
     -d "{\"name\":\"${name}\",\"online\":true,\"storage\":{\"blobStoreName\":\"default\",\"strictContentTypeValidation\":false,\"writePolicy\":\"ALLOW\"},\"docker\":{\"v1Enabled\":false,\"forceBasicAuth\":false,\"httpPort\":${port}}}"
 }
 
+# Workshop prefetch uses mirrorOf * → maven-public. Include Lightwell hosted repos
+# so .rhlw-* pins resolve (issue #81). Preserve existing Central/releases members.
+ensure_maven_public_group() {
+  local extra="${VALIDATED_REPO:-lightwell-java-validated},${REMEDIATED_REPO:-lightwell-java-remediated},${VALIDATED_HOSTED:-lightwell-java-validated-hosted},${REMEDIATED_HOSTED:-lightwell-java-remediated-hosted}"
+  log "Ensuring maven-public group includes Lightwell Maven repos"
+  export NEXUS_SVC NEXUS_ADMIN_PASSWORD
+  export NEXUS_ADMIN_USER="${NEXUS_ADMIN_USER:-admin}"
+  PY=""
+  command -v python3 >/dev/null 2>&1 && PY=python3
+  command -v python >/dev/null 2>&1 && PY="${PY:-python}"
+  if [[ -z "${PY}" ]]; then
+    log "WARN: python3 missing — cannot merge maven-public members"
+    return 0
+  fi
+  EXTRA_MEMBERS="${extra}" "${PY}" - <<'PY' || log "WARN: maven-public group update failed"
+import base64, json, os, urllib.error, urllib.request
+
+nexus = os.environ["NEXUS_SVC"].rstrip("/")
+user = os.environ.get("NEXUS_ADMIN_USER", "admin")
+password = os.environ["NEXUS_ADMIN_PASSWORD"]
+basic = base64.b64encode(f"{user}:{password}".encode()).decode()
+url = f"{nexus}/service/rest/v1/repositories/maven/group/maven-public"
+wanted = ["maven-releases", "maven-snapshots", "maven-central"]
+wanted += [n.strip() for n in os.environ.get("EXTRA_MEMBERS", "").split(",") if n.strip()]
+headers = {"Authorization": f"Basic {basic}", "Content-Type": "application/json"}
+
+def open_req(req):
+    return urllib.request.urlopen(req, timeout=30)
+
+exists, members = False, []
+req = urllib.request.Request(url, headers=headers)
+try:
+    with open_req(req) as resp:
+        body = json.loads(resp.read().decode())
+    exists = True
+    members = list((body.get("group") or {}).get("memberNames") or [])
+except urllib.error.HTTPError as exc:
+    if exc.code != 404:
+        raise SystemExit(f"GET maven-public failed: {exc.code}") from exc
+for name in wanted:
+    if name not in members:
+        members.append(name)
+payload = json.dumps({
+    "name": "maven-public",
+    "online": True,
+    "storage": {"blobStoreName": "default", "strictContentTypeValidation": True},
+    "group": {"memberNames": members},
+}).encode()
+if exists:
+    req = urllib.request.Request(url, data=payload, method="PUT", headers=headers)
+else:
+    req = urllib.request.Request(
+        f"{nexus}/service/rest/v1/repositories/maven/group",
+        data=payload, method="POST", headers=headers,
+    )
+try:
+    open_req(req).read()
+    print("maven-public members=" + ",".join(members))
+except urllib.error.HTTPError as exc:
+    raise SystemExit(f"write maven-public failed: {exc.code} {exc.read().decode()[:300]}") from exc
+PY
+}
+
 # Strict REST helper: 2xx only. Do not reuse curl_ok — that treats HTTP 400 as
 # success (repo already exists), which hid a bad realm PUT (#62).
 curl_strict() {
@@ -487,6 +550,7 @@ create_repos() {
     write_docker_push_secret
     log "Docker dest ${DOCKER_MIRROR_REPO:-hummingbird-mirror} is empty — do not pre-mirror Hummingbird"
   fi
+  ensure_maven_public_group
 }
 
 main() {

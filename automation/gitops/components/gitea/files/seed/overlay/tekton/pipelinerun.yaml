@@ -1,6 +1,6 @@
 # Example PipelineRun — edit repo-url / image-url / Fulcio / Rekor for your claim.
-# repo-url: Module 6 substitutes STUDENT_REPO_URL for STUDENT_REPO_URL_PLACEHOLDER
-# (use demo-userinfo-gitea → student_repo_url; org is lw-student).
+# repo-url after 4.3: demo-userinfo-gitea → student_repo_internal_url
+# (http://gitea.gitea.svc:3000/… — HTTPS Route is blocked by build-egress).
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:

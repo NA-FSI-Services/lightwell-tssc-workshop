@@ -54,7 +54,7 @@ cosign verify --key ~/example-not-lab-trust/demo.pub \
 
 == Your change: key pair, sign `--key`
 
-Empty password is for this lab terminal only so the execute block is non-interactive. Do not reuse that pattern in a customer plant. Do not commit `cosign.key`.
+Empty password is for this lab terminal only so the execute block is non-interactive. Do not reuse that pattern in a customer plant. Do not commit `cosign.key`. `export HOME=/tmp/lab-home` is only so `cosign login` does not write Docker config into the real home; keep `--key` / `--from-file` on `/home/lab-user/lab-trust` (tilde follows `HOME`).
 
 [source,bash,role=execute]
 ----
@@ -69,7 +69,7 @@ export HOME=/tmp/lab-home
 mkdir -p "${HOME}"
 cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
   image-registry.openshift-image-registry.svc:5000
-COSIGN_PASSWORD="" cosign sign --key ~/lab-trust/cosign.key \
+COSIGN_PASSWORD="" cosign sign --key /home/lab-user/lab-trust/cosign.key \
   --tlog-upload=false \
   --allow-http-registry --allow-insecure-registry \
   "${IMAGE}"

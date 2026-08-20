@@ -11,7 +11,7 @@ ACS (`acs-image-check`) must not be the soft-skip stub. ACS is *not* the admissi
 
 By the end of this module, you will be able to:
 
-* Download CDX + VEX from Nexus beside `commons-lang3:3.14.0.rhlw-00001` (`LW-DEMO-0002`)
+* Download CDX from Nexus and the scored OSV (`LW-DEMO-0002`) — not OpenVEX as a TPA SBOM
 * Ingest those files into TPA and report id + status + GAV + “via Lightwell”
 * Show `acs-image-check` as `passed` or `failed`, not `skipped`
 
@@ -31,7 +31,7 @@ Consultants over-claim when they quote RHEL/Hummingbird CSAF for a *library* CVE
 [source,bash,role=execute]
 ----
 oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo \
-  -o jsonpath='id={.data.scored_vex_id}{"\n"}gav={.data.scored_vex_gav}{"\n"}cdx={.data.scored_vex_maven_cdx}{"\n"}vex={.data.scored_vex_maven_vex}{"\n"}csaf={.data.live_csaf_gate}{"\n"}'
+  -o jsonpath='id={.data.scored_vex_id}{"\n"}gav={.data.scored_vex_gav}{"\n"}cdx={.data.scored_vex_maven_cdx}{"\n"}vex={.data.scored_vex_maven_vex}{"\n"}osv={.data.scored_vex_osv}{"\n"}csaf={.data.live_csaf_gate}{"\n"}'
 oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info \
   -o jsonpath='{.data.upload_hint}{"\n"}{.data.os_layer_callout}{"\n"}'
 ----
@@ -53,9 +53,36 @@ remediation: via-upstream
 
 == Your change: download, ingest, report, ACS on
 
-. Download Maven classifiers `cdx` / `vex` from the userinfo URLs (Nexus Remediated). Do not use a generic CVE fixture and do not scrape CSAF.
+. Download Maven classifier `cdx` from the userinfo URL (Nexus Remediated) and POST it to TPA `/api/v3/sbom`. The companion `-vex.json` classifier is **OpenVEX** — TPA does not accept OpenVEX as an SBOM or as `/api/v3/advisory` (that path is CSAF, CVE, or OSV only). Ingest the scored **OSV** document instead (`scored_vex_osv` / `LW-DEMO-0002.json`). Do not scrape CSAF. Do not POST OpenVEX to `/api/v3/sbom`.
 
-. Upload both files in the TPA UI (or REST) into the same SoR as 7.1. Provision does *not* pre-ingest them.
+. Upload the CycloneDX file to `/api/v3/sbom` and the OSV file to `/api/v3/advisory` (same SoR as 7.1). Provision does *not* pre-ingest them. Keep `live_csaf_gate=false`.
+
+[source,bash,role=execute]
+----
+CDX_URL="$(oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo -o jsonpath='{.data.scored_vex_maven_cdx}')"
+OSV_URL="$(oc -n lightwell-repo get configmap demo-userinfo-lightwell-repo -o jsonpath='{.data.scored_vex_osv}')"
+curl -fsSL -o ~/commons-lang3-cdx.json "${CDX_URL}"
+curl -fsSL -o ~/LW-DEMO-0002.json "${OSV_URL}"
+export OIDC_ISSUER="$(oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.oidc_issuer}')"
+export RHTPA_URL="$(oc -n trusted-profile-analyzer get configmap rhtpa-ingestion-info -o jsonpath='{.data.server_url}')"
+export TPA_USER="$(oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.workshop_username}')"
+: "${TPA_PASS:=$(oc -n sso get configmap demo-userinfo-keycloak -o jsonpath='{.data.workshop_password}')}"
+export CLI_SECRET="$(oc -n trusted-profile-analyzer get secret tpa-realm-cli-clients -o jsonpath='{.data.cli}' | base64 -d)"
+TOKEN="$(curl -sk -X POST "${OIDC_ISSUER}/protocol/openid-connect/token" \
+  -d grant_type=password -d client_id=cli -d client_secret="${CLI_SECRET}" \
+  -d username="${TPA_USER}" -d password="${TPA_PASS}" -d scope=openid \
+  | jq -r .access_token)"
+curl -sk -X POST -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @"${HOME}/commons-lang3-cdx.json" \
+  -w '\nCDX HTTP %{http_code}\n' \
+  "${RHTPA_URL%/}/api/v3/sbom"
+curl -sk -X POST -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @"${HOME}/LW-DEMO-0002.json" \
+  -w '\nOSV HTTP %{http_code}\n' \
+  "${RHTPA_URL%/}/api/v3/advisory"
+----
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57
 image::FIXME-tpa-gav-vex-ingested.png[TPA UI after ingesting GAV-bound VEX for LW-DEMO-0002,width=700,link=self,window=blank]

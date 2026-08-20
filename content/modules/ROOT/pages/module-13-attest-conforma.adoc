@@ -5,7 +5,7 @@
 
 Konflux *Conforma* (Enterprise Contract) is an `ec validate` policy on the image after sign. This claim maps that control to Task `conforma-policy` in namespace `lightwell-tasks`. The Task is *not* in the seeded pipeline. The seeded ConfigMap is *too permissive* (signature checks skipped, identity `.*`, CVE 999). Argo reverts edits to that object — copy it to `lw-poc-build` and tighten the *copy*.
 
-This Check is fail-then-pass on *signatures + policy*, not SLSA L3. There is no Tekton Chains on this claim and no `cosign attest` step. Leave `skip-att-sig-check=true`. Mapping: Konflux Conforma → this Task; Chains / in-toto → callout. Full table: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
+This Check is fail-then-pass on *signatures + policy*, not SLSA L3. There is no Tekton Chains on this claim and no `cosign attest` step. Leave `skip-att-sig-check=true` on the ConfigMap (the Task maps that to `--ignore-rekor`; `ec` 0.7 has no `--skip-att-sig-check`). Mapping: Konflux Conforma → this Task; Chains / in-toto → callout. Full table: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
 
 == Learning objectives
 
@@ -66,7 +66,7 @@ oc -n lightwell-tasks get configmap conforma-policy -o yaml \
   | oc apply -f -
 ----
 
-. On the *copy*, set `skip-image-sig-check` to `false`. Leave `skip-att-sig-check` `true` (no Chains attestation on this claim). Set `certificate-identity-regexp` to the same pipeline SA regexp you used in 5.1 (not `.*`, not a Hummingbird placeholder). Set the OIDC issuer regexp to `https://kubernetes.default.svc`. In `policy.yaml` / `data.yaml`, drop `exclude: *`, lower `restrict_max_cve_score` below 999, and pin `allowed_registry_prefixes` to the internal registry (`image-registry.openshift-image-registry.svc`).
+. On the *copy*, set `skip-image-sig-check` to `false`. Leave `skip-att-sig-check` `true` (no Chains attestation on this claim; `ec` 0.7 uses `--ignore-rekor`). Set `certificate-identity-regexp` to the same pipeline SA regexp you used in 5.1 (not `.*`, not a Hummingbird placeholder). Set the OIDC issuer regexp to `https://kubernetes.default.svc`. In `policy.yaml` / `data.yaml`, drop `exclude: *`, lower `restrict_max_cve_score` below 999, and pin `allowed_registry_prefixes` to the internal registry (`image-registry.openshift-image-registry.svc`).
 
 . In Gitea `.tekton/pipeline.yaml`, add Task `conforma-policy` (cluster resolver, `namespace: lightwell-tasks`) with `runAfter: [cosign-sign-keyless]`. Point `policy-namespace` / `policy-configmap` at *your* copy in `lw-poc-build`, not `lightwell-tasks`. Commit, push, apply the Pipeline.
 
@@ -82,6 +82,7 @@ BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.st
 REKOR="$(oc -n trusted-artifact-signer get configmap demo-userinfo-rhtas -o jsonpath='{.data.rekor_url_hint}')"
 mkdir -p /tmp/ec /tmp/lab-home
 export HOME=/tmp/lab-home
+export SSL_CERT_FILE=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
 oc -n "${BUILD_NS}" extract configmap/conforma-policy --to=/tmp/ec --confirm
 FAIL_IMG="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/openjdk-21-builder:latest"
 PASS_IMG="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
@@ -91,12 +92,12 @@ ISSUER="$(tr -d '[:space:]' < /tmp/ec/certificate-oidc-issuer-regexp)"
 ec validate image --image="${FAIL_IMG}" --policy=/tmp/ec/policy.yaml --strict=true \
   --certificate-identity-regexp="${IDENTITY}" \
   --certificate-oidc-issuer-regexp="${ISSUER}" \
-  --skip-att-sig-check --rekor-url="${REKOR}" && echo 'FAIL PATH UNEXPECTEDLY PASSED'
+  --ignore-rekor --rekor-url="${REKOR}" && echo 'FAIL PATH UNEXPECTEDLY PASSED'
 # Expect zero:
 ec validate image --image="${PASS_IMG}" --policy=/tmp/ec/policy.yaml --strict=true \
   --certificate-identity-regexp="${IDENTITY}" \
   --certificate-oidc-issuer-regexp="${ISSUER}" \
-  --skip-att-sig-check --rekor-url="${REKOR}"
+  --ignore-rekor --rekor-url="${REKOR}"
 oc -n "${BUILD_NS}" get pipeline spring-boot-lw-poc-build-sign -o yaml \
   | grep -A25 'name: conforma-policy' | head -30
 ----
@@ -124,4 +125,4 @@ SLSA L3 / Tekton Chains is a mapping sentence, not this Check. Full table: xref:
 == Key takeaways
 
 * Policy is learner-owned, not a passing default.
-* This claim is not SLSA L3; `skip-att-sig-check` stays true on purpose.
+* This claim is not SLSA L3; `skip-att-sig-check` stays true on the ConfigMap (`ec` 0.7: `--ignore-rekor`).

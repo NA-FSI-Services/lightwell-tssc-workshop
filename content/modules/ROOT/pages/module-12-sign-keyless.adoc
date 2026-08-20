@@ -54,7 +54,7 @@ cosign verify \
 
 == Your change: fill URLs; sign the app digest
 
-If 4.4 already ran `cosign-sign-keyless` to Succeeded, skip to verify. Otherwise edit `.tekton/pipelinerun.yaml` on `lw-student/spring-boot-lw-poc`: replace Fulcio / Rekor / TUF with the userinfo URLs, `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_url`, and `<lab-namespace>` with `lw-poc-build`. Then create a new run:
+If 4.4 already ran `cosign-sign-keyless` to Succeeded, skip to verify. Otherwise edit `.tekton/pipelinerun.yaml` on `lw-student/spring-boot-lw-poc`: replace Fulcio / Rekor / TUF with the userinfo URLs, `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (in-cluster Gitea, not the HTTPS Route), and `<lab-namespace>` with `lw-poc-build`. Then create a new run:
 
 [source,bash,role=execute]
 ----

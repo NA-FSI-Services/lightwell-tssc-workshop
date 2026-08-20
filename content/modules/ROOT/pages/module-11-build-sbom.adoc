@@ -41,13 +41,14 @@ A Buildah task that never creates ImageStream `spring-boot-lw-poc`. Paste-identi
 [source,bash,role=execute]
 ----
 BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
-REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_url}')"
+REPO_URL="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_repo_internal_url}')"
 echo "BUILD_NS=${BUILD_NS}"
+echo "REPO_URL=${REPO_URL}"
 oc -n "${BUILD_NS}" apply -f /tmp/spring-boot-lw-poc/.tekton/rbac.yaml
 oc -n "${BUILD_NS}" apply -f /tmp/spring-boot-lw-poc/.tekton/pipeline.yaml
 ----
 
-Edit `.tekton/pipelinerun.yaml`: replace `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_url`, replace `<lab-namespace>` with `lw-poc-build`, and fill Fulcio/Rekor/TUF from `demo-userinfo-rhtas` if the run includes the sign task (placeholders fail). Then:
+Edit `.tekton/pipelinerun.yaml`: replace `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (`http://gitea.gitea.svc:3000/…` — the HTTPS Route is blocked after 4.3), replace `<lab-namespace>` with `lw-poc-build`, and fill Fulcio/Rekor/TUF from `demo-userinfo-rhtas` if the run includes the sign task (placeholders fail). Then:
 
 [source,bash,role=execute]
 ----
@@ -72,7 +73,20 @@ oc -n "${BUILD_NS}" get pipelinerun
 oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=syft-sbom-rhtpa
 ----
 
-Known-bad: start a build that uses `Dockerfile.known-bad` (or `oc start-build` with `-DdockerfilePath` if the BuildConfig allows). It must fail (public `FROM` / `curl` after 4.1–4.3). Do not leave the BuildConfig pointed at the known-bad file.
+Known-bad: patch the BuildConfig Dockerfile, start a binary build, then restore the good path. `oc start-build` has no `-DdockerfilePath`.
+
+[source,bash,role=execute]
+----
+BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
+cd /tmp/spring-boot-lw-poc
+oc -n "${BUILD_NS}" patch bc spring-boot-lw-poc --type=json \
+  -p '[{"op":"replace","path":"/spec/strategy/dockerStrategy/dockerfilePath","value":"Dockerfile.known-bad"}]'
+oc -n "${BUILD_NS}" start-build spring-boot-lw-poc --from-dir=. --follow || true
+oc -n "${BUILD_NS}" patch bc spring-boot-lw-poc --type=json \
+  -p '[{"op":"replace","path":"/spec/strategy/dockerStrategy/dockerfilePath","value":"Dockerfile"}]'
+----
+
+It must fail (public `FROM` / `curl` after 4.1–4.3). Do not leave the BuildConfig pointed at the known-bad file.
 
 :report-name: report-11-build-sbom
 :report-key: image_builder
