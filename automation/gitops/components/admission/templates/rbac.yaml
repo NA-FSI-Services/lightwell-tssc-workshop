@@ -168,7 +168,7 @@ metadata:
     argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.rbac | quote }}
 rules:
   - apiGroups: [""]
-    resources: ["secrets"]
+    resources: ["secrets", "configmaps"]
     verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

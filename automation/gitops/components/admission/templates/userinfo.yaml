@@ -26,6 +26,8 @@ data:
   prod_namespace: {{ .Values.admission.prodNamespace | quote }}
   oidc_issuer_hint: "https://kubernetes.default.svc"
   identity_seed: REPLACE_ME_IDENTITY
+  cosign_pub_configmap: {{ .Values.admission.cosignPubConfigMap | quote }}
+  signed_image_repo: {{ printf "%s/%s/%s" .Values.admission.internalRegistry .Values.admission.buildNamespace .Values.admission.appImageName | quote }}
   fulcio_url_hint: {{ include "admission.fulcioUrlHint" . | quote }}
   rekor_url_hint: {{ include "admission.rekorUrlHint" . | quote }}
   tuf_url_hint: {{ include "admission.tufUrlHint" . | quote }}

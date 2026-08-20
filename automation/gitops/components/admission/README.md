@@ -27,6 +27,14 @@ gate. Provision does **not** apply a correct `ImagePolicy`.
 Seed is `enforce: false` with `REPLACE_ME_*` placeholders. CronJob deletes any
 rendered gate while the file is incomplete. No Solve.
 
+When `identity.subject` is a Kubernetes SA URI (Track 5.1), native ImagePolicy
+cannot put that string in `signedEmail`. The CronJob then applies
+`policyType: PublicKey` using ConfigMap `lab-cosign-pubkey` (learner publishes
+Track 5.3 `cosign.pub`). Email subjects still render `FulcioCAWithRekor`.
+`signedIdentity` is `ExactRepository` to the build ImageStream so dest pulls
+after `oc tag` accept the signed identity. Learners must `cosign copy` (and
+dest `cosign sign --key`) because `oc tag` does not copy `.sig` tags.
+
 Enforcement for native ImagePolicy is **CRI-O `policy.json`**: `oc apply` of an
 unsigned Deployment can succeed; the pod fails at **pull**. The Check looks at
 pod phase / events.

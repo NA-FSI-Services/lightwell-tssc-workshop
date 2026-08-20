@@ -259,6 +259,11 @@ spec:
       jsonPointers:
         - /data
         - /stringData
+    - group: ""
+      kind: ConfigMap
+      name: lab-cosign-pubkey
+      jsonPointers:
+        - /data
   syncPolicy:
     automated:
       prune: true

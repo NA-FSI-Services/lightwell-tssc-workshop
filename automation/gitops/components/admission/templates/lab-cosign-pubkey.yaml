@@ -1,0 +1,19 @@
+{{- if .Values.admission.enabled }}
+---
+# Learner publishes Track 5.3 ~/lab-trust/cosign.pub here. CronJob uses it when
+# TrustPolicy.subject is a Kubernetes SA URI (ImagePolicy signedEmail cannot be).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.admission.cosignPubConfigMap }}
+  namespace: {{ .Values.admission.namespace }}
+  labels:
+    {{- include "admission.labels" . | nindent 4 }}
+    app.kubernetes.io/component: lab-cosign-pubkey
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.admission.syncWaves.userinfo | quote }}
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+data:
+  cosign.pub: |
+    REPLACE_ME
+{{- end }}

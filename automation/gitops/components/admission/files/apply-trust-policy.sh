@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # Read learner TrustPolicy from Gitea GitOps and apply ImagePolicy (or Kyverno).
 # Seed stays broken: enforce false / REPLACE_ME → do not apply a live gate.
+#
+# OpenShift ImagePolicy fulcioSubject.signedEmail must be an RFC email. Track 5.1
+# Fulcio identity is a Kubernetes SA URI, so URI subjects render PublicKey from
+# ConfigMap lab-cosign-pubkey (Track 5.3 cosign.pub). Email subjects still use
+# FulcioCAWithRekor. oc tag remaps the repo: signedIdentity is ExactRepository
+# to the build ImageStream (SIGNED_IMAGE_REPO).
 set -euo pipefail
 
 if ! command -v oc >/dev/null 2>&1; then
@@ -89,6 +95,8 @@ fi
 
 export POLICY_FILE STAGE_NAMESPACE PROD_NAMESPACE POLICY_NAME BACKEND_RESOLVED
 export TUF_SECRET_NAME ADMISSION_NAMESPACE REKOR_URL_HINT
+export COSIGN_PUB_CM="${COSIGN_PUB_CM:-lab-cosign-pubkey}"
+export SIGNED_IMAGE_REPO="${SIGNED_IMAGE_REPO:-}"
 python3 - <<'PY'
 import os, re, subprocess, sys, base64, json, yaml
 
@@ -100,6 +108,8 @@ backend = os.environ["BACKEND_RESOLVED"]
 secret_name = os.environ["TUF_SECRET_NAME"]
 adm_ns = os.environ["ADMISSION_NAMESPACE"]
 rekor_url = os.environ.get("REKOR_URL_HINT") or ""
+pubkey_cm = os.environ.get("COSIGN_PUB_CM") or "lab-cosign-pubkey"
+signed_repo = (os.environ.get("SIGNED_IMAGE_REPO") or "").strip()
 
 def run(cmd, check=True):
     return subprocess.run(cmd, check=check, capture_output=True, text=True)
@@ -114,7 +124,6 @@ scopes = spec.get("scopes") or []
 issuer = str(identity.get("issuer") or "").strip()
 subject = str(identity.get("subject") or "").strip()
 digest = str(spec.get("digest") or "").strip()
-match_policy = ((spec.get("signedIdentity") or {}).get("matchPolicy") or "MatchRepoDigestOrExact")
 
 blob = open(path).read()
 placeholder = "REPLACE_ME" in blob
@@ -140,18 +149,19 @@ if not ready:
     delete_gates()
     sys.exit(0)
 
-sec = run(["oc", "-n", adm_ns, "get", "secret", secret_name, "-o", "json"])
-data = json.loads(sec.stdout).get("data") or {}
-fulcio_pem = base64.b64decode(data["fulcio_v1.crt.pem"]).decode()
-rekor_pem = base64.b64decode(data["rekor.pub"]).decode()
-fulcio_b64 = base64.b64encode(fulcio_pem.encode()).decode()
-rekor_b64 = base64.b64encode(rekor_pem.encode()).decode()
+email_ok = bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", subject))
 
-scope0 = str(scopes[0])
-digest_scope = f"{scope0}@{digest}"
-all_scopes = [scope0]
-if digest_scope not in all_scopes:
-    all_scopes.append(digest_scope)
+all_scopes = []
+for raw in scopes:
+    s = str(raw).strip()
+    if not s:
+        continue
+    if s not in all_scopes:
+        all_scopes.append(s)
+    if "@" not in s:
+        pinned = f"{s}@{digest}"
+        if pinned not in all_scopes:
+            all_scopes.append(pinned)
 
 def q(value):
     return json.dumps(value)
@@ -159,7 +169,64 @@ def q(value):
 def ensure_ns(ns):
     run(["oc", "create", "namespace", ns], check=False)
 
+def signed_identity_yaml():
+    if signed_repo:
+        return f"""    signedIdentity:
+      matchPolicy: ExactRepository
+      exactRepository:
+        repository: {q(signed_repo)}
+"""
+    return """    signedIdentity:
+      matchPolicy: MatchRepoDigestOrExact
+"""
+
 if backend == "imagepolicy":
+    if email_ok:
+        sec = run(["oc", "-n", adm_ns, "get", "secret", secret_name, "-o", "json"])
+        data = json.loads(sec.stdout).get("data") or {}
+        fulcio_pem = base64.b64decode(data["fulcio_v1.crt.pem"]).decode()
+        rekor_pem = base64.b64decode(data["rekor.pub"]).decode()
+        fulcio_b64 = base64.b64encode(fulcio_pem.encode()).decode()
+        rekor_b64 = base64.b64encode(rekor_pem.encode()).decode()
+        root = f"""    rootOfTrust:
+      policyType: FulcioCAWithRekor
+      fulcioCAWithRekor:
+        fulcioCAData: {fulcio_b64}
+        fulcioSubject:
+          oidcIssuer: {q(issuer)}
+          signedEmail: {q(subject)}
+        rekorKeyData: {rekor_b64}
+"""
+        print("Rendering ImagePolicy FulcioCAWithRekor (subject is an email)")
+    else:
+        cm = run(["oc", "-n", adm_ns, "get", "configmap", pubkey_cm, "-o", "json"], check=False)
+        if cm.returncode != 0:
+            print(
+                f"TrustPolicy subject is a URI (not an ImagePolicy signedEmail). "
+                f"Publish Track 5.3 ~/lab-trust/cosign.pub to ConfigMap {adm_ns}/{pubkey_cm}.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        cm_data = json.loads(cm.stdout).get("data") or {}
+        pub = cm_data.get("cosign.pub") or ""
+        if not pub.strip() or "REPLACE_ME" in pub or "BEGIN PUBLIC KEY" not in pub:
+            print(
+                f"ConfigMap {adm_ns}/{pubkey_cm} key cosign.pub is empty or still a placeholder. "
+                "oc apply --from-file=cosign.pub=$HOME/lab-trust/cosign.pub (Track 5.3).",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        key_b64 = base64.b64encode(pub.encode()).decode()
+        root = f"""    rootOfTrust:
+      policyType: PublicKey
+      publicKey:
+        keyData: {key_b64}
+"""
+        print(
+            "Rendering ImagePolicy PublicKey from lab-cosign-pubkey "
+            "(signedEmail cannot hold the pipeline SA URI)"
+        )
+
     for ns in (stage, prod):
         ensure_ns(ns)
         body = f"""apiVersion: config.openshift.io/v1
@@ -171,17 +238,7 @@ spec:
   scopes:
 {chr(10).join('    - ' + q(s) for s in all_scopes)}
   policy:
-    rootOfTrust:
-      policyType: FulcioCAWithRekor
-      fulcioCAWithRekor:
-        fulcioCAData: {fulcio_b64}
-        fulcioSubject:
-          oidcIssuer: {q(issuer)}
-          signedEmail: {q(subject)}
-        rekorKeyData: {rekor_b64}
-    signedIdentity:
-      matchPolicy: {q(match_policy)}
-"""
+{root}{signed_identity_yaml()}"""
         apply = subprocess.run(["oc", "apply", "-f", "-"], input=body, text=True, capture_output=True)
         sys.stdout.write(apply.stdout)
         sys.stderr.write(apply.stderr)

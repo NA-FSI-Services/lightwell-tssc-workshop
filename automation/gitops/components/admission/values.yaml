@@ -9,6 +9,11 @@ admission:
   # imagepolicy | kyverno force one backend. Do not set TechPreviewNoUpgrade.
   backend: auto
   policyName: tssc-prod-admission
+  # Signed in lw-poc-build; oc tag copies the image but not .sig tags (#86).
+  buildNamespace: lw-poc-build
+  appImageName: spring-boot-lw-poc
+  internalRegistry: image-registry.openshift-image-registry.svc:5000
+  cosignPubConfigMap: lab-cosign-pubkey
   stageNamespace: lw-poc-staging
   # Empty until V2-17 wires the prod GitOps remote. ImagePolicy still targets it.
   prodNamespace: lw-poc-prod
@@ -68,9 +73,10 @@ userInfo:
     Edit admission/trust-policy.yaml in the learner GitOps repo (not this
     cluster object). Seed is enforce: false with REPLACE_ME placeholders.
     When enforce is true and placeholders are gone, a CronJob renders
-    namespaced ImagePolicy in the stage and prod namespaces. Do not apply
-    kind: ClusterImagePolicy. Do not use RHACS for this gate. Unsigned
-    deny is a pull failure (ImagePullBackOff), not oc apply stderr.
+    namespaced ImagePolicy in the stage and prod namespaces. A Kubernetes
+    SA URI subject uses Track 5.3 cosign.pub (signedEmail cannot be a URI).
+    Do not apply kind: ClusterImagePolicy. Do not use RHACS for this gate.
+    Unsigned deny is a pull failure (ImagePullBackOff), not oc apply stderr.
 
 deployer:
   domain: ""

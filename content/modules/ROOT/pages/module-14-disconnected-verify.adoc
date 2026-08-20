@@ -14,11 +14,12 @@ By the end of this module, you will be able to:
 * Generate a cosign key pair under `~/lab-trust` (not the worked-example path)
 * Attach a key-based signature to the 5.1 app digest without uploading a Rekor tlog
 * `cosign verify --key` that digest with `~/lab-trust/cosign.pub`
+* Publish `cosign.pub` to ConfigMap `lab-cosign-pubkey` so Track 6.1 can render ImagePolicy
 * Explain that this claim is still on the network
 
 == Why a second signature
 
-Keyless (5.1) needs Fulcio at *sign* time and a TUF root at *verify* time. Customers who cannot reach Fulcio still need a public key they control. You add that signature here. Admission in xref:module-15-gitops-admission.adoc[6.1] still trusts the *keyless* pipeline SA identity, not this Showroom key.
+Keyless (5.1) needs Fulcio at *sign* time and a TUF root at *verify* time. Customers who cannot reach Fulcio still need a public key they control. You add that signature here. Native `ImagePolicy` `signedEmail` cannot hold the 5.1 Kubernetes SA URI, so xref:module-15-gitops-admission.adoc[6.1] CRI-O admission uses *this* `cosign.pub`. Keep the keyless signature on the image; do not strip it.
 
 The two-column picture is on xref:module-12-sign-keyless.adoc[5.1 Keyless vs keys].
 
@@ -72,9 +73,13 @@ COSIGN_PASSWORD="" cosign sign --key ~/lab-trust/cosign.key \
   --tlog-upload=false \
   --allow-http-registry --allow-insecure-registry \
   "${IMAGE}"
+# ImagePolicy signedEmail cannot be a SA URI. Publish the public key for 6.1.
+oc -n tssc-admission create configmap lab-cosign-pubkey \
+  --from-file=cosign.pub=/home/lab-user/lab-trust/cosign.pub \
+  --dry-run=client -o yaml | oc apply -f -
 ----
 
-Pass when `~/lab-trust/cosign.pub` exists and `sign` exits 0. Copying the worked-example path fails the Check.
+Pass when `~/lab-trust/cosign.pub` exists, `sign` exits 0, and ConfigMap `tssc-admission/lab-cosign-pubkey` has that PEM. Copying the worked-example path fails the Check.
 
 == Check: `cosign verify --key`
 
@@ -112,5 +117,6 @@ TUF `root.json` and Fulcio/Rekor PEMs are *not* this Check. Pack them in the xre
 == Key takeaways
 
 * Track 5 is keyless *and* a key-based signature you created.
+* Publish `cosign.pub` to `tssc-admission/lab-cosign-pubkey` — 6.1 CRI-O admission uses it.
 * The private key stays on Showroom. Never Git.
 * This is not a data diode. The playbook is the transfer story.

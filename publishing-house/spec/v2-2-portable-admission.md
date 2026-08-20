@@ -194,8 +194,8 @@ Teaching fail: “Admission is still off (`enforce: false`)” / “Issuer is st
 | Risk | Mitigation |
 |------|------------|
 | ImagePolicy apply drains MCP | Time it on CNV. If too slow, `backend: kyverno`. Do not enable `TechPreviewNoUpgrade`. |
-| `signedEmail` vs Kubernetes SA URI | Confirm the SAN on a real RHTAS-signed image (`cosign verify` / cert). Put the exact string in userinfo; seed stays `REPLACE_ME_IDENTITY`. |
-| Mirror remapping | App image is signed **in** the internal registry — `MatchRepoDigestOrExact` should hold. If Track 1 Hummingbird verify needs remap, that is Track 1, not this file. |
+| `signedEmail` vs Kubernetes SA URI | ImagePolicy `signedEmail` is an RFC email. 5.1 identity is a SA URI, so the CronJob renders `PublicKey` from ConfigMap `lab-cosign-pubkey` (5.3 `cosign.pub`). TrustPolicy.subject stays the URI. |
+| Mirror remapping | `oc tag` does not copy `.sig` tags. 6.1/6.2 `cosign copy` onto the dest digest; CronJob sets `ExactRepository` to the build ImageStream. |
 | Nested scopes vs cluster `openshift` policy | Keep lab `scopes` on the dest registry host only; never `quay.io/openshift-release-dev/*`. |
 | Kyverno as community operator | Catalog talking point: customer 4.21 = ImagePolicy; Kyverno is the lab fallback only. |
 | RHACS still listening | Unsigned deny must be attributable to **this** policy in the teaching message, not a Central BUILD policy. |

@@ -59,6 +59,10 @@ spec:
                   value: {{ include "admission.rekorUrlHint" . | quote }}
                 - name: WAIT_SECONDS
                   value: {{ .Values.apply.waitSeconds | quote }}
+                - name: COSIGN_PUB_CM
+                  value: {{ .Values.admission.cosignPubConfigMap | quote }}
+                - name: SIGNED_IMAGE_REPO
+                  value: {{ printf "%s/%s/%s" .Values.admission.internalRegistry .Values.admission.buildNamespace .Values.admission.appImageName | quote }}
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts

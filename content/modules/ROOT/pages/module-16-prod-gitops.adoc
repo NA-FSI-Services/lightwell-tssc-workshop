@@ -11,7 +11,7 @@ You commit the *same signed digest* used on stage. Check fails if Application `l
 
 By the end of this module, you will be able to:
 
-* `oc tag` the signed image into `lw-poc-prod` and commit digest + `replicas: 1` to the *prod* GitOps remote
+* `oc tag` the signed image into `lw-poc-prod`, `cosign copy` (and dest `cosign sign --key`) onto that ImageStream, then commit digest + `replicas: 1` to the *prod* GitOps remote
 * Keep `lw-poc-prod` `.spec.source.repoURL` on the prod remote
 * Leave the stage Application and TrustPolicy file alone
 
@@ -51,6 +51,18 @@ echo "PROD_GITOPS=${PROD_GITOPS}"
 oc tag "${BUILD_NS}/spring-boot-lw-poc:latest" "${PROD_NS}/spring-boot-lw-poc:latest"
 oc -n "${PROD_NS}" get istag spring-boot-lw-poc:latest \
   -o jsonpath='{.image.metadata.name}{"\n"}'
+DIGEST="$(oc -n "${PROD_NS}" get istag spring-boot-lw-poc:latest \
+  -o jsonpath='{.image.metadata.name}')"
+SRC="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc@${DIGEST}"
+DST="image-registry.openshift-image-registry.svc:5000/${PROD_NS}/spring-boot-lw-poc@${DIGEST}"
+export HOME=/tmp/lab-home
+mkdir -p "${HOME}"
+cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  image-registry.openshift-image-registry.svc:5000
+cosign copy --allow-http-registry --allow-insecure-registry "${SRC}" "${DST}"
+COSIGN_PASSWORD="" cosign sign --key /home/lab-user/lab-trust/cosign.key \
+  --tlog-upload=false --allow-http-registry --allow-insecure-registry \
+  "${DST}"
 ----
 
 Clone `student_prod_gitops_repo_url` (password from `student_password` jsonpath — do not commit it). Replace `sha256:REPLACE_ME_PROD_DIGEST` with that digest; set `replicas: 1`. Commit and push *this* remote only. Do not copy `values.yaml` or `PROMOTE.md` from the stage clone.

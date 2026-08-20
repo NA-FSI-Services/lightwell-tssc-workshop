@@ -3,7 +3,9 @@
 :toc:
 :toclevels: 2
 
-Promote the signed app digest into *stage* via GitOps, then turn on portable admission so unsigned images cannot run. You edit *one* file: `admission/trust-policy.yaml` (`kind: TrustPolicy`) on the *stage* Gitea remote. A CronJob renders namespaced `ImagePolicy` on `lw-poc-staging` *and* `lw-poc-prod`. Do not apply `ClusterImagePolicy`. Do not use RHACS Trusted image signers for this gate (public keys only; Track 5.1 is keyless).
+Promote the signed app digest into *stage* via GitOps, then turn on portable admission so unsigned images cannot run. You edit *one* file: `admission/trust-policy.yaml` (`kind: TrustPolicy`) on the *stage* Gitea remote. A CronJob renders namespaced `ImagePolicy` on `lw-poc-staging` *and* `lw-poc-prod`. Do not apply `ClusterImagePolicy`. Do not use RHACS Trusted image signers for this gate.
+
+Native `ImagePolicy` `signedEmail` must be an email. Track 5.1 identity is a Kubernetes SA URI, so the CronJob renders `policyType: PublicKey` from ConfigMap `lab-cosign-pubkey` (the 5.3 `cosign.pub` you published). Keep the 5.1 SA URI in TrustPolicy — that is still the Fulcio identity. `oc tag` does not copy `.sig` tags; `cosign copy` (and a dest-repo `cosign sign --key`) after the tag.
 
 Prod GitOps is a *second remote* — leave it for xref:module-16-prod-gitops.adoc[6.2]. `app-operate` NetworkPolicy on staging stays *open* (that is not the xref:module-10-build-networkpolicy.adoc[4.3] build-egress Check).
 
@@ -11,8 +13,9 @@ Prod GitOps is a *second remote* — leave it for xref:module-16-prod-gitops.ado
 
 By the end of this module, you will be able to:
 
-* `oc tag` the signed image from `lw-poc-build` into `lw-poc-staging` and commit digest + `replicas: 1` to the *stage* GitOps remote
-* Fill TrustPolicy so no `REPLACE_ME_*` remains and `enforce: true`
+* `oc tag` the signed image from `lw-poc-build` into `lw-poc-staging`, then `cosign copy` signatures onto that dest ImageStream
+* Commit digest + `replicas: 1` to the *stage* GitOps remote
+* Fill TrustPolicy so no `REPLACE_ME_*` remains and `enforce: true` (subject stays the 5.1 SA URI)
 * Show unsigned deny as a *pull* failure (ImagePullBackOff), not `oc apply` stderr
 * Leave the prod remote and prod Argo Application untouched
 
@@ -66,6 +69,19 @@ PROMOTE_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.
 oc tag "${BUILD_NS}/spring-boot-lw-poc:latest" "${PROMOTE_NS}/spring-boot-lw-poc:latest"
 oc -n "${PROMOTE_NS}" get istag spring-boot-lw-poc:latest \
   -o jsonpath='{.image.metadata.name}{"\n"}'
+DIGEST="$(oc -n "${PROMOTE_NS}" get istag spring-boot-lw-poc:latest \
+  -o jsonpath='{.image.metadata.name}')"
+SRC="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc@${DIGEST}"
+DST="image-registry.openshift-image-registry.svc:5000/${PROMOTE_NS}/spring-boot-lw-poc@${DIGEST}"
+# oc tag copies the image, not .sig tags. Copy, then sign the dest repo with the 5.3 key.
+export HOME=/tmp/lab-home
+mkdir -p "${HOME}"
+cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+  image-registry.openshift-image-registry.svc:5000
+cosign copy --allow-http-registry --allow-insecure-registry "${SRC}" "${DST}"
+COSIGN_PASSWORD="" cosign sign --key /home/lab-user/lab-trust/cosign.key \
+  --tlog-upload=false --allow-http-registry --allow-insecure-registry \
+  "${DST}"
 ----
 
 Keep the `sha256:` prefix. That digest must match Track 5.1.
@@ -77,7 +93,7 @@ Keep the `sha256:` prefix. That digest must match Track 5.1.
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
 image::FIXME-argo-stage-healthy-prod-seed.png[Argo Application lw-poc-staging Healthy; prod still on seed digest,width=700,link=self,window=blank]
 
-. Edit `admission/trust-policy.yaml` on the *same* stage remote. Do not change `apiVersion` / `kind`. Set `enforce: true`. Replace every `REPLACE_ME_*` with live values: issuer `https://kubernetes.default.svc` (or userinfo `oidc_issuer_hint`), subject the pipeline SA URI from 5.1, digest the signed `sha256:…`, scopes the internal ImageStream repo staging (and prod) actually pull — discover with `oc get is`, do not invent a public registry. Do not paste Fulcio / Rekor PEMs (the CronJob injects those).
+. Edit `admission/trust-policy.yaml` on the *same* stage remote. Do not change `apiVersion` / `kind`. Set `enforce: true`. Replace every `REPLACE_ME_*` with live values: issuer `https://kubernetes.default.svc` (or userinfo `oidc_issuer_hint`), subject the pipeline SA URI from 5.1 (not an invented email), digest the signed `sha256:…`, scopes the internal ImageStream repos staging *and* prod actually pull — discover with `oc get is`. Confirm ConfigMap `tssc-admission/lab-cosign-pubkey` still has your 5.3 PEM. Do not paste Fulcio / Rekor PEMs (the CronJob injects those). The CronJob sets `signedIdentity.matchPolicy: ExactRepository` to the *build* ImageStream so dest pulls accept the signature identity from `lw-poc-build`.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/70
 image::FIXME-trustpolicy-vs-imagepolicy.png[Learner TrustPolicy file versus CronJob-rendered ImagePolicy on stage and prod,width=700,link=self,window=blank]
@@ -133,4 +149,5 @@ Honor system: 6.2 still opens.
 == Key takeaways
 
 * One learner file; the live API is namespaced `ImagePolicy` (not `ClusterImagePolicy`).
-* Promotion to prod is a commit to a *second* remote (6.2).
+* SA URI subjects render `PublicKey` from 5.3 `lab-cosign-pubkey`; `oc tag` needs `cosign copy`.
+* Promotion to prod is a git commit to a second remote (6.2).
