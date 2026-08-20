@@ -115,6 +115,7 @@ Nexus **hosted Docker** repo `hummingbird-mirror` is the oc-mirror destination. 
 | Route | `registry-lightwell-repo.<domain>` (TLS edge) |
 | oc-mirror dest | `docker://registry-lightwell-repo.<domain>` |
 | Plugin image | `registry.redhat.io/openshift4/oc-mirror-plugin-rhel9:v4.20` (Showroom copies the binary onto PATH — V2-20) |
+| Cosign image | `registry.redhat.io/rhtas/cosign-rhel9:1.3.0` (Job copies tag-based signatures after oc-mirror — #63) |
 | Workspace | PVC `oc-mirror-workspace` (`HOME`/`workingDir` `/workspace`, `fsGroup` 1000, anyuid SCC — #60) |
 | Push auth | Secret `nexus-docker-push` (seed Job; admin → dest host) |
 | DockerToken realm | Seed PUT `NexusAuthenticatingRealm` + `DefaultRole` + `DockerToken` (Nexus 3.70 has no `NexusAuthorizingRealm`; a swallowed 400 left dest login failing — #62) |
@@ -136,7 +137,7 @@ ConfigMap `imageset-configuration` is seeded with `REPLACE_ME_HUMMINGBIRD_PULLSP
 | Worked example | `oc-mirror-tooling` key `example-imageset.yaml` (`ubi9/ubi-minimal` — not paste-identical) |
 | Learner edit | Replace `REPLACE_ME_HUMMINGBIRD_PULLSPEC` with the V2-1 digest pin |
 | Run from Showroom | `oc get cm oc-mirror-tooling -o jsonpath='{.data.job\.yaml}' \| oc create -f -` |
-| Signatures | Job does **not** pass `--remove-signatures` (oc-mirror v2 default includes them) |
+| Signatures | Job does **not** pass `--remove-signatures`. Nexus 3.70 Docker dest has no OCI referrers, so the Job runs `cosign copy` after oc-mirror (tag protocol `.sig` / `.att` / `.sbom`) |
 
 ```bash
 oc -n lightwell-repo edit configmap imageset-configuration

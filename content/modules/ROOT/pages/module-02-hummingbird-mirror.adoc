@@ -90,7 +90,7 @@ mirror:
 
 Use `oc -n lightwell-repo edit configmap imageset-configuration` and change only that `name:` line. Do not copy `example-imageset.yaml` over the scored key.
 
-The Job does *not* pass `--remove-signatures`. oc-mirror v2 keeps signatures and SBOM artifacts with the image by default — do not add a flag that strips them.
+The Job does *not* pass `--remove-signatures`. oc-mirror v2 still cannot land OCI referrers on this Nexus Docker dest, so the Job copies the image first, then copies tag-based signatures (`.sig` / `.att` / `.sbom`) with `cosign copy`. Do not add a flag that strips signatures.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/54
 image::FIXME-imageset-hummingbird-filled.png[ImageSetConfiguration after REPLACE_ME is replaced with the workshop Hummingbird pin,width=700,link=self,window=blank]
@@ -121,10 +121,11 @@ oc -n lightwell-repo get configmap oc-mirror-tooling \
 oc -n lightwell-repo wait --for=condition=complete job/oc-mirror-learner --timeout=20m
 ----
 
-.Read logs for the dest image reference and digest
+.Read oc-mirror logs for the dest image, then the signature-copy container
 [source,bash,role=execute]
 ----
-oc -n lightwell-repo logs job/oc-mirror-learner
+oc -n lightwell-repo logs job/oc-mirror-learner -c oc-mirror
+oc -n lightwell-repo logs job/oc-mirror-learner -c copy-signatures
 ----
 
 Record the *dest* digest from those logs (or dest registry metadata). Do not reuse only the 1.1 published digest as proof that dest is populated.
@@ -174,4 +175,4 @@ A customer dest is often an Artifactory Docker *remote* or local cache, not Nexu
 
 * Mirror is a learner skill, not a finished cluster.
 * Internal verify is a different Check from published verify.
-* Signatures stay with the image because you did not strip them.
+* Signatures stay with the image because the Job copies them onto dest (Nexus stores the tag protocol, not OCI referrers).

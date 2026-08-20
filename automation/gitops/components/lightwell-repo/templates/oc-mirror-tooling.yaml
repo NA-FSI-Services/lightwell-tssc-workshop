@@ -134,9 +134,13 @@ data:
 
     Auth: Secret {{ .Values.ocMirror.dockerSecretName }} (written by lightwell-repo-seed).
     Workspace PVC: {{ .Values.ocMirror.workspace.pvcName }}
-    Signatures: Job does not pass --remove-signatures (oc-mirror v2 default includes them).
+    Signatures: Job does not pass --remove-signatures. oc-mirror v2 still cannot
+    land OCI referrers on Nexus 3.70 Docker dest; the Job then runs cosign copy
+    so tag-based .sig/.att/.sbom artifacts exist for dest verify (#63).
 
     Do not apply a Job that mirrors HUMMINGBIRD_JAVA_RUNTIME at provision.
+  copy-signatures.sh: |
+{{ .Files.Get "files/oc-mirror/copy-signatures.sh" | indent 4 }}
   example-imageset.yaml: |
     # Worked example ONLY — different image from the scored ConfigMap.
     # Pasting this into imageset-configuration still fails the Check.
@@ -165,7 +169,7 @@ data:
             fsGroup: {{ .Values.ocMirror.workspace.fsGroup }}
             fsGroupChangePolicy: OnRootMismatch
           {{- end }}
-          containers:
+          initContainers:
             - name: oc-mirror
               image: {{ .Values.ocMirror.pluginImage | quote }}
               imagePullPolicy: IfNotPresent
@@ -193,6 +197,27 @@ data:
                   readOnly: true
                 - name: workspace
                   mountPath: /workspace
+          containers:
+            # #63: Nexus dest stores tag-based cosign artifacts, not OCI referrers.
+            - name: copy-signatures
+              image: {{ .Values.ocMirror.cosignImage | quote }}
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: DEST_HOST
+                  value: {{ $regHost | quote }}
+                - name: DOCKER_CONFIG
+                  value: /docker
+              command: ["/bin/bash", "/scripts/copy-signatures.sh"]
+              volumeMounts:
+                - name: docker
+                  mountPath: /docker
+                  readOnly: true
+                - name: imageset
+                  mountPath: /imageset
+                  readOnly: true
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
           volumes:
             - name: docker
               secret:
@@ -209,4 +234,11 @@ data:
             - name: workspace
               persistentVolumeClaim:
                 claimName: {{ .Values.ocMirror.workspace.pvcName }}
+            - name: scripts
+              configMap:
+                name: {{ .Values.ocMirror.configMapName }}
+                defaultMode: 0755
+                items:
+                  - key: copy-signatures.sh
+                    path: copy-signatures.sh
 {{- end }}
