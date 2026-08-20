@@ -115,7 +115,7 @@ Red Hat documents key-based verify for Hardened Images (not in-cluster RHTAS Ful
 
 That host is Red Hat’s key distribution, not `github.com`. If the fetch is blocked on a locked-down claim, stop and tell an instructor — do not invent a Fulcio identity for this Check.
 
-See link:https://docs.redhat.com/en/documentation/red_hat_hardened_images/1-latest/html/build_and_deploy_secure_minimal_containers_with_red_hat_hardened_images/run-containerized-tools-with-red-hat-hardened-images[Verify the integrity of Red Hat Hardened Images].
+See link:https://docs.redhat.com/en/documentation/red_hat_hardened_images/1-latest/develop-run_containerized_tools_with_red_hat_hardened_images[Verify the integrity of Red Hat Hardened Images] (key-based `cosign verify`, including `--key https://security.access.redhat.com/data/63405576.txt`).
 
 .Write the snippet back to the ConfigMap (after you filled the placeholders)
 [source,bash,role=execute]
