@@ -25,7 +25,8 @@ tabs:
     path: /terminal/
 
   - name: SSO (Keycloak)
-    url: "https://tpa-sso.${DOMAIN}/realms/tpa/account/"
+    # Host must match keycloak.routeHostPrefix (sso.<domain>), not tpa-sso.
+    url: "https://sso.${DOMAIN}/realms/tpa/account/"
     external: true
 
   - name: RHTPA

@@ -2,6 +2,7 @@
 ---
 # Track 4.3 seed — too open. Learner replaces egress with DNS + registry + Nexus.
 # Namespace-wide (podSelector {}). Do not copy example-hermetic-egress.yaml.
+# Application bootstrap-networkpolicy ignores /spec so selfHeal does not revert the Check.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

@@ -301,6 +301,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.components.networkPolicy.namespace }}
+  # Learner tightens build-egress in 4.3. Do not let Helm restore allow-all egress.
+  ignoreDifferences:
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+      name: build-egress
+      jsonPointers:
+        - /spec
   syncPolicy:
     automated:
       prune: true
@@ -309,6 +316,7 @@ spec:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 {{- end }}
 
 {{- if .Values.components.gitea.enabled }}
