@@ -28,7 +28,7 @@ Showroom-only gaps (still fail on a fresh claim):
 ```bash
 oc -n lw-poc-validate delete job validate-01-hummingbird-verify --ignore-not-found
 oc -n lw-poc-validate get configmap validate-job-templates \
-  -o jsonpath='{.data.job-01\.yaml}' | oc create -f -
+  -o go-template='{{ index .data "job-01.yaml" }}' | oc create -f -
 oc -n lw-poc-validate logs -f job/validate-01-hummingbird-verify
 ```
 

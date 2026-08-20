@@ -31,8 +31,14 @@ require_cmd() {
 }
 
 cm_get() {
-  local ns="$1" name="$2" key="$3"
-  oc -n "$ns" get configmap "$name" -o "jsonpath={.data['${key}']}" 2>/dev/null || true
+  local ns="$1" name="$2" key="$3" value
+  # #59: jsonpath {.data['dotted.key']} is empty on oc; go-template index works.
+  value="$(oc -n "$ns" get configmap "$name" \
+    -o go-template="{{ index .data \"${key}\" }}" 2>/dev/null || true)"
+  case "$value" in
+    '<no value>') printf '' ;;
+    *) printf '%s' "$value" ;;
+  esac
 }
 
 userinfo() {

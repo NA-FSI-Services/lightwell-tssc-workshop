@@ -12,7 +12,7 @@
       - -n
       - "{{ repo_namespace }}"
       - -o
-      - "jsonpath={.data['imageset-config.yaml']}"
+      - "go-template={{ '{{index .data \"imageset-config.yaml\"}}' }}"
   register: imageset_data
   changed_when: false
 
@@ -34,7 +34,7 @@
       - -n
       - "{{ repo_namespace }}"
       - -o
-      - "jsonpath={.data['{{ item.key }}']}"
+      - "go-template={{ '{{index .data \"' ~ item.key ~ '\"}}' }}"
   register: lab_stub_data
   changed_when: false
   loop: "{{ lab_stubs }}"
@@ -72,7 +72,7 @@
       - -n
       - "{{ gitea_namespace }}"
       - -o
-      - "jsonpath={.data['{{ gitea_overlay_known_bad_key }}']}"
+      - "go-template={{ '{{index .data \"' ~ gitea_overlay_known_bad_key ~ '\"}}' }}"
   register: known_bad_seed
   changed_when: false
 
@@ -92,7 +92,7 @@
       - -n
       - "{{ gitea_namespace }}"
       - -o
-      - "jsonpath={.data['{{ gitea_overlay_pipeline_key }}']}"
+      - "go-template={{ '{{index .data \"' ~ gitea_overlay_pipeline_key ~ '\"}}' }}"
   register: overlay_pipeline
   changed_when: false
 
@@ -165,7 +165,7 @@
       - -n
       - "{{ gitea_namespace }}"
       - -o
-      - "jsonpath={.data['overlay-gitops-admission-trust-policy.yaml']}"
+      - "go-template={{ '{{index .data \"overlay-gitops-admission-trust-policy.yaml\"}}' }}"
   register: trust_seed
   changed_when: false
 
