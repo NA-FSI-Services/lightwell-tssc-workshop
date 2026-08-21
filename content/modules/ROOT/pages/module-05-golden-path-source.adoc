@@ -104,7 +104,7 @@ curl -sk -o /dev/null -w "%{http_code}\n" \
 Expect HTTP `200` on `student_repo_url`. Open `lw-student/spring-boot-lw-poc` and confirm `pom.xml` is at the repository *root*. Default `<commons.lang3.version>` is still the affected upstream `3.14.0` (not `3.18.0`, not yet `3.14.0.rhlw-00001`). `workshop-templates` is not the scored remote.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/62
-image::FIXME-gitea-seeded-app-root.png[Seeded lw-student spring-boot-lw-poc repository root showing pom.xml,width=700,link=self,window=blank]
+image::gitea-seeded-app-root.png[Seeded lw-student spring-boot-lw-poc repository root showing pom.xml,width=700,link=self,window=blank]
 
 :report-name: report-05-golden-path-source
 :report-key: git_home

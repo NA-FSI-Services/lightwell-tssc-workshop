@@ -116,7 +116,7 @@ oc -n "${PROMOTE_NS}" get deploy spring-boot-lw-poc \
 ----
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
-image::FIXME-argo-stage-healthy-prod-seed.png[Argo Application lw-poc-staging Healthy; prod still on seed digest,width=700,link=self,window=blank]
+image::argo-lw-poc-staging-healthy.png[Argo Application lw-poc-staging Healthy and Synced after 6.1,width=700,link=self,window=blank]
 
 . Edit `admission/trust-policy.yaml` on the *same* stage remote. Do not change `apiVersion` / `kind`. Set `enforce: true`. Replace every `REPLACE_ME_*` with live values: issuer `https://kubernetes.default.svc` (or userinfo `oidc_issuer_hint`), subject the pipeline SA URI from 5.1 (not an invented email), digest the signed `sha256:…`, scopes the internal ImageStream repos staging *and* prod actually pull — discover with `oc get is`. Confirm ConfigMap `tssc-admission/lab-cosign-pubkey` still has your 5.3 PEM. Do not paste Fulcio / Rekor PEMs (the CronJob injects those). The CronJob sets `signedIdentity.matchPolicy: ExactRepository` to the *build* ImageStream so dest pulls accept the signature identity from `lw-poc-build`.
 
@@ -155,7 +155,7 @@ oc -n lw-poc-prod get imagepolicy
 Pass when: TrustPolicy has no `REPLACE_ME` and `enforce: true`; ImagePolicy is live on staging *and* prod; the `:unsigned` pod is ImagePullBackOff (or signature error); `lw-poc-staging` stays Healthy on the signed digest. Do not retarget prod Argo at the stage remote.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/69
-image::FIXME-unsigned-deny-imagepullbackoff.png[Throwaway unsigned tag pod in ImagePullBackOff while signed latest stays running,width=700,link=self,window=blank]
+image::unsigned-deny-imagepullbackoff.png[Throwaway unsigned tag pod in ImagePullBackOff while signed latest stays running,width=700,link=self,window=blank]
 
 :report-name: report-15-gitops-admission
 :report-key: live_api

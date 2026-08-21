@@ -62,7 +62,7 @@ git commit --author='student <student@example.invalid>' \
 . Review, then merge on Gitea (do not `git commit` the same hunk as `student`).
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/55
-image::FIXME-gitea-renovate-bot-pr.png[Gitea pull request authored by renovate-bot on lightwell-pins.properties,width=700,link=self,window=blank]
+image::gitea-renovate-bot-pr.png[Gitea pull request authored by renovate-bot on lightwell-pins.properties,width=700,link=self,window=blank]
 
 If no PR yet: wait for the next CronJob; check Job logs in namespace `renovate`. Maven bump should appear once Nexus remotes are up. Dest Docker bump needs 1.2. Retry. Do *not* push a student commit that edits the pins file.
 

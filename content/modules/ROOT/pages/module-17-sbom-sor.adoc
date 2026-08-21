@@ -83,7 +83,7 @@ curl -sk -X POST \
 Expect HTTP 201 (or another success). Open `server_url`, sign in, find the promoted digest / component.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/58
-image::FIXME-tpa-app-sbom-ingested.png[TPA UI after ingesting the promoted app CycloneDX SBOM,width=700,link=self,window=blank]
+image::tpa-app-sbom-ingested.png[TPA UI after ingesting the promoted app CycloneDX SBOM,width=700,link=self,window=blank]
 
 == Check: TPA has the promoted SBOM
 

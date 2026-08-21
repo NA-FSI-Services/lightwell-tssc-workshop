@@ -104,7 +104,7 @@ Pass when:
 * ImagePolicy from 6.1 is still present; unsigned still denied
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
-image::FIXME-argo-stage-healthy-prod-seed.png[Argo Applications console — after this Check, lw-poc-prod is Healthy from the prod remote,width=700,link=self,window=blank]
+image::argo-lw-poc-prod-outofsync.png[Argo Application lw-poc-prod after 6.2: workloads Healthy; Namespace remains OutOfSync,width=700,link=self,window=blank]
 
 :report-name: report-16-prod-gitops
 :report-key: how_promote
