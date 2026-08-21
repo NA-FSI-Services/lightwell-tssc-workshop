@@ -149,6 +149,15 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.components.rhtpa.namespace }}
+  # Live PVC storage may already be Bound on the default WaitForFirstConsumer
+  # class; storageClassName is immutable (#101). Ignore that pointer so this
+  # claim stays Synced; next claim Binds Immediate and the ignore is a no-op.
+  ignoreDifferences:
+    - group: ""
+      kind: PersistentVolumeClaim
+      name: storage
+      jsonPointers:
+        - /spec/storageClassName
   syncPolicy:
     automated:
       prune: true
@@ -157,6 +166,7 @@ spec:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 {{- end }}
 
 {{- if .Values.components.rhacs.enabled }}
