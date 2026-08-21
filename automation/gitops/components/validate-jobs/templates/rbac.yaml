@@ -24,7 +24,7 @@ metadata:
     argocd.argoproj.io/sync-wave: {{ .Values.validateJobs.syncWaves.rbac | quote }}
 rules:
   - apiGroups: [""]
-    resources: ["configmaps", "namespaces", "pods", "pods/log", "events", "services"]
+    resources: ["configmaps", "namespaces", "pods", "pods/log", "events", "services", "persistentvolumeclaims"]
     verbs: ["get", "list"]
   - apiGroups: ["batch"]
     resources: ["jobs", "cronjobs"]
