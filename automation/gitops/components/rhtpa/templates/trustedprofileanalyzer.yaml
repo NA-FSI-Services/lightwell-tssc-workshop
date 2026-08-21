@@ -33,6 +33,7 @@ spec:
   storage:
     type: {{ .Values.trustedProfileAnalyzer.storage.type | quote }}
     size: {{ .Values.trustedProfileAnalyzer.storage.size | quote }}
+    # PVC templates/filesystem-pvc.yaml (name: storage) — operator Job claimName.
 
   oidc:
     issuerUrl: {{ $issuer | quote }}

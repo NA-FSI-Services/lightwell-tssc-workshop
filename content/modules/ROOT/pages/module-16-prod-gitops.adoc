@@ -85,6 +85,9 @@ git config user.email student@workshop.local
 [source,bash,role=execute]
 ----
 PROD_GITOPS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_prod_gitops_repo_url}')"
+# Same as 6.1: push alone may not sync. Hard-refresh after replicas: 1 is on the prod remote.
+oc -n openshift-gitops annotate applications.argoproj.io lw-poc-prod \
+  argocd.argoproj.io/refresh=hard --overwrite
 oc -n openshift-gitops get applications.argoproj.io lw-poc-prod \
   -o jsonpath='repo={.spec.source.repoURL}{"\n"}sync={.status.sync.status}{"\n"}health={.status.health.status}{"\n"}'
 oc -n openshift-gitops get applications.argoproj.io lw-poc-prod \

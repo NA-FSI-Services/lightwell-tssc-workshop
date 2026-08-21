@@ -77,6 +77,8 @@ COSIGN_PASSWORD="" cosign sign --key /home/lab-user/lab-trust/cosign.key \
 oc -n tssc-admission create configmap lab-cosign-pubkey \
   --from-file=cosign.pub=/home/lab-user/lab-trust/cosign.pub \
   --dry-run=client -o yaml | oc apply -f -
+# Tilde follows HOME. Put the real home back before the Check (or use /home/lab-user/lab-trust).
+export HOME=/home/lab-user
 ----
 
 Pass when `~/lab-trust/cosign.pub` exists, `sign` exits 0, and ConfigMap `tssc-admission/lab-cosign-pubkey` has that PEM. Copying the worked-example path fails the Check.
@@ -87,17 +89,19 @@ Pass when `~/lab-trust/cosign.pub` exists, `sign` exits 0, and ConfigMap `tssc-a
 ----
 BUILD_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_build_namespace}')"
 IMAGE="image-registry.openshift-image-registry.svc:5000/${BUILD_NS}/spring-boot-lw-poc:latest"
-test -f ~/lab-trust/cosign.pub
-test ! -f ~/example-not-lab-trust/demo.pub || echo 'example path present (ok if unused)'
+export HOME=/home/lab-user
+LAB_TRUST=/home/lab-user/lab-trust
+test -f "${LAB_TRUST}/cosign.pub"
+test ! -f /home/lab-user/example-not-lab-trust/demo.pub || echo 'example path present (ok if unused)'
 cosign login -u unused -p "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
   image-registry.openshift-image-registry.svc:5000
-cosign verify --key ~/lab-trust/cosign.pub \
+cosign verify --key "${LAB_TRUST}/cosign.pub" \
   --insecure-ignore-tlog \
   --allow-http-registry --allow-insecure-registry \
   "${IMAGE}"
 ----
 
-Pass when that command exits 0 on *your* app digest using `~/lab-trust/cosign.pub`. 5.1 keyless verify must still be possible; do not strip the Fulcio signature.
+Pass when that command exits 0 on *your* app digest using `/home/lab-user/lab-trust/cosign.pub`. 5.1 keyless verify must still be possible; do not strip the Fulcio signature.
 
 :report-name: report-14-disconnected-verify
 :report-key: diode_honest

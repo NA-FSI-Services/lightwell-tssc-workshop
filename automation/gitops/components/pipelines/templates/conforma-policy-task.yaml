@@ -65,6 +65,8 @@ spec:
           -n "${POLICY_NAMESPACE}" \
           --to=/policy \
           --confirm
+        # oc extract writes 0600 root. Later steps (cosign / ec) run as a different UID.
+        chmod -R a+rX /policy
         ls -l /policy
     - name: tuf-init
       computeResources: {}
@@ -88,6 +90,7 @@ spec:
         cosign initialize --mirror="${TUF_URL}" --root="${TUF_URL}/root.json"
         mkdir -p /policy/sigstore
         cp -a /tmp/.sigstore/. /policy/sigstore/
+        chmod -R a+rX /policy
     - name: validate
       computeResources: {}
       image: {{ .Values.conformaPolicy.ecImage | quote }}

@@ -101,7 +101,19 @@ git config user.name student
 git config user.email student@workshop.local
 ----
 
-. Wait until Argo Application `lw-poc-staging` is Synced / Healthy (hard-refresh if it still shows `replicas: 0`).
+. After you push `image.digest` + `replicas: 1`, hard-refresh Argo. Automated sync often stays on the previous commit (`replicas: 0` still looks Healthy). Wait until the Deployment has `replicas: 1` and a Ready pod:
+
+[source,bash,role=execute]
+----
+ARGO="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_argocd_app}')"
+PROMOTE_NS="$(oc -n gitea get configmap demo-userinfo-gitea -o jsonpath='{.data.student_promote_namespace}')"
+oc -n openshift-gitops annotate applications.argoproj.io "${ARGO}" \
+  argocd.argoproj.io/refresh=hard --overwrite
+oc -n openshift-gitops get applications.argoproj.io "${ARGO}" \
+  -o jsonpath='sync={.status.sync.status} health={.status.health.status} rev={.status.sync.revision}{"\n"}'
+oc -n "${PROMOTE_NS}" get deploy spring-boot-lw-poc \
+  -o jsonpath='replicas={.spec.replicas} ready={.status.readyReplicas}{"\n"}'
+----
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/56
 image::FIXME-argo-stage-healthy-prod-seed.png[Argo Application lw-poc-staging Healthy; prod still on seed digest,width=700,link=self,window=blank]
@@ -134,6 +146,8 @@ oc -n "${PROMOTE_NS}" get events --field-selector reason=Failed --sort-by=.lastT
 oc -n "${PROMOTE_NS}" delete deployment unsigned-deny-test
 oc -n openshift-gitops get applications.argoproj.io "${ARGO}" \
   -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+oc -n "${PROMOTE_NS}" get deploy spring-boot-lw-poc \
+  -o jsonpath='replicas={.spec.replicas} ready={.status.readyReplicas}{"\n"}'
 oc -n "${PROMOTE_NS}" get imagepolicy
 oc -n lw-poc-prod get imagepolicy
 ----

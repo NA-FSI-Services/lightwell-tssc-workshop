@@ -32,5 +32,6 @@ printf '%s\n' "$live" | grep -A40 'name: conforma-policy' | grep -q 'name: tuf-u
   || fail "live Pipeline conforma-policy must pass tuf-url (in-cluster TUF)."
 printf '%s\n' "$live" | grep -A40 'name: conforma-policy' | grep -q 'name: rekor-url' \
   || fail "live Pipeline conforma-policy must pass rekor-url (in-cluster Rekor)."
+taskrun_succeeded "$ns" conforma-policy
 report_require_token policy_owner learner-copy
 pass "Conforma copy in ${ns} is tightened and runs after cosign-sign-keyless."

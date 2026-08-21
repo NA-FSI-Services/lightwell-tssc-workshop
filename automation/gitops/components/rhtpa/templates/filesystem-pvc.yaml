@@ -1,0 +1,21 @@
+{{- if and .Values.rhtpa.enabled (eq .Values.trustedProfileAnalyzer.storage.type "filesystem") }}
+---
+# Operator migrate-db Job mounts claimName: storage. The CR size field does not
+# create this PVC (#101). Wave 2 so it exists before the instance (wave 3).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: storage
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tpa-filesystem
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.database | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.trustedProfileAnalyzer.storage.size | quote }}
+{{- end }}

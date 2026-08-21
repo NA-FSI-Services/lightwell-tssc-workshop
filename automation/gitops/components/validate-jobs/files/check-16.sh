@@ -20,8 +20,10 @@ require_contains "${argo} repoURL" "$repo_url" "gitops-prod-"
 health="$(oc -n openshift-gitops get applications.argoproj.io "$argo" \
   -o jsonpath='{.status.health.status}' 2>/dev/null || true)"
 [[ "$health" == "Healthy" ]] || fail "Application ${argo} health is '${health:-missing}', not Healthy."
-policy="$(userinfo tssc-admission demo-userinfo-admission policy_name)"
 prod="$(prod_ns)"
+replicas="$(oc -n "$prod" get deploy spring-boot-lw-poc -o jsonpath='{.spec.replicas}' 2>/dev/null || true)"
+[[ "$replicas" == "1" ]] || fail "Deployment ${prod}/spring-boot-lw-poc replicas is '${replicas:-missing}', not 1. Hard-refresh Argo after pushing the prod remote."
+policy="$(userinfo tssc-admission demo-userinfo-admission policy_name)"
 oc -n "$prod" get imagepolicy.config.openshift.io "$policy" >/dev/null 2>&1 \
   || fail "ImagePolicy ${prod}/${policy} from 6.1 is missing."
 report_require_token how_promote prod-remote

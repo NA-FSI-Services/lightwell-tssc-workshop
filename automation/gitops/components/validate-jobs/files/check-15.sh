@@ -20,5 +20,7 @@ oc -n "$prod" get imagepolicy.config.openshift.io "$policy" >/dev/null 2>&1 \
 health="$(oc -n openshift-gitops get applications.argoproj.io "$argo" \
   -o jsonpath='{.status.health.status}' 2>/dev/null || true)"
 [[ "$health" == "Healthy" ]] || fail "Application ${argo} health is '${health:-missing}', not Healthy."
+replicas="$(oc -n "$stage" get deploy spring-boot-lw-poc -o jsonpath='{.spec.replicas}' 2>/dev/null || true)"
+[[ "$replicas" == "1" ]] || fail "Deployment ${stage}/spring-boot-lw-poc replicas is '${replicas:-missing}', not 1. Push digest + replicas: 1 and hard-refresh Argo (Healthy at 0 replicas is the seed)."
 report_require_token live_api imagepolicy image-policy
 pass "TrustPolicy is enforced, ImagePolicy is live on stage and prod, and ${argo} is Healthy."

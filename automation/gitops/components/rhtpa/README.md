@@ -25,7 +25,7 @@ Root App-of-Apps places this chart at sync wave **`10`** (with other TSSC operat
 | **Red Hat SBOM mirror** | Optional `redhat-sboms` importer (disabled by default — heavy) |
 | **RHDA shift-left** | IDE client of TPA intelligence — see [docs/rhda-rhtpa-shift-left.md](../../../docs/rhda-rhtpa-shift-left.md) (Showroom = TPA UI/`syft` only; no IDE in-cluster) |
 
-Storage defaults to **filesystem** (PVC) for PoC / RHDP workshops. Prefer S3 / OpenShift Data Foundation for production-like sizing.
+Storage defaults to **filesystem** (PVC named `storage` — the operator migrate Job mounts that claim; the CR `size` field does not create it). Prefer S3 / OpenShift Data Foundation for production-like sizing.
 
 ## Prerequisites
 
