@@ -93,7 +93,7 @@ Use `oc -n lightwell-repo edit configmap imageset-configuration` and change only
 The Job does *not* pass `--remove-signatures`. oc-mirror v2 still cannot land OCI referrers on this Nexus Docker dest, so the Job copies the image first, then copies tag-based signatures (`.sig` / `.att` / `.sbom`) with `cosign copy`. Do not add a flag that strips signatures.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/54
-image::FIXME-imageset-hummingbird-filled.png[ImageSetConfiguration after REPLACE_ME is replaced with the workshop Hummingbird pin,width=700,link=self,window=blank]
+image::imageset-hummingbird-filled.png[ImageSetConfiguration after REPLACE_ME is replaced with the workshop Hummingbird pin,width=700,link=self,window=blank]
 
 .Confirm the placeholder is gone
 [source,bash,role=execute]

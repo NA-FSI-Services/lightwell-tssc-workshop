@@ -85,7 +85,7 @@ curl -sk -X POST -H "Authorization: Bearer ${TOKEN}" \
 ----
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/57
-image::FIXME-tpa-gav-vex-ingested.png[TPA UI after ingesting GAV-bound VEX for LW-DEMO-0002,width=700,link=self,window=blank]
+image::tpa-gav-vex-ingested.png[TPA UI after ingesting GAV-bound VEX for LW-DEMO-0002,width=700,link=self,window=blank]
 
 . Write ConfigMap `stub-18-blast-radius` (extract, fill, write back). Placeholders fail. Allowed tokens (the Check grades these):
 

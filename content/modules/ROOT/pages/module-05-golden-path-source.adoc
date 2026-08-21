@@ -69,7 +69,7 @@ git clone https://github.com/example/spring-boot-lw-poc.git
 . In Gitea: *+* → *New Organization*. Name exactly `lw-student`. Visibility *Public* → *Create Organization*.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/61
-image::FIXME-gitea-new-org-lw-student.png[Gitea New Organization form with name lw-student,width=700,link=self,window=blank]
+image::gitea-new-org-lw-student.png[Gitea New Organization form with name lw-student,width=700,link=self,window=blank]
 
 . Under `lw-student`, create three *empty* repositories (do *not* initialize with a README):
 +

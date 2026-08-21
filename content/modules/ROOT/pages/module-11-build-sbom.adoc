@@ -60,7 +60,7 @@ oc -n "${BUILD_NS}" get pipelinerun -w
 Wait until `openshift-build` and `syft-sbom-rhtpa` succeed. ACS may fail or soft-skip; this Check is image + SBOM, not ACS (Track 7) and not cosign verify (Track 5).
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/64
-image::FIXME-pipelinerun-buildconfig-sbom.png[PipelineRun graph with BuildConfig and SBOM tasks succeeding,width=700,link=self,window=blank]
+image::pipelinerun-buildconfig-sbom.png[PipelineRun graph with BuildConfig and SBOM tasks succeeding,width=700,link=self,window=blank]
 
 == Check: image + SBOM; known-bad still fails
 

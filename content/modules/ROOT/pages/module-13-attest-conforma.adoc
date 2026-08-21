@@ -117,7 +117,7 @@ oc -n "${BUILD_NS}" get pipeline spring-boot-lw-poc-build-sign -o yaml \
 Pass when the builder report has `builtin.image.signature_check` as a `[Violation]`, the signed app leftover `[Violation]` lines are empty after dropping `builtin.attestation.signature_check`, the live Pipeline includes `conforma-policy` after `cosign-sign-keyless` with in-cluster `tuf-url` / `rekor-url`, and `policy-namespace` is `lw-poc-build`.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/68
-image::FIXME-conforma-fail-then-pass.png[Conforma fail on openjdk-21-builder then pass on signed app digest,width=700,link=self,window=blank]
+image::conforma-fail-then-pass.png[Conforma fail on openjdk-21-builder then pass on signed app digest,width=700,link=self,window=blank]
 
 :report-name: report-13-attest-conforma
 :report-key: policy_owner

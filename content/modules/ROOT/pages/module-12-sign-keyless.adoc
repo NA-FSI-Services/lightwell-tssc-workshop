@@ -68,7 +68,7 @@ oc -n "${BUILD_NS}" get pipelinerun -w
 Wait until `cosign-sign-keyless` Succeeded. ACS may still fail; this Check is the signature, not ACS.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/66
-image::FIXME-pipelinerun-cosign-sign-keyless.png[PipelineRun graph with cosign-sign-keyless Succeeded,width=700,link=self,window=blank]
+image::pipelinerun-cosign-sign-keyless.png[PipelineRun graph with cosign-sign-keyless Succeeded,width=700,link=self,window=blank]
 
 Do *not* `oc tag` into staging here (Track 6). Do *not* generate a Showroom key pair or `cosign sign --key` here (xref:module-14-disconnected-verify.adoc[5.3]).
 
