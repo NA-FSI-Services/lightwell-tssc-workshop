@@ -94,7 +94,9 @@ Pass when:
 * You did not copy it to `lw-poc-staging`
 * `app-operate` on staging/prod is still the operate seed
 
-After this tighten, a PipelineRun that still pulls `registry.redhat.io` / `registry.access.redhat.com` for *new* images will hang or fail. Task images pulled in 4.2 may already be cached. That is the lesson — not a reason to reopen egress.
+After this tighten, a PipelineRun that still clones the Gitea HTTPS Route or resolves Maven from Central *will* hang or fail. That is the lesson — not a reason to reopen egress.
+
+`build-egress` applies to *pods* in `lw-poc-build`. Node/kubelet image pulls (Task step images, some BuildConfig strategy pulls) are not that NetworkPolicy. The prefetch Task image (`registry.access.redhat.com/ubi9/openjdk-21`) can still land after 4.3; xref:module-08-forbid-list.adoc[4.1]'s ImageStream import is what keeps the Dockerfile `FROM` internal. Do not add `registry.redhat.io` to the allow-list because a Task step pulled.
 
 :report-name: report-10-build-networkpolicy
 :report-key: np_scope
@@ -112,3 +114,4 @@ Honor system: 4.4 still opens. The Check grades the live NetworkPolicy, not a YA
 * Build hermetic ≠ app operate.
 * After this tighten, clone and Maven must use in-cluster service URLs, not Routes.
 * Pipeline Fulcio / Rekor / TUF must use `*_internal_url` from `demo-userinfo-rhtas`. Runtime `FROM` must already be the internal dest ImageStream from 4.1.
+* `build-egress` is pod egress. Kubelet Task-image pulls can still reach `registry.access.redhat.com`; do not reopen the policy for that.

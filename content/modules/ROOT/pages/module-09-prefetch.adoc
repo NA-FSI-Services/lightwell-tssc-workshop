@@ -76,7 +76,7 @@ oc -n "${BUILD_NS}" apply -f .tekton/rbac.yaml
 oc -n "${BUILD_NS}" apply -f .tekton/pipeline.yaml
 ----
 
-Do this *before* 4.3 so the prefetch Task image can still pull from the public registry while egress is open.
+`oc apply` registers the Pipeline object so 4.4 can `create` a PipelineRun. It does *not* pull Task images — that happens on the first PipelineRun. The prefetch Task image is still UBI OpenJDK on `registry.access.redhat.com`; hermetic here is in-cluster Nexus + `mvn -o`, plus the xref:module-08-forbid-list.adoc[4.1] ImageStream `FROM` lines. Do not treat this apply as an image cache before xref:module-10-build-networkpolicy.adoc[4.3].
 
 == Check: Task wired; Central gone
 
@@ -111,3 +111,4 @@ A PyPI app prefetches with `pip download` / `pip install --offline` against an i
 
 * Hermetic prefetch is a Tekton Task on this claim.
 * Do not install Konflux.
+* `oc apply` of the Pipeline does not pull Task images.
