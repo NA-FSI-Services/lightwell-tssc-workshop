@@ -1,0 +1,39 @@
+{{- if and .Values.rhtpa.enabled (eq .Values.trustedProfileAnalyzer.storage.type "filesystem") }}
+---
+# WaitForFirstConsumer StorageClasses leave PVC storage Pending until a pod
+# mounts it. Argo wave 2 then waits forever and never applies the CR (wave 3).
+# This Job is the first consumer so the PVC Binds; migrate-db remounts after
+# the Job completes (RWO). #101
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tpa-filesystem-bind
+  namespace: {{ .Values.rhtpa.namespace }}
+  labels:
+    {{- include "rhtpa.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tpa-filesystem
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.database | quote }}
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: tpa-filesystem
+        app.kubernetes.io/name: tpa-filesystem-bind
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: bind
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/true"]
+          volumeMounts:
+            - name: storage
+              mountPath: /data
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: storage
+{{- end }}

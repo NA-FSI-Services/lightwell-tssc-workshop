@@ -2,6 +2,9 @@
 ---
 # Operator migrate-db Job mounts claimName: storage. The CR size field does not
 # create this PVC (#101). Wave 2 so it exists before the instance (wave 3).
+# WaitForFirstConsumer stays Pending until a pod mounts it. Job tpa-filesystem-bind
+# is that first consumer. DisableHealthCheck is extra in case the PVC is still
+# Pending while the bind Job starts.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -12,6 +15,7 @@ metadata:
     app.kubernetes.io/component: tpa-filesystem
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.rhtpa.syncWaves.database | quote }}
+    argocd.argoproj.io/sync-options: DisableHealthCheck=true
 spec:
   accessModes:
     - ReadWriteOnce

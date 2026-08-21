@@ -152,6 +152,8 @@ spec:
         # ec 0.7.197 has no --skip-att-sig-check. Do not pass --ignore-rekor: Fulcio
         # certs expire and need Rekor timestamps. Judge skip-att by dropping the
         # attestation builtin from the text report (this claim has no cosign attest).
+        # Do not pass --extra-rule-data=key=value — ec 0.7 treats that as a file URL (#103).
+        # Identity/issuer already go on --certificate-*-regexp.
         CMD=(
           ec validate image
           --image="${IMAGE}"
@@ -163,8 +165,6 @@ spec:
           --output=text=/tmp/ec-out.txt
           --certificate-identity-regexp="${IDENTITY}"
           --certificate-oidc-issuer-regexp="${ISSUER}"
-          --extra-rule-data="certificate_identity_regexp=${IDENTITY}"
-          --extra-rule-data="certificate_oidc_issuer_regexp=${ISSUER}"
         )
         if [[ "${SKIP_IMG}" == "true" ]]; then
           echo "skip-image-sig-check=true (seed). ec 0.7 has no --skip-image-sig-check; not passing it."
