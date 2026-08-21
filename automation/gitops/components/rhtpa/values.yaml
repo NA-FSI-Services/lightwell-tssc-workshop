@@ -82,6 +82,11 @@ trustedProfileAnalyzer:
     # filesystem = PVC-backed PoC storage (RHADS enablement pattern). Prefer S3/ODF in prod.
     type: filesystem
     size: 32Gi
+    # Immediate RBD so PVC storage Binds without a pod. Default SC is
+    # WaitForFirstConsumer, which deadlocked Argo wave 2 before the CR (#101).
+    storageClassName: ocs-external-storagecluster-ceph-rbd-immediate
+    # First-consumer Job only if the class is WaitForFirstConsumer. Off when Immediate.
+    bindJob: false
   replicas: 1
   createDatabase: true
   migrateDatabase: true

@@ -5,6 +5,8 @@ springBootLwPoc:
   enabled: true
   namespace: spring-boot-lw-poc
   name: spring-boot-lw-poc
+  # Prod GitOps: false — admission already creates lw-poc-prod for 6.1 ImagePolicy (#104).
+  createNamespace: true
   syncWaves:
     namespace: "0"
     config: "1"

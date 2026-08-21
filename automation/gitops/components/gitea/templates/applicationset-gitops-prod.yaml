@@ -34,6 +34,7 @@ spec:
           enabled: true
           namespace: {{ $ns }}
           name: spring-boot-lw-poc
+          createNamespace: false
         labDocs:
           enabled: false
         userInfo:
@@ -44,10 +45,17 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ $ns | quote }}
+  ignoreDifferences:
+    - group: ""
+      kind: Namespace
+      jsonPointers:
+        - /metadata/labels
+        - /metadata/annotations
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 {{- end }}

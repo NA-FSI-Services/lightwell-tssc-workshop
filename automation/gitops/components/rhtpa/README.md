@@ -25,7 +25,7 @@ Root App-of-Apps places this chart at sync wave **`10`** (with other TSSC operat
 | **Red Hat SBOM mirror** | Optional `redhat-sboms` importer (disabled by default — heavy) |
 | **RHDA shift-left** | IDE client of TPA intelligence — see [docs/rhda-rhtpa-shift-left.md](../../../docs/rhda-rhtpa-shift-left.md) (Showroom = TPA UI/`syft` only; no IDE in-cluster) |
 
-Storage defaults to **filesystem** (PVC named `storage` — the operator migrate Job mounts that claim; the CR `size` field does not create it). Prefer S3 / OpenShift Data Foundation for production-like sizing.
+Storage defaults to **filesystem** on PVC `storage` (the operator mounts that claim; the CR `size` field does not create it). The PVC pins Immediate RBD (`ocs-external-storagecluster-ceph-rbd-immediate`) so it Binds without a first-consumer Job. The bind Job is off (`storage.bindJob: false`). WaitForFirstConsumer default SC plus a TTL'd bind Job is what #101 leftover Multi-Attach was. Claims without Immediate RBD: set `storageClassName` empty and `bindJob: true`. Prefer S3 / OpenShift Data Foundation object storage for production-like sizing.
 
 ## Prerequisites
 
@@ -47,6 +47,8 @@ Storage defaults to **filesystem** (PVC named `storage` — the operator migrate
 | `rhtpa.namespace` | `trusted-profile-analyzer` | Instance + operator NS |
 | `operator.channel` | `stable-v3` | Catalog default; `stable-v1.1` also exists |
 | `trustedProfileAnalyzer.storage.type` | `filesystem` | PoC PVC storage |
+| `trustedProfileAnalyzer.storage.storageClassName` | Immediate RBD | Binds without a pod (#101) |
+| `trustedProfileAnalyzer.storage.bindJob` | `false` | First-consumer Job; only for WaitForFirstConsumer |
 | `trustedProfileAnalyzer.importers.*.enabled` | CVE/OSV on; CSAF/RH SBOM **off** | CSAF is not the Track 7 gate (V2-18 / C+) |
 | `deployer.domain` | `""` | Injected by root-app |
 

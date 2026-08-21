@@ -1,10 +1,11 @@
 {{- if and .Values.rhtpa.enabled (eq .Values.trustedProfileAnalyzer.storage.type "filesystem") }}
 ---
-# Operator migrate-db Job mounts claimName: storage. The CR size field does not
-# create this PVC (#101). Wave 2 so it exists before the instance (wave 3).
-# WaitForFirstConsumer stays Pending until a pod mounts it. Job tpa-filesystem-bind
-# is that first consumer. DisableHealthCheck is extra in case the PVC is still
-# Pending while the bind Job starts.
+# Operator migrate-db / server mount claimName: storage. The CR size field does
+# not create this PVC (#101). Wave 2 so it exists before the instance (wave 3).
+# Pin an Immediate StorageClass so the PVC Binds without a first-consumer Job
+# (default WaitForFirstConsumer + Argo waves deadlocked; bind Job then
+# Multi-Attached after TTL). Claims without Immediate RBD: set storageClassName
+# empty and storage.bindJob true.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -19,6 +20,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+{{- with .Values.trustedProfileAnalyzer.storage.storageClassName }}
+  storageClassName: {{ . | quote }}
+{{- end }}
   resources:
     requests:
       storage: {{ .Values.trustedProfileAnalyzer.storage.size | quote }}

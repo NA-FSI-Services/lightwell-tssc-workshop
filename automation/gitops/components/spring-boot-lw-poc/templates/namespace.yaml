@@ -1,4 +1,4 @@
-{{- if .Values.springBootLwPoc.enabled }}
+{{- if and .Values.springBootLwPoc.enabled (ne .Values.springBootLwPoc.createNamespace false) }}
 ---
 apiVersion: v1
 kind: Namespace
