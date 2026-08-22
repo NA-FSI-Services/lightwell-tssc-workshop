@@ -121,7 +121,7 @@ image::argo-lw-poc-staging-healthy.png[Argo Application lw-poc-staging Healthy a
 . Edit `admission/trust-policy.yaml` on the *same* stage remote. Do not change `apiVersion` / `kind`. Set `enforce: true`. Replace every `REPLACE_ME_*` with live values: issuer `https://kubernetes.default.svc` (or userinfo `oidc_issuer_hint`), subject the pipeline SA URI from 5.1 (not an invented email), digest the signed `sha256:…`, scopes the internal ImageStream repos staging *and* prod actually pull — discover with `oc get is`. Confirm ConfigMap `tssc-admission/lab-cosign-pubkey` still has your 5.3 PEM. Do not paste Fulcio / Rekor PEMs (the CronJob injects those). The CronJob sets `signedIdentity.matchPolicy: ExactRepository` to the *build* ImageStream so dest pulls accept the signature identity from `lw-poc-build`.
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/70
-image::FIXME-trustpolicy-vs-imagepolicy.png[Learner TrustPolicy file versus CronJob-rendered ImagePolicy on stage and prod,width=700,link=self,window=blank]
+image::trustpolicy-vs-imagepolicy.png[Learner TrustPolicy file versus CronJob-rendered ImagePolicy on stage and prod,width=700,link=self,window=blank]
 
 CronJob `trust-policy-apply` in `tssc-admission` polls about every two minutes. Pass when `ImagePolicy` exists in both `lw-poc-staging` and `lw-poc-prod` (name from userinfo `policy_name`).
 
