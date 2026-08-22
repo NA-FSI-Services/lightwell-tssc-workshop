@@ -18,7 +18,7 @@ By the end of this module, you will be able to:
 == Why Conforma
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/67
-image::FIXME-conforma-seed-vs-tightened.png[Too-permissive Conforma seed versus learner-tightened copy in lw-poc-build,width=700,link=self,window=blank]
+image::conforma-seed-vs-tightened.png[Too-permissive Conforma seed versus learner-tightened copy in lw-poc-build,width=700,link=self,window=blank]
 
 A pipeline that always passes is a demo, not a gate. You own the policy. Do not fetch a bundle from `quay.io` or `github.com`.
 
