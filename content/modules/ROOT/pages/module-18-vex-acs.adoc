@@ -18,7 +18,7 @@ By the end of this module, you will be able to:
 == Layer map: library VEX vs OS CSAF
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/53
-image::FIXME-vex-library-vs-os-layer.png[Library Lightwell GAV VEX versus OS-layer Hummingbird CSAF,width=700,link=self,window=blank]
+image::vex-library-vs-os-layer.png[Library Lightwell GAV VEX versus OS-layer Hummingbird CSAF,width=700,link=self,window=blank]
 
 Consultants over-claim when they quote RHEL/Hummingbird CSAF for a *library* CVE. The scored layer is the `.rhlw-*` GAV you pinned in xref:module-04-remediated-pin.adoc[2.2].
 

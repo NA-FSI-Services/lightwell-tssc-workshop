@@ -18,7 +18,7 @@ By the end of this module, you will be able to:
 == Why two remotes
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/52
-image::FIXME-gitops-stage-vs-prod-remotes.png[Stage versus prod Gitea remotes — promotion is a commit to the second remote,width=700,link=self,window=blank]
+image::gitops-stage-vs-prod-remotes.png[Stage versus prod Gitea remotes — promotion is a commit to the second remote,width=700,link=self,window=blank]
 
 Konflux *Release Service* maps to this commit (xref:appendix-konflux-mapping.adoc[Konflux mapping]). Do not “fix” a broken prod app by pointing Argo at stage.
 
