@@ -13,7 +13,7 @@ TSSC continuous compliance is: the SoR says the library CVE is remediated *becau
 
 You learn Nexus download + TPA `/api/v3/sbom` and `/api/v3/advisory`, plus blast-radius tokens (`via-lightwell-pin`), because scanners and TPA only recognize the pin if that metadata is ingested. ACS `fail-on-skipped: true` proves the control is not a stub.
 
-Lightwell Clearinghouse Premier member advisories ingest the same way. The report would still say via-Lightwell-pin (member version), never via-upstream and never via-Hummingbird-CSAF.
+Lightwell Clearinghouse Premier member advisories ingest the same way. The report would still say via-Lightwell-pin (member version), never via-upstream and never via-Hummingbird-CSAF. Public OSV/VEX on this Check is the *post-disclosure* Network state. During a Premier embargo, that advisory would stay member-private (off public scanner feeds) until disclosure; ACS can still scan the image.
 
 == Learning objectives
 
@@ -21,7 +21,7 @@ By the end of this module, you will be able to:
 
 * Observe TSSC’s continuous-compliance control: TPA shows the Track 2 GAV as remediated via the Lightwell pin, and `acs-image-check` is not skipped
 * Download CDX from Nexus and the scored OSV (`LW-DEMO-0002`), ingest them, and report id + status + GAV + “via Lightwell”
-* Contrast library VEX (Network, and Premier if a member version existed) with OS-layer Hummingbird CSAF
+* Contrast library VEX (Network post-disclosure, and Premier member advisories, including embargoed metadata that is not yet public) with OS-layer Hummingbird CSAF
 * Show `acs-image-check` as `passed` or `failed`, not `skipped`
 
 == Layer map: library VEX vs OS CSAF
@@ -36,7 +36,7 @@ image::tssc-artifact-trust-chain.png[End-state trust chain: Hummingbird digest, 
 
 == Delivery note
 
-*Customers* get VEX that travels with the remediated GAV. *You* pull it from the enterprise proxy (Nexus) and put it in the SoR. *Red Hat* CSAF is a different layer.
+*Customers* get VEX that travels with the remediated GAV. After disclosure that VEX is public (this Check). During a Premier embargo it stays in the member set. *You* pull the public Network files from the enterprise proxy (Nexus) and put them in the SoR. *Red Hat* CSAF is a different layer.
 
 == Discover the scored VEX (not the spring-core sample)
 
@@ -154,6 +154,7 @@ include::partial$validate-job-rerun.adoc[]
 * link:{docs-rhtpa-url}[Trusted Profile Analyzer overview] (SBOM and advisory ingest)
 * link:{docs-rhacs-url}[Evaluate security risks in Advanced Cluster Security]
 * link:{docs-lwn-choose-repo-url}[Lightwell Network Validated vs Remediated]
+* link:{docs-lwn-lifecycle-url}[Patch delivery lifecycle] (this Check is public Disclosure / OSV / VEX)
 * link:{lightwell-product-url}[Lightwell Network and Clearinghouse Premier]
 
 == Callouts (not Checks)
@@ -164,6 +165,6 @@ include::partial$validate-job-rerun.adoc[]
 
 == Key takeaways
 
-* TSSC metadata travels with the `.rhlw-*` GAV consultants pin in a PoV (Lightwell Network; Premier member versions use the same ingest).
+* TSSC metadata travels with the `.rhlw-*` GAV consultants pin in a PoV (Lightwell Network post-disclosure; Premier member versions use the same ingest, embargoed until disclosure).
 * Wrong-layer VEX is how consultants over-claim.
 * ACS on is a pipeline control, not the 6.1 admission gate.

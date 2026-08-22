@@ -13,7 +13,9 @@ TSSC’s answer to “the scanner is red but we cannot upgrade” is an *exact p
 
 You learn to change the *default* Maven property because unused profiles hide the affected GAV in production trees. Track 7 VEX is bound to *this* GAV. If default stays `3.14.0`, the SoR will still show the CVE as open.
 
-Lightwell Clearinghouse Premier can remediate *member-specific* versions that are not in the public Network catalog. The TSSC control is identical: read the `fixed` event, pin that exact version from the enterprise proxy, never bump to a newer upstream line. This lab’s scored GAV is the Network sample `3.14.0.rhlw-00001`.
+Lightwell Clearinghouse Premier can remediate *member-specific* versions that are not in the public Network catalog. The TSSC control is identical: pin the exact version from the enterprise proxy, never bump to a newer upstream line. This lab’s scored GAV is the Network sample `3.14.0.rhlw-00001`, named by a *public* OSV `fixed` event.
+
+That public OSV is the *post-disclosure* end of the link:{docs-lwn-lifecycle-url}[patch delivery lifecycle]. An *embargo* is the window *before* that disclosure: Premier members may already have the `.rhlw-*` GAV in the private proxy while public OSV/VEX do not exist yet. You would still pin from the proxy (this Check’s mechanic). You would not wait for a public advisory, and you would not invent a qualifier. There is no embargo artifact on this claim.
 
 == Learning objectives
 
@@ -21,7 +23,7 @@ By the end of this module, you will be able to:
 
 * Observe TSSC’s exact-version remediation control: OSV `fixed` maps to a Lightwell Network `.rhlw-*` GAV, not to “latest”
 * Change the default `<commons.lang3.version>` (not only an unused profile) and show `mvn dependency:tree` resolving that GAV from Nexus Remediated
-* State that Clearinghouse Premier member-specific versions would pin the same way once they exist in the proxy
+* State that Clearinghouse Premier member-specific versions pin the same way, including during embargo (GAV in the proxy before public OSV)
 * Call out the Python PEP 440 `+rhlw.*` analogue
 
 == OSV `fixed` → `.rhlw-*` pin
@@ -38,7 +40,7 @@ image::osv-fixed-to-rhlw-pin.png[OSV fixed event mapped to a Maven default .rhlw
 
 == Delivery note
 
-*Customers* pin what OSV `fixed` names. *You* do not invent a qualifier. *Red Hat* publishes the remediated GAV; consultants do not rebuild `commons-lang3` from source in the PoV.
+*Customers* pin what the remediated GAV names. After disclosure, that name is in OSV `fixed`. *During a Premier embargo*, the name is in the private proxy first. *You* do not invent a qualifier. *Red Hat* publishes the remediated GAV; consultants do not rebuild `commons-lang3` from source in the PoV.
 
 == Discover the scored OSV (do not use the spring-core sample as the pin)
 
@@ -180,11 +182,12 @@ The remediated GAV is the same coordinate on Artifactory. The *remote* must allo
 
 * link:{docs-lwn-choose-repo-url}[Choose the right repository] (Validated vs Remediated, `.rhlw-0000X` suffix)
 * link:{docs-lwn-java-url}[Configure your Java build tool] (Remediated profile you activate here)
+* link:{docs-lwn-lifecycle-url}[Patch delivery lifecycle] (this Check is the public Disclosure / OSV step)
 * link:{lightwell-product-url}[Lightwell Network and Clearinghouse Premier]
 
 == Key takeaways
 
 * TSSC remediates with an exact pin, not “latest”. That is Lightwell Network Remediated.
-* Clearinghouse Premier member versions use the same pin mechanic.
-* Track 7 VEX is bound to this GAV.
+* This Check uses public OSV. A Premier embargo is the same pin from the private proxy *before* that OSV exists.
+* Track 7 VEX is bound to this GAV (post-disclosure on this claim).
 * The scored pom lives in ConfigMap `stub-04-remediated-pin` until Track 3 owns git.

@@ -13,7 +13,7 @@ Ungated orientation for the seven-track TSSC flow. Learners see what a trusted s
 ### Learning Objectives
 
 - State what TSSC proves (named inputs, who built and signed the image, whether vulns are remediated without treating the public internet as trusted)
-- Contrast Lightwell Network (available Validated/Remediated catalog) with Lightwell Clearinghouse Premier (limited availability; member-specific versions still land in the same enterprise proxy)
+- Contrast Lightwell Network (available Validated/Remediated catalog, public Disclosure / OSV / VEX) with Lightwell Clearinghouse Premier (limited availability; member-specific versions and embargoed remediations still land in the same enterprise proxy)
 - Name the seven TSSC tracks in order and which TSSC objective each observes
 - State three things this claim does not pretend to be (hosted Konflux, physical air-gap, Hummingbird factory)
 - Know that each later module has a Your change + Check (honor system)

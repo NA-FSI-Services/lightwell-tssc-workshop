@@ -13,14 +13,14 @@ TSSC’s library input must be a *trusted repository*, not Maven Central. 2.1 is
 
 You learn `settings.xml` (repository ids, URLs, active profiles) because a mis-pointed remote silently falls through to Central and the rest of the chain (pin, prefetch, VEX) is theater. Hermetic Track 4 will deny that fallback; this module is where you wire the proxy *before* egress is closed.
 
-Lightwell Clearinghouse Premier remediations for member-specific versions still land in *this* proxy. There is no Premier-only Maven protocol. The same `settings.xml` profiles that hit Nexus Validated/Remediated are the profiles a Premier GAV would resolve from once the artifact manager caches it.
+Lightwell Clearinghouse Premier remediations for member-specific versions still land in *this* proxy. There is no Premier-only Maven protocol. The same `settings.xml` profiles that hit Nexus Validated/Remediated are the profiles a Premier GAV would resolve from once the artifact manager caches it. That includes an *embargoed* GAV: it must resolve from the enterprise manager and must not fall through to Maven Central (the Artifactory include/exclude callout below is the customer form of that rule).
 
 == Learning objectives
 
 By the end of this module, you will be able to:
 
 * Observe TSSC’s trusted-library control: Maven resolves a Lightwell Network Validated GAV from the enterprise proxy, not from Maven Central
-* Contrast **direct**, **proxied (enterprise)**, and **seeded (RHDP)** consumption, and say why Clearinghouse Premier uses the proxied pattern too
+* Contrast **direct**, **proxied (enterprise)**, and **seeded (RHDP)** consumption, and say why Clearinghouse Premier (including embargoed GAVs) uses the proxied pattern too
 * Produce a `settings.xml` that is not the worked-example file, with no `REPLACE_ME_*`
 * State how `pip.conf` and an Artifactory virtual/remote would do the same job
 
@@ -225,11 +225,12 @@ Artifactory naming must allow the `.rhlw-*` version suffix (`3.14.0.rhlw-00001`)
 * link:{docs-lwn-python-url}[Configure your Python build tool] (callout)
 * link:{lightwell-artifactory-docs-url}[Configure Artifactory to use the Lightwell Network Java repository] (callout)
 * link:{lightwell-product-url}[Lightwell Network and Clearinghouse Premier]
+* link:{docs-lwn-lifecycle-url}[Patch delivery lifecycle] (public Disclosure is the Network end state; embargoed GAVs still use this proxy)
 
 == Key takeaways
 
 * TSSC library input is the enterprise proxy. Consultants wire the customer’s artifact manager; Nexus is the RHDP stand-in.
-* Clearinghouse Premier member versions use the same remotes. They do not invent a second `settings.xml`.
+* Clearinghouse Premier member versions (including during embargo) use the same remotes. They do not invent a second `settings.xml`.
 * `pip.conf` `index-url` is the PyPI analogue of these Nexus remotes.
 * Artifactory is remote + virtual + include/exclude against the same Lightwell URLs — not a second Check.
 * 2.2 is the exact `.rhlw-*` pin, not this Validated resolve.

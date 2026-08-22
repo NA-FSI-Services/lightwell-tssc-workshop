@@ -26,6 +26,7 @@ asciidoc:
     docs-lwn-choose-repo-url: 'https://docs.redhat.com/en/documentation/red_hat_lightwell_network/current/get_started-choose_the_right_repository'
     docs-lwn-java-url: 'https://docs.redhat.com/en/documentation/red_hat_lightwell_network/current/configure-configure_java_build_tool'
     docs-lwn-python-url: 'https://docs.redhat.com/en/documentation/red_hat_lightwell_network/current/configure-configure_python_build_tool'
+    docs-lwn-lifecycle-url: 'https://docs.redhat.com/en/documentation/red_hat_lightwell_network/current/discover-patch_delivery_lifecycle'
     docs-hardened-images-url: 'https://docs.redhat.com/en/documentation/red_hat_hardened_images/1-latest/develop-run_containerized_tools_with_red_hat_hardened_images'
     docs-oc-mirror-url: 'https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/disconnected_environments/about-installing-oc-mirror-v2'
     docs-networkpolicy-url: 'https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/network_security/network-policy'

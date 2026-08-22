@@ -13,7 +13,7 @@ TSSC cannot depend on a human noticing a new Lightwell version. 3.3 is the obser
 
 You learn to recognize `renovate-bot` as author and to wait for the CronJob because that is the PoV talking point: Network (and later Premier) remediations arrive as PRs, not as a paste into `pom.xml`.
 
-Lightwell Network catalog bumps (`.rhlw-00000` → `.rhlw-00001`, dest Hummingbird digest) are what this bot is seeded to see. Lightwell Clearinghouse Premier member-specific versions would appear the same way once Nexus (or Artifactory) has metadata the bot can read.
+Lightwell Network catalog bumps (`.rhlw-00000` → `.rhlw-00001`, dest Hummingbird digest) are what this bot is seeded to see. Lightwell Clearinghouse Premier member-specific versions would appear the same way once Nexus (or Artifactory) has metadata the bot can read. During a Premier *embargo*, merge the pin; do not paste the CVE or advisory text into a public PR description.
 
 == Learning objectives
 
@@ -121,4 +121,5 @@ At a customer, Renovate (or MintMaker) often reads Maven metadata from Artifacto
 
 * TSSC pin refresh is a bot PR on enterprise git (Gitea here; no `github.com` for learners).
 * Lightwell Network catalog bumps are this Check. Clearinghouse Premier member versions would use the same bot against the same proxy.
+* During embargo, merge the pin; do not paste the advisory into the PR body.
 * Binding `FROM` / pom default was 3.2; this Check is *who* changed the pins file.

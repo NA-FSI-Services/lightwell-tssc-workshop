@@ -34,9 +34,11 @@ Lightwell is an annual subscription with two models. This workshop *scores* the 
 |Tracks 2, 3, and 7: enterprise Nexus proxy, exact `.rhlw-*` pin from an OSV `fixed` event, GAV-bound VEX/SBOM in TPA. Docs: link:{docs-lwn-choose-repo-url}[Choose the right repository], link:{docs-lwn-java-url}[Configure your Java build tool]. Console: {lightwell-console-url}.
 
 |*Lightwell Clearinghouse Premier* (limited availability)
-|All Network benefits, plus vulnerability reporting and remediation for *member-specific* package versions, novel vulnerability verification and disclosure handling, anonymized access to other member requests, and TAM services. Aimed at pre-selected critical infrastructure, with a broader release planned.
-|Not a separate cluster. A Premier remediation is still a pinned GAV (or `+rhlw.*` wheel) that must land in the *same* enterprise proxy, the *same* source pin, the *same* hermetic build, and the *same* TPA/ACS evidence. Tracks 2, 3, and 7 are the controls you would configure for that member version.
+|All Network benefits, plus vulnerability reporting and remediation for *member-specific* package versions, novel vulnerability verification and *disclosure handling* (secured patch embargoes), anonymized access to other member requests, and TAM services. Aimed at pre-selected critical infrastructure, with a broader release planned.
+|Not a separate cluster. A Premier remediation is still a pinned GAV (or `+rhlw.*` wheel) that must land in the *same* enterprise proxy, the *same* source pin, the *same* hermetic build, and the *same* TPA/ACS evidence. Tracks 2, 3, and 7 are the controls you would configure for that member version, including during an embargo (private proxy, pin from the GAV, delay public OSV/VEX).
 |===
+
+An *embargo* is a coordinated-disclosure window: the vulnerability and its patch stay in a closed member set until a public date. Clearinghouse Premier can deliver that member pin *during* the window. Lightwell Network’s documented lifecycle ends at public *Disclosure* (VEX and OSV to the broader ecosystem; link:{docs-lwn-lifecycle-url}[Patch delivery lifecycle]). This workshop scores the *post-disclosure* Network path. The TSSC controls do not change; the timing of public OSV/VEX does. There is no embargo exercise on this claim. More: xref:appendix-lightwell-concepts.adoc[Lightwell concepts].
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/110
 image::lwn-vs-clearinghouse-premier.png[Lightwell Network catalog versus Clearinghouse Premier member-specific remediations, both landing in the same TSSC proxy, pin, and system of record,width=700,link=self,window=blank]
@@ -60,15 +62,15 @@ image::tssc-artifact-trust-chain.png[Trust chain from Hummingbird digest and Lig
 
 |Trusted *library* input (enterprise proxy, not the public index)
 |xref:module-03-enterprise-proxy.adoc[2.1] Maven `settings.xml` against Nexus Validated/Remediated
-|Network: this is how customers consume `{java-validated-url}` and `{java-remediated-url}`. Premier member versions use the *same* remotes.
+|Network: this is how customers consume `{java-validated-url}` and `{java-remediated-url}`. Premier member versions (including embargoed GAVs) use the *same* remotes and must not fall through to Maven Central.
 
 |Exact-version remediation (not “upgrade to latest”)
 |xref:module-04-remediated-pin.adoc[2.2] OSV `fixed` → `.rhlw-*` default pin
-|Network Remediated suffix. Premier member-specific versions pin the same way once they exist in the proxy.
+|This Check is *post-disclosure* Network OSV. Under a Premier embargo you may already have the `.rhlw-*` GAV in the private proxy *before* public OSV exists; still pin that exact version.
 
 |Source of truth binds those pins
 |xref:module-05-golden-path-source.adoc[3.1] learner-owned Gitea; xref:module-06-bind-base-deps.adoc[3.2] dest `FROM` + default pin; xref:module-07-live-renovate.adoc[3.3] bot PR
-|Renovate (MintMaker in a client engagement) is how new Network or Premier pins arrive without a hand-edit.
+|Renovate (MintMaker in a client engagement) is how new Network or Premier pins arrive without a hand-edit. During embargo, merge the pin; do not paste the advisory into a public PR description.
 
 |Hermetic production of the image (source, prefetch, network)
 |xref:module-08-forbid-list.adoc[4.1]–xref:module-11-build-sbom.adoc[4.4]
@@ -84,7 +86,7 @@ image::tssc-artifact-trust-chain.png[Trust chain from Hummingbird digest and Lig
 
 |Continuous compliance (SoR + blast radius)
 |xref:module-17-sbom-sor.adoc[7.1]–xref:module-18-vex-acs.adoc[7.2]
-|Network: GAV-bound VEX/OSV for the pin. Premier: member advisories ingest into the same TPA.
+|Network: GAV-bound VEX/OSV for the pin (public, post-disclosure). Premier: member advisories ingest into the same TPA; during embargo that metadata stays off public scanner feeds.
 |===
 
 == Seven tracks
@@ -151,8 +153,8 @@ You walk *one* Java (Maven) supply chain on this OpenShift environment. The item
 |JFrog Artifactory, or a Python (FastAPI) application
 |The lab application is Java. *Nexus* is the enterprise proxy you configure. Short callouts cover `pip` and Artifactory patterns; you do not install Artifactory or scaffold a second app.
 
-|A live Clearinghouse Premier membership or member-specific GAV
-|You practice the Network pin and the TSSC controls Premier would reuse. You do not request a member-only package from Red Hat on this claim.
+|A live Clearinghouse Premier membership, member-specific GAV, or embargo window
+|You practice the *post-disclosure* Network pin and the TSSC controls Premier would reuse (private proxy, exact pin, SoR). You do not request a member-only package or sit inside a real embargo on this claim. Concept: xref:appendix-lightwell-concepts.adoc[Lightwell concepts].
 
 |A customer proof-of-value or certification exam
 |This is a *guided workshop*. You practice the flow here. xref:appendix-enablement-checklist.adoc[Internal enablement] is scored *after* the event. It is not a live PoV on this environment.
@@ -193,6 +195,7 @@ The same three commands appear on every gated *Check*, with that module’s Job 
 Use product docs when a customer asks “where is that written?”, not as a substitute for the Checks.
 
 * link:{lightwell-product-url}[Lightwell] (Network and Clearinghouse Premier models)
+* link:{docs-lwn-lifecycle-url}[Lightwell Network: patch delivery lifecycle] (ends at public Disclosure / OSV / VEX)
 * link:{docs-lwn-choose-repo-url}[Lightwell Network: choose Validated or Remediated]
 * link:{docs-lwn-java-url}[Configure your Java build tool for Lightwell Network]
 * link:{docs-hardened-images-url}[Verify Red Hat Hardened Images]
