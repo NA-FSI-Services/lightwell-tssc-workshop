@@ -48,7 +48,21 @@ oc -n "${BUILD_NS}" apply -f /tmp/spring-boot-lw-poc/.tekton/rbac.yaml
 oc -n "${BUILD_NS}" apply -f /tmp/spring-boot-lw-poc/.tekton/pipeline.yaml
 ----
 
-Edit `.tekton/pipelinerun.yaml`: replace `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (`http://gitea.gitea.svc:3000/…` — the HTTPS Route is blocked after 4.3), replace `<lab-namespace>` with `lw-poc-build`, and fill Fulcio/Rekor/TUF from `demo-userinfo-rhtas` **`fulcio_internal_url` / `rekor_internal_url` / `tuf_internal_url`** (in-cluster Services). Route hints (`fulcio_url_hint`) fail after 4.3. Leave syft `rhtpa-url` empty — Track 7 uploads from Showroom. Then:
+Edit `.tekton/pipelinerun.yaml`: replace `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (`http://gitea.gitea.svc:3000/…` — the HTTPS Route is blocked after 4.3), replace `<lab-namespace>` with `lw-poc-build`, and fill Fulcio/Rekor/TUF from `demo-userinfo-rhtas` **`fulcio_internal_url` / `rekor_internal_url` / `tuf_internal_url`** (in-cluster Services). Route hints (`fulcio_url_hint`) fail after 4.3. Leave syft `rhtpa-url` empty — Track 7 uploads from Showroom.
+
+Check 12 (xref:module-12-sign-keyless.adoc[5.1]) reads this file from *Gitea*, not the live PipelineRun. `oc create` alone leaves the placeholder on origin. Commit and push *before* you create the run:
+
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git add .tekton/pipelinerun.yaml
+git status
+git diff --cached
+git commit -m "Fill PipelineRun in-cluster repo, namespace, and RHTAS URLs"
+git push origin HEAD
+----
+
+Then create the PipelineRun from the filled file:
 
 [source,bash,role=execute]
 ----
@@ -73,7 +87,7 @@ oc -n "${BUILD_NS}" get pipelinerun
 oc -n "${BUILD_NS}" get tr -l tekton.dev/pipelineTask=syft-sbom-rhtpa
 ----
 
-Known-bad: patch the BuildConfig Dockerfile, start a binary build, then restore the good path. `oc start-build` has no `-DdockerfilePath`. The first `registry-1.docker.io` / `dial tcp …:443: i/o timeout` is the fail — press **Ctrl-C**. OpenShift retries that pull for many minutes; do not wait for `--follow` to exit. Then restore `dockerfilePath`.
+Known-bad: patch the BuildConfig Dockerfile, start a binary build, then restore the good path. `oc start-build` has no `-DdockerfilePath`. The first `registry-1.docker.io` / `dial tcp …:443: i/o timeout` is the fail — press **Ctrl-C**. That only stops `--follow`; OpenShift keeps retrying the pull for many minutes and **queues** later Binary builds (5.2 / 7.2 PipelineRuns). Cancel the Build, then restore `dockerfilePath`.
 
 [source,bash,role=execute]
 ----
@@ -83,11 +97,13 @@ oc -n "${BUILD_NS}" patch bc spring-boot-lw-poc --type=json \
   -p '[{"op":"replace","path":"/spec/strategy/dockerStrategy/dockerfilePath","value":"Dockerfile.known-bad"}]'
 # Ctrl-C after the first registry-1.docker.io timeout — do not wait out retries.
 oc -n "${BUILD_NS}" start-build spring-boot-lw-poc --from-dir=. --follow || true
+# Ctrl-C does not cancel the Build. Cancel it so later oc start-build / PipelineRuns are not queued.
+oc -n "${BUILD_NS}" cancel-build bc/spring-boot-lw-poc
 oc -n "${BUILD_NS}" patch bc spring-boot-lw-poc --type=json \
   -p '[{"op":"replace","path":"/spec/strategy/dockerStrategy/dockerfilePath","value":"Dockerfile"}]'
 ----
 
-It must fail (public `FROM` / `curl` after 4.1–4.3). Do not leave the BuildConfig pointed at the known-bad file.
+It must fail (public `FROM` / `curl` after 4.1–4.3). Do not leave the BuildConfig pointed at the known-bad file, and do not leave a Running known-bad Build.
 
 :report-name: report-11-build-sbom
 :report-key: image_builder

@@ -54,7 +54,18 @@ cosign verify \
 
 == Your change: fill URLs; sign the app digest
 
-If 4.4 already ran `cosign-sign-keyless` to Succeeded, skip to verify. Otherwise edit `.tekton/pipelinerun.yaml` on `lw-student/spring-boot-lw-poc`: replace Fulcio / Rekor / TUF with `fulcio_internal_url` / `rekor_internal_url` / `tuf_internal_url` (not the HTTPS Route hints), `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (in-cluster Gitea, not the HTTPS Route), and `<lab-namespace>` with `lw-poc-build`. Then create a new run:
+If 4.4 already ran `cosign-sign-keyless` to Succeeded, skip to verify *after* origin has the filled PipelineRun. Check 12 reads Gitea `.tekton/pipelinerun.yaml`, not the live object — `STUDENT_REPO_URL_PLACEHOLDER` or `<lab-namespace>` still on `main` fails even when sign Succeeded. Confirm, and commit if 4.4 only `oc create`d the local file:
+
+[source,bash,role=execute]
+----
+cd /tmp/spring-boot-lw-poc
+git fetch
+git show origin/main:.tekton/pipelinerun.yaml | grep -E 'STUDENT_REPO_URL_PLACEHOLDER|<lab-namespace>' \
+  && echo 'STILL HAS PLACEHOLDERS — commit the filled file from 4.4' \
+  || echo 'Gitea pipelinerun is filled'
+----
+
+Otherwise edit `.tekton/pipelinerun.yaml` on `lw-student/spring-boot-lw-poc`: replace Fulcio / Rekor / TUF with `fulcio_internal_url` / `rekor_internal_url` / `tuf_internal_url` (not the HTTPS Route hints), `STUDENT_REPO_URL_PLACEHOLDER` with `student_repo_internal_url` (in-cluster Gitea, not the HTTPS Route), and `<lab-namespace>` with `lw-poc-build`. Commit and push that file (same as xref:module-11-build-sbom.adoc[4.4]), then create a new run:
 
 [source,bash,role=execute]
 ----
