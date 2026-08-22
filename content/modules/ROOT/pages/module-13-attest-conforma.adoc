@@ -7,13 +7,22 @@ Konflux *Conforma* (Enterprise Contract) is an `ec validate` policy on the image
 
 This Check is fail-then-pass on *signatures + policy*, not SLSA L3. There is no Tekton Chains on this claim and no `cosign attest` step. Leave `skip-att-sig-check=true` on the ConfigMap. Showroom `ec` is 0.7 (`ec-rhel9:0.7`): it has no `--skip-att-sig-check`, and `--ignore-rekor` breaks Fulcio timestamps on the *pass* path. The listing and Task ignore only `builtin.attestation.signature_check` in the report. Mapping: Konflux Conforma → this Task; Chains / in-toto → callout. Full table: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
 
+== How this serves TSSC
+
+TSSC policy must be able to *fail*. 5.2 is the observation that an unsigned in-cluster image (`openjdk-21-builder`) violates `builtin.image.signature_check`, then your 5.1 digest passes. A pipeline that always passes is a demo.
+
+You learn to copy and tighten the ConfigMap (skip-image off, identity not `.*`, registry prefix internal) because Argo owns the seed and a wildcard identity would accept anything. Task order is after `cosign-sign-keyless`.
+
+Lightwell Network and Clearinghouse Premier do not replace Conforma. Library VEX is Track 7. Conforma here gates *image signature and identity*. A Premier GAV inside an unsigned image still fails.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
+* Observe TSSC’s policy-gate control: unsigned / wrong-identity images fail; the signed app digest passes against a policy *you* own
 * Copy the weak seed ConfigMap into the build namespace and tighten it (skip-image off, identity not `.*`, CVE not 999)
 * Wire Task `conforma-policy` *after* `cosign-sign-keyless` (not the worked-example order)
-* Fail `ec validate` / the Task on an in-cluster image that is *not* your signed app, then pass on the digest from 5.1
+* Fail `ec validate` on the in-cluster builder, then pass on the digest from 5.1
 
 == Why Conforma
 
@@ -130,11 +139,17 @@ include::partial$validate-job-rerun.adoc[]
 
 Honor system: xref:module-14-disconnected-verify.adoc[5.3] still opens. Track 6 still opens.
 
+== Official documentation
+
+* link:{docs-rhtas-url}[Trusted Artifact Signer deployment guide] (Conforma / `ec` against RHTAS signatures)
+* xref:appendix-konflux-mapping.adoc[Konflux mapping] (Conforma → Task `conforma-policy`)
+
 == Callout
 
 SLSA L3 / Tekton Chains is a mapping sentence, not this Check. Full table: xref:appendix-konflux-mapping.adoc[Konflux mapping].
 
 == Key takeaways
 
-* Policy is learner-owned, not a passing default.
+* TSSC policy is learner-owned, not a passing default.
+* Lightwell Network / Clearinghouse Premier do not skip this gate.
 * This claim is not SLSA L3; leave `skip-att-sig-check=true` and ignore `builtin.attestation.signature_check` in the `ec` report (do not use `--ignore-rekor`).

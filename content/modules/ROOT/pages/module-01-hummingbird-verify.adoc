@@ -9,14 +9,22 @@ In this module you discover the workshop pin from cluster userinfo, complete the
 
 This claim is *not* the Hummingbird factory (Fedora / Konflux on the inside). Consultants consume a signed catalog image.
 
+== How this serves TSSC
+
+TSSC requires a *named, signed runtime input*. If the base is unsigned UBI from memory, every later signature, SBOM, and admission decision sits on an unproven foundation. 1.1 is the observation that Red Hat Hardened Images (`hi/openjdk`) carry a Red Hat key you can verify *before* the image enters the cluster.
+
+You learn the *configuration* of that verify (`--key`, digest pin, not `:latest`) because customers will ask you to write the same snippet against *their* catalog pin. Getting the key URL or the digest wrong is how a PoV “uses Hummingbird” without a supply chain.
+
+Lightwell Network and Lightwell Clearinghouse Premier do *not* replace this step. They remediate *application* libraries. Hummingbird is the OS/runtime layer. Premier member-specific GAVs still need a verified base; they never become a substitute `FROM`.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Discover the scored Hummingbird pull spec from ConfigMap userinfo (do not invent a tag from memory)
-* Fill a verify snippet so no `REPLACE_ME_*` remains
-* Run `cosign verify` against the *published* digest you recorded
-* Explain that the catalog index may list other architectures; this Check is amd64 only
+* Observe TSSC’s trusted-runtime control: a published Hardened Images digest that `cosign verify` accepts against the Red Hat key
+* Discover the scored pull spec from ConfigMap userinfo (do not invent a tag from memory)
+* Complete the verify snippet so no `REPLACE_ME_*` remains, then run it against the *published* digest you recorded
+* Explain that Lightwell (Network or Clearinghouse Premier) is the library layer, not this base; the catalog index may list other architectures (this Check is amd64 only)
 
 == Why verify before you mirror
 
@@ -115,7 +123,7 @@ Red Hat documents key-based verify for Hardened Images (not in-cluster RHTAS Ful
 
 That host is Red Hat’s key distribution, not `github.com`. If the fetch is blocked on a locked-down claim, stop and tell an instructor — do not invent a Fulcio identity for this Check.
 
-See link:https://docs.redhat.com/en/documentation/red_hat_hardened_images/1-latest/develop-run_containerized_tools_with_red_hat_hardened_images[Verify the integrity of Red Hat Hardened Images] (key-based `cosign verify`, including `--key https://security.access.redhat.com/data/63405576.txt`).
+See link:{docs-hardened-images-url}[Verify the integrity of Red Hat Hardened Images] (key-based `cosign verify`, including `--key https://security.access.redhat.com/data/63405576.txt`).
 
 .Write the snippet back to the ConfigMap (after you filled the placeholders)
 [source,bash,role=execute]
@@ -156,8 +164,14 @@ Do *not*:
 
 The catalog index for this pin may list arm64 alongside amd64. This cluster and this Check are amd64. You recorded `hummingbird_amd64_manifest` so you can say that in a customer conversation without running a second architecture in the lab.
 
+== Official documentation
+
+* link:{docs-hardened-images-url}[Verify the integrity of Red Hat Hardened Images]
+* link:{lightwell-product-url}[Lightwell] (Network and Clearinghouse Premier; complementary to Hardened Images, not a replacement)
+
 == Key takeaways
 
-* Consultants consume published Hummingbird; they do not rebuild the factory.
+* TSSC starts with a signed published runtime. Consultants consume Hummingbird; they do not rebuild the factory.
 * Verify the *published* digest before you mirror. 1.2 is a separate Check on the *internal* digest.
+* Lightwell Network / Clearinghouse Premier remediate libraries. They are not this `FROM`.
 * `cosign` was already on `PATH`. You did not download it from GitHub.

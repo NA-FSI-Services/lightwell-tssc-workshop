@@ -7,13 +7,21 @@ Field Lightwell Network delivery almost always puts an *enterprise artifact mana
 
 In this module you *complete* ConfigMap `stub-03-enterprise-proxy` (copying finished `lightwell-maven-settings` as the scored file fails). Maven must resolve a Validated GAV from Nexus, not Maven Central. You do *not* pin `.rhlw-*` yet — that is xref:module-04-remediated-pin.adoc[2.2]. You do *not* seed Gitea yet — that is Track 3.
 
+== How this serves TSSC
+
+TSSC’s library input must be a *trusted repository*, not Maven Central. 2.1 is the observation that Lightwell Network Validated and Remediated are consumed the way customers already consume everything else: through Nexus or Artifactory remotes and virtuals.
+
+You learn `settings.xml` (repository ids, URLs, active profiles) because a mis-pointed remote silently falls through to Central and the rest of the chain (pin, prefetch, VEX) is theater. Hermetic Track 4 will deny that fallback; this module is where you wire the proxy *before* egress is closed.
+
+Lightwell Clearinghouse Premier remediations for member-specific versions still land in *this* proxy. There is no Premier-only Maven protocol. The same `settings.xml` profiles that hit Nexus Validated/Remediated are the profiles a Premier GAV would resolve from once the artifact manager caches it.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Contrast **direct**, **proxied (enterprise)**, and **seeded (RHDP)** consumption
-* Produce a `settings.xml` that is not the worked-example file
-* Resolve a Validated GAV so the Maven log shows the in-cluster Nexus host
+* Observe TSSC’s trusted-library control: Maven resolves a Lightwell Network Validated GAV from the enterprise proxy, not from Maven Central
+* Contrast **direct**, **proxied (enterprise)**, and **seeded (RHDP)** consumption, and say why Clearinghouse Premier uses the proxied pattern too
+* Produce a `settings.xml` that is not the worked-example file, with no `REPLACE_ME_*`
 * State how `pip.conf` and an Artifactory virtual/remote would do the same job
 
 == Direct vs proxied vs seeded
@@ -210,9 +218,18 @@ JFrog Artifactory is the SoW name for this enterprise-proxy pattern. The Check i
 
 Artifactory naming must allow the `.rhlw-*` version suffix (`3.14.0.rhlw-00001`). Procedure: link:{lightwell-artifactory-docs-url}[Configure Artifactory to use the Lightwell Network Java repository]. This cluster does not install Artifactory.
 
+== Official documentation
+
+* link:{docs-lwn-java-url}[Configure your Java build tool to use the Lightwell Network repository]
+* link:{docs-lwn-choose-repo-url}[Choose Validated or Remediated]
+* link:{docs-lwn-python-url}[Configure your Python build tool] (callout)
+* link:{lightwell-artifactory-docs-url}[Configure Artifactory to use the Lightwell Network Java repository] (callout)
+* link:{lightwell-product-url}[Lightwell Network and Clearinghouse Premier]
+
 == Key takeaways
 
-* Consultants wire the customer’s artifact manager; Nexus is the RHDP stand-in.
+* TSSC library input is the enterprise proxy. Consultants wire the customer’s artifact manager; Nexus is the RHDP stand-in.
+* Clearinghouse Premier member versions use the same remotes. They do not invent a second `settings.xml`.
 * `pip.conf` `index-url` is the PyPI analogue of these Nexus remotes.
 * Artifactory is remote + virtual + include/exclude against the same Lightwell URLs — not a second Check.
 * 2.2 is the exact `.rhlw-*` pin, not this Validated resolve.

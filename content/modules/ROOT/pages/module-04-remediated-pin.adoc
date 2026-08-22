@@ -7,13 +7,21 @@
 
 In this module you read a Lightwell OSV `fixed` event, then change the *default* Maven property on ConfigMap `stub-04-remediated-pin`. Activating a profile that already contains the pin, without changing default, fails the Check. You commit this pin to learner-owned Gitea in Track 3 — not here.
 
+== How this serves TSSC
+
+TSSC’s answer to “the scanner is red but we cannot upgrade” is an *exact pin* that still matches the certified baseline. 2.2 is the observation that Lightwell Network Remediated names that pin in OSV (`fixed` → `.rhlw-*`), not in a slide.
+
+You learn to change the *default* Maven property because unused profiles hide the affected GAV in production trees. Track 7 VEX is bound to *this* GAV. If default stays `3.14.0`, the SoR will still show the CVE as open.
+
+Lightwell Clearinghouse Premier can remediate *member-specific* versions that are not in the public Network catalog. The TSSC control is identical: read the `fixed` event, pin that exact version from the enterprise proxy, never bump to a newer upstream line. This lab’s scored GAV is the Network sample `3.14.0.rhlw-00001`.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Map an OSV `fixed` event to a Maven exact pin
-* Change the default `<commons.lang3.version>` (not only an unused profile)
-* Show `mvn dependency:tree` resolving that `.rhlw-*` GAV from Nexus Remediated
+* Observe TSSC’s exact-version remediation control: OSV `fixed` maps to a Lightwell Network `.rhlw-*` GAV, not to “latest”
+* Change the default `<commons.lang3.version>` (not only an unused profile) and show `mvn dependency:tree` resolving that GAV from Nexus Remediated
+* State that Clearinghouse Premier member-specific versions would pin the same way once they exist in the proxy
 * Call out the Python PEP 440 `+rhlw.*` analogue
 
 == OSV `fixed` → `.rhlw-*` pin
@@ -168,8 +176,15 @@ The same exact-version idea on PyPI is a PEP 440 local version on `requirements.
 
 The remediated GAV is the same coordinate on Artifactory. The *remote* must allow the `.rhlw-*` version suffix, and Maven still resolves it from the customer virtual — not from Central. This Check is the ConfigMap pom against Nexus Remediated.
 
+== Official documentation
+
+* link:{docs-lwn-choose-repo-url}[Choose the right repository] (Validated vs Remediated, `.rhlw-0000X` suffix)
+* link:{docs-lwn-java-url}[Configure your Java build tool] (Remediated profile you activate here)
+* link:{lightwell-product-url}[Lightwell Network and Clearinghouse Premier]
+
 == Key takeaways
 
-* Remediated is exact-version, not “latest”.
+* TSSC remediates with an exact pin, not “latest”. That is Lightwell Network Remediated.
+* Clearinghouse Premier member versions use the same pin mechanic.
 * Track 7 VEX is bound to this GAV.
 * The scored pom lives in ConfigMap `stub-04-remediated-pin` until Track 3 owns git.

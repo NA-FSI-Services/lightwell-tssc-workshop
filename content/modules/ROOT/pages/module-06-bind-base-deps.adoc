@@ -10,13 +10,22 @@ The seeded `Dockerfile` is *UBI OpenJDK 21* (wrong product for this PoV). `light
 
 Do *not* hand-edit `lightwell-pins.properties` (that file is the 3.3 bot Check). Do *not* copy a sample `FROM` from Showroom.
 
+== How this serves TSSC
+
+TSSC is only as strong as the pins in *source*. 3.2 is the observation that the dest Hummingbird digest (Track 1) and the Lightwell Network Remediated GAV (Track 2) are now the application’s declared inputs. Everything later (hermetic build, SBOM, VEX) reads these files.
+
+You learn to bind the *internal* digest and the *default* pom property because a UBI `FROM` or an unused profile would rebuild the untrusted seed. Customers pin digests in git, not `:latest`.
+
+Lightwell Clearinghouse Premier member-specific versions would replace the default GAV the same way. They still sit next to the dest Hummingbird `FROM`. Do not hand-edit `lightwell-pins.properties`; that is how 3.3 proves the bot, including a future Premier bump.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Replace runtime `FROM` UBI with the dest Hummingbird digest pin
-* Put the Lightwell pin on the *default* `pom.xml` property in the learner repo
-* Leave the pins file for Renovate
+* Observe TSSC’s bind-inputs control: source declares dest Hummingbird `FROM` and the Lightwell Network default pin together
+* Replace runtime `FROM` UBI with the dest Hummingbird digest pin (not the published 1.1 host, not `:latest`)
+* Put the Lightwell pin on the *default* `pom.xml` property in the learner repo; leave the pins file for Renovate
+* Explain that Clearinghouse Premier remediations would be the same default-property change once the GAV exists in the proxy
 
 == Why seed is UBI
 
@@ -131,7 +140,13 @@ Honor system: 3.3 still opens. Still-UBI runtime `FROM` fails this Check.
 
 A Python app binds the same way: runtime `FROM` the *dest* Hummingbird Python digest (not `ubi9/python-*` on a public registry). The pin still comes from 1.2. This Check is the Java OpenJDK Dockerfile.
 
+== Official documentation
+
+* link:{docs-hardened-images-url}[Red Hat Hardened Images] (the dest digest you bind)
+* link:{docs-lwn-java-url}[Configure your Java build tool] (the GAV you bind)
+
 == Key takeaways
 
-* Source of truth is the learner repo, not the operator template.
+* TSSC source of truth is the learner repo: dest Hummingbird plus Lightwell Network pin.
+* Clearinghouse Premier would change the same default property, not a side file.
 * 3.3 still requires a *bot* PR on the pins file.

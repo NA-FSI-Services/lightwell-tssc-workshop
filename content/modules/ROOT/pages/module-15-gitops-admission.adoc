@@ -9,14 +9,21 @@ Native `ImagePolicy` `signedEmail` must be an email. Track 5.1 identity is a Kub
 
 Prod GitOps is a *second remote* — leave it for xref:module-16-prod-gitops.adoc[6.2]. `app-operate` NetworkPolicy on staging stays *open* (that is not the xref:module-10-build-networkpolicy.adoc[4.3] build-egress Check).
 
+== How this serves TSSC
+
+TSSC runtime enforcement is: only the signed digest runs. 6.1 is the observation that GitOps sets that digest on stage, and unsigned deny is a *pull* failure (`ImagePullBackOff`), not `oc apply` stderr. Lightwell pins inside the image do not admit an unsigned tag.
+
+You learn TrustPolicy (`enforce: true`, live digest, pipeline SA subject) plus `cosign copy` after `oc tag` because signatures do not travel with `oc tag` by themselves. Prod Argo stays on the prod remote.
+
+Lightwell Network and Clearinghouse Premier are already in the image as GAVs. Admission does not inspect Maven. A Premier member version does not skip unsigned deny.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* `oc tag` the signed image from `lw-poc-build` into `lw-poc-staging`, then `cosign copy` signatures onto that dest ImageStream
-* Commit digest + `replicas: 1` to the *stage* GitOps remote
-* Fill TrustPolicy so no `REPLACE_ME_*` remains and `enforce: true` (subject stays the 5.1 SA URI)
-* Show unsigned deny as a *pull* failure (ImagePullBackOff), not `oc apply` stderr
+* Observe TSSC’s admit-and-promote control: stage GitOps runs the signed digest; an unsigned tag on the same ImageStream is denied at pull
+* `oc tag` the signed image into `lw-poc-staging`, `cosign copy` signatures, and commit digest + `replicas: 1` to the *stage* GitOps remote
+* Fill TrustPolicy so no `REPLACE_ME_*` remains and `enforce: true`
 * Leave the prod remote and prod Argo Application untouched
 
 == Stage vs prod remotes
@@ -168,6 +175,11 @@ include::partial$validate-job-rerun.adoc[]
 
 Honor system: 6.2 still opens.
 
+== Official documentation
+
+* link:{docs-gitops-url}[About Red Hat OpenShift GitOps]
+* link:{docs-rhtas-url}[Trusted Artifact Signer] (the signatures admission consumes)
+
 == Callouts (not Checks)
 
 * A production *VM* is the same signed digest on bootc / Satellite. No VM in this claim.
@@ -175,6 +187,7 @@ Honor system: 6.2 still opens.
 
 == Key takeaways
 
-* One learner file; the live API is namespaced `ImagePolicy` (not `ClusterImagePolicy`).
+* TSSC admission is namespaced `ImagePolicy` from one learner TrustPolicy (not `ClusterImagePolicy`).
+* Lightwell Network / Clearinghouse Premier GAVs do not bypass unsigned deny.
 * SA URI subjects render `PublicKey` from 5.3 `lab-cosign-pubkey`; `oc tag` needs `cosign copy`.
 * Promotion to prod is a git commit to a second remote (6.2).

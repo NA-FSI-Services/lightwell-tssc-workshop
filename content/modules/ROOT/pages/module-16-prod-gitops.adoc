@@ -7,13 +7,21 @@ Production is a *second Gitea remote* (`student_prod_gitops_repo_url` → `lw-st
 
 You commit the *same signed digest* used on stage. Check fails if Application `lw-poc-prod` still tracks the stage remote.
 
+== How this serves TSSC
+
+TSSC promotion is a *deliberate git commit* to production desired state, not retargeting Argo at stage. 6.2 is the observation that `lw-poc-prod` sources the prod remote, ImagePolicy from 6.1 still holds, and the digest is the one you signed.
+
+You learn a second clone and `cosign copy` onto the prod ImageStream because `oc tag` still does not copy `.sig` tags. Konflux Release Service maps to this commit.
+
+Lightwell Network and Clearinghouse Premier do not change the promote remote. The GAV is already inside the digest.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* `oc tag` the signed image into `lw-poc-prod`, `cosign copy` (and dest `cosign sign --key`) onto that ImageStream, then commit digest + `replicas: 1` to the *prod* GitOps remote
-* Keep `lw-poc-prod` `.spec.source.repoURL` on the prod remote
-* Leave the stage Application and TrustPolicy file alone
+* Observe TSSC’s production-promote control: the same signed digest is committed to a *prod* GitOps remote; Argo does not track stage
+* `oc tag` into `lw-poc-prod`, `cosign copy` (and dest `cosign sign --key`), then set digest + `replicas: 1` on the prod remote
+* Keep `lw-poc-prod` `.spec.source.repoURL` on the prod remote; leave the stage Application and TrustPolicy file alone
 
 == Why two remotes
 
@@ -117,7 +125,12 @@ include::partial$validate-job-rerun.adoc[]
 
 Honor system: Track 7 still opens.
 
+== Official documentation
+
+* link:{docs-gitops-url}[About Red Hat OpenShift GitOps]
+* xref:appendix-konflux-mapping.adoc[Konflux mapping] (Release Service → this prod commit)
+
 == Key takeaways
 
-* Promotion is a git commit to a second remote, not a second values file.
-* Do not retarget prod Argo at stage.
+* TSSC promotion is a git commit to a second remote, not a second values file and not retargeting prod Argo at stage.
+* Lightwell Network / Clearinghouse Premier ride inside the digest. They are not a different promote button.

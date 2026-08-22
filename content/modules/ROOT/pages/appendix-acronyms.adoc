@@ -58,7 +58,7 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |LWN
 |Lightwell Network
-|Validated / Remediated package streams and console
+|Validated / Remediated package streams and console. Distinct from Lightwell Clearinghouse Premier (xref:index.adoc[workshop home])
 
 |LSOS
 |Library Support for Open Source (IBM)
@@ -134,7 +134,7 @@ Workshop modules expand each acronym *the first time it appears* in the learner 
 
 |TSSC
 |Trusted Software Supply Chain
-|Red Hat signing, SBOM, and policy tooling paired with Lightwell
+|Red Hat signing, SBOM, admission, and policy tooling plus trusted inputs (Hummingbird, Lightwell Network; Clearinghouse Premier is limited-availability and not a second lab path)
 
 |TUF
 |The Update Framework

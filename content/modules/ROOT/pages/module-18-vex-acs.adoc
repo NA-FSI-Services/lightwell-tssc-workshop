@@ -7,12 +7,21 @@
 
 ACS (`acs-image-check`) must not be the soft-skip stub. ACS is *not* the admission gate (that was xref:module-15-gitops-admission.adoc[6.1]).
 
+== How this serves TSSC
+
+TSSC continuous compliance is: the SoR says the library CVE is remediated *because you pinned Lightwell*, and the pipeline ACS check is actually on. 7.2 is the observation of GAV-bound Lightwell Network metadata (OSV `LW-DEMO-0002` + Maven classifier CDX) versus OS-layer Hummingbird CSAF. Consultants over-claim when they quote RHEL CSAF for a library CVE.
+
+You learn Nexus download + TPA `/api/v3/sbom` and `/api/v3/advisory`, plus blast-radius tokens (`via-lightwell-pin`), because scanners and TPA only recognize the pin if that metadata is ingested. ACS `fail-on-skipped: true` proves the control is not a stub.
+
+Lightwell Clearinghouse Premier member advisories ingest the same way. The report would still say via-Lightwell-pin (member version), never via-upstream and never via-Hummingbird-CSAF.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Download CDX from Nexus and the scored OSV (`LW-DEMO-0002`) — not OpenVEX as a TPA SBOM
-* Ingest those files into TPA and report id + status + GAV + “via Lightwell”
+* Observe TSSC’s continuous-compliance control: TPA shows the Track 2 GAV as remediated via the Lightwell pin, and `acs-image-check` is not skipped
+* Download CDX from Nexus and the scored OSV (`LW-DEMO-0002`), ingest them, and report id + status + GAV + “via Lightwell”
+* Contrast library VEX (Network, and Premier if a member version existed) with OS-layer Hummingbird CSAF
 * Show `acs-image-check` as `passed` or `failed`, not `skipped`
 
 == Layer map: library VEX vs OS CSAF
@@ -21,6 +30,9 @@ By the end of this module, you will be able to:
 image::vex-library-vs-os-layer.png[Library Lightwell GAV VEX versus OS-layer Hummingbird CSAF,width=700,link=self,window=blank]
 
 Consultants over-claim when they quote RHEL/Hummingbird CSAF for a *library* CVE. The scored layer is the `.rhlw-*` GAV you pinned in xref:module-04-remediated-pin.adoc[2.2].
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/111
+image::tssc-artifact-trust-chain.png[End-state trust chain: Hummingbird digest, Lightwell GAV, signed app, TPA VEX,width=700,link=self,window=blank]
 
 == Delivery note
 
@@ -137,6 +149,13 @@ include::partial$validate-job-report.adoc[]
 :validate-job-template: job-18.yaml
 include::partial$validate-job-rerun.adoc[]
 
+== Official documentation
+
+* link:{docs-rhtpa-url}[Trusted Profile Analyzer overview] (SBOM and advisory ingest)
+* link:{docs-rhacs-url}[Evaluate security risks in Advanced Cluster Security]
+* link:{docs-lwn-choose-repo-url}[Lightwell Network Validated vs Remediated]
+* link:{lightwell-product-url}[Lightwell Network and Clearinghouse Premier]
+
 == Callouts (not Checks)
 
 * Hummingbird / RHEL CSAF = OS layer. Do not score it.
@@ -145,5 +164,6 @@ include::partial$validate-job-rerun.adoc[]
 
 == Key takeaways
 
-* Metadata travels with the `.rhlw-*` GAV consultants pin in a PoV.
+* TSSC metadata travels with the `.rhlw-*` GAV consultants pin in a PoV (Lightwell Network; Premier member versions use the same ingest).
 * Wrong-layer VEX is how consultants over-claim.
+* ACS on is a pipeline control, not the 6.1 admission gate.

@@ -7,12 +7,20 @@ Sign the *app* digest you built in xref:module-11-build-sbom.adoc[4.4] — not t
 
 The seeded pipeline already has task `cosign-sign-keyless`. Placeholders in the PipelineRun fail that task until you fill live **in-cluster** Fulcio / Rekor / TUF URLs (`fulcio_internal_url` and friends). Route hints (`fulcio_url_hint`) are for Showroom `cosign verify` only — the build namespace cannot reach them after 4.3.
 
+== How this serves TSSC
+
+TSSC integrity is a signature on *your* application image, distinct from Red Hat’s Hummingbird key and from Lightwell’s signed libraries. 5.1 is the observation that the pipeline SA gets a short-lived Fulcio cert, Rekor records it, and `cosign verify` accepts that identity.
+
+You learn in-cluster Fulcio/Rekor/TUF URLs and the pipeline SA regexp because a Hummingbird key, a fake issuer, or a Route URL after 4.3 is not this control. Admission in Track 6 still needs the 5.3 public key for native ImagePolicy; keep both signatures.
+
+Lightwell Network and Clearinghouse Premier sign *dependencies*. They do not sign this app digest. Premier does not replace RHTAS.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Discover Fulcio, Rekor, and TUF from cluster userinfo (do not invent Route hosts)
-* Get `cosign-sign-keyless` to Succeeded on the learner-built app image
+* Observe TSSC’s app-integrity control: keyless RHTAS sign plus `cosign verify` on the *learner-built* digest (not Hummingbird, not a Lightwell GAV)
+* Discover Fulcio, Rekor, and TUF from cluster userinfo and get `cosign-sign-keyless` to Succeeded
 * `cosign verify` that digest with the pipeline SA identity and Kubernetes OIDC issuer
 * Leave key-based sign + `--key` verify for xref:module-14-disconnected-verify.adoc[5.3]
 
@@ -119,7 +127,12 @@ include::partial$validate-job-rerun.adoc[]
 
 Honor system: 5.2 still opens.
 
+== Official documentation
+
+* link:{docs-rhtas-url}[Trusted Artifact Signer deployment guide] (Fulcio, Rekor, TUF, `cosign`, Conforma)
+* link:{docs-rhtap-tech-url}[Technologies behind Trusted Application Pipeline]
+
 == Key takeaways
 
-* Keyless is the connected path; xref:module-14-disconnected-verify.adoc[5.3] adds a key-based signature on the same digest.
-* You signed the *app*, not only Hummingbird.
+* TSSC keyless signing is the connected path for the *app* digest; xref:module-14-disconnected-verify.adoc[5.3] adds a key-based signature on the same digest.
+* Lightwell Network / Clearinghouse Premier signed the library; they did not sign this image.

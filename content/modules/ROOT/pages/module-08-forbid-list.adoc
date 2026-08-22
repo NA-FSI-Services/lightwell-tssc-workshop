@@ -9,13 +9,25 @@ xref:module-06-bind-base-deps.adoc[3.2] already pointed the *runtime* stage at d
 
 This is not the prefetch Check (xref:module-09-prefetch.adoc[4.2]) and not the NetworkPolicy Check (xref:module-10-build-networkpolicy.adoc[4.3]).
 
+== How this serves TSSC
+
+TSSC hermetic production starts in git, not in a firewall ticket. 4.1 is the observation that Lightwell Network GAVs and dest Hummingbird only enter the image if active `Dockerfile` / `settings.xml` have no public fallback. A Central remote would bypass the proxy you configured in 2.1 the moment prefetch or NetworkPolicy is skipped.
+
+You learn the forbid patterns (`FROM` public registry, `curl`, public Maven index) and the internal ImageStream retarget because 4.3 will make those fetches fail for real. Keep `Dockerfile.known-bad` as the negative fixture 4.4 still uses.
+
+Lightwell Clearinghouse Premier does not add a public index. Member-specific GAVs must resolve from the *same* in-cluster Nexus service URL you point Maven at here.
+
+// VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/112
+image::forbid-list-public-vs-internal.png[Public FROM and Maven Central versus internal ImageStreams and Nexus so Lightwell GAVs stay inside the trust boundary,width=700,link=self,window=blank]
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* List the scored forbid patterns (`FROM` public registry, `curl` to the internet, public Maven index)
-* Edit the files the BuildConfig actually uses until none remain
+* Observe TSSC’s hermetic-source control: active build files pull only internal ImageStreams and the enterprise Lightwell proxy
+* List the scored forbid patterns (`FROM` public registry, `curl` to the internet, public Maven index) and edit the files the BuildConfig actually uses until none remain
 * Keep a known-bad Dockerfile as a negative fixture
+* Explain that Network and Clearinghouse Premier artifacts must use `nexus_internal_url`, not Maven Central
 
 == Seeded violations
 
@@ -101,7 +113,12 @@ Honor system: 4.2 still opens.
 
 On a pip app the same grep is `pypi.org` / public `index-url` in `requirements.txt` and `pip.conf`, not Maven Central. This Check is `Dockerfile` + `settings.xml`.
 
+== Official documentation
+
+* link:{docs-lwn-java-url}[Lightwell Network Java repository] (the remotes that must remain after Central is gone)
+* xref:appendix-konflux-mapping.adoc[Konflux mapping] (hermetic source policies → this Check)
+
 == Key takeaways
 
-* Hermetic starts in source, before NP and prefetch.
-* Mapping: Konflux hermetic source policies → this Check. Product names: xref:appendix-konflux-mapping.adoc[Konflux mapping].
+* TSSC hermetic starts in source, before NP and prefetch.
+* Lightwell Network / Clearinghouse Premier GAVs stay on the internal Nexus service. Mapping: Konflux hermetic source policies → this Check. Product names: xref:appendix-konflux-mapping.adoc[Konflux mapping].

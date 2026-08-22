@@ -7,13 +7,22 @@
 
 In this module you finish the incomplete `ImageSetConfiguration`, start the learner Job from ConfigMap `oc-mirror-tooling`, and `cosign verify` the *internal* digest you record — not only the public digest from xref:module-01-hummingbird-verify.adoc[1.1].
 
+== How this serves TSSC
+
+TSSC’s trust boundary is *inside* the enterprise, not `registry.access.redhat.com` at build time. Builds, GitOps, and admission must pull a dest digest you can still verify. 1.2 is the observation that signatures and the image travel together when you author the ImageSet and run oc-mirror yourself.
+
+You learn `ImageSetConfiguration` and dest coordinates because that file is what a customer bastion runs. Leaving dest empty until you run the Job is the skill; a pre-mirrored claim would only be a screenshot.
+
+Lightwell Network and Clearinghouse Premier consume *Maven/PyPI* through the artifact manager (Track 2), not Docker `additionalImages`. Premier does not change oc-mirror. Both Lightwell models still *depend* on this dest Hummingbird: Track 3 binds `FROM` to the internal digest you record here.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
+* Observe TSSC’s trust-boundary control: the published Hummingbird image, signatures, and SBOM land on an internal dest you can `cosign verify`
 * Replace `REPLACE_ME_HUMMINGBIRD_PULLSPEC` with the live digest pin from userinfo (not the worked-example UBI)
-* Start Job `oc-mirror-learner` from `oc-mirror-tooling` (not a provision Job)
-* Verify the image (and that signatures traveled with it) against the dest digest you recorded
+* Start Job `oc-mirror-learner` from `oc-mirror-tooling` (not a provision Job) and record the *internal* dest digest
+* Explain that Lightwell (Network or Premier) libraries are a different input path (Nexus), while this dest digest is the runtime `FROM` later tracks bind
 
 == Why dest is empty
 
@@ -174,8 +183,14 @@ Do *not*:
 
 A customer dest is often an Artifactory Docker *remote* or local cache, not Nexus hosted Docker `hummingbird-mirror`. Same skill: ImageSet + `oc-mirror` into *their* dest; `cosign verify` the internal digest. This Check is the in-cluster Nexus dest.
 
+== Official documentation
+
+* link:{docs-oc-mirror-url}[Mirroring images with the oc-mirror plugin v2] (`ImageSetConfiguration` `mirror.openshift.io/v2alpha1`, `additionalImages`)
+* link:{docs-hardened-images-url}[Verify the integrity of Red Hat Hardened Images] (same public key as 1.1, now against dest)
+
 == Key takeaways
 
-* Mirror is a learner skill, not a finished cluster.
+* TSSC requires the signed base *inside* the trust boundary. Mirror is a learner skill, not a finished cluster.
 * Internal verify is a different Check from published verify.
 * Signatures stay with the image because the Job copies them onto dest (Nexus stores the tag protocol, not OCI referrers).
+* Lightwell Network / Clearinghouse Premier do not replace this dest; Track 3 `FROM` uses it.

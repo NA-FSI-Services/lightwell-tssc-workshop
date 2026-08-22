@@ -7,13 +7,22 @@ NetworkPolicy `build-egress` on `lw-poc-build` is seeded *too open* (allow-all e
 
 Do *not* copy this policy onto `lw-poc-staging` / `lw-poc-prod`. `app-operate` stays operate (Track 6).
 
+== How this serves TSSC
+
+TSSC hermetic is enforced at the network, not only in grep. 4.3 is the observation that after you tighten `build-egress`, Maven Central, public registries, and even the Nexus *Route* fail from `lw-poc-build`. Lightwell Network GAVs must use the in-cluster Nexus service. Gitea clone must use the in-cluster URL.
+
+You learn namespaceSelectors and pod ports (not Service ports after DNAT) because a missing Gitea/Nexus/RHTAS allow breaks 4.4 and 5.1, and an extra public CIDR undoes the control. Build NP is not app operate.
+
+Lightwell Clearinghouse Premier does not need `packages.redhat.com` on this allow-list. Member artifacts are already in the proxy you allowed.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
+* Observe TSSC’s hermetic-network control: `build-egress` on `lw-poc-build` allows only in-cluster DNS, registry, Nexus (Lightwell), Gitea, and API
 * Replace allow-all egress with the documented allow-list from userinfo (including Gitea and kube API)
-* Confirm the policy is live on `lw-poc-build` only
-* Explain that `registry.redhat.io` is *not* on the scored hermetic list
+* Confirm the policy is live on `lw-poc-build` only, and that `registry.redhat.io` is *not* on the scored hermetic list
+* Explain that Network and Premier remediations keep working through Nexus `8081`, not through a new egress hole
 
 == Two policies, two Checks
 
@@ -109,9 +118,14 @@ include::partial$validate-job-rerun.adoc[]
 
 Honor system: 4.4 still opens. The Check grades the live NetworkPolicy, not a YAML screenshot.
 
+== Official documentation
+
+* link:{docs-networkpolicy-url}[Network policy in OpenShift]
+* link:{docs-lwn-java-url}[Lightwell Network Java repository] (why Nexus `8081` stays on the allow-list)
+
 == Key takeaways
 
-* Build hermetic ≠ app operate.
-* After this tighten, clone and Maven must use in-cluster service URLs, not Routes.
+* TSSC build hermetic ≠ app operate.
+* After this tighten, clone and Maven (Lightwell Network / Premier GAVs) must use in-cluster service URLs, not Routes.
 * Pipeline Fulcio / Rekor / TUF must use `*_internal_url` from `demo-userinfo-rhtas`. Runtime `FROM` must already be the internal dest ImageStream from 4.1.
 * `build-egress` is pod egress. Kubelet Task-image pulls can still reach `registry.access.redhat.com`; do not reopen the policy for that.

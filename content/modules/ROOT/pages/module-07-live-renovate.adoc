@@ -7,13 +7,21 @@ A live Renovate CronJob must open a pull request on `lw-student/spring-boot-lw-p
 
 MintMaker is the name customers use for this bot in client engagements. This cluster does *not* install hosted Konflux MintMaker. Full term map: xref:appendix-konflux-mapping.adoc[Appendix: Konflux mapping].
 
+== How this serves TSSC
+
+TSSC cannot depend on a human noticing a new Lightwell version. 3.3 is the observation that pin refresh is a *bot PR against enterprise git*. You merge like a developer. A student-authored commit on the pins file is not that control.
+
+You learn to recognize `renovate-bot` as author and to wait for the CronJob because that is the PoV talking point: Network (and later Premier) remediations arrive as PRs, not as a paste into `pom.xml`.
+
+Lightwell Network catalog bumps (`.rhlw-00000` → `.rhlw-00001`, dest Hummingbird digest) are what this bot is seeded to see. Lightwell Clearinghouse Premier member-specific versions would appear the same way once Nexus (or Artifactory) has metadata the bot can read.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Identify a PR authored by `renovate-bot` (not `student`)
-* Merge it without recreating the pin change as a manual commit
-* Map “MintMaker” in a client engagement to this in-cluster bot
+* Observe TSSC’s continuous-pin control: a merged PR from `renovate-bot` updates Lightwell and Hummingbird pins, not a hand-edit
+* Identify a PR authored by `renovate-bot` (not `student`) whose files include `lightwell-pins.properties`
+* Map “MintMaker” in a client engagement to this in-cluster bot, and say that Clearinghouse Premier remediations would use the same PR path
 
 == Why a bot PR
 
@@ -104,8 +112,13 @@ Renovate on a PyPI app watches `requirements.txt` (or `pyproject.toml`) for `+rh
 
 At a customer, Renovate (or MintMaker) often reads Maven metadata from Artifactory remotes/virtuals instead of in-cluster Nexus. The Check is still a `renovate-bot` PR on Gitea against this claim’s Nexus.
 
+== Official documentation
+
+* link:{docs-lwn-java-url}[Lightwell Network Java repository] (the metadata Renovate reads through Nexus)
+* xref:appendix-konflux-mapping.adoc[Konflux mapping] (MintMaker → this CronJob)
+
 == Key takeaways
 
-* Consultants run Renovate against enterprise git; this cluster uses Gitea.
-* No `github.com` for learners.
+* TSSC pin refresh is a bot PR on enterprise git (Gitea here; no `github.com` for learners).
+* Lightwell Network catalog bumps are this Check. Clearinghouse Premier member versions would use the same bot against the same proxy.
 * Binding `FROM` / pom default was 3.2; this Check is *who* changed the pins file.

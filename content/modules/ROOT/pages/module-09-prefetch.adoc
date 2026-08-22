@@ -7,13 +7,22 @@ Konflux *Hermeto* (Cachi2) prefetches dependencies into a hermetic Buildah sandb
 
 The seeded pipeline `spring-boot-lw-poc-build-sign` does *not* call this Task. You add it.
 
+== How this serves TSSC
+
+TSSC hermetic build means the compile step cannot reach the internet for jars. 4.2 is the observation that Lightwell Network GAVs are prefetched from the enterprise proxy into `.m2-offline`, then `mvn -o` consumes only that cache. Undeclared deps fail. That is the control customers call Hermeto on hosted Konflux.
+
+You learn Task order (`runAfter` before `openshift-build`) and the Dockerfile `COPY` of the prefetch dir because a Task that runs too late, or a `mvn` without `-o`, still hits the network. After 4.3 that network is gone.
+
+Lightwell Clearinghouse Premier member GAVs prefetch the same way: they must already be in Nexus. Prefetch does not call `packages.redhat.com` itself.
+
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Wire `prefetch-dependencies` with the correct `runAfter` (after clone / dep-gate, *before* `openshift-build`)
+* Observe TSSC’s hermetic-prefetch control: Lightwell dependencies are resolved offline from the enterprise proxy before the image build
+* Wire `prefetch-dependencies` with the correct `runAfter` (after clone / dep-gate, *before* `openshift-build`) and `COPY` `.m2-offline` plus `mvn -o` in the Dockerfile
 * Fail if `settings.xml` still points at public Central
-* Map the client-engagement name “Hermeto” to this Task name
+* Map the client-engagement name “Hermeto” to this Task name; say Premier uses the same Task
 
 == Mapping vs Konflux
 
@@ -107,8 +116,13 @@ Honor system: 4.3 still opens.
 
 A PyPI app prefetches with `pip download` / `pip install --offline` against an internal `--index-url` (Lightwell PyPI on Nexus), not this Maven Task. The worked example uses `pip` on purpose so a paste fails. This Check is `prefetch-dependencies` + `mvn -o`.
 
+== Official documentation
+
+* link:{docs-pipelines-url}[About OpenShift Pipelines] (Tasks, `runAfter`, Pipeline apply)
+* link:{docs-lwn-java-url}[Lightwell Network Java repository] (what prefetch must hit)
+* xref:appendix-konflux-mapping.adoc[Konflux mapping] (Hermeto → `prefetch-dependencies`)
+
 == Key takeaways
 
-* Hermetic prefetch is a Tekton Task on this claim.
-* Do not install Konflux.
-* `oc apply` of the Pipeline does not pull Task images.
+* TSSC hermetic prefetch is a Tekton Task on this claim. Do not install Konflux.
+* Lightwell Network / Clearinghouse Premier GAVs must already be in the proxy. `oc apply` of the Pipeline does not pull Task images.
