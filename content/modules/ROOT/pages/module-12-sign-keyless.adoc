@@ -19,7 +19,7 @@ By the end of this module, you will be able to:
 == Keyless vs keys
 
 // VISUAL: https://github.com/NA-FSI-Services/lightwell-tssc-workshop/issues/65
-image::FIXME-keyless-rhtas-vs-keys.png[Keyless RHTAS Fulcio Rekor TUF versus later key-based verify,width=700,link=self,window=blank]
+image::keyless-rhtas-vs-keys.png[Keyless RHTAS Fulcio Rekor TUF versus later key-based verify,width=700,link=self,window=blank]
 
 Keyless is the *connected* PoV path: the pipeline SA presents an OIDC token, Fulcio issues a short-lived cert, Rekor records the signature, TUF distributes the trust root. Customers who cannot reach Fulcio at verify time still need xref:module-14-disconnected-verify.adoc[5.3].
 
